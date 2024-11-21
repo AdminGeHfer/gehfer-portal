@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RNCPrint } from "@/components/quality/RNCPrint"; // Import the new print component
+import { WhatsappLogo } from "@phosphor-icons/react"; // Import Whatsapp icon
 
 const RNCDetail = () => {
   const navigate = useNavigate();
@@ -110,6 +112,17 @@ const RNCDetail = () => {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleWhatsApp = () => {
+    // Format phone number to remove non-numeric characters
+    const phone = "5511999999999"; // This should come from the RNC data
+    const message = encodeURIComponent(`Olá! Gostaria de falar sobre a RNC #${id}`);
+    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header title="Qualidade" />
@@ -165,9 +178,13 @@ const RNCDetail = () => {
               </div>
               
               <div className="flex gap-2">
-                <Button variant="outline">
+                <Button variant="outline" onClick={handlePrint}>
                   <Printer className="mr-2 h-4 w-4" />
                   Imprimir
+                </Button>
+                <Button variant="outline" onClick={handleWhatsApp}>
+                  <WhatsappLogo className="mr-2 h-4 w-4" />
+                  WhatsApp
                 </Button>
                 <Button 
                   variant="outline"
@@ -286,6 +303,7 @@ const RNCDetail = () => {
                   company: "Empresa Exemplo LTDA",
                   cnpj: "12345678901234",
                   status: "open",
+                  type: "client", // Default value for the type field
                 }}
                 onSubmit={handleEdit}
               />

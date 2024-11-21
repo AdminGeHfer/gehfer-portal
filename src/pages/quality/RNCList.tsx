@@ -7,10 +7,31 @@ import { useNavigate } from "react-router-dom";
 import { RNCForm } from "@/components/quality/RNCForm";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
+import { RNCFormData } from "@/types/rnc";
 
 const RNCList = () => {
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (data: RNCFormData) => {
+    try {
+      // TODO: Implement API integration
+      console.log('Creating RNC:', data);
+      setIsFormOpen(false);
+      toast({
+        title: "RNC criada com sucesso",
+        description: "A RNC foi registrada no sistema.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao criar RNC",
+        description: "Não foi possível criar a RNC.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const rncs = [
     {
@@ -77,7 +98,7 @@ const RNCList = () => {
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
-                <RNCForm />
+                <RNCForm onSubmit={handleSubmit} />
               </DialogContent>
             </Dialog>
           </div>

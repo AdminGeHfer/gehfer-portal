@@ -4,6 +4,7 @@ export interface RNC {
   description: string;
   status: "open" | "in_progress" | "closed";
   priority: "low" | "medium" | "high";
+  type: "client" | "supplier";
   department: string;
   contact: string;
   company: string;
