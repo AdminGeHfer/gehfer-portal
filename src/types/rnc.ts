@@ -6,6 +6,10 @@ export interface RNC {
   priority: "low" | "medium" | "high";
   department: string;
   contact: string;
+  company: string;
+  cnpj: string;
+  orderNumber?: string;
+  returnNumber?: string;
   createdAt: string;
   updatedAt: string;
   closedAt?: string;
@@ -29,5 +33,11 @@ export interface RNCFormData {
   priority: "low" | "medium" | "high";
   department: string;
   contact: string;
+  company: string;
+  cnpj: string;
+  orderNumber?: string;
+  returnNumber?: string;
+  status: "open" | "in_progress" | "closed";
+  assignedTo?: string;
   attachments?: File[];
 }

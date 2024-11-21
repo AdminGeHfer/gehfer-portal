@@ -29,29 +29,44 @@ const formSchema = z.object({
   priority: z.enum(["low", "medium", "high"]),
   department: z.string().min(1, "O departamento é obrigatório"),
   contact: z.string().min(1, "O contato é obrigatório"),
+  orderNumber: z.string().optional(),
+  returnNumber: z.string().optional(),
+  company: z.string().min(1, "A empresa é obrigatória"),
+  cnpj: z.string().min(14, "CNPJ inválido").max(14),
+  status: z.enum(["open", "in_progress", "closed"]).default("open"),
+  assignedTo: z.string().optional(),
 });
 
-export function RNCForm() {
+interface RNCFormProps {
+  initialData?: Partial<RNCFormData>;
+  onSubmit: (data: RNCFormData) => void;
+  mode?: "create" | "edit";
+}
+
+export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps) {
   const { toast } = useToast();
   const form = useForm<RNCFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       priority: "medium",
+      status: "open",
+      ...initialData,
     },
   });
 
-  const onSubmit = async (data: RNCFormData) => {
+  const handleSubmit = async (data: RNCFormData) => {
     try {
-      // TODO: Implement Supabase integration
+      await onSubmit(data);
       toast({
-        title: "RNC registrada com sucesso",
-        description: "A RNC foi criada e será analisada em breve.",
+        title: mode === "create" ? "RNC registrada com sucesso" : "RNC atualizada com sucesso",
+        description: mode === "create" 
+          ? "A RNC foi criada e será analisada em breve."
+          : "As alterações foram salvas com sucesso.",
       });
-      console.log(data);
     } catch (error) {
       toast({
-        title: "Erro ao registrar RNC",
-        description: "Ocorreu um erro ao tentar registrar a RNC.",
+        title: "Erro ao processar RNC",
+        description: "Ocorreu um erro ao tentar processar a RNC.",
         variant: "destructive",
       });
     }
@@ -60,11 +75,11 @@ export function RNCForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Nova RNC</CardTitle>
+        <CardTitle>{mode === "create" ? "Nova RNC" : "Editar RNC"}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="title"
@@ -78,6 +93,62 @@ export function RNCForm() {
                 </FormItem>
               )}
             />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="orderNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nº do Pedido</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Digite o número do pedido" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="returnNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nº da Devolução</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Digite o número da devolução" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Empresa</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome da empresa" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cnpj"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CNPJ</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Digite o CNPJ" maxLength={14} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="description"
@@ -95,59 +166,88 @@ export function RNCForm() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prioridade</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prioridade</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a prioridade" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="open">Aberto</SelectItem>
+                        <SelectItem value="in_progress">Em Andamento</SelectItem>
+                        <SelectItem value="closed">Fechado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="department"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Departamento</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a prioridade" />
-                      </SelectTrigger>
+                      <Input placeholder="Departamento responsável" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="department"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Departamento</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Departamento responsável" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="contact"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contato</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nome do responsável" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contact"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contato</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do responsável" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <Button type="submit" className="w-full">
-              Registrar RNC
+              {mode === "create" ? "Registrar RNC" : "Salvar Alterações"}
             </Button>
           </form>
         </Form>
