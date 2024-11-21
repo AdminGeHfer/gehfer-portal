@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Printer, Trash, UserPlus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { RNCTimeline } from "@/components/quality/RNCTimeline";
+import { RNCPrintLayout } from "@/components/quality/RNCPrintLayout";
 import {
   Dialog,
   DialogContent,
@@ -21,8 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RNCPrint } from "@/components/quality/RNCPrint"; // Import the new print component
-import { WhatsappLogo } from "@phosphor-icons/react"; // Import Whatsapp icon
+import { WhatsappLogo } from "@phosphor-icons/react";
 
 const RNCDetail = () => {
   const navigate = useNavigate();
@@ -31,31 +31,34 @@ const RNCDetail = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
-  // Example timeline events
-  const timelineEvents = [
-    {
-      id: "1",
-      date: "15/03/2024 07:00",
-      title: "RNC Criada",
-      description: "RNC registrada no sistema",
-      type: "creation" as const,
-    },
-    {
-      id: "2",
-      date: "15/03/2024 08:30",
-      title: "Atualização de Status",
-      description: "Status alterado para 'Em Análise'",
-      type: "status" as const,
-    },
-    {
-      id: "3",
-      date: "15/03/2024 14:15",
-      title: "Comentário Adicionado",
-      description: "Análise inicial realizada, aguardando feedback do fornecedor",
-      type: "comment" as const,
-    },
-  ];
+  // Example RNC data - in a real app, this would come from an API
+  const rnc = {
+    id: id,
+    title: "Produto entregue com defeito",
+    description: "Cliente relatou que o produto chegou com arranhões",
+    status: "open",
+    priority: "medium",
+    type: "client",
+    department: "Produção",
+    contact: "João da Silva",
+    company: "Empresa Exemplo LTDA",
+    cnpj: "12.345.678/0001-90",
+    orderNumber: "PED-2024-001",
+    returnNumber: "DEV-2024-001",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    timeline: []
+  };
+
+  const handlePrint = () => {
+    setIsPrinting(true);
+    setTimeout(() => {
+      window.print();
+      setIsPrinting(false);
+    }, 100);
+  };
 
   const handleEdit = async (data: any) => {
     try {
@@ -112,16 +115,16 @@ const RNCDetail = () => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleWhatsApp = () => {
     // Format phone number to remove non-numeric characters
     const phone = "5511999999999"; // This should come from the RNC data
     const message = encodeURIComponent(`Olá! Gostaria de falar sobre a RNC #${id}`);
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
+
+  if (isPrinting) {
+    return <RNCPrintLayout rnc={rnc} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -286,7 +289,7 @@ const RNCDetail = () => {
           </div>
 
           <div className="mt-6">
-            <RNCTimeline events={timelineEvents} />
+            <RNCTimeline events={[]} />
           </div>
 
           {/* Edit Dialog */}

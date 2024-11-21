@@ -134,3 +134,24 @@
 .card-hover {
   @apply transition-all duration-200 hover:shadow-lg dark:hover:shadow-primary/5;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-content, .print-content * {
+    visibility: visible;
+  }
+
+  .print-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  @page {
+    margin: 2cm;
+  }
+}
