@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Apps from "./pages/Apps";
+import RNCList from "./pages/quality/RNCList";
+import RNCDetail from "./pages/quality/RNCDetail";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +21,8 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/apps" element={<Apps />} />
           <Route path="/" element={<Index />} />
+          <Route path="/quality/rnc" element={<RNCList />} />
+          <Route path="/quality/rnc/:id" element={<RNCDetail />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

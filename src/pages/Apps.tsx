@@ -1,63 +1,66 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, Settings } from "lucide-react";
+import { ClipboardCheck, Users } from "lucide-react";
 
 const Apps = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-secondary/30">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-heading font-bold text-primary">GeHfer Portal</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold mb-8">Módulos Disponíveis</h2>
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-semibold mb-2">Selecione um módulo para começar</h2>
+          <p className="text-gray-500 mb-8">Acesse as ferramentas e recursos disponíveis</p>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate("/")}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">Qualidade</CardTitle>
-                <ClipboardList className="h-6 w-6 text-primary" />
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card 
+              className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
+              onClick={() => navigate("/quality")}
+            >
+              <div className="bg-gray-100 p-8 flex justify-center items-center group-hover:bg-gray-200 transition-colors">
+                <ClipboardCheck className="h-12 w-12 text-gray-600" />
               </div>
-              <CardDescription>
-                Gestão de RNCs e indicadores de qualidade
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Acesse o módulo de qualidade para gerenciar RNCs e acompanhar indicadores
-              </p>
-            </CardContent>
-          </Card>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-2">Qualidade</h3>
+                <p className="text-gray-500 mb-4">Gestão de qualidade e controle de processos</p>
+                <div className="flex items-center text-primary hover:underline">
+                  Acessar módulo
+                </div>
+              </div>
+            </Card>
 
-          <Card 
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate("/admin")}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl">Administração</CardTitle>
-                <Settings className="h-6 w-6 text-primary" />
+            <Card 
+              className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
+              onClick={() => navigate("/admin")}
+            >
+              <div className="bg-gray-100 p-8 flex justify-center items-center group-hover:bg-gray-200 transition-colors">
+                <Users className="h-12 w-12 text-gray-600" />
               </div>
-              <CardDescription>
-                Configurações e administração do sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Gerencie usuários, permissões e configurações do sistema
-              </p>
-            </CardContent>
-          </Card>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-2">Administração</h3>
+                <p className="text-gray-500 mb-4">Ferramentas para gerenciar sua equipe e recursos</p>
+                <div className="flex items-center text-primary hover:underline">
+                  Acessar módulo
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </main>
+
+      <footer className="fixed bottom-0 w-full border-t bg-white p-4">
+        <div className="container mx-auto flex justify-between items-center text-sm text-gray-500">
+          <span>© 2024 GeHfer. Todos os direitos reservados.</span>
+          <div className="flex gap-4">
+            <button className="hover:text-gray-900">Sobre</button>
+            <button className="hover:text-gray-900">Ajuda</button>
+            <span>v1.0.0</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
