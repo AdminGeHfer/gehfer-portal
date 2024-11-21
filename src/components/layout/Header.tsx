@@ -13,12 +13,12 @@ export function Header({ title = "Portal GeHfer", email = "john@example.com", us
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="border-b bg-background">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-4">
           {title === "Portal GeHfer" ? (
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <span className="text-lg font-semibold">G</span>
               </div>
               <h1 className="text-xl font-semibold">{title}</h1>
@@ -35,6 +35,7 @@ export function Header({ title = "Portal GeHfer", email = "john@example.com", us
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="text-foreground"
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5" />
@@ -42,10 +43,10 @@ export function Header({ title = "Portal GeHfer", email = "john@example.com", us
               <Moon className="h-5 w-5" />
             )}
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="text-foreground">
             <Settings className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="text-foreground">
             <LogOut className="h-5 w-5" />
           </Button>
           <Avatar>
