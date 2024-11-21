@@ -10,6 +10,7 @@ import Apps from "./pages/Apps";
 import RNCList from "./pages/quality/RNCList";
 import RNCDetail from "./pages/quality/RNCDetail";
 import Dashboard from "./pages/quality/Dashboard";
+import Users from "./pages/admin/Users";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/quality/dashboard" element={<Dashboard />} />
             <Route path="/quality/rnc" element={<RNCList />} />
             <Route path="/quality/rnc/:id" element={<RNCDetail />} />
+            <Route path="/admin/users" element={<Users />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>
