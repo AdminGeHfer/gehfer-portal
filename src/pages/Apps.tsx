@@ -18,7 +18,7 @@ const Apps = () => {
           <div className="grid gap-6 md:grid-cols-2">
             <Card 
               className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
-              onClick={() => navigate("/quality")}
+              onClick={() => navigate("/quality/rnc")}
             >
               <div className="bg-gray-100 p-8 flex justify-center items-center group-hover:bg-gray-200 transition-colors">
                 <ClipboardCheck className="h-12 w-12 text-gray-600" />
