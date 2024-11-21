@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
+import { RNCFileUpload } from "./form/RNCFileUpload";
 
 const formSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
@@ -22,6 +23,7 @@ const formSchema = z.object({
   cnpj: z.string().min(14, "CNPJ inválido").max(14),
   status: z.enum(["open", "in_progress", "closed"]).default("open"),
   assignedTo: z.string().optional(),
+  attachments: z.array(z.instanceof(File)).optional(),
 });
 
 interface RNCFormProps {
@@ -61,7 +63,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
   };
 
   return (
-    <Card className="dark:bg-gray-800 animate-scale-in">
+    <Card className="dark:bg-gray-800/95 backdrop-blur-lg animate-scale-in">
       <CardHeader>
         <CardTitle className="dark:text-white">
           {mode === "create" ? "Nova RNC" : "Editar RNC"}
@@ -72,7 +74,8 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <RNCBasicInfo form={form} />
             <RNCCompanyInfo form={form} />
-            <Button type="submit" className="w-full">
+            <RNCFileUpload form={form} />
+            <Button type="submit" className="w-full hover:scale-[1.02] transition-transform">
               {mode === "create" ? "Registrar RNC" : "Salvar Alterações"}
             </Button>
           </form>

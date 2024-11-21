@@ -15,7 +15,7 @@ export interface RNC {
   updatedAt: string;
   closedAt?: string;
   assignedTo?: string;
-  attachments?: string[];
+  attachments?: File[];
   timeline: TimelineEvent[];
 }
 

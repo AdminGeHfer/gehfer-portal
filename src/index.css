@@ -59,18 +59,50 @@
     @apply bg-background text-foreground font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading;
+    @apply font-sans font-semibold;
   }
 }
 
 .glass-morphism {
-  @apply bg-background/80 backdrop-blur-lg border border-border/50;
+  @apply bg-background/80 backdrop-blur-lg border border-border/50 dark:bg-gray-800/95;
 }
 
 .neo-blur {
   backdrop-filter: blur(16px) saturate(180%);
 }
 
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Custom scrollbar para modo escuro */
 .dark ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -87,4 +119,18 @@
 
 .dark ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground));
+}
+
+/* Hover effects */
+.hover-scale {
+  @apply transition-transform duration-200 hover:scale-105;
+}
+
+.hover-lift {
+  @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-lg;
+}
+
+/* Card styles */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-lg dark:hover:shadow-primary/5;
 }
