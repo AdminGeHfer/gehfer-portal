@@ -13,24 +13,24 @@ export function Header({ title = "Portal GeHfer", email = "john@example.com", us
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="border-b bg-white dark:bg-gray-800 dark:border-gray-700">
+    <header className="border-b bg-background">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-4">
           {title === "Portal GeHfer" ? (
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-200 dark:bg-gray-700">
-                <span className="text-lg font-semibold dark:text-white">G</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted">
+                <span className="text-lg font-semibold">G</span>
               </div>
-              <h1 className="text-xl font-semibold dark:text-white">{title}</h1>
+              <h1 className="text-xl font-semibold">{title}</h1>
             </div>
           ) : (
-            <h1 className="text-xl font-semibold dark:text-white">{title}</h1>
+            <h1 className="text-xl font-semibold">{title}</h1>
           )}
         </div>
         
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600 dark:text-gray-300">Bem-vindo, {userName}</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">{email}</span>
+          <span className="text-sm text-muted-foreground">Bem-vindo, {userName}</span>
+          <span className="text-sm text-muted-foreground">{email}</span>
           <Button
             variant="ghost"
             size="icon"
