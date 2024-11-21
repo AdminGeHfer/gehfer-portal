@@ -152,11 +152,12 @@
     width: 100%;
     background: none !important;
     box-shadow: none !important;
+    font-size: 11pt;
   }
 
   @page {
-    margin: 2cm;
-    size: auto;
+    margin: 1.5cm;
+    size: A4 portrait;
   }
 
   header, 
