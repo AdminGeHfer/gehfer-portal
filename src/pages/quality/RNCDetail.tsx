@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WhatsappLogo } from "@phosphor-icons/react";
+import { RNC } from "@/types/rnc";
 
 const RNCDetail = () => {
   const navigate = useNavigate();
@@ -34,11 +35,11 @@ const RNCDetail = () => {
   const [isPrinting, setIsPrinting] = useState(false);
 
   // Example RNC data - in a real app, this would come from an API
-  const rnc = {
-    id: id,
+  const rnc: RNC = {
+    id: id || "",
     title: "Produto entregue com defeito",
     description: "Cliente relatou que o produto chegou com arranhões",
-    status: "open",
+    status: "open" as const,
     priority: "medium",
     type: "client",
     department: "Produção",
