@@ -140,8 +140,9 @@
     visibility: hidden;
   }
   
-  .print-content, .print-content * {
-    visibility: visible;
+  .print-content, 
+  .print-content * {
+    visibility: visible !important;
   }
 
   .print-content {
@@ -149,9 +150,21 @@
     left: 0;
     top: 0;
     width: 100%;
+    background: none !important;
+    box-shadow: none !important;
   }
 
   @page {
     margin: 2cm;
+    size: auto;
+  }
+
+  header, 
+  nav, 
+  aside, 
+  footer,
+  .no-print {
+    display: none !important;
   }
 }
+

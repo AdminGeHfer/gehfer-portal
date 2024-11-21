@@ -7,7 +7,7 @@ interface RNCPrintLayoutProps {
 
 export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
   return (
-    <div className="p-8 max-w-4xl mx-auto bg-white print:p-4 print:max-w-none print:mx-0">
+    <div className="print-content p-8 max-w-4xl mx-auto bg-white">
       {/* Header */}
       <div className="flex justify-between items-center border-b pb-6 mb-6">
         <div>

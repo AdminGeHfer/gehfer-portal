@@ -128,7 +128,7 @@ const RNCDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 no-print">
       <Header title="Qualidade" />
       
       <div className="flex min-h-screen">
