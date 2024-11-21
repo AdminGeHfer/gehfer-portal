@@ -27,6 +27,7 @@ const formSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
   description: z.string().min(1, "A descrição é obrigatória"),
   priority: z.enum(["low", "medium", "high"]),
+  type: z.enum(["client", "supplier"]),
   department: z.string().min(1, "O departamento é obrigatório"),
   contact: z.string().min(1, "O contato é obrigatório"),
   orderNumber: z.string().optional(),
@@ -50,6 +51,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
     defaultValues: {
       priority: "medium",
       status: "open",
+      type: "client",
       ...initialData,
     },
   });
@@ -73,9 +75,9 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
   };
 
   return (
-    <Card>
+    <Card className="dark:bg-gray-800">
       <CardHeader>
-        <CardTitle>{mode === "create" ? "Nova RNC" : "Editar RNC"}</CardTitle>
+        <CardTitle className="dark:text-white">{mode === "create" ? "Nova RNC" : "Editar RNC"}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -85,10 +87,31 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título</FormLabel>
+                  <FormLabel className="dark:text-gray-200">Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Digite o título da RNC" {...field} />
+                    <Input placeholder="Digite o título da RNC" {...field} className="dark:bg-gray-700 dark:text-white" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="dark:text-gray-200">Tipo de RNC</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="dark:bg-gray-700 dark:text-white">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="client">Cliente</SelectItem>
+                      <SelectItem value="supplier">Fornecedor</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -246,7 +269,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
                 )}
               />
             </div>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full dark:bg-blue-600 dark:hover:bg-blue-700">
               {mode === "create" ? "Registrar RNC" : "Salvar Alterações"}
             </Button>
           </form>

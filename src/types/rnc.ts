@@ -32,6 +32,7 @@ export interface RNCFormData {
   title: string;
   description: string;
   priority: "low" | "medium" | "high";
+  type: "client" | "supplier";
   department: string;
   contact: string;
   company: string;
