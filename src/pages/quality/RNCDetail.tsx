@@ -2,9 +2,35 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Printer, Trash, UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { RNCTimeline } from "@/components/quality/RNCTimeline";
 
 const RNCDetail = () => {
   const navigate = useNavigate();
+
+  // Example timeline events
+  const timelineEvents = [
+    {
+      id: "1",
+      date: "15/03/2024 07:00",
+      title: "RNC Criada",
+      description: "RNC registrada no sistema",
+      type: "creation" as const,
+    },
+    {
+      id: "2",
+      date: "15/03/2024 08:30",
+      title: "Atualização de Status",
+      description: "Status alterado para 'Em Análise'",
+      type: "status" as const,
+    },
+    {
+      id: "3",
+      date: "15/03/2024 14:15",
+      title: "Comentário Adicionado",
+      description: "Análise inicial realizada, aguardando feedback do fornecedor",
+      type: "comment" as const,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,6 +179,10 @@ const RNCDetail = () => {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div className="mt-6">
+            <RNCTimeline events={timelineEvents} />
           </div>
         </main>
       </div>
