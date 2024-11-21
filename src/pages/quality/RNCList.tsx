@@ -2,11 +2,15 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Filter, Plus } from "lucide-react";
+import { Filter, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { RNCForm } from "@/components/quality/RNCForm";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const RNCList = () => {
   const navigate = useNavigate();
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const rncs = [
     {
@@ -39,7 +43,6 @@ const RNCList = () => {
               className="w-full justify-start"
               onClick={() => navigate("/apps")}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
               Voltar para Apps
             </Button>
           </div>
@@ -66,10 +69,17 @@ const RNCList = () => {
               <h1 className="text-2xl font-semibold mb-2">Registro de Não Conformidade (RNC)</h1>
               <p className="text-gray-500">Gerencie todas as não conformidades registradas</p>
             </div>
-            <Button onClick={() => navigate("/quality/rnc/new")}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova RNC
-            </Button>
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nova RNC
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <RNCForm />
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex gap-4 mb-6">
