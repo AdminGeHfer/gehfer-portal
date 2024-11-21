@@ -1,69 +1,51 @@
-# Welcome to your Lovable project
+# Portal GeHfer
 
-## Project info
+O Portal GeHfer é uma aplicação web modular para gerenciamento de operações empresariais, com foco inicial nos módulos de Qualidade e Administração.
 
-**URL**: https://lovable.dev/projects/94ed982c-90e4-489c-8b62-1feafa1eadbb
+## Tecnologias Utilizadas
 
-## How can I edit this code?
+- React com TypeScript
+- Tailwind CSS para estilização
+- Supabase para backend e autenticação
+- Shadcn/UI para componentes de interface
 
-There are several ways of editing your application.
+## Módulos
 
-**Use Lovable**
+### Módulo de Qualidade
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/94ed982c-90e4-489c-8b62-1feafa1eadbb) and start prompting.
+- Dashboard com KPIs de RNCs
+- Gerenciamento de RNCs (Registros de Não Conformidade)
+- Relatórios e análises
 
-Changes made via Lovable will be committed automatically to this repo.
+### Módulo de Administração
 
-**Use your preferred IDE**
+- Gerenciamento de usuários
+- Configurações do sistema
+- Controle de acesso
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Como executar o projeto
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```bash
+# Instalar dependências
+npm install
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar em modo desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Estrutura do Projeto
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```
+src/
+  ├── components/     # Componentes reutilizáveis
+  ├── pages/         # Páginas da aplicação
+  ├── lib/           # Utilitários e configurações
+  └── styles/        # Estilos globais
+```
 
-**Use GitHub Codespaces**
+## Próximos Passos
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/94ed982c-90e4-489c-8b62-1feafa1eadbb) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+- [ ] Implementar autenticação com Supabase
+- [ ] Desenvolver CRUD completo de RNCs
+- [ ] Adicionar módulo de administração
+- [ ] Implementar relatórios avançados
