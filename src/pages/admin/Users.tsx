@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { UserForm } from "@/components/admin/UserForm";
 import { useUsers } from "@/hooks/useUsers";
+import { BackButton } from "@/components/atoms/BackButton";
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,7 +25,9 @@ export default function Users() {
     <div className="min-h-screen bg-background">
       <Header title="Gerenciamento de Usuários" />
       
-      <main className="container mx-auto p-6 space-y-6">
+      <main className="container mx-auto p-6 space-y-6 animate-fade-in">
+        <BackButton to="/apps" label="Voltar para Apps" />
+        
         <div className="flex justify-between items-center">
           <div className="flex gap-4 flex-1 max-w-sm">
             <div className="relative flex-1">
@@ -40,7 +43,7 @@ export default function Users() {
           
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="hover:shadow-lg transition-all">
                 <UserPlus className="mr-2 h-4 w-4" />
                 Novo Usuário
               </Button>
@@ -54,7 +57,7 @@ export default function Users() {
           </Dialog>
         </div>
 
-        <div className="border rounded-lg">
+        <div className="border rounded-lg overflow-hidden glass-morphism">
           <Table>
             <TableHeader>
               <TableRow>
@@ -71,7 +74,7 @@ export default function Users() {
                   <TableCell colSpan={5} className="text-center">Carregando...</TableCell>
                 </TableRow>
               ) : filteredUsers?.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow key={user.id} className="hover:bg-primary/5">
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
@@ -84,7 +87,7 @@ export default function Users() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={user.active ? "success" : "destructive"}>
+                    <Badge variant={user.active ? "default" : "destructive"}>
                       {user.active ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
