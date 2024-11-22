@@ -10,7 +10,7 @@ import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
-import { ArrowLeft, ArrowRight, X } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -79,12 +79,14 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
   };
 
   const nextStep = () => {
-    const fields = step === 1 
-      ? ["company", "cnpj", "department"] 
-      : ["contact.name", "contact.email", "description"];
-    
-    const isValid = fields.every(field => {
-      const value = form.getValues(field);
+    const requiredFields = {
+      1: ["company", "cnpj", "department"],
+      2: ["contact.name", "contact.email", "description"]
+    };
+
+    const currentFields = requiredFields[step as keyof typeof requiredFields];
+    const isValid = currentFields.every(field => {
+      const value = form.getValues(field as any);
       return value && value.length > 0;
     });
 
@@ -100,19 +102,21 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-[#1a1f2c] text-white">
-      <CardHeader className="relative border-b border-gray-700">
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader className="relative border-b">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute left-4 top-4 hover:bg-gray-700"
+          className="absolute left-4 top-4"
           onClick={() => navigate(-1)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="ml-12">
           <CardTitle className="text-2xl font-bold">Nova RNC</CardTitle>
-          <p className="text-gray-400 text-sm mt-1">Registre uma nova não conformidade</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Registre uma nova não conformidade
+          </p>
         </div>
       </CardHeader>
       
@@ -140,7 +144,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
               </div>
             )}
 
-            <div className="flex justify-end gap-4 pt-6 border-t border-gray-700">
+            <div className="flex justify-end gap-4 pt-6 border-t">
               {step === 2 ? (
                 <>
                   <Button
@@ -153,7 +157,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
                   </Button>
                   <Button
                     type="submit"
-                    className="w-32 bg-blue-600 hover:bg-blue-700"
+                    className="w-32"
                   >
                     Finalizar
                   </Button>
@@ -162,7 +166,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
                 <Button
                   type="button"
                   onClick={nextStep}
-                  className="w-32 bg-blue-600 hover:bg-blue-700"
+                  className="w-32"
                 >
                   Avançar
                   <ArrowRight className="ml-2 h-4 w-4" />
