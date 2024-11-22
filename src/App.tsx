@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Apps from "./pages/Apps";
 import RNCList from "./pages/quality/RNCList";
@@ -24,12 +23,12 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/apps" element={<Apps />} />
-            <Route path="/" element={<Index />} />
             <Route path="/quality" element={<Navigate to="/quality/dashboard" replace />} />
             <Route path="/quality/dashboard" element={<Dashboard />} />
             <Route path="/quality/rnc" element={<RNCList />} />
             <Route path="/quality/rnc/:id" element={<RNCDetail />} />
             <Route path="/admin/users" element={<Users />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>
