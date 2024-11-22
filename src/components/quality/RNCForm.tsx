@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
+import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
 
 const formSchema = z.object({
@@ -16,7 +17,11 @@ const formSchema = z.object({
   priority: z.enum(["low", "medium", "high"]),
   type: z.enum(["client", "supplier"]),
   department: z.string().min(1, "O departamento é obrigatório"),
-  contact: z.string().min(1, "O contato é obrigatório"),
+  contact: z.object({
+    name: z.string().min(1, "O nome do contato é obrigatório"),
+    phone: z.string().min(1, "O telefone é obrigatório"),
+    email: z.string().email("Email inválido"),
+  }),
   orderNumber: z.string().optional(),
   returnNumber: z.string().optional(),
   company: z.string().min(1, "A empresa é obrigatória"),
@@ -40,6 +45,11 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       priority: "medium",
       status: "open",
       type: "client",
+      contact: {
+        name: "",
+        phone: "",
+        email: "",
+      },
       ...initialData,
     },
   });
@@ -74,6 +84,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <RNCBasicInfo form={form} />
             <RNCCompanyInfo form={form} />
+            <RNCContactInfo form={form} />
             <RNCFileUpload form={form} />
             <Button type="submit" className="w-full hover:scale-[1.02] transition-transform">
               {mode === "create" ? "Registrar RNC" : "Salvar Alterações"}

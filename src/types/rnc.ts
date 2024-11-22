@@ -6,7 +6,11 @@ export interface RNC {
   priority: "low" | "medium" | "high";
   type: "client" | "supplier";
   department: string;
-  contact: string;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
   company: string;
   cnpj: string;
   orderNumber?: string;
@@ -34,7 +38,11 @@ export interface RNCFormData {
   priority: "low" | "medium" | "high";
   type: "client" | "supplier";
   department: string;
-  contact: string;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
   company: string;
   cnpj: string;
   orderNumber?: string;
