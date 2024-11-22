@@ -78,8 +78,16 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="font-medium text-gray-500">Contato</p>
-                <p>{rnc.contact}</p>
+                <p className="font-medium text-gray-500">Nome</p>
+                <p>{rnc.contact.name}</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-500">Telefone</p>
+                <p>{rnc.contact.phone}</p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-500">Email</p>
+                <p>{rnc.contact.email}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-500">Departamento</p>

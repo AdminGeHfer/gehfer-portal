@@ -73,7 +73,15 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
         <CardContent className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-500">Nome</p>
-            <p>{rnc.contact}</p>
+            <p>{rnc.contact.name}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Telefone</p>
+            <p>{rnc.contact.phone}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Email</p>
+            <p>{rnc.contact.email}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Departamento</p>
