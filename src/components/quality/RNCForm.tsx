@@ -10,6 +10,8 @@ import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
+import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
   title: z.string().min(1, "O título é obrigatório"),
@@ -39,6 +41,7 @@ interface RNCFormProps {
 
 export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const form = useForm<RNCFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,22 +76,65 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
   };
 
   return (
-    <Card className="dark:bg-gray-800/95 backdrop-blur-lg animate-scale-in">
-      <CardHeader>
-        <CardTitle className="dark:text-white">
+    <Card className="w-full max-w-4xl mx-auto dark:bg-gray-800/95 backdrop-blur-lg animate-scale-in">
+      <CardHeader className="relative border-b dark:border-gray-700">
+        <CardTitle className="text-2xl font-bold dark:text-white">
           {mode === "create" ? "Nova RNC" : "Editar RNC"}
         </CardTitle>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-4 top-4 hover:bg-gray-100 dark:hover:bg-gray-700"
+          onClick={() => navigate(-1)}
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <RNCBasicInfo form={form} />
-            <RNCCompanyInfo form={form} />
-            <RNCContactInfo form={form} />
-            <RNCFileUpload form={form} />
-            <Button type="submit" className="w-full hover:scale-[1.02] transition-transform">
-              {mode === "create" ? "Registrar RNC" : "Salvar Alterações"}
-            </Button>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-8">
+                <div className="bg-white/5 p-6 rounded-lg border dark:border-gray-700 shadow-sm">
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white">Informações Básicas</h3>
+                  <RNCBasicInfo form={form} />
+                </div>
+                
+                <div className="bg-white/5 p-6 rounded-lg border dark:border-gray-700 shadow-sm">
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white">Informações da Empresa</h3>
+                  <RNCCompanyInfo form={form} />
+                </div>
+              </div>
+              
+              <div className="space-y-8">
+                <div className="bg-white/5 p-6 rounded-lg border dark:border-gray-700 shadow-sm">
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white">Informações de Contato</h3>
+                  <RNCContactInfo form={form} />
+                </div>
+                
+                <div className="bg-white/5 p-6 rounded-lg border dark:border-gray-700 shadow-sm">
+                  <h3 className="text-lg font-semibold mb-4 dark:text-white">Anexos</h3>
+                  <RNCFileUpload form={form} />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 pt-4 border-t dark:border-gray-700">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(-1)}
+                className="w-32 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                className="w-32 bg-primary hover:bg-primary/90"
+              >
+                {mode === "create" ? "Criar RNC" : "Salvar"}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>
