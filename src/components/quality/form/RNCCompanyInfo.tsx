@@ -16,62 +16,60 @@ interface RNCCompanyInfoProps {
 export const RNCCompanyInfo = ({ form }: RNCCompanyInfoProps) => {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="company"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Razão Social</FormLabel>
-              <FormControl>
-                <Input placeholder="Nome da empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="cnpj"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>CNPJ</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o CNPJ" maxLength={14} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="orderNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nº do Pedido</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o número do pedido" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="returnNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nº da Devolução</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o número da devolução" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-gray-300">Razão Social</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Nome da empresa" 
+                className="bg-[#1e2330] border-gray-700 text-white"
+                {...field} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="cnpj"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-gray-300">CNPJ</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="00.000.000/0000-00" 
+                maxLength={14} 
+                className="bg-[#1e2330] border-gray-700 text-white"
+                {...field} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="orderNumber"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-gray-300">Nº do Pedido</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Digite o número do pedido" 
+                className="bg-[#1e2330] border-gray-700 text-white"
+                {...field} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 };

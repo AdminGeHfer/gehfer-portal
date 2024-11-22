@@ -26,27 +26,83 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="title"
+        name="department"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Título</FormLabel>
-            <FormControl>
-              <Input placeholder="Digite o título da RNC" {...field} />
-            </FormControl>
+            <FormLabel className="text-gray-300">Departamento</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className="bg-[#1e2330] border-gray-700">
+                  <SelectValue placeholder="Selecione o departamento" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="producao">Produção</SelectItem>
+                <SelectItem value="qualidade">Qualidade</SelectItem>
+                <SelectItem value="comercial">Comercial</SelectItem>
+                <SelectItem value="logistica">Logística</SelectItem>
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      <FormField
+        control={form.control}
+        name="type"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-gray-300">Tipo</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className="bg-[#1e2330] border-gray-700">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="client">Cliente</SelectItem>
+                <SelectItem value="supplier">Fornecedor</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="priority"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-gray-300">Prioridade</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className="bg-[#1e2330] border-gray-700">
+                  <SelectValue placeholder="Selecione a prioridade" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="low">Baixa</SelectItem>
+                <SelectItem value="medium">Média</SelectItem>
+                <SelectItem value="high">Alta</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Descrição</FormLabel>
+            <FormLabel className="text-gray-300">Descrição</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Descreva detalhadamente a não conformidade"
-                className="min-h-[100px]"
+                className="min-h-[100px] bg-[#1e2330] border-gray-700 text-white"
                 {...field}
               />
             </FormControl>
@@ -54,43 +110,6 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
           </FormItem>
         )}
       />
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name="department"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Departamento</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o departamento" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="priority"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Prioridade</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a prioridade" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="medium">Média</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
     </div>
   );
 };
