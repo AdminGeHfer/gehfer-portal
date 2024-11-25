@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 import { Upload, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,93 +13,78 @@ interface RNCFileUploadProps {
   rncId?: string;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
-const ALLOWED_FILE_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'image/jpeg',
-  'image/png'
-];
-
 export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-
-  const validateFile = (file: File) => {
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error(`O arquivo ${file.name} excede o limite de 10MB`);
-      return false;
-    }
-    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      toast.error(`O tipo de arquivo ${file.type} não é permitido`);
-      return false;
-    }
-    return true;
-  };
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const validFiles = files.filter(validateFile);
     
-    if (!validFiles.length) return;
-
-    if (rncId) {
-      await uploadFiles(validFiles);
-    } else {
-      setSelectedFiles(prev => [...prev, ...validFiles]);
-      form.setValue("attachments", [...(form.getValues("attachments") || []), ...validFiles]);
-    }
-  };
-
-  const uploadFiles = async (files: File[]) => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      toast.error("Usuário não autenticado");
+    if (files.some(file => file.size > 10 * 1024 * 1024)) {
+      toast.error("Um ou mais arquivos excedem o limite de 10MB.");
       return;
     }
 
-    setIsUploading(true);
-    try {
-      for (const file of files) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${rncId}/${fileName}`;
+    if (rncId) {
+      setIsUploading(true);
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          toast.error("Usuário não autenticado");
+          return;
+        }
 
-        // Upload file to storage
-        const { error: uploadError } = await supabase.storage
-          .from('rnc-attachments')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
+        const uploadedFiles = [];
+        for (const file of files) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
+          const filePath = `${rncId}/${fileName}`;
 
-        if (uploadError) throw uploadError;
+          const { error: uploadError } = await supabase.storage
+            .from('rnc-attachments')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
-        // Create attachment record
-        const { error: dbError } = await supabase
-          .from('rnc_attachments')
-          .insert({
-            rnc_id: rncId,
+          if (uploadError) throw uploadError;
+
+          const { error: dbError } = await supabase
+            .from('rnc_attachments')
+            .insert({
+              rnc_id: rncId,
+              filename: file.name,
+              filesize: file.size,
+              content_type: file.type,
+              created_by: userData.user.id
+            });
+
+          if (dbError) throw dbError;
+          
+          uploadedFiles.push({
             filename: file.name,
             filesize: file.size,
-            content_type: file.type,
-            created_by: userData.user.id
+            content_type: file.type
           });
+        }
 
-        if (dbError) throw dbError;
+        toast.success("Arquivos anexados com sucesso!");
+        setSelectedFiles([]);
+        
+        // Reset the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error: any) {
+        console.error("Error uploading files:", error);
+        toast.error(`Erro ao fazer upload dos arquivos: ${error.message}`);
+      } finally {
+        setIsUploading(false);
       }
-
-      toast.success("Arquivos anexados com sucesso!");
-      setSelectedFiles([]);
-      e.target.value = ''; // Reset input
-    } catch (error: any) {
-      console.error("Error uploading files:", error);
-      toast.error(`Erro ao fazer upload dos arquivos: ${error.message}`);
-    } finally {
-      setIsUploading(false);
+    } else {
+      setSelectedFiles(prev => [...prev, ...files]);
+      form.setValue("attachments", [...(form.getValues("attachments") || []), ...files]);
     }
   };
 
@@ -123,7 +108,8 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
               onChange={handleFileChange}
               className="hidden"
               id="file-upload"
-              accept={ALLOWED_FILE_TYPES.join(',')}
+              ref={fileInputRef}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
               disabled={isUploading}
               {...field}
             />
