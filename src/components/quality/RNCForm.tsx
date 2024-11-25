@@ -73,23 +73,27 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
   });
 
   const handleSubmit = async (data: RNCFormData) => {
-    if (isSubmitting) return;
+    if (isSubmitting) {
+      console.log('Submission already in progress, preventing duplicate submission');
+      return;
+    }
     
     try {
       setIsSubmitting(true);
+      console.log('Starting RNC submission with data:', data);
       await onSubmit(data);
       toast({
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
     } catch (error) {
+      console.error('Error submitting RNC:', error);
       toast({
         title: "Erro ao processar RNC",
         description: "Ocorreu um erro ao tentar processar a RNC.",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Reset on error to allow retry
     }
   };
 
@@ -132,7 +136,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
                   if (activeTab === "contact") setActiveTab("details");
                 }}
                 className="w-32"
-                disabled={activeTab === "company"}
+                disabled={activeTab === "company" || isSubmitting}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar
@@ -145,6 +149,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
                     if (activeTab === "details") setActiveTab("contact");
                   }}
                   className="w-32"
+                  disabled={isSubmitting}
                 >
                   Próximo
                   <ArrowRight className="ml-2 h-4 w-4" />

@@ -20,6 +20,7 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
+    console.log('Files selected:', files.map(f => ({ name: f.name, size: f.size })));
     
     if (files.some(file => file.size > 10 * 1024 * 1024)) {
       toast.error("Um ou mais arquivos excedem o limite de 10MB.");
@@ -28,20 +29,31 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
 
     if (rncId) {
       setIsUploading(true);
+      console.log('Starting upload process for RNC:', rncId);
+      
       try {
         const { data: userData } = await supabase.auth.getUser();
         if (!userData.user) {
+          console.error('No authenticated user found');
           toast.error("Usuário não autenticado");
           return;
         }
 
+        console.log('Authenticated user:', userData.user.id);
         const uploadedFiles = [];
+        
         for (const file of files) {
           const fileExt = file.name.split('.').pop();
           const fileName = `${crypto.randomUUID()}.${fileExt}`;
           const filePath = `${rncId}/${fileName}`;
 
-          console.log('Uploading file:', { fileName, filePath, size: file.size });
+          console.log('Preparing to upload file:', {
+            originalName: file.name,
+            newName: fileName,
+            path: filePath,
+            size: file.size,
+            type: file.type
+          });
 
           const { error: uploadError } = await supabase.storage
             .from('rnc-attachments')
@@ -55,6 +67,8 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
             throw uploadError;
           }
 
+          console.log('File uploaded successfully to storage');
+
           const { error: dbError } = await supabase
             .from('rnc_attachments')
             .insert({
@@ -62,13 +76,16 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
               filename: file.name,
               filesize: file.size,
               content_type: file.type,
-              created_by: userData.user.id
+              created_by: userData.user.id,
+              file_path: filePath
             });
 
           if (dbError) {
             console.error("Database error:", dbError);
             throw dbError;
           }
+
+          console.log('File record created in database');
           
           uploadedFiles.push({
             filename: file.name,
@@ -77,6 +94,7 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
           });
         }
 
+        console.log('All files uploaded successfully:', uploadedFiles);
         toast.success("Arquivos anexados com sucesso!");
         setSelectedFiles([]);
         
@@ -90,6 +108,7 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
         setIsUploading(false);
       }
     } else {
+      console.log('No rncId available, updating form state only');
       setSelectedFiles(prev => [...prev, ...files]);
       form.setValue("attachments", [...(form.getValues("attachments") || []), ...files]);
     }
