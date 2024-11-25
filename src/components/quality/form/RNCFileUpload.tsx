@@ -6,6 +6,7 @@ import { Upload, X } from "lucide-react";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RNCFileUploadProps {
   form: UseFormReturn<RNCFormData>;
@@ -26,9 +27,84 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
       return;
     }
 
-    setSelectedFiles(prev => [...prev, ...files]);
-    const currentAttachments = form.getValues("attachments") || [];
-    form.setValue("attachments", [...currentAttachments, ...files]);
+    // If we have an rncId, upload immediately
+    if (rncId) {
+      setIsUploading(true);
+      console.log('Starting immediate upload for RNC:', rncId);
+
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          toast.error("Usuário não autenticado");
+          return;
+        }
+
+        for (const file of files) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
+          const filePath = `${rncId}/${fileName}`;
+
+          console.log('Uploading file:', {
+            originalName: file.name,
+            path: filePath,
+            size: file.size
+          });
+
+          // First, ensure the user has permission to upload
+          const { data: bucketPermission, error: permissionError } = await supabase
+            .from('rnc_attachments')
+            .insert({
+              rnc_id: rncId,
+              filename: file.name,
+              filesize: file.size,
+              content_type: file.type,
+              created_by: userData.user.id,
+              file_path: filePath
+            })
+            .select()
+            .single();
+
+          if (permissionError) {
+            console.error("Permission error:", permissionError);
+            throw new Error("Erro de permissão ao registrar arquivo");
+          }
+
+          // Then attempt the upload
+          const { error: uploadError } = await supabase.storage
+            .from('rnc-attachments')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+            // Clean up the database entry if upload failed
+            await supabase
+              .from('rnc_attachments')
+              .delete()
+              .match({ id: bucketPermission.id });
+            throw uploadError;
+          }
+        }
+
+        toast.success("Arquivos anexados com sucesso!");
+        setSelectedFiles([]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      } catch (error: any) {
+        console.error("Error uploading files:", error);
+        toast.error(`Erro ao fazer upload dos arquivos: ${error.message}`);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      console.log('No rncId available, updating form state only');
+      // If no rncId, just update the form state
+      setSelectedFiles(prev => [...prev, ...files]);
+      form.setValue("attachments", [...(form.getValues("attachments") || []), ...files]);
+    }
   };
 
   const removeFile = (index: number) => {
