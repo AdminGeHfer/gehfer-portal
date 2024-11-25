@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { FileIcon, Download, Trash2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -17,15 +17,23 @@ interface RNCAttachmentsProps {
 }
 
 export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) {
-  const { data: attachments, isLoading, refetch } = useQuery({
+  const queryClient = useQueryClient();
+  
+  const { data: attachments, isLoading } = useQuery({
     queryKey: ["rnc-attachments", rncId],
     queryFn: async () => {
+      console.log('Fetching attachments for RNC:', rncId);
       const { data, error } = await supabase
         .from('rnc_attachments')
         .select('*')
         .eq('rnc_id', rncId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching attachments:", error);
+        throw error;
+      }
+      
+      console.log('Fetched attachments:', data);
       return data as RNCAttachment[];
     }
   });
@@ -85,7 +93,7 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
       if (dbError) throw dbError;
 
       toast.success("Arquivo excluído com sucesso");
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ["rnc-attachments", rncId] });
     } catch (error: any) {
       console.error("Error deleting attachment:", error);
       toast.error(`Erro ao excluir arquivo: ${error.message}`);

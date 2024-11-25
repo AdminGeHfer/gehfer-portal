@@ -18,8 +18,8 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
     
     if (files.some(file => file.size > 10 * 1024 * 1024)) {
       toast.error("Um ou mais arquivos excedem o limite de 10MB.");
@@ -41,6 +41,8 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
           const fileName = `${crypto.randomUUID()}.${fileExt}`;
           const filePath = `${rncId}/${fileName}`;
 
+          console.log('Uploading file:', { fileName, filePath, size: file.size });
+
           const { error: uploadError } = await supabase.storage
             .from('rnc-attachments')
             .upload(filePath, file, {
@@ -48,7 +50,10 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
               upsert: false
             });
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+            throw uploadError;
+          }
 
           const { error: dbError } = await supabase
             .from('rnc_attachments')
@@ -60,7 +65,10 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
               created_by: userData.user.id
             });
 
-          if (dbError) throw dbError;
+          if (dbError) {
+            console.error("Database error:", dbError);
+            throw dbError;
+          }
           
           uploadedFiles.push({
             filename: file.name,
@@ -72,7 +80,6 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
         toast.success("Arquivos anexados com sucesso!");
         setSelectedFiles([]);
         
-        // Reset the file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
