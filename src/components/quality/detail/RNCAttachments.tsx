@@ -1,9 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { FileIcon, Download, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
 
 interface RNCAttachment {
   id: string;
@@ -33,13 +32,18 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
 
   const downloadAttachment = async (attachment: RNCAttachment) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
       const { data, error } = await supabase.storage
         .from('rnc-attachments')
         .download(`${rncId}/${attachment.filename}`);
 
       if (error) throw error;
 
-      // Create blob URL and trigger download
       const blob = new Blob([data], { type: attachment.content_type });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -49,14 +53,22 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
-      toast.error("Erro ao baixar arquivo");
+      
+      toast.success("Download iniciado com sucesso");
+    } catch (error: any) {
       console.error("Error downloading file:", error);
+      toast.error(`Erro ao baixar arquivo: ${error.message}`);
     }
   };
 
   const deleteAttachment = async (attachment: RNCAttachment) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('rnc-attachments')
@@ -73,10 +85,10 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
       if (dbError) throw dbError;
 
       toast.success("Arquivo excluído com sucesso");
-      refetch(); // Reload the list
-    } catch (error) {
-      toast.error("Erro ao excluir arquivo");
+      refetch();
+    } catch (error: any) {
       console.error("Error deleting attachment:", error);
+      toast.error(`Erro ao excluir arquivo: ${error.message}`);
     }
   };
 
