@@ -12,6 +12,7 @@ import { RNCFileUpload } from "./form/RNCFileUpload";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
@@ -55,7 +56,7 @@ const defaultValues: RNCFormData = {
 
 interface RNCFormProps {
   initialData?: Partial<RNCFormData>;
-  onSubmit: (data: RNCFormData) => void;
+  onSubmit: (data: RNCFormData) => Promise<string>; // Modified to return the RNC ID
   mode?: "create" | "edit";
 }
 
@@ -81,19 +82,73 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
     try {
       setIsSubmitting(true);
       console.log('Starting RNC submission with data:', data);
-      await onSubmit(data);
+      
+      // Create RNC first
+      const rncId = await onSubmit(data);
+      console.log('RNC created successfully with ID:', rncId);
+
+      // If there are attachments, upload them
+      if (data.attachments && data.attachments.length > 0) {
+        console.log('Starting file uploads for RNC:', rncId);
+        const { data: userData } = await supabase.auth.getUser();
+        
+        if (!userData.user) {
+          throw new Error("Usuário não autenticado");
+        }
+
+        for (const file of data.attachments) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
+          const filePath = `${rncId}/${fileName}`;
+
+          console.log('Uploading file:', {
+            originalName: file.name,
+            path: filePath,
+            size: file.size
+          });
+
+          const { error: uploadError } = await supabase.storage
+            .from('rnc-attachments')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error('File upload error:', uploadError);
+            throw uploadError;
+          }
+
+          const { error: dbError } = await supabase
+            .from('rnc_attachments')
+            .insert({
+              rnc_id: rncId,
+              filename: file.name,
+              filesize: file.size,
+              content_type: file.type,
+              created_by: userData.user.id,
+              file_path: filePath
+            });
+
+          if (dbError) {
+            console.error('Database error:', dbError);
+            throw dbError;
+          }
+
+          console.log('File uploaded and registered successfully:', file.name);
+        }
+      }
+
       toast({
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
     } catch (error) {
-      console.error('Error submitting RNC:', error);
+      console.error('Error in RNC submission:', error);
       toast({
         title: "Erro ao processar RNC",
         description: "Ocorreu um erro ao tentar processar a RNC.",
         variant: "destructive",
       });
-      setIsSubmitting(false); // Reset on error to allow retry
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
