@@ -1,11 +1,13 @@
+export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
+export type StatusEnum = "open" | "in_progress" | "closed";
+
 export interface RNC {
   id: string;
-  title: string;
   description: string;
-  status: "open" | "in_progress" | "closed";
+  status: StatusEnum;
   priority: "low" | "medium" | "high";
   type: "client" | "supplier";
-  department: string;
+  department: DepartmentEnum;
   contact: {
     name: string;
     phone: string;
@@ -15,12 +17,16 @@ export interface RNC {
   cnpj: string;
   orderNumber?: string;
   returnNumber?: string;
-  createdAt: string;
-  updatedAt: string;
-  closedAt?: string;
   assignedTo?: string;
   attachments?: File[];
   timeline: TimelineEvent[];
+  resolution?: string;
+  rnc_number?: number;
+  created_at: string;
+  updated_at: string;
+  closed_at?: string;
+  title?: string;
+  canEdit?: boolean;
 }
 
 export interface TimelineEvent {
@@ -33,11 +39,11 @@ export interface TimelineEvent {
 }
 
 export interface RNCFormData {
-  title: string;
+  id?: string;
   description: string;
   priority: "low" | "medium" | "high";
   type: "client" | "supplier";
-  department: string;
+  department: DepartmentEnum;
   contact: {
     name: string;
     phone: string;
@@ -47,7 +53,8 @@ export interface RNCFormData {
   cnpj: string;
   orderNumber?: string;
   returnNumber?: string;
-  status: "open" | "in_progress" | "closed";
+  status: StatusEnum;
   assignedTo?: string;
   attachments?: File[];
+  resolution?: string;
 }

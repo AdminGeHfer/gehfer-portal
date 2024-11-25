@@ -10,16 +10,41 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { UserForm } from "@/components/admin/UserForm";
 import { useUsers } from "@/hooks/useUsers";
 import { BackButton } from "@/components/atoms/BackButton";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const { data: users, isLoading } = useUsers();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   const filteredUsers = users?.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleResetPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      toast({
+        title: "Email enviado",
+        description: "Um email de redefinição de senha foi enviado"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,18 +66,26 @@ export default function Users() {
             </div>
           </div>
           
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="hover:shadow-lg transition-all">
+              <Button 
+                className="hover:shadow-lg transition-all"
+                onClick={() => setSelectedUser(null)}
+              >
                 <UserPlus className="mr-2 h-4 w-4" />
                 Novo Usuário
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Criar Novo Usuário</DialogTitle>
+                <DialogTitle>
+                  {selectedUser ? "Editar Usuário" : "Criar Novo Usuário"}
+                </DialogTitle>
               </DialogHeader>
-              <UserForm />
+              <UserForm 
+                user={selectedUser} 
+                onSuccess={handleDialogClose}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -79,7 +112,7 @@ export default function Users() {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      {user.modules.map((module) => (
+                      {user.modules?.map((module) => (
                         <Badge key={module} variant="secondary">
                           {module}
                         </Badge>
@@ -93,25 +126,23 @@ export default function Users() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => toast({ title: "Email enviado", description: "Um email de redefinição de senha foi enviado" })}>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => user.email && handleResetPassword(user.email)}
+                      >
                         <Mail className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => toast({ title: "Senha alterada", description: "A senha foi alterada com sucesso" })}>
-                        <Lock className="h-4 w-4" />
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsDialogOpen(true);
+                        }}
+                      >
+                        <UserCog className="h-4 w-4" />
                       </Button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <UserCog className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Editar Usuário</DialogTitle>
-                          </DialogHeader>
-                          <UserForm user={user} />
-                        </DialogContent>
-                      </Dialog>
                     </div>
                   </TableCell>
                 </TableRow>
