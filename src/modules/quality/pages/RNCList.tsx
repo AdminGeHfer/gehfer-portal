@@ -15,7 +15,7 @@ const RNCList = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = async (data: RNCFormData) => {
+  const handleSubmit = async (data: RNCFormData): Promise<string> => {
     try {
       // TODO: Implement API integration
       console.log('Creating RNC:', data);
@@ -24,12 +24,14 @@ const RNCList = () => {
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
+      return "temp-id"; // Return a temporary ID for now
     } catch (error) {
       toast({
         title: "Erro ao criar RNC",
         description: "Não foi possível criar a RNC.",
         variant: "destructive",
       });
+      throw error;
     }
   };
 
@@ -158,4 +160,3 @@ const RNCList = () => {
 };
 
 export default RNCList;
-

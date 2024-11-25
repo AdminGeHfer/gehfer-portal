@@ -11,6 +11,7 @@ import { useRNCs } from "@/hooks/useRNCs";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
+import { RNCFormData } from "@/types/rnc";
 
 const RNCList = () => {
   const navigate = useNavigate();
@@ -21,12 +22,14 @@ const RNCList = () => {
   const [priorityFilter, setPriorityFilter] = useState("all");
   const { rncs, isLoading, createRNC } = useRNCs();
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: RNCFormData): Promise<string> => {
     try {
-      await createRNC.mutateAsync(data);
+      const result = await createRNC.mutateAsync(data);
       setIsFormOpen(false);
+      return result.id; // Return the actual RNC ID from the mutation
     } catch (error) {
       console.error("Erro ao criar RNC:", error);
+      throw error;
     }
   };
 
