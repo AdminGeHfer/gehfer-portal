@@ -14,7 +14,6 @@ export const useRNCSearch = ({ rncs }: UseRNCSearchProps) => {
     return rncs.filter((rnc) => {
       const matchesSearch =
         search === "" ||
-        rnc.title.toLowerCase().includes(search.toLowerCase()) ||
         rnc.description.toLowerCase().includes(search.toLowerCase()) ||
         rnc.company.toLowerCase().includes(search.toLowerCase());
 

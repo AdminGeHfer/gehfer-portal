@@ -2,14 +2,24 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export function Navbar() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogout = () => {
-    // TODO: Implement actual logout logic with Supabase
-    localStorage.clear();
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      toast({
+        title: "Erro ao fazer logout",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Logout realizado",
       description: "Você foi desconectado com sucesso",

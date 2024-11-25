@@ -1,5 +1,4 @@
 import { Button } from "@/components/atoms/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
@@ -11,15 +10,14 @@ import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
-  title: z.string().min(1, "O título é obrigatório"),
   description: z.string().min(1, "A descrição é obrigatória"),
   priority: z.enum(["low", "medium", "high"]),
   type: z.enum(["client", "supplier"]),
-  department: z.string().min(1, "O departamento é obrigatório"),
+  department: z.enum(["Expedição", "Logistica", "Comercial", "Qualidade", "Produção"]),
   contact: z.object({
     name: z.string().min(1, "O nome do contato é obrigatório"),
     phone: z.string().min(1, "O telefone é obrigatório"),
@@ -32,7 +30,28 @@ const formSchema = z.object({
   status: z.enum(["open", "in_progress", "closed"]).default("open"),
   assignedTo: z.string().optional(),
   attachments: z.array(z.instanceof(File)).optional(),
+  resolution: z.string().optional(),
 });
+
+const defaultValues: RNCFormData = {
+  description: "",
+  priority: "medium",
+  type: "client",
+  department: "Expedição", // Set a valid default department
+  contact: {
+    name: "",
+    phone: "",
+    email: "",
+  },
+  company: "",
+  cnpj: "",
+  orderNumber: "",
+  returnNumber: "",
+  status: "open",
+  assignedTo: "",
+  attachments: [],
+  resolution: "",
+};
 
 interface RNCFormProps {
   initialData?: Partial<RNCFormData>;
@@ -42,32 +61,26 @@ interface RNCFormProps {
 
 export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps) {
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const [step, setStep] = useState(1);
+  const [activeTab, setActiveTab] = useState("company");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<RNCFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      priority: "medium",
-      status: "open",
-      type: "client",
-      contact: {
-        name: "",
-        phone: "",
-        email: "",
-      },
+      ...defaultValues,
       ...initialData,
     },
   });
 
   const handleSubmit = async (data: RNCFormData) => {
+    if (isSubmitting) return;
+    
     try {
+      setIsSubmitting(true);
       await onSubmit(data);
       toast({
-        title: mode === "create" ? "RNC registrada com sucesso" : "RNC atualizada com sucesso",
-        description: mode === "create" 
-          ? "A RNC foi criada e será analisada em breve."
-          : "As alterações foram salvas com sucesso.",
+        title: "RNC criada com sucesso",
+        description: "A RNC foi registrada no sistema.",
       });
     } catch (error) {
       toast({
@@ -75,107 +88,80 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
         description: "Ocorreu um erro ao tentar processar a RNC.",
         variant: "destructive",
       });
-    }
-  };
-
-  const nextStep = () => {
-    const requiredFields = {
-      1: ["company", "cnpj", "department"],
-      2: ["contact.name", "contact.email", "description"]
-    };
-
-    const currentFields = requiredFields[step as keyof typeof requiredFields];
-    const isValid = currentFields.every(field => {
-      const value = form.getValues(field as any);
-      return value && value.length > 0;
-    });
-
-    if (isValid) {
-      setStep(2);
-    } else {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos obrigatórios.",
-        variant: "destructive",
-      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader className="relative border-b">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-4 top-4"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="ml-12">
-          <CardTitle className="text-2xl font-bold">Nova RNC</CardTitle>
-          <p className="text-muted-foreground text-sm mt-1">
-            Registre uma nova não conformidade
-          </p>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="p-6">
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="company">Empresa</TabsTrigger>
+          <TabsTrigger value="details">Detalhes</TabsTrigger>
+          <TabsTrigger value="contact">Contato</TabsTrigger>
+        </TabsList>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {step === 1 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <RNCCompanyInfo form={form} />
-                  <RNCBasicInfo form={form} />
-                </div>
-                <div className="space-y-6">
-                  <RNCFileUpload form={form} />
-                </div>
+            <TabsContent value="company" className="space-y-6">
+              <div className="grid gap-6">
+                <RNCCompanyInfo form={form} />
               </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                  <RNCContactInfo form={form} />
-                </div>
-                <div className="space-y-6">
-                  <RNCFileUpload form={form} />
-                </div>
+            </TabsContent>
+
+            <TabsContent value="details" className="space-y-6">
+              <div className="grid gap-6">
+                <RNCBasicInfo form={form} />
+                <RNCFileUpload form={form} />
               </div>
-            )}
+            </TabsContent>
+
+            <TabsContent value="contact" className="space-y-6">
+              <div className="grid gap-6">
+                <RNCContactInfo form={form} />
+              </div>
+            </TabsContent>
 
             <div className="flex justify-end gap-4 pt-6 border-t">
-              {step === 2 ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setStep(1)}
-                    className="w-32"
-                  >
-                    Voltar
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="w-32"
-                  >
-                    Finalizar
-                  </Button>
-                </>
-              ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (activeTab === "details") setActiveTab("company");
+                  if (activeTab === "contact") setActiveTab("details");
+                }}
+                className="w-32"
+                disabled={activeTab === "company"}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
+              {activeTab !== "contact" ? (
                 <Button
                   type="button"
-                  onClick={nextStep}
+                  onClick={() => {
+                    if (activeTab === "company") setActiveTab("details");
+                    if (activeTab === "details") setActiveTab("contact");
+                  }}
                   className="w-32"
                 >
-                  Avançar
+                  Próximo
                   <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  className="w-32"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Enviando..." : "Finalizar"}
                 </Button>
               )}
             </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </Tabs>
+    </div>
   );
 }

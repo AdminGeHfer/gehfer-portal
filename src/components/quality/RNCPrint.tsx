@@ -12,7 +12,7 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold">RNC #{rnc.id}</h1>
-          <p className="text-gray-500">{format(new Date(rnc.createdAt), "dd/MM/yyyy HH:mm")}</p>
+          <p className="text-gray-500">{format(new Date(rnc.created_at), "dd/MM/yyyy HH:mm")}</p>
         </div>
         <div className="text-right">
           <h2 className="font-bold">GeHfer</h2>

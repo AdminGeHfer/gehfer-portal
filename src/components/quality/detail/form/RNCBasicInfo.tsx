@@ -59,6 +59,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
                 <SelectItem value="Logistica">Logística</SelectItem>
                 <SelectItem value="Comercial">Comercial</SelectItem>
                 <SelectItem value="Qualidade">Qualidade</SelectItem>
+                <SelectItem value="Produção">Produção</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />

@@ -5,81 +5,18 @@ import { RNCFormData } from "@/types/rnc";
 import { Upload, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface RNCFileUploadProps {
   form: UseFormReturn<RNCFormData>;
-  rncId?: string;
 }
 
-export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
+export const RNCFileUpload = ({ form }: RNCFileUploadProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    
-    if (!rncId) {
-      setSelectedFiles(prev => [...prev, ...files]);
-      form.setValue("attachments", [...selectedFiles, ...files]);
-      return;
-    }
-
-    // If we have an RNC ID, upload the files immediately
-    setIsUploading(true);
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("User not authenticated");
-
-      for (const file of files) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${rncId}/${fileName}`;
-
-        // Upload file to storage
-        const { error: uploadError } = await supabase.storage
-          .from('rnc-attachments')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          throw uploadError;
-        }
-
-        // Get the public URL for the uploaded file
-        const { data: { publicUrl } } = supabase.storage
-          .from('rnc-attachments')
-          .getPublicUrl(filePath);
-
-        // Create attachment record
-        const { error: dbError } = await supabase
-          .from('rnc_attachments')
-          .insert({
-            rnc_id: rncId,
-            filename: file.name,
-            filesize: file.size,
-            content_type: file.type,
-            created_by: userData.user.id
-          });
-
-        if (dbError) {
-          console.error("Database error:", dbError);
-          throw dbError;
-        }
-      }
-
-      toast.success("Arquivos anexados com sucesso!");
-      e.target.value = ''; // Reset input
-    } catch (error: any) {
-      console.error("Error uploading files:", error);
-      toast.error(`Erro ao fazer upload dos arquivos: ${error.message}`);
-    } finally {
-      setIsUploading(false);
-    }
+    setSelectedFiles(prev => [...prev, ...files]);
+    form.setValue("attachments", [...selectedFiles, ...files]);
   };
 
   const removeFile = (index: number) => {
@@ -103,7 +40,6 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
               className="hidden"
               id="file-upload"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-              disabled={isUploading}
               {...field}
             />
             <label 
@@ -112,13 +48,13 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
             >
               <Upload className="h-8 w-8 text-muted-foreground" />
               <div className="text-sm text-muted-foreground">
-                {isUploading ? "Enviando arquivos..." : "Clique ou arraste arquivos aqui"}
+                Clique ou arraste arquivos aqui
                 <p className="text-xs mt-1">PDF, Word, Excel ou imagens até 10MB</p>
               </div>
             </label>
           </div>
 
-          {selectedFiles.length > 0 && !rncId && (
+          {selectedFiles.length > 0 && (
             <div className="mt-4 space-y-2">
               {selectedFiles.map((file, index) => (
                 <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">

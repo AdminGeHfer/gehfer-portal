@@ -1,11 +1,20 @@
 import { RNC } from "@/types/rnc";
 import { format } from "date-fns";
+import { FileIcon, ImageIcon } from "lucide-react";
 
 interface RNCPrintLayoutProps {
   rnc: RNC;
 }
 
 export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    if (['jpg', 'jpeg', 'png', 'gif'].includes(extension || '')) {
+      return <ImageIcon className="h-4 w-4" />;
+    }
+    return <FileIcon className="h-4 w-4" />;
+  };
+
   return (
     <div className="print-content p-6 max-w-[210mm] mx-auto bg-white">
       <div className="grid grid-cols-[2fr,1fr] gap-6">
@@ -14,9 +23,9 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
           {/* Header */}
           <div className="flex justify-between items-center border-b pb-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">RNC #{rnc.id}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">RNC #{rnc.rnc_number}</h1>
               <p className="text-sm text-gray-500">
-                {format(new Date(rnc.createdAt), "dd/MM/yyyy HH:mm")}
+                {format(new Date(rnc.created_at), "dd/MM/yyyy HH:mm")}
               </p>
             </div>
             <div className="text-right">
@@ -49,12 +58,8 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="font-medium text-gray-500">Título</p>
-                <p>{rnc.title}</p>
-              </div>
-              <div>
                 <p className="font-medium text-gray-500">Tipo</p>
-                <p className="capitalize">{rnc.type}</p>
+                <p>{rnc.type}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-500">Nº do Pedido</p>
@@ -64,12 +69,33 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
                 <p className="font-medium text-gray-500">Nº da Devolução</p>
                 <p>{rnc.returnNumber || "N/A"}</p>
               </div>
+              <div>
+                <p className="font-medium text-gray-500">Status</p>
+                <p>{rnc.status}</p>
+              </div>
             </div>
-            <div className="mt-2">
-              <p className="font-medium text-gray-500 text-sm">Descrição</p>
-              <p className="text-sm whitespace-pre-wrap">{rnc.description}</p>
+            <div>
+              <p className="font-medium text-gray-500">Descrição</p>
+              <p>{rnc.description}</p>
             </div>
           </section>
+
+          {/* Attachments Section */}
+          {rnc.attachments && rnc.attachments.length > 0 && (
+            <section className="space-y-2">
+              <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
+                Anexos
+              </h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {rnc.attachments.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    {getFileIcon(file.name)}
+                    <span>{file.name}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Contact Section */}
           <section className="space-y-2">

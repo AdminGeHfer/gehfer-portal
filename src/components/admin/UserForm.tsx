@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const userFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -21,16 +23,18 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 interface UserFormProps {
   user?: {
     id: string;
-    name: string;
-    email: string;
-    modules: string[];
-    active: boolean;
+    name: string | null;
+    email: string | null;
+    modules: string[] | null;
+    active: boolean | null;
   };
+  onSuccess?: () => void;
 }
 
-export function UserForm({ user }: UserFormProps) {
+export function UserForm({ user, onSuccess }: UserFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -45,15 +49,68 @@ export function UserForm({ user }: UserFormProps) {
   async function onSubmit(data: UserFormValues) {
     setIsLoading(true);
     try {
-      // TODO: Implement user creation/update with Supabase
-      toast({
-        title: user ? "Usuário atualizado" : "Usuário criado",
-        description: `O usuário ${data.name} foi ${user ? "atualizado" : "criado"} com sucesso.`
-      });
-    } catch (error) {
+      if (user) {
+        // Update existing user
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            name: data.name,
+            email: data.email,
+            modules: data.modules,
+            active: data.active
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Usuário atualizado",
+          description: `O usuário ${data.name} foi atualizado com sucesso.`
+        });
+      } else {
+        // Create new user with auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password!,
+          options: {
+            data: {
+              name: data.name,
+            }
+          }
+        });
+
+        if (authError) throw authError;
+
+        // Update the profile with additional data
+        if (authData.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+              modules: data.modules,
+              active: data.active
+            })
+            .eq('id', authData.user.id);
+
+          if (profileError) throw profileError;
+        }
+
+        toast({
+          title: "Usuário criado",
+          description: `O usuário ${data.name} foi criado com sucesso.`
+        });
+      }
+
+      // Refresh users list
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar o usuário.",
+        description: error.message || "Ocorreu um erro ao salvar o usuário.",
         variant: "destructive"
       });
     } finally {
