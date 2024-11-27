@@ -2,7 +2,7 @@ import { Button } from "@/components/atoms/Button";
 import { ArrowLeft, Printer } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import { RNC } from "@/types/rnc";
-import { WhatsappLogo, Trash } from "@phosphor-icons/react";
+import { WhatsappLogo, Trash, Package } from "@phosphor-icons/react";
 import {
   Select,
   SelectContent,
@@ -10,9 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RNCAssignButton } from "./RNCAssignButton";
 
 interface RNCDetailHeaderProps {
-  id: string;
   rnc: RNC;
   isEditing: boolean;
   canEdit: boolean;
@@ -22,10 +22,12 @@ interface RNCDetailHeaderProps {
   onPrint: () => void;
   onWhatsApp: () => void;
   onStatusChange: (status: string) => void;
+  onRefresh: () => void;
+  setIsDeleteDialogOpen: (open: boolean) => void;
+  onCollectionRequest: () => void;
 }
 
 export const RNCDetailHeader = ({
-  id,
   rnc,
   isEditing,
   canEdit,
@@ -35,6 +37,9 @@ export const RNCDetailHeader = ({
   onPrint,
   onWhatsApp,
   onStatusChange,
+  onRefresh,
+  setIsDeleteDialogOpen,
+  onCollectionRequest,
 }: RNCDetailHeaderProps) => {
   const navigate = useNavigate();
 
@@ -52,7 +57,7 @@ export const RNCDetailHeader = ({
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold">RNC #{id}</h1>
+            <h1 className="text-2xl font-semibold">RNC #{rnc.rnc_number || "Novo"}</h1>
             <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
               rnc.status === "open" 
                 ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200"
@@ -78,10 +83,19 @@ export const RNCDetailHeader = ({
               </SelectContent>
             </Select>
           )}
+          <Button variant="outline" onClick={onCollectionRequest}>
+            <Package className="mr-2 h-4 w-4" />
+            Solicitar Coleta
+          </Button>
           <Button variant="outline" onClick={onPrint}>
             <Printer className="mr-2 h-4 w-4" />
             Imprimir
           </Button>
+          <RNCAssignButton
+            rncId={rnc.id}
+            currentAssignee={rnc.assignedTo}
+            onAssigned={onRefresh}
+          />
           <Button variant="outline" onClick={onWhatsApp}>
             <WhatsappLogo weight="fill" className="mr-2 h-4 w-4" />
             WhatsApp
@@ -97,7 +111,7 @@ export const RNCDetailHeader = ({
               <Button 
                 variant="outline" 
                 className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400"
-                onClick={onDelete}
+                onClick={() => setIsDeleteDialogOpen(true)}
               >
                 <Trash className="mr-2 h-4 w-4" />
                 Excluir

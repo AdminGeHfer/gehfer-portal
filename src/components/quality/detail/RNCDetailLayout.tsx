@@ -1,11 +1,16 @@
-import { Header } from "@/components/layout/Header";
-import { RNCTimeline } from "@/components/quality/RNCTimeline";
-import { RNCPrintLayout } from "@/components/quality/RNCPrintLayout";
-import { RNCDetailHeader } from "./RNCDetailHeader";
+import { Button } from "@/components/ui/button";
 import { RNCDetailForm } from "./RNCDetailForm";
+import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDeleteDialog } from "./RNCDeleteDialog";
+import { RNCTimeline } from "../RNCTimeline";
+import { RNCPrintLayout } from "../RNCPrintLayout";
+import { RNCComments } from "./RNCComments";
+import { RNCAttachments } from "./RNCAttachments";
 import { RNC } from "@/types/rnc";
-import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import { CollectionRequestDialog } from "../collection/CollectionRequestDialog";
+import { CollectionDetails } from "../collection/CollectionDetails";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -13,8 +18,6 @@ interface RNCDetailLayoutProps {
   isEditing: boolean;
   isPrinting: boolean;
   isDeleteDialogOpen: boolean;
-  isDeleting: boolean;
-  canEdit: boolean;
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
@@ -22,16 +25,17 @@ interface RNCDetailLayoutProps {
   onWhatsApp: () => void;
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
+  isDeleting: boolean;
+  canEdit: boolean;
+  onRefresh: () => void;
 }
 
-export const RNCDetailLayout = ({
+export function RNCDetailLayout({
   rnc,
   id,
   isEditing,
   isPrinting,
   isDeleteDialogOpen,
-  isDeleting,
-  canEdit,
   onEdit,
   onSave,
   onDelete,
@@ -39,61 +43,88 @@ export const RNCDetailLayout = ({
   onWhatsApp,
   onFieldChange,
   setIsDeleteDialogOpen,
-}: RNCDetailLayoutProps) => {
-  const handleStatusChange = async (status: string) => {
-    try {
-      onFieldChange("status", status);
-      toast.success("Status atualizado com sucesso!");
-    } catch (error) {
-      toast.error("Erro ao atualizar status");
+  isDeleting,
+  canEdit,
+  onRefresh,
+}: RNCDetailLayoutProps) {
+  const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (isPrinting) {
+      window.print();
     }
-  };
+  }, [isPrinting]);
 
   if (isPrinting) {
     return <RNCPrintLayout rnc={rnc} />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 no-print">
-      <Header title="Qualidade" />
-      
-      <div className="flex min-h-screen">
-        <main className="flex-1 p-6">
-          <RNCDetailHeader
-            id={rnc.rnc_number?.toString() || id}
-            rnc={rnc}
-            isEditing={isEditing}
-            onEdit={onEdit}
-            onSave={onSave}
-            onDelete={() => setIsDeleteDialogOpen(true)}
-            onPrint={onPrint}
-            onWhatsApp={onWhatsApp}
-            canEdit={canEdit}
-            onStatusChange={handleStatusChange}
-          />
+    <div className="container mx-auto py-6 space-y-6">
+      <RNCDetailHeader
+        rnc={rnc}
+        onEdit={onEdit}
+        onSave={onSave}
+        onDelete={onDelete}
+        onPrint={onPrint}
+        onWhatsApp={onWhatsApp}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        isEditing={isEditing}
+        canEdit={canEdit}
+        onStatusChange={(status) => onFieldChange('status', status)}
+        onRefresh={onRefresh}
+        onCollectionRequest={() => setIsCollectionDialogOpen(true)}
+      />
 
-          <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="details">Detalhes</TabsTrigger>
+              <TabsTrigger value="collections">Coletas</TabsTrigger>
+            </TabsList>
+            <TabsContent value="details">
               <RNCDetailForm
                 rnc={rnc}
                 isEditing={isEditing}
-                onChange={onFieldChange}
+                onFieldChange={onFieldChange}
               />
-            </div>
-            
-            <div className="space-y-6">
-              <RNCTimeline events={rnc.timeline} />
-            </div>
-          </div>
+            </TabsContent>
+            <TabsContent value="collections">
+              <CollectionDetails rncId={id} onStatusUpdate={onRefresh} showEvidence />
+            </TabsContent>
+          </Tabs>
+        </div>
 
-          <RNCDeleteDialog 
-            isOpen={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
-            onConfirm={onDelete}
-            isDeleting={isDeleting}
-          />
-        </main>
+        <div className="space-y-6">
+          <Tabs defaultValue="comments" className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="comments" className="flex-1">Comentários</TabsTrigger>
+              <TabsTrigger value="timeline" className="flex-1">Linha do Tempo</TabsTrigger>
+            </TabsList>
+            <TabsContent value="comments">
+              <RNCComments rncId={id} onCommentAdded={onRefresh} />
+            </TabsContent>
+            <TabsContent value="timeline">
+              <RNCTimeline events={rnc.timeline} />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
+
+      <CollectionRequestDialog
+        rncId={id}
+        open={isCollectionDialogOpen}
+        onOpenChange={setIsCollectionDialogOpen}
+      />
+
+      <RNCDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={onDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
-};
+}

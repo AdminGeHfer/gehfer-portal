@@ -15,6 +15,13 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
     return <FileIcon className="h-4 w-4" />;
   };
 
+  const comments = rnc.timeline
+    .filter(event => event.type === 'comment')
+    .map(event => ({
+      ...event,
+      date: format(new Date(event.date), "dd/MM/yyyy 'às' HH:mm")
+    }));
+
   return (
     <div className="print-content p-6 max-w-[210mm] mx-auto bg-white">
       <div className="grid grid-cols-[2fr,1fr] gap-6">
@@ -80,17 +87,17 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
             </div>
           </section>
 
-          {/* Attachments Section */}
-          {rnc.attachments && rnc.attachments.length > 0 && (
+          {/* Comments Section */}
+          {comments.length > 0 && (
             <section className="space-y-2">
               <h3 className="text-base font-semibold text-gray-900 border-b pb-1">
-                Anexos
+                Comentários
               </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                {rnc.attachments.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    {getFileIcon(file.name)}
-                    <span>{file.name}</span>
+              <div className="space-y-4">
+                {comments.map((comment, index) => (
+                  <div key={index} className="text-sm">
+                    <p className="text-gray-500">{comment.date}</p>
+                    <p className="mt-1">{comment.comment}</p>
                   </div>
                 ))}
               </div>
@@ -139,6 +146,9 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
                   <p className="font-medium">{event.title}</p>
                   <time className="text-xs text-gray-500">{event.date}</time>
                   <p className="text-gray-600 mt-1">{event.description}</p>
+                  {event.comment && (
+                    <p className="text-gray-600 mt-1 italic">"{event.comment}"</p>
+                  )}
                 </div>
               </div>
             ))}

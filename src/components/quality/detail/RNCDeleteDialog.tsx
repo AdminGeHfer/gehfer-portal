@@ -11,14 +11,21 @@ import {
 
 interface RNCDeleteDialogProps {
   isOpen: boolean;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   isDeleting: boolean;
 }
 
-export const RNCDeleteDialog = ({ isOpen, onOpenChange, onConfirm, isDeleting }: RNCDeleteDialogProps) => {
+export const RNCDeleteDialog = ({ 
+  isOpen, 
+  open, 
+  onOpenChange, 
+  onConfirm, 
+  isDeleting 
+}: RNCDeleteDialogProps) => {
   return (
-    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+    <AlertDialog open={open || isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir RNC</AlertDialogTitle>

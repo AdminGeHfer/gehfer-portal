@@ -56,7 +56,7 @@ const defaultValues: RNCFormData = {
 
 interface RNCFormProps {
   initialData?: Partial<RNCFormData>;
-  onSubmit: (data: RNCFormData) => Promise<string>; // Modified to return the RNC ID
+  onSubmit: (data: RNCFormData) => Promise<string>;
   mode?: "create" | "edit";
 }
 
@@ -64,6 +64,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
   
   const form = useForm<RNCFormData>({
     resolver: zodResolver(formSchema),
@@ -71,6 +72,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       ...defaultValues,
       ...initialData,
     },
+    mode: "onSubmit" // Only validate on submit
   });
 
   const handleSubmit = async (data: RNCFormData) => {
@@ -81,13 +83,12 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
     
     try {
       setIsSubmitting(true);
+      setShowValidationErrors(true);
       console.log('Starting RNC submission with data:', data);
       
-      // Create RNC first
       const rncId = await onSubmit(data);
       console.log('RNC created successfully with ID:', rncId);
 
-      // If there are attachments, upload them
       if (data.attachments && data.attachments.length > 0) {
         console.log('Starting file uploads for RNC:', rncId);
         const { data: userData } = await supabase.auth.getUser();
@@ -152,9 +153,15 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Reset validation errors when changing tabs
+    setShowValidationErrors(false);
+  };
+
   return (
     <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="company">Empresa</TabsTrigger>
           <TabsTrigger value="details">Detalhes</TabsTrigger>
@@ -165,20 +172,20 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <TabsContent value="company" className="space-y-6">
               <div className="grid gap-6">
-                <RNCCompanyInfo form={form} />
+                <RNCCompanyInfo form={form} showErrors={showValidationErrors} />
               </div>
             </TabsContent>
 
             <TabsContent value="details" className="space-y-6">
               <div className="grid gap-6">
-                <RNCBasicInfo form={form} />
-                <RNCFileUpload form={form} />
+                <RNCBasicInfo form={form} showErrors={showValidationErrors} />
+                <RNCFileUpload form={form} showErrors={showValidationErrors} />
               </div>
             </TabsContent>
 
             <TabsContent value="contact" className="space-y-6">
               <div className="grid gap-6">
-                <RNCContactInfo form={form} />
+                <RNCContactInfo form={form} showErrors={showValidationErrors} />
               </div>
             </TabsContent>
 

@@ -19,17 +19,18 @@ import {
 
 interface RNCBasicInfoProps {
   form: UseFormReturn<RNCFormData>;
+  showErrors?: boolean;
 }
 
-export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
+export const RNCBasicInfo = ({ form, showErrors = false }: RNCBasicInfoProps) => {
   return (
     <div className="space-y-4">
       <FormField
         control={form.control}
         name="description"
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Descrição</FormLabel>
+            <FormLabel className="required-field">Descrição</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Descreva detalhadamente a não conformidade"
@@ -37,7 +38,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
                 {...field}
               />
             </FormControl>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />
@@ -45,9 +46,9 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
       <FormField
         control={form.control}
         name="department"
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Departamento</FormLabel>
+            <FormLabel className="required-field">Departamento</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -61,7 +62,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
                 <SelectItem value="Qualidade">Qualidade</SelectItem>
               </SelectContent>
             </Select>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />
@@ -69,9 +70,9 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
       <FormField
         control={form.control}
         name="type"
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Tipo</FormLabel>
+            <FormLabel className="required-field">Tipo</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -83,7 +84,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
                 <SelectItem value="supplier">Fornecedor</SelectItem>
               </SelectContent>
             </Select>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />
@@ -91,9 +92,9 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
       <FormField
         control={form.control}
         name="priority"
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Prioridade</FormLabel>
+            <FormLabel className="required-field">Prioridade</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -106,7 +107,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
                 <SelectItem value="high">Alta</SelectItem>
               </SelectContent>
             </Select>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />

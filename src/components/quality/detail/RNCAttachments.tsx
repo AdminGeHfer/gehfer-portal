@@ -9,14 +9,16 @@ interface RNCAttachment {
   filename: string;
   content_type: string;
   filesize: number;
+  file_path: string;
 }
 
 interface RNCAttachmentsProps {
   rncId: string;
   canEdit?: boolean;
+  onUploadComplete?: () => void;
 }
 
-export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) {
+export function RNCAttachments({ rncId, canEdit = false, onUploadComplete }: RNCAttachmentsProps) {
   const queryClient = useQueryClient();
   
   const { data: attachments, isLoading } = useQuery({
@@ -46,12 +48,17 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
         return;
       }
 
+      // Use the stored file_path from the database
       const { data, error } = await supabase.storage
         .from('rnc-attachments')
-        .download(`${rncId}/${attachment.filename}`);
+        .download(attachment.file_path);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error downloading file:", error);
+        throw error;
+      }
 
+      // Create and trigger download
       const blob = new Blob([data], { type: attachment.content_type });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -77,10 +84,10 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
         return;
       }
 
-      // Delete from storage
+      // Delete from storage using the stored file_path
       const { error: storageError } = await supabase.storage
         .from('rnc-attachments')
-        .remove([`${rncId}/${attachment.filename}`]);
+        .remove([attachment.file_path]);
 
       if (storageError) throw storageError;
 

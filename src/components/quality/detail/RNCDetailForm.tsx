@@ -37,10 +37,10 @@ const formSchema = z.object({
 interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
-  onChange: (field: keyof RNC, value: any) => void;
+  onFieldChange: (field: keyof RNC, value: any) => void;
 }
 
-export function RNCDetailForm({ rnc, isEditing, onChange }: RNCDetailFormProps) {
+export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +69,7 @@ export function RNCDetailForm({ rnc, isEditing, onChange }: RNCDetailFormProps) 
     try {
       setIsSubmitting(true);
       Object.keys(data).forEach((key) => {
-        onChange(key as keyof RNC, data[key as keyof RNCFormData]);
+        onFieldChange(key as keyof RNC, data[key as keyof RNCFormData]);
       });
       toast({
         title: "RNC atualizada com sucesso",

@@ -3,108 +3,21 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 import { Upload, X } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface RNCFileUploadProps {
   form: UseFormReturn<RNCFormData>;
-  rncId?: string;
+  showErrors?: boolean;
 }
 
-export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
+export const RNCFileUpload = ({ form, showErrors = false }: RNCFileUploadProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    console.log('Files selected:', files.map(f => ({ name: f.name, size: f.size })));
-    
-    if (files.some(file => file.size > 10 * 1024 * 1024)) {
-      toast.error("Um ou mais arquivos excedem o limite de 10MB.");
-      return;
-    }
-
-    // If we have an rncId, upload immediately
-    if (rncId) {
-      setIsUploading(true);
-      console.log('Starting immediate upload for RNC:', rncId);
-
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) {
-          toast.error("Usuário não autenticado");
-          return;
-        }
-
-        for (const file of files) {
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${crypto.randomUUID()}.${fileExt}`;
-          const filePath = `${rncId}/${fileName}`;
-
-          console.log('Uploading file:', {
-            originalName: file.name,
-            path: filePath,
-            size: file.size
-          });
-
-          // First, ensure the user has permission to upload
-          const { data: bucketPermission, error: permissionError } = await supabase
-            .from('rnc_attachments')
-            .insert({
-              rnc_id: rncId,
-              filename: file.name,
-              filesize: file.size,
-              content_type: file.type,
-              created_by: userData.user.id,
-              file_path: filePath
-            })
-            .select()
-            .single();
-
-          if (permissionError) {
-            console.error("Permission error:", permissionError);
-            throw new Error("Erro de permissão ao registrar arquivo");
-          }
-
-          // Then attempt the upload
-          const { error: uploadError } = await supabase.storage
-            .from('rnc-attachments')
-            .upload(filePath, file, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
-          if (uploadError) {
-            console.error("Upload error:", uploadError);
-            // Clean up the database entry if upload failed
-            await supabase
-              .from('rnc_attachments')
-              .delete()
-              .match({ id: bucketPermission.id });
-            throw uploadError;
-          }
-        }
-
-        toast.success("Arquivos anexados com sucesso!");
-        setSelectedFiles([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-      } catch (error: any) {
-        console.error("Error uploading files:", error);
-        toast.error(`Erro ao fazer upload dos arquivos: ${error.message}`);
-      } finally {
-        setIsUploading(false);
-      }
-    } else {
-      console.log('No rncId available, updating form state only');
-      // If no rncId, just update the form state
-      setSelectedFiles(prev => [...prev, ...files]);
-      form.setValue("attachments", [...(form.getValues("attachments") || []), ...files]);
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+    form.setValue("attachments", [...selectedFiles, ...files]);
   };
 
   const removeFile = (index: number) => {
@@ -117,7 +30,7 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
     <FormField
       control={form.control}
       name="attachments"
-      render={({ field: { onChange, value, ...field } }) => (
+      render={({ field: { onChange, value, ...field }, fieldState }) => (
         <FormItem>
           <FormLabel>Anexos</FormLabel>
           <div className="border-2 border-dashed border-border rounded-lg p-8 text-center bg-muted/50">
@@ -127,9 +40,7 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
               onChange={handleFileChange}
               className="hidden"
               id="file-upload"
-              ref={fileInputRef}
               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-              disabled={isUploading}
               {...field}
             />
             <label 
@@ -138,7 +49,7 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
             >
               <Upload className="h-8 w-8 text-muted-foreground" />
               <div className="text-sm text-muted-foreground">
-                {isUploading ? "Enviando arquivos..." : "Clique ou arraste arquivos aqui"}
+                Clique ou arraste arquivos aqui
                 <p className="text-xs mt-1">PDF, Word, Excel ou imagens até 10MB</p>
               </div>
             </label>
@@ -154,7 +65,6 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => removeFile(index)}
-                    disabled={isUploading}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -163,7 +73,7 @@ export const RNCFileUpload = ({ form, rncId }: RNCFileUploadProps) => {
             </div>
           )}
           
-          <FormMessage />
+          {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
         </FormItem>
       )}
     />

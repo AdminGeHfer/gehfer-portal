@@ -4,14 +4,16 @@ import { format, parseISO } from "date-fns";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { MessageSquare, UserCheck, AlertCircle, Clock } from "lucide-react";
 
 interface TimelineEvent {
   id: string;
   date: string;
   title: string;
   description: string;
-  type: "creation" | "update" | "status" | "comment";
+  type: "creation" | "update" | "status" | "comment" | "assignment";
   userId: string;
+  comment?: string;
 }
 
 interface RNCTimelineProps {
@@ -30,6 +32,19 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
     }
   });
 
+  const getEventIcon = (type: TimelineEvent["type"]) => {
+    switch (type) {
+      case "comment":
+        return <MessageSquare className="h-4 w-4" />;
+      case "assignment":
+        return <UserCheck className="h-4 w-4" />;
+      case "status":
+        return <Clock className="h-4 w-4" />;
+      default:
+        return <AlertCircle className="h-4 w-4" />;
+    }
+  };
+
   const getEventColor = (type: TimelineEvent["type"]) => {
     switch (type) {
       case "creation":
@@ -39,7 +54,9 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
       case "status":
         return "bg-yellow-500 dark:bg-yellow-600";
       case "comment":
-        return "bg-gray-500 dark:bg-gray-600";
+        return "bg-purple-500 dark:bg-purple-600";
+      case "assignment":
+        return "bg-orange-500 dark:bg-orange-600";
       default:
         return "bg-gray-500 dark:bg-gray-600";
     }
@@ -85,12 +102,14 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
               <div className="relative flex items-center justify-center">
                 <div
                   className={cn(
-                    "h-3 w-3 rounded-full",
+                    "h-8 w-8 rounded-full flex items-center justify-center",
                     getEventColor(event.type)
                   )}
-                />
+                >
+                  {getEventIcon(event.type)}
+                </div>
                 {index !== events.length - 1 && (
-                  <div className="absolute top-3 left-1/2 h-full w-0.5 -translate-x-1/2 bg-border" />
+                  <div className="absolute top-8 left-1/2 h-full w-0.5 -translate-x-1/2 bg-border" />
                 )}
               </div>
               <div className="flex-1">
@@ -112,9 +131,16 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
                     {format(parseISO(event.date), "dd/MM/yyyy HH:mm")}
                   </time>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1 pl-8">
-                  {event.description}
-                </p>
+                <div className="pl-8">
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {event.description}
+                  </p>
+                  {event.comment && (
+                    <div className="mt-2 p-3 bg-muted rounded-lg">
+                      <p className="text-sm">{event.comment}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}

@@ -1,18 +1,11 @@
-import { Moon, Sun, LogOut } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { NotificationsPopover } from "../notifications/NotificationsPopover";
+import { ProfileUpload } from "../profile/ProfileUpload";
 
 interface HeaderProps {
   title?: string;
@@ -30,13 +23,12 @@ export function Header({ title = "Portal GeHfer" }: HeaderProps) {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('name, email')
+        .select('name')
         .eq('id', user.id)
         .single();
 
       return {
-        name: profile?.name || 'Usuário',
-        email: profile?.email || user.email,
+        name: profile?.name || 'Thiago Nobrega',
       };
     },
   });
@@ -58,8 +50,11 @@ export function Header({ title = "Portal GeHfer" }: HeaderProps) {
         </div>
         
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground hidden md:inline-block">Bem-vindo, {user?.name}</span>
-          <span className="text-sm text-muted-foreground hidden md:inline-block">{user?.email}</span>
+          <span className="text-sm text-muted-foreground">
+            Bem-vindo, {user?.name}
+          </span>
+          
+          <NotificationsPopover />
           
           <Button
             variant="ghost"
@@ -71,44 +66,10 @@ export function Header({ title = "Portal GeHfer" }: HeaderProps) {
             ) : (
               <Moon className="h-5 w-5" />
             )}
-            <span className="sr-only">Toggle theme</span>
+            <span className="sr-only">Alternar tema</span>
           </Button>
 
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={signOut}
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="sr-only">Logout</span>
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Avatar className="cursor-pointer">
-                <AvatarImage src="https://github.com/shadcn.png" alt={user?.name} />
-                <AvatarFallback>{user?.name?.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                Perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                Configurações
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                className="text-red-600 dark:text-red-400"
-                onClick={signOut}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ProfileUpload />
         </div>
       </div>
     </header>
