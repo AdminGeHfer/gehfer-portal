@@ -1,7 +1,6 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UseFormReturn } from "react-hook-form";
 
 interface UserFormFieldsProps {
@@ -12,14 +11,7 @@ interface UserFormFieldsProps {
 export function UserFormFields({ form, isEditing }: UserFormFieldsProps) {
   const availableModules = [
     { id: "quality", label: "Qualidade" },
-    { id: "admin", label: "Administração" },
-    { id: "portaria", label: "Portaria" }
-  ];
-
-  const roles = [
-    { value: "admin", label: "Administrador" },
-    { value: "manager", label: "Gerente" },
-    { value: "user", label: "Usuário" }
+    { id: "admin", label: "Administração" }
   ];
 
   return (
@@ -67,31 +59,6 @@ export function UserFormFields({ form, isEditing }: UserFormFieldsProps) {
           )}
         />
       )}
-
-      <FormField
-        control={form.control}
-        name="role"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Função</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma função" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.value} value={role.value}>
-                    {role.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
 
       <FormField
         control={form.control}
