@@ -32,7 +32,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     description: rnc.description,
     status: rnc.status,
     priority: validatePriority(rnc.priority),
-    type: rnc.type,
+    type: validateType(rnc.type),
     department: rnc.department,
     contact: rnc.contact[0] || { name: "", phone: "", email: "" },
     company: rnc.company,
@@ -42,7 +42,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     assignedTo: rnc.assigned_to,
     assignedBy: rnc.assigned_by,
     assignedAt: rnc.assigned_at,
-    resolution: rnc.resolution,
+    resolution: rnc.resolution || "",
     rnc_number: rnc.rnc_number,
     created_at: rnc.created_at,
     updated_at: rnc.updated_at,
@@ -78,6 +78,18 @@ const validatePriority = (priority: string): "low" | "medium" | "high" => {
       return "high";
     default:
       return "medium"; // Default to medium if invalid priority
+  }
+};
+
+// Helper function to validate type
+const validateType = (type: string): "client" | "supplier" => {
+  switch (type?.toLowerCase()) {
+    case "client":
+      return "client";
+    case "supplier":
+      return "supplier";
+    default:
+      return "client"; // Default to client if invalid type
   }
 };
 
