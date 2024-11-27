@@ -9,7 +9,6 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthGuard } from "./components/auth/AuthGuard";
 
-// Lazy load components
 const Login = lazy(() => import("./pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
 const RNCList = lazy(() => import("./pages/quality/RNCList"));
@@ -26,10 +25,9 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+      gcTime: 1000 * 60 * 30, // 30 minutes
       retry: 1,
       refetchOnWindowFocus: false,
-      suspense: true,
     },
   },
 });

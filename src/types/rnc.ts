@@ -1,5 +1,5 @@
 export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
-export type StatusEnum = "open" | "in_progress" | "closed";
+export type StatusEnum = "open" | "in_progress" | "closed" | "Coletar" | "Coleta Programada" | "Coleta Solicitada";
 
 export interface RNC {
   id: string;
