@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { RNC } from "@/types/rnc";
 
 interface UseRNCSearchProps {
@@ -27,11 +27,11 @@ export const useRNCSearch = ({ rncs }: UseRNCSearchProps) => {
     });
   }, [rncs, search, statusFilter, priorityFilter]);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setSearch("");
     setStatusFilter("all");
     setPriorityFilter("all");
-  };
+  }, []);
 
   return {
     search,

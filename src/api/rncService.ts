@@ -1,29 +1,40 @@
 import { RNC } from "@/types/rnc";
+import { supabase } from "@/integrations/supabase/client";
 
-// Temporary mock data for development
-const mockRNCs: RNC[] = [
-  {
-    id: "1",
-    description: "Description for RNC 1",
-    status: "open",
-    priority: "high",
-    type: "client",
-    department: "Expedição",
-    contact: {
-      name: "John Doe",
-      phone: "123456789",
-      email: "john@example.com"
-    },
-    company: "Test Company",
-    cnpj: "12345678901234",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    timeline: []
-  }
-];
+const RNC_CACHE_KEY = 'rncs';
+const CACHE_TIME = 1000 * 60 * 5; // 5 minutes
 
 export const getRNCs = async (): Promise<RNC[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return mockRNCs;
+  // Check cache first
+  const cachedData = sessionStorage.getItem(RNC_CACHE_KEY);
+  if (cachedData) {
+    const { data, timestamp } = JSON.parse(cachedData);
+    if (Date.now() - timestamp < CACHE_TIME) {
+      return data;
+    }
+  }
+
+  // If no cache or expired, fetch from API
+  const { data, error } = await supabase
+    .from('rncs')
+    .select(`
+      *,
+      contact:rnc_contacts(*),
+      events:rnc_events(*)
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  // Update cache
+  sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
+    data,
+    timestamp: Date.now()
+  }));
+
+  return data;
+};
+
+export const invalidateRNCCache = () => {
+  sessionStorage.removeItem(RNC_CACHE_KEY);
 };
