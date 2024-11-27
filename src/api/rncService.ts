@@ -42,7 +42,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     assignedTo: rnc.assigned_to,
     assignedBy: rnc.assigned_by,
     assignedAt: rnc.assigned_at,
-    resolution: rnc.resolution || "",
+    resolution: "", // Set a default empty string for resolution
     rnc_number: rnc.rnc_number,
     created_at: rnc.created_at,
     updated_at: rnc.updated_at,
