@@ -17,7 +17,7 @@ const RNCDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: rnc, isLoading } = useQuery({
+  const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
@@ -33,7 +33,6 @@ const RNCDetail = () => {
 
       if (error) throw error;
 
-      // Check if the user is the creator of the RNC
       if (data.created_by !== user.user?.id) {
         toast.error("Você não tem permissão para editar esta RNC");
         return { ...transformRNCData(data), canEdit: false };
@@ -58,9 +57,8 @@ const RNCDetail = () => {
   const handlePrint = () => {
     setIsPrinting(true);
     setTimeout(() => {
-      window.print();
       setIsPrinting(false);
-    }, 100);
+    }, 1000);
   };
 
   const handleEdit = () => {
@@ -167,6 +165,7 @@ const RNCDetail = () => {
       setIsDeleteDialogOpen={setIsDeleteDialogOpen}
       isDeleting={isDeleting}
       canEdit={rnc.canEdit}
+      onRefresh={refetch}
     />
   );
 };

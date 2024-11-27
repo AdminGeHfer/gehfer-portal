@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck } from "lucide-react";
+import { ClipboardCheck, Users, Truck, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Apps = () => {
@@ -53,7 +53,7 @@ const Apps = () => {
 
             <Card 
               className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
-              onClick={() => navigate("/portaria/filas")}
+              onClick={() => navigate("/portaria/acesso")}
             >
               <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
                 <Truck className="h-12 w-12 text-primary" />
@@ -61,6 +61,22 @@ const Apps = () => {
               <div className="p-6">
                 <h3 className="text-xl font-semibold mb-2">Portaria</h3>
                 <p className="text-muted-foreground mb-4">Gestão de filas e controle de acesso</p>
+                <div className="flex items-center text-primary hover:underline">
+                  Acessar módulo
+                </div>
+              </div>
+            </Card>
+
+            <Card 
+              className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
+              onClick={() => navigate("/admin/products")}
+            >
+              <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
+                <Package className="h-12 w-12 text-primary" />
+              </div>
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-2">Cadastros</h3>
+                <p className="text-muted-foreground mb-4">Gerenciamento de produtos e outros cadastros</p>
                 <div className="flex items-center text-primary hover:underline">
                   Acessar módulo
                 </div>

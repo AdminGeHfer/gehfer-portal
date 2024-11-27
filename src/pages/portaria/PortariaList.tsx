@@ -6,17 +6,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RegisterTruckDialog } from "@/components/portaria/RegisterTruckDialog";
 import { useState } from "react";
 import { usePortariaTrucks } from "@/hooks/usePortariaTrucks";
-import { Truck, Clock, AlertCircle } from "lucide-react";
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { Truck, Clock, AlertCircle, ArrowLeftRight } from "lucide-react";
+import { toast } from "sonner";
 
 const PortariaList = () => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { trucks } = usePortariaTrucks();
+  const { trucks, moveTruck, optimizeQueues } = usePortariaTrucks();
 
   const trucksInOperation = trucks.filter(truck => truck.status === "in_process");
-  const averageWaitTime = 45; // TODO: Calculate from actual data
+  const waitingTrucks = trucks.filter(t => t.status === "waiting");
+  const averageWaitTime = Math.floor(waitingTrucks.reduce((acc, truck) => {
+    const waitTime = new Date().getTime() - new Date(truck.entryTime).getTime();
+    return acc + (waitTime / (1000 * 60));
+  }, 0) / (waitingTrucks.length || 1));
+
+  const handleOptimizeQueues = () => {
+    optimizeQueues();
+    toast.success("Filas otimizadas com sucesso!");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,13 +54,6 @@ const PortariaList = () => {
               className="w-full justify-start"
             >
               Gestão de Filas
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/portaria/entregas-pendentes")}
-            >
-              Cargas
             </Button>
           </nav>
         </aside>
@@ -94,7 +95,7 @@ const PortariaList = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {trucks.filter(t => t.status === "waiting").length}
+                  {waitingTrucks.length}
                 </div>
               </CardContent>
             </Card>
@@ -108,48 +109,55 @@ const PortariaList = () => {
               </p>
             </div>
             
-            <Button onClick={() => setIsDialogOpen(true)}>
-              Adicionar à Fila
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={handleOptimizeQueues}
+              >
+                <ArrowLeftRight className="h-4 w-4 mr-2" />
+                Otimizar Filas
+              </Button>
+              <Button onClick={() => setIsDialogOpen(true)}>
+                Adicionar à Fila
+              </Button>
+            </div>
           </div>
 
-          <DndProvider backend={HTML5Backend}>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-3 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <TruckQueue 
-                    title="Baia 1" 
-                    id="baia1" 
-                  />
-                  <TruckQueue 
-                    title="Baia 2" 
-                    id="baia2"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <TruckQueue 
-                    title="Baia 3" 
-                    id="baia3"
-                  />
-                  <TruckQueue 
-                    title="Baia 4" 
-                    id="baia4"
-                  />
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <TruckQueue 
-                  title="Baia 5" 
-                  id="baia5"
+                  title="Baia 1" 
+                  id="baia1" 
+                />
+                <TruckQueue 
+                  title="Baia 2" 
+                  id="baia2"
                 />
               </div>
-
-              <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <TruckQueue 
-                  title="Em Espera" 
-                  id="waiting"
+                  title="Baia 3" 
+                  id="baia3"
+                />
+                <TruckQueue 
+                  title="Baia 4" 
+                  id="baia4"
                 />
               </div>
+              <TruckQueue 
+                title="Baia 5" 
+                id="baia5"
+              />
             </div>
-          </DndProvider>
+
+            <div>
+              <TruckQueue 
+                title="Em Espera" 
+                id="waiting"
+              />
+            </div>
+          </div>
 
           <RegisterTruckDialog 
             open={isDialogOpen} 

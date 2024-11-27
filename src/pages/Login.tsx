@@ -69,7 +69,7 @@ const Login = () => {
               },
               className: {
                 container: 'space-y-4',
-                button: 'w-full font-sans bg-primary hover:bg-primary/90 text-primary-foreground',
+                button: 'w-full font-sans bg-primary hover:bg-primary/90 text-primary-foreground dark:text-primary-foreground',
                 input: 'font-sans',
                 label: 'font-sans',
                 anchor: 'font-sans text-primary hover:text-primary/80',

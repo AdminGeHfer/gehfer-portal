@@ -1,49 +1,97 @@
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { UserPlus, Search, Mail, Lock, UserCog } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { UserPlus, Download, Upload, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { UserForm } from "@/components/admin/UserForm";
 import { useUsers } from "@/hooks/useUsers";
 import { BackButton } from "@/components/atoms/BackButton";
+import { UserList } from "@/components/admin/UserList";
+import { UserFilters } from "@/components/admin/UserFilters";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
-  const { toast } = useToast();
-  const { data: users, isLoading } = useUsers();
+  const [moduleFilter, setModuleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { data: users, isLoading: isLoadingUsers, refetch } = useUsers();
 
-  const filteredUsers = users?.filter(user => 
-    (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users?.filter(user => {
+    const matchesSearch = 
+      (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
+    
+    const matchesModule = moduleFilter === 'all' || 
+      (user.modules && user.modules.includes(moduleFilter));
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' ? user.active : !user.active);
+
+    return matchesSearch && matchesModule && matchesStatus;
+  });
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
     setSelectedUser(null);
   };
 
-  const handleResetPassword = async (email: string) => {
+  const handleDeleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase
+        .from('profiles')
+        .update({ active: false })
+        .eq('id', userId);
+
       if (error) throw error;
-      toast({
-        title: "Email enviado",
-        description: "Um email de redefinição de senha foi enviado"
-      });
+
+      await refetch();
+      toast.success("Usuário desativado com sucesso");
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive"
-      });
+      console.error('Error deactivating user:', error);
+      toast.error("Erro ao desativar usuário");
     }
+  };
+
+  const handleBulkAction = async (action: 'activate' | 'deactivate') => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ active: action === 'activate' })
+        .eq('active', action === 'deactivate');
+
+      if (error) throw error;
+
+      await refetch();
+      toast.success(`Usuários ${action === 'activate' ? 'ativados' : 'desativados'} com sucesso`);
+    } catch (error: any) {
+      console.error('Error in bulk action:', error);
+      toast.error(`Erro ao ${action === 'activate' ? 'ativar' : 'desativar'} usuários`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleExportUsers = () => {
+    if (!users) return;
+    
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      "Nome,Email,Módulos,Status\n" +
+      users.map(user => 
+        `${user.name},${user.email},${user.modules?.join(';') || ''},${user.active ? 'Ativo' : 'Inativo'}`
+      ).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "usuarios.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -53,102 +101,74 @@ export default function Users() {
       <main className="container mx-auto p-6 space-y-6 animate-fade-in">
         <BackButton to="/apps" label="Voltar para Apps" />
         
-        <div className="flex justify-between items-center">
-          <div className="flex gap-4 flex-1 max-w-sm">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar usuários..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-between items-center">
+            <div className="flex-1">
+              <UserFilters
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                moduleFilter={moduleFilter}
+                onModuleFilterChange={setModuleFilter}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
               />
             </div>
-          </div>
-          
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
+            
+            <div className="flex gap-2">
               <Button 
-                className="hover:shadow-lg transition-all"
-                onClick={() => setSelectedUser(null)}
+                variant="outline" 
+                onClick={handleExportUsers}
+                disabled={isLoading || !users?.length}
               >
-                <UserPlus className="mr-2 h-4 w-4" />
-                Novo Usuário
+                <Download className="mr-2 h-4 w-4" />
+                Exportar
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {selectedUser ? "Editar Usuário" : "Criar Novo Usuário"}
-                </DialogTitle>
-              </DialogHeader>
-              <UserForm 
-                user={selectedUser} 
-                onSuccess={handleDialogClose}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
+              
+              <Button
+                variant="outline"
+                onClick={() => handleBulkAction('activate')}
+                disabled={isLoading}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Ativar Todos
+              </Button>
 
-        <div className="border rounded-lg overflow-hidden glass-morphism">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Módulos</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">Carregando...</TableCell>
-                </TableRow>
-              ) : filteredUsers?.map((user) => (
-                <TableRow key={user.id} className="hover:bg-primary/5">
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      {user.modules?.map((module) => (
-                        <Badge key={module} variant="secondary">
-                          {module}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={user.active ? "default" : "destructive"}>
-                      {user.active ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => user.email && handleResetPassword(user.email)}
-                      >
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => {
-                          setSelectedUser(user);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        <UserCog className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="hover:shadow-lg transition-all"
+                    onClick={() => setSelectedUser(null)}
+                  >
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Novo Usuário
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {selectedUser ? "Editar Usuário" : "Criar Novo Usuário"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <UserForm 
+                    user={selectedUser} 
+                    onSuccess={handleDialogClose}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          <div className="border rounded-lg overflow-hidden glass-morphism">
+            <UserList
+              users={filteredUsers}
+              isLoading={isLoadingUsers}
+              onEdit={(user) => {
+                setSelectedUser(user);
+                setIsDialogOpen(true);
+              }}
+              onDelete={handleDeleteUser}
+            />
+          </div>
         </div>
       </main>
     </div>

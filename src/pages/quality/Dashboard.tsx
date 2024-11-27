@@ -85,6 +85,13 @@ const Dashboard = () => {
             >
               RNCs
             </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/quality/collections")}
+            >
+              Coletas
+            </Button>
           </nav>
         </aside>
 

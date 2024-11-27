@@ -2,7 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Filter, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RNCForm } from "@/components/quality/RNCForm";
 import { useState } from "react";
@@ -26,7 +26,7 @@ const RNCList = () => {
     try {
       const result = await createRNC.mutateAsync(data);
       setIsFormOpen(false);
-      return result.id; // Return the actual RNC ID from the mutation
+      return result.id;
     } catch (error) {
       console.error("Erro ao criar RNC:", error);
       throw error;
@@ -62,7 +62,7 @@ const RNCList = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header title="Qualidade" />
+      <Header title="Lista de RNCs" />
       
       <div className="flex min-h-screen">
         <aside className="w-64 border-r bg-card">
@@ -88,6 +88,13 @@ const RNCList = () => {
               className="w-full justify-start"
             >
               RNCs
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => navigate("/quality/collections")}
+            >
+              Coletas
             </Button>
           </nav>
         </aside>

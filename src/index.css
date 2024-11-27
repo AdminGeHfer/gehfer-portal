@@ -43,7 +43,7 @@
     --muted-foreground: 215.4 16.3% 56.9%;
     --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 216 34% 17%;
     --input: 216 34% 17%;
@@ -63,77 +63,11 @@
   }
 }
 
-.glass-morphism {
-  @apply bg-background/80 backdrop-blur-lg border border-border/50;
+.required-field::after {
+  content: " *";
+  @apply text-destructive font-normal;
 }
 
-.card-shadow {
-  @apply shadow-lg dark:shadow-[0_4px_8px_rgba(0,0,0,0.2)];
-}
-
-/* Custom scrollbar */
-.dark ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.dark ::-webkit-scrollbar-track {
-  @apply bg-background;
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  @apply bg-muted rounded;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  @apply bg-muted-foreground;
-}
-
-/* Hover effects */
-.hover-scale {
-  @apply transition-transform duration-200 hover:scale-105;
-}
-
-.hover-lift {
-  @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-black/20;
-}
-
-/* Card styles */
-.card-hover {
-  @apply transition-all duration-200 hover:shadow-lg dark:hover:shadow-black/20;
-}
-
-/* Print styles */
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  
-  .print-content, 
-  .print-content * {
-    visibility: visible !important;
-  }
-
-  .print-content {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-}
-
-/* Light mode dialog styles */
-.light .dialog-content {
-  @apply bg-white rounded-2xl shadow-xl border border-gray-200;
-  max-width: 90vh;
-  max-height: 90vh;
-  aspect-ratio: 4/3;
-}
-
-/* Dark mode dialog styles */
-.dark .dialog-content {
-  @apply bg-[#1E1E1E] rounded-xl border-gray-800;
-  max-width: 90vh;
-  max-height: 90vh;
-  aspect-ratio: 4/3;
+.dark .form-message {
+  @apply text-red-400;
 }

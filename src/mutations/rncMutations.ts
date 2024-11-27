@@ -59,7 +59,7 @@ export const useUpdateRNC = (
           status: updatedData.status,
           priority: updatedData.priority,
           type: updatedData.type,
-          department: updatedData.department as "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção",
+          department: updatedData.department,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
           order_number: updatedData.orderNumber,
@@ -81,6 +81,7 @@ export const useUpdateRNC = (
             name: updatedData.contact.name,
             phone: updatedData.contact.phone,
             email: updatedData.contact.email,
+            rnc_id: id
           })
           .eq("rnc_id", id);
 

@@ -18,6 +18,8 @@ export interface RNC {
   orderNumber?: string;
   returnNumber?: string;
   assignedTo?: string;
+  assignedBy?: string;
+  assignedAt?: string;
   attachments?: File[];
   timeline: TimelineEvent[];
   resolution?: string;
@@ -34,8 +36,9 @@ export interface TimelineEvent {
   date: string;
   title: string;
   description: string;
-  type: "creation" | "update" | "status" | "comment";
+  type: "creation" | "update" | "status" | "comment" | "assignment";
   userId: string;
+  comment?: string;
 }
 
 export interface RNCFormData {

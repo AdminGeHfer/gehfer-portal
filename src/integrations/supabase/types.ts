@@ -9,6 +9,204 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      collection_evidence: {
+        Row: {
+          collection_id: string
+          content_type: string
+          created_at: string
+          created_by: string
+          evidence_type: string
+          file_path: string
+          filename: string
+          filesize: number
+          id: string
+        }
+        Insert: {
+          collection_id: string
+          content_type: string
+          created_at?: string
+          created_by: string
+          evidence_type: string
+          file_path: string
+          filename: string
+          filesize: number
+          id?: string
+        }
+        Update: {
+          collection_id?: string
+          content_type?: string
+          created_at?: string
+          created_by?: string
+          evidence_type?: string
+          file_path?: string
+          filename?: string
+          filesize?: number
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_evidence_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collection_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_evidence_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_requests: {
+        Row: {
+          arrival_date: string | null
+          collection_address: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string
+          id: string
+          material_weight: number | null
+          notes: string | null
+          rnc_id: string
+          status: Database["public"]["Enums"]["collection_status_enum"] | null
+          updated_at: string
+        }
+        Insert: {
+          arrival_date?: string | null
+          collection_address: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          material_weight?: number | null
+          notes?: string | null
+          rnc_id: string
+          status?: Database["public"]["Enums"]["collection_status_enum"] | null
+          updated_at?: string
+        }
+        Update: {
+          arrival_date?: string | null
+          collection_address?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          material_weight?: number | null
+          notes?: string | null
+          rnc_id?: string
+          status?: Database["public"]["Enums"]["collection_status_enum"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_requests_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_requests_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
+            referencedRelation: "rncs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materials: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          rnc_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          rnc_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          rnc_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
+            referencedRelation: "rncs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operations: {
         Row: {
           bay_number: number | null
@@ -119,9 +317,48 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          internal_code: string
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          internal_code: string
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          internal_code?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           active: boolean | null
+          avatar_url: string | null
           created_at: string
           department: string | null
           email: string | null
@@ -129,9 +366,11 @@ export type Database = {
           modules: string[] | null
           name: string | null
           password_reset_needed: boolean | null
+          role: string | null
         }
         Insert: {
           active?: boolean | null
+          avatar_url?: string | null
           created_at?: string
           department?: string | null
           email?: string | null
@@ -139,9 +378,11 @@ export type Database = {
           modules?: string[] | null
           name?: string | null
           password_reset_needed?: boolean | null
+          role?: string | null
         }
         Update: {
           active?: boolean | null
+          avatar_url?: string | null
           created_at?: string
           department?: string | null
           email?: string | null
@@ -149,14 +390,65 @@ export type Database = {
           modules?: string[] | null
           name?: string | null
           password_reset_needed?: boolean | null
+          role?: string | null
         }
         Relationships: []
+      }
+      return_items: {
+        Row: {
+          collection_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          product_id: string | null
+          weight: number
+        }
+        Insert: {
+          collection_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          product_id?: string | null
+          weight: number
+        }
+        Update: {
+          collection_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          product_id?: string | null
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collection_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rnc_attachments: {
         Row: {
           content_type: string
           created_at: string
           created_by: string
+          file_path: string
           filename: string
           filesize: number
           id: string
@@ -166,6 +458,7 @@ export type Database = {
           content_type: string
           created_at?: string
           created_by: string
+          file_path: string
           filename: string
           filesize: number
           id?: string
@@ -175,6 +468,7 @@ export type Database = {
           content_type?: string
           created_at?: string
           created_by?: string
+          file_path?: string
           filename?: string
           filesize?: number
           id?: string
@@ -231,6 +525,7 @@ export type Database = {
       }
       rnc_events: {
         Row: {
+          comment: string | null
           created_at: string
           created_by: string
           description: string
@@ -240,6 +535,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          comment?: string | null
           created_at?: string
           created_by: string
           description: string
@@ -249,6 +545,7 @@ export type Database = {
           type: string
         }
         Update: {
+          comment?: string | null
           created_at?: string
           created_by?: string
           description?: string
@@ -276,6 +573,8 @@ export type Database = {
       }
       rncs: {
         Row: {
+          assigned_at: string | null
+          assigned_by: string | null
           assigned_to: string | null
           closed_at: string | null
           cnpj: string
@@ -294,6 +593,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
           assigned_to?: string | null
           closed_at?: string | null
           cnpj: string
@@ -312,6 +613,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
           assigned_to?: string | null
           closed_at?: string | null
           cnpj?: string
@@ -330,6 +633,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rncs_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rncs_assigned_to_fkey"
             columns: ["assigned_to"]
@@ -531,6 +841,11 @@ export type Database = {
       }
     }
     Enums: {
+      collection_status_enum:
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
       department_enum:
         | "Expedição"
         | "Logistica"
@@ -543,6 +858,7 @@ export type Database = {
         | "closed"
         | "Coletar"
         | "Coleta Programada"
+        | "Coleta Solicitada"
     }
     CompositeTypes: {
       [_ in never]: never

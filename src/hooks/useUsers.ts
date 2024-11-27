@@ -22,8 +22,13 @@ const fetchUsers = async (): Promise<User[]> => {
 };
 
 export function useUsers() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["users"],
     queryFn: fetchUsers
   });
+
+  return {
+    ...query,
+    refetch: query.refetch
+  };
 }

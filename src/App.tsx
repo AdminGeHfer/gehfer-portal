@@ -12,9 +12,10 @@ import RNCList from "./pages/quality/RNCList";
 import RNCDetail from "./pages/quality/RNCDetail";
 import Dashboard from "./pages/quality/Dashboard";
 import Users from "./pages/admin/Users";
+import Products from "./pages/admin/Products";
 import AccessControl from "./pages/portaria/AccessControl";
 import PortariaList from "./pages/portaria/PortariaList";
-import PendingDeliveries from "./pages/portaria/PendingDeliveries";
+import ScheduledCollections from "./pages/quality/ScheduledCollections";
 import { AuthGuard } from "./components/auth/AuthGuard";
 
 const queryClient = new QueryClient();
@@ -40,15 +41,16 @@ const App = () => (
               <Route path="/quality/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/quality/rnc" element={<ProtectedRoute><RNCList /></ProtectedRoute>} />
               <Route path="/quality/rnc/:id" element={<ProtectedRoute><RNCDetail /></ProtectedRoute>} />
+              <Route path="/quality/collections" element={<ProtectedRoute><ScheduledCollections /></ProtectedRoute>} />
               
               {/* Admin Routes */}
               <Route path="/admin/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+              <Route path="/admin/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
               
               {/* Portaria Routes */}
               <Route path="/portaria" element={<Navigate to="/portaria/acesso" replace />} />
               <Route path="/portaria/acesso" element={<ProtectedRoute><AccessControl /></ProtectedRoute>} />
               <Route path="/portaria/filas" element={<ProtectedRoute><PortariaList /></ProtectedRoute>} />
-              <Route path="/portaria/entregas-pendentes" element={<ProtectedRoute><PendingDeliveries /></ProtectedRoute>} />
               
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="*" element={<Navigate to="/login" replace />} />
