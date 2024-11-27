@@ -28,8 +28,25 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
   // Transform the data to match RNC type
   const transformedData: RNC[] = data.map(rnc => ({
-    ...rnc,
+    id: rnc.id,
+    description: rnc.description,
+    status: rnc.status,
+    priority: validatePriority(rnc.priority),
+    type: rnc.type,
+    department: rnc.department,
     contact: rnc.contact[0] || { name: "", phone: "", email: "" },
+    company: rnc.company,
+    cnpj: rnc.cnpj,
+    orderNumber: rnc.order_number,
+    returnNumber: rnc.return_number,
+    assignedTo: rnc.assigned_to,
+    assignedBy: rnc.assigned_by,
+    assignedAt: rnc.assigned_at,
+    resolution: rnc.resolution,
+    rnc_number: rnc.rnc_number,
+    created_at: rnc.created_at,
+    updated_at: rnc.updated_at,
+    closed_at: rnc.closed_at,
     timeline: rnc.events.map((event: any) => ({
       id: event.id,
       date: event.created_at,
@@ -48,6 +65,20 @@ export const getRNCs = async (): Promise<RNC[]> => {
   }));
 
   return transformedData;
+};
+
+// Helper function to validate priority
+const validatePriority = (priority: string): "low" | "medium" | "high" => {
+  switch (priority?.toLowerCase()) {
+    case "low":
+      return "low";
+    case "medium":
+      return "medium";
+    case "high":
+      return "high";
+    default:
+      return "medium"; // Default to medium if invalid priority
+  }
 };
 
 export const invalidateRNCCache = () => {
