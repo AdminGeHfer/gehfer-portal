@@ -26,13 +26,28 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
   if (error) throw error;
 
+  // Transform the data to match RNC type
+  const transformedData: RNC[] = data.map(rnc => ({
+    ...rnc,
+    contact: rnc.contact[0] || { name: "", phone: "", email: "" },
+    timeline: rnc.events.map((event: any) => ({
+      id: event.id,
+      date: event.created_at,
+      title: event.title,
+      description: event.description,
+      type: event.type,
+      userId: event.created_by,
+      comment: event.comment
+    }))
+  }));
+
   // Update cache
   sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
-    data,
+    data: transformedData,
     timestamp: Date.now()
   }));
 
-  return data;
+  return transformedData;
 };
 
 export const invalidateRNCCache = () => {
