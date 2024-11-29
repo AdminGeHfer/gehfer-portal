@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthGuard } from "./components/auth/AuthGuard";
+import { RoleGuard } from "./components/auth/RoleGuard";
 
 const Login = lazy(() => import("./pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
@@ -38,8 +39,16 @@ const LoadingFallback = () => (
   </div>
 );
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => (
-  <AuthGuard>{children}</AuthGuard>
+const ProtectedRoute = ({ children, module, action = "read" }: { 
+  children: React.ReactNode;
+  module: string;
+  action?: string;
+}) => (
+  <AuthGuard>
+    <RoleGuard module={module} action={action}>
+      {children}
+    </RoleGuard>
+  </AuthGuard>
 );
 
 const App = () => (
@@ -53,23 +62,39 @@ const App = () => (
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/login" element={<Login />} />
-                <Route path="/apps" element={<ProtectedRoute><Apps /></ProtectedRoute>} />
+                <Route path="/apps" element={<ProtectedRoute module="any"><Apps /></ProtectedRoute>} />
                 
                 {/* Quality Routes */}
                 <Route path="/quality" element={<Navigate to="/quality/dashboard" replace />} />
-                <Route path="/quality/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/quality/rnc" element={<ProtectedRoute><RNCList /></ProtectedRoute>} />
-                <Route path="/quality/rnc/:id" element={<ProtectedRoute><RNCDetail /></ProtectedRoute>} />
-                <Route path="/quality/collections" element={<ProtectedRoute><ScheduledCollections /></ProtectedRoute>} />
+                <Route path="/quality/dashboard" element={
+                  <ProtectedRoute module="quality"><Dashboard /></ProtectedRoute>
+                } />
+                <Route path="/quality/rnc" element={
+                  <ProtectedRoute module="quality"><RNCList /></ProtectedRoute>
+                } />
+                <Route path="/quality/rnc/:id" element={
+                  <ProtectedRoute module="quality"><RNCDetail /></ProtectedRoute>
+                } />
+                <Route path="/quality/collections" element={
+                  <ProtectedRoute module="quality"><ScheduledCollections /></ProtectedRoute>
+                } />
                 
                 {/* Admin Routes */}
-                <Route path="/admin/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-                <Route path="/admin/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+                <Route path="/admin/users" element={
+                  <ProtectedRoute module="admin" action="write"><Users /></ProtectedRoute>
+                } />
+                <Route path="/admin/products" element={
+                  <ProtectedRoute module="admin" action="write"><Products /></ProtectedRoute>
+                } />
                 
                 {/* Portaria Routes */}
                 <Route path="/portaria" element={<Navigate to="/portaria/acesso" replace />} />
-                <Route path="/portaria/acesso" element={<ProtectedRoute><AccessControl /></ProtectedRoute>} />
-                <Route path="/portaria/filas" element={<ProtectedRoute><PortariaList /></ProtectedRoute>} />
+                <Route path="/portaria/acesso" element={
+                  <ProtectedRoute module="portaria"><AccessControl /></ProtectedRoute>
+                } />
+                <Route path="/portaria/filas" element={
+                  <ProtectedRoute module="portaria"><PortariaList /></ProtectedRoute>
+                } />
                 
                 <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route path="*" element={<Navigate to="/login" replace />} />
