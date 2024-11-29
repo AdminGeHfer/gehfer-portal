@@ -8,11 +8,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserFormFields } from "./UserFormFields";
+import { Role } from "@/hooks/useRBAC";
 
 const userFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres").optional(),
+  role: z.enum(["admin", "manager", "user"] as const),
   modules: z.array(z.string()),
   active: z.boolean()
 });
@@ -24,6 +26,7 @@ interface UserFormProps {
     id: string;
     name: string | null;
     email: string | null;
+    role: Role | null;
     modules: string[] | null;
     active: boolean | null;
   };
@@ -40,6 +43,7 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
     defaultValues: {
       name: user?.name || "",
       email: user?.email || "",
+      role: user?.role || "user",
       modules: user?.modules || [],
       active: user?.active ?? true
     }
@@ -54,6 +58,7 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
           .update({
             name: data.name,
             email: data.email,
+            role: data.role,
             modules: data.modules,
             active: data.active
           })
@@ -82,6 +87,7 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
           const { error: profileError } = await supabase
             .from('profiles')
             .update({
+              role: data.role,
               modules: data.modules,
               active: data.active
             })

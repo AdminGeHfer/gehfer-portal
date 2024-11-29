@@ -55,6 +55,28 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
     }
   };
 
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'destructive';
+      case 'manager':
+        return 'default';
+      default:
+        return 'secondary';
+    }
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'manager':
+        return 'Gerente';
+      default:
+        return 'Usuário';
+    }
+  };
+
   return (
     <>
       <Table>
@@ -62,6 +84,7 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
           <TableRow>
             <TableHead>Nome</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Função</TableHead>
             <TableHead>Módulos</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Ações</TableHead>
@@ -70,12 +93,17 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">Carregando...</TableCell>
+              <TableCell colSpan={6} className="text-center">Carregando...</TableCell>
             </TableRow>
           ) : users?.map((user) => (
             <TableRow key={user.id} className="hover:bg-primary/5">
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
+              <TableCell>
+                <Badge variant={getRoleBadgeVariant(user.role)}>
+                  {getRoleLabel(user.role)}
+                </Badge>
+              </TableCell>
               <TableCell>
                 <div className="flex gap-1">
                   {user.modules?.map((module: string) => (
