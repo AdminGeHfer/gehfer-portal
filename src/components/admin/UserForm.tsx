@@ -15,7 +15,7 @@ const userFormSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres").optional(),
   role: z.enum(["admin", "manager", "user"] as const),
-  modules: z.array(z.string()),
+  modules: z.array(z.string()).min(1, "Selecione pelo menos um módulo"),
   active: z.boolean()
 });
 
@@ -68,7 +68,8 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
 
         toast({
           title: "Usuário atualizado",
-          description: `O usuário ${data.name} foi atualizado com sucesso.`
+          description: `O usuário ${data.name} foi atualizado com sucesso.`,
+          variant: "default"
         });
       } else {
         const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -98,7 +99,8 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
 
         toast({
           title: "Usuário criado",
-          description: `O usuário ${data.name} foi criado com sucesso.`
+          description: `O usuário ${data.name} foi criado com sucesso.`,
+          variant: "default"
         });
       }
 
@@ -120,7 +122,7 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <UserFormFields form={form} isEditing={!!user} />
         
         <Button type="submit" className="w-full" disabled={isLoading}>

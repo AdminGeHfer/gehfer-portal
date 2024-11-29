@@ -2,6 +2,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
 import { UseFormReturn } from "react-hook-form";
 import { Role } from "@/hooks/useRBAC";
 
@@ -24,34 +25,36 @@ export function UserFormFields({ form, isEditing }: UserFormFieldsProps) {
   ];
 
   return (
-    <>
-      <FormField
-        control={form.control}
-        name="name"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Nome</FormLabel>
-            <FormControl>
-              <Input {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nome</FormLabel>
+              <FormControl>
+                <Input placeholder="Digite o nome completo" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <FormField
-        control={form.control}
-        name="email"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Email</FormLabel>
-            <FormControl>
-              <Input {...field} type="email" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="Digite o email" {...field} type="email" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
 
       {!isEditing && (
         <FormField
@@ -61,7 +64,7 @@ export function UserFormFields({ form, isEditing }: UserFormFieldsProps) {
             <FormItem>
               <FormLabel>Senha</FormLabel>
               <FormControl>
-                <Input {...field} type="password" />
+                <Input placeholder="Digite a senha" {...field} type="password" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -77,7 +80,7 @@ export function UserFormFields({ form, isEditing }: UserFormFieldsProps) {
             <FormLabel>Função</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Selecione uma função" />
                 </SelectTrigger>
               </FormControl>
@@ -94,62 +97,65 @@ export function UserFormFields({ form, isEditing }: UserFormFieldsProps) {
         )}
       />
 
-      <FormField
-        control={form.control}
-        name="modules"
-        render={() => (
-          <FormItem>
-            <FormLabel>Módulos</FormLabel>
-            <div className="space-y-2">
-              {availableModules.map((module) => (
-                <FormField
-                  key={module.id}
-                  control={form.control}
-                  name="modules"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value?.includes(module.id)}
-                          onCheckedChange={(checked) => {
-                            const updatedModules = checked
-                              ? [...field.value || [], module.id]
-                              : field.value?.filter((value: string) => value !== module.id) || [];
-                            field.onChange(updatedModules);
-                          }}
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">
-                        {module.label}
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              ))}
-            </div>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <Card className="p-6">
+        <FormField
+          control={form.control}
+          name="modules"
+          render={() => (
+            <FormItem>
+              <FormLabel className="text-lg font-semibold mb-4">Módulos de Acesso</FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {availableModules.map((module) => (
+                  <FormField
+                    key={module.id}
+                    control={form.control}
+                    name="modules"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 bg-secondary/10 p-4 rounded-lg">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(module.id)}
+                            onCheckedChange={(checked) => {
+                              const currentModules = field.value || [];
+                              const updatedModules = checked
+                                ? [...currentModules, module.id]
+                                : currentModules.filter((value: string) => value !== module.id);
+                              field.onChange(updatedModules);
+                            }}
+                          />
+                        </FormControl>
+                        <FormLabel className="font-medium cursor-pointer">
+                          {module.label}
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </Card>
 
       <FormField
         control={form.control}
         name="active"
         render={({ field }) => (
-          <FormItem className="flex items-center space-x-2">
+          <FormItem className="flex items-center space-x-2 bg-secondary/10 p-4 rounded-lg">
             <FormControl>
               <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
               />
             </FormControl>
-            <FormLabel className="font-normal cursor-pointer">
+            <FormLabel className="font-medium cursor-pointer">
               Usuário ativo
             </FormLabel>
             <FormMessage />
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }
