@@ -11,6 +11,7 @@ interface Permission {
 
 const rolePermissions: Record<Role, Permission[]> = {
   admin: [
+    { module: "any", actions: ["read", "write", "delete"] },
     { module: "quality", actions: ["read", "write", "delete"] },
     { module: "admin", actions: ["read", "write", "delete"] },
     { module: "portaria", actions: ["read", "write", "delete"] }
@@ -63,6 +64,12 @@ export function useRBAC() {
   }
 
   function hasPermission(module: string, action: string): boolean {
+    // Admin has access to everything
+    if (userRole === "admin") return true;
+    
+    // Special case for "any" module
+    if (module === "any") return true;
+
     const permissions = rolePermissions[userRole];
     const modulePermissions = permissions.find(p => p.module === module);
     return !!modulePermissions?.actions.includes(action);
