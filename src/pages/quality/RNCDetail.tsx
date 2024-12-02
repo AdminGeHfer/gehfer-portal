@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, RefetchOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
 import { transformRNCData } from "@/utils/rncTransform";
 import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
-import { RNC } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
 
 const RNCDetail = () => {
@@ -122,8 +122,17 @@ const RNCDetail = () => {
     }
   };
 
-  const handleRefresh = async (options?: any) => {
+  const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
     await refetch(options);
+  };
+
+  const handleStatusChange = async (newStatus: WorkflowStatusEnum) => {
+    if (!rnc) return;
+    const updatedRnc = {
+      ...rnc,
+      workflow_status: newStatus
+    };
+    await updateRNC.mutateAsync(updatedRnc);
   };
 
   if (isLoading) {

@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNCTimeline } from "../RNCTimeline";
-import { format } from "date-fns";
+import { WorkflowTransition, getStatusLabel } from "@/types/workflow";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface RNCWorkflowHistoryProps {
   rncId: string;
@@ -21,7 +22,7 @@ export function RNCWorkflowHistory({ rncId }: RNCWorkflowHistoryProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as WorkflowTransition[];
     },
   });
 
@@ -30,22 +31,34 @@ export function RNCWorkflowHistory({ rncId }: RNCWorkflowHistoryProps) {
     date: transition.created_at,
     title: "Alteração de Status",
     description: `Status alterado de ${getStatusLabel(transition.from_status || 'open')} para ${getStatusLabel(transition.to_status)}`,
-    type: "status",
+    type: "status" as const,
     userId: transition.created_by,
     comment: transition.notes,
   })) || [];
 
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      open: "Aberto",
-      analysis: "Em Análise",
-      resolution: "Em Resolução",
-      solved: "Solucionado",
-      closing: "Em Fechamento",
-      closed: "Encerrado"
-    };
-    return labels[status] || status;
-  };
+  if (!transitions?.length) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico do Workflow</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-muted-foreground">
+            Nenhuma transição registrada
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  return <RNCTimeline events={events} />;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Histórico do Workflow</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <RNCTimeline events={events} />
+      </CardContent>
+    </Card>
+  );
 }
