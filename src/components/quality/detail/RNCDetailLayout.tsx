@@ -14,7 +14,6 @@ import { toast } from "sonner";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
-  id?: string;
   isEditing: boolean;
   isPrinting: boolean;
   isDeleteDialogOpen: boolean;
