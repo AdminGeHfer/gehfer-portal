@@ -1,6 +1,19 @@
 # Passo a Passo - Configuração do Banco de Dados Supabase
 
-## 1. Criação das Tabelas Principais
+## 1. Configuração Inicial
+
+### Configurar Variáveis de Ambiente
+```bash
+VITE_SUPABASE_URL=sua_url_do_supabase
+VITE_SUPABASE_ANON_KEY=sua_chave_anon
+```
+
+### Configurar Autenticação
+1. Habilitar provedores desejados (Email, Google, etc)
+2. Configurar URLs de redirecionamento
+3. Personalizar templates de email
+
+## 2. Tabelas Principais
 
 ### Perfis de Usuário
 ```sql
@@ -16,7 +29,7 @@ create table public.profiles (
 );
 ```
 
-### Caminhões
+### Caminhões e Operações
 ```sql
 create table public.trucks (
   id uuid primary key default gen_random_uuid(),
@@ -27,27 +40,19 @@ create table public.trucks (
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
-```
 
-### Registros de Acesso
-```sql
-create table public.truck_access_logs (
+create table public.operations (
   id uuid primary key default gen_random_uuid(),
   truck_id uuid references public.trucks,
+  operation_type text not null,
+  status text not null,
   entry_time timestamp with time zone default now(),
   exit_time timestamp with time zone,
-  purpose text not null,
-  driver_document text,
-  driver_photo text,
-  truck_photo text,
-  cargo_description text,
-  notes text,
-  created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now()
+  created_at timestamp with time zone default now()
 );
 ```
 
-### RNCs (Registros de Não Conformidade)
+### RNCs e Workflows
 ```sql
 create table public.rncs (
   id uuid primary key default gen_random_uuid(),
@@ -58,33 +63,77 @@ create table public.rncs (
   department department_enum not null,
   company text not null,
   cnpj text not null,
-  order_number text,
-  return_number text,
   created_at timestamp with time zone default now(),
-  updated_at timestamp with time zone default now(),
-  closed_at timestamp with time zone,
-  created_by uuid not null references public.profiles,
-  assigned_to uuid references public.profiles,
-  rnc_number serial
+  created_by uuid references public.profiles
+);
+
+create table public.rnc_workflow_transitions (
+  id uuid primary key default gen_random_uuid(),
+  rnc_id uuid references public.rncs,
+  from_status rnc_workflow_status_enum,
+  to_status rnc_workflow_status_enum not null,
+  created_by uuid references public.profiles,
+  created_at timestamp with time zone default now()
 );
 ```
 
-## 2. Configuração de Armazenamento
+## 3. Políticas de Segurança (RLS)
 
-### Criar Bucket para Anexos
+### Perfis
 ```sql
-insert into storage.buckets (id, name, public)
-values ('rnc-attachments', 'rnc-attachments', true);
+alter table public.profiles enable row level security;
+
+create policy "Usuários podem ver todos os perfis"
+on public.profiles for select using (true);
+
+create policy "Usuários podem atualizar seu próprio perfil"
+on public.profiles for update using (auth.uid() = id);
 ```
 
-## 3. Configuração de Autenticação
+### RNCs
+```sql
+alter table public.rncs enable row level security;
 
-### Trigger para Novos Usuários
+create policy "Usuários podem ver todas as RNCs"
+on public.rncs for select using (true);
+
+create policy "Usuários podem criar RNCs"
+on public.rncs for insert with check (true);
+
+create policy "Usuários podem atualizar suas próprias RNCs"
+on public.rncs for update using (created_by = auth.uid());
+```
+
+## 4. Storage
+
+### Configurar Buckets
+```sql
+insert into storage.buckets (id, name, public)
+values 
+  ('avatars', 'avatars', true),
+  ('rnc-attachments', 'rnc-attachments', true),
+  ('collection-evidence', 'collection-evidence', true);
+```
+
+### Políticas de Storage
+```sql
+create policy "Arquivos públicos são visíveis"
+on storage.objects for select
+using ( bucket_id in ('avatars', 'rnc-attachments', 'collection-evidence') );
+
+create policy "Usuários autenticados podem fazer upload"
+on storage.objects for insert
+with check ( auth.role() = 'authenticated' );
+```
+
+## 5. Funções e Triggers
+
+### Criação de Usuário
 ```sql
 create function public.handle_new_user()
 returns trigger
 language plpgsql
-security definer
+security definer set search_path = public
 as $$
 begin
   insert into public.profiles (id, name, email)
@@ -98,79 +147,60 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 ```
 
-## 4. Políticas de Segurança (RLS)
-
-### Perfis
+### Notificações
 ```sql
-alter table public.profiles enable row level security;
-
-create policy "Usuários podem ver todos os perfis"
-on public.profiles for select
-to authenticated
-using (true);
-
-create policy "Usuários podem atualizar seu próprio perfil"
-on public.profiles for update
-to authenticated
-using (auth.uid() = id);
-```
-
-### RNCs
-```sql
-alter table public.rncs enable row level security;
-
-create policy "Usuários podem ver todas as RNCs"
-on public.rncs for select
-to authenticated
-using (true);
-
-create policy "Usuários podem criar RNCs"
-on public.rncs for insert
-to authenticated
-with check (true);
-
-create policy "Usuários podem atualizar suas próprias RNCs"
-on public.rncs for update
-to authenticated
-using (created_by = auth.uid());
-```
-
-## 5. Funções Auxiliares
-
-### Obter Módulos do Usuário
-```sql
-create or replace function public.get_user_modules()
-returns text[]
-language sql
+create function public.handle_rnc_notification()
+returns trigger
+language plpgsql
 security definer
 as $$
-  select modules
-  from profiles
-  where id = auth.uid();
+begin
+  if OLD.status != NEW.status then
+    insert into public.notifications (user_id, title, message, type)
+    values (
+      NEW.created_by,
+      'Status Atualizado',
+      format('RNC #%s: %s -> %s', NEW.id, OLD.status, NEW.status),
+      'rnc_status'
+    );
+  end if;
+  return NEW;
+end;
 $$;
+
+create trigger on_rnc_status_change
+  after update on public.rncs
+  for each row
+  when (OLD.status IS DISTINCT FROM NEW.status)
+  execute procedure public.handle_rnc_notification();
 ```
 
-## Dicas Importantes
+## 6. Verificação e Manutenção
 
-1. **Backup**: Sempre faça backup antes de executar comandos SQL
-2. **Ordem**: Execute os comandos na ordem apresentada
-3. **Teste**: Após cada comando, verifique se funcionou
-4. **Permissões**: Certifique-se que as políticas RLS estão corretas
-5. **Dados**: Faça testes com dados reais após configurar
+### Checklist de Verificação
+- [ ] Todas as tabelas criadas corretamente
+- [ ] Políticas RLS ativas e funcionando
+- [ ] Triggers respondendo adequadamente
+- [ ] Buckets de storage configurados
+- [ ] Backup automático habilitado
 
-## Verificação
+### Manutenção Regular
+1. Verificar logs de erro
+2. Monitorar performance
+3. Atualizar políticas conforme necessário
+4. Backup regular dos dados
+5. Limpeza de dados obsoletos
 
-Após executar todos os comandos, verifique:
-1. Se consegue criar usuários
-2. Se os perfis são criados automaticamente
-3. Se consegue fazer upload de arquivos
-4. Se as políticas de segurança estão funcionando
-5. Se as relações entre tabelas estão corretas
+## 7. Troubleshooting
 
-## Suporte
+### Problemas Comuns
+1. Erro de permissão: Verificar políticas RLS
+2. Trigger não dispara: Verificar logs
+3. Upload falha: Verificar configurações do bucket
+4. Query lenta: Verificar índices
 
-Em caso de problemas:
-1. Verifique os logs do Supabase
-2. Confira as políticas RLS
-3. Teste as queries diretamente no SQL Editor
-4. Verifique as permissões dos buckets de storage
+### Suporte
+- Documentação Supabase
+- Discord da comunidade
+- GitHub Issues
+- Suporte técnico oficial
