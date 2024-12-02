@@ -10,6 +10,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
+import { toast } from "sonner";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -51,24 +52,47 @@ export const RNCDetailLayout = ({
   const { data: workflowStatus } = useQuery({
     queryKey: ["workflow-status", id],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("rnc_workflow_transitions")
-        .select("*")
-        .eq("rnc_id", id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-      
-      return data?.to_status as WorkflowStatusEnum || "open";
+      try {
+        const { data, error } = await supabase
+          .from("rnc_workflow_transitions")
+          .select("*")
+          .eq("rnc_id", id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (error) {
+          console.error("Error fetching workflow status:", error);
+          return "open" as WorkflowStatusEnum;
+        }
+
+        // If no transitions exist yet, return default status
+        if (!data || data.length === 0) {
+          return "open" as WorkflowStatusEnum;
+        }
+
+        return data[0].to_status as WorkflowStatusEnum;
+      } catch (error) {
+        console.error("Error in workflow status query:", error);
+        return "open" as WorkflowStatusEnum;
+      }
     }
   });
 
   const handleStatusChange = async (newStatus: WorkflowStatusEnum) => {
-    await supabase
-      .from("rncs")
-      .update({ workflow_status: newStatus })
-      .eq("id", id);
-    onRefresh();
+    try {
+      const { error } = await supabase
+        .from("rncs")
+        .update({ workflow_status: newStatus })
+        .eq("id", id);
+
+      if (error) throw error;
+      
+      onRefresh();
+      toast.success("Status atualizado com sucesso");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Erro ao atualizar status");
+    }
   };
 
   return (
