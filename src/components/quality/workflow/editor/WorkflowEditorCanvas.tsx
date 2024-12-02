@@ -1,29 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import ReactFlow, {
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  Connection,
-  Edge,
-  Node,
-  Panel,
-  NodeMouseHandler
-} from 'reactflow';
+import { useNodesState, useEdgesState, Connection, Edge, Node } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Button } from "@/components/ui/button";
-import { Plus, Save, Trash2 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { StateNode } from './StateNode';
 import { AddStateDialog } from './AddStateDialog';
-
-const nodeTypes = {
-  stateNode: StateNode,
-};
+import { FlowCanvas } from './components/FlowCanvas';
 
 interface WorkflowState {
   id: string;
@@ -41,10 +23,6 @@ interface WorkflowTransition {
   label: string;
   workflow_id: string;
 }
-
-const flowStyles = {
-  background: 'rgb(248, 250, 252)',
-};
 
 export function WorkflowEditorCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -78,11 +56,7 @@ export function WorkflowEditorCanvas() {
 
       if (transitionsError) throw transitionsError;
 
-      return {
-        template,
-        states,
-        transitions,
-      };
+      return { template, states, transitions };
     },
   });
 
@@ -110,10 +84,43 @@ export function WorkflowEditorCanvas() {
     }
   }, [workflow, setNodes, setEdges]);
 
-  const onConnect = useCallback(
-    (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
+  const onConnect = useCallback(async (params: Connection | Edge) => {
+    if (!workflow?.template.id || !params.source || !params.target) return;
+
+    try {
+      const sourceNode = nodes.find(n => n.id === params.source);
+      const targetNode = nodes.find(n => n.id === params.target);
+      
+      if (!sourceNode || !targetNode) return;
+
+      const { data: transition, error } = await supabase
+        .from('workflow_transitions')
+        .insert({
+          workflow_id: workflow.template.id,
+          from_state_id: params.source,
+          to_state_id: params.target,
+          label: `${sourceNode.data.label} → ${targetNode.data.label}`
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setEdges(eds => [...eds, {
+        id: transition.id,
+        source: transition.from_state_id,
+        target: transition.to_state_id,
+        label: transition.label,
+        animated: true,
+        style: { stroke: '#64748b' },
+      }]);
+
+      toast.success('Transição salva com sucesso');
+    } catch (error) {
+      console.error('Erro ao salvar transição:', error);
+      toast.error('Erro ao salvar transição');
+    }
+  }, [workflow?.template.id, nodes]);
 
   const handleSave = async () => {
     if (!workflow?.template.id) return;
@@ -142,7 +149,7 @@ export function WorkflowEditorCanvas() {
     }
   };
 
-  const handleNodeClick: NodeMouseHandler = useCallback((_, node) => {
+  const handleNodeClick = useCallback((_, node: Node) => {
     setSelectedNode(node.id);
   }, []);
 
@@ -150,13 +157,11 @@ export function WorkflowEditorCanvas() {
     if (!selectedNode) return;
 
     try {
-      // Delete associated transitions first
       await supabase
         .from('workflow_transitions')
         .delete()
         .or(`from_state_id.eq.${selectedNode},to_state_id.eq.${selectedNode}`);
 
-      // Then delete the state
       const { error } = await supabase
         .from('workflow_states')
         .delete()
@@ -185,45 +190,18 @@ export function WorkflowEditorCanvas() {
   return (
     <div className="space-y-4">
       <div className="h-[600px] border rounded-lg">
-        <ReactFlow
+        <FlowCanvas
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          nodeTypes={nodeTypes}
           onNodeClick={handleNodeClick}
-          fitView
-          style={flowStyles}
-        >
-          <Controls />
-          <MiniMap />
-          <Background gap={12} size={1} />
-          <Panel position="top-right" className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddingState(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Estado
-            </Button>
-            {selectedNode && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteNode}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Excluir Estado
-              </Button>
-            )}
-            <Button size="sm" onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Salvar
-            </Button>
-          </Panel>
-        </ReactFlow>
+          onAddState={() => setIsAddingState(true)}
+          onSave={handleSave}
+          onDelete={handleDeleteNode}
+          selectedNode={selectedNode}
+        />
       </div>
 
       <AddStateDialog
