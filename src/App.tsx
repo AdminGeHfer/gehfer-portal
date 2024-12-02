@@ -10,7 +10,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthGuard } from "./components/auth/AuthGuard";
 import { RoleGuard } from "./components/auth/RoleGuard";
 
-// Lazy loaded components with preload
+// Lazy loaded components
 const Login = lazy(() => import("./pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
@@ -26,17 +26,10 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
       refetchOnMount: false,
-      refetchOnReconnect: false,
-      suspense: true
+      refetchOnReconnect: false
     },
   },
 });
-
-// Preload main routes
-const preloadRoutes = () => {
-  Login.preload();
-  Apps.preload();
-};
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -57,9 +50,6 @@ const ProtectedRoute = ({ children, module, action = "read" }: {
 );
 
 const App = () => {
-  // Preload routes on app init
-  preloadRoutes();
-
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
