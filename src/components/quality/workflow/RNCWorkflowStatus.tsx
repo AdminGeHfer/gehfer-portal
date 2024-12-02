@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 interface RNCWorkflowStatusProps {
   rncId: string;
   currentStatus: WorkflowStatusEnum;
-  onStatusChange: () => void;
+  onStatusChange: (newStatus: WorkflowStatusEnum) => void;
 }
 
 export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCWorkflowStatusProps) {
@@ -90,7 +90,7 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
 
       toast.success("Status atualizado com sucesso");
       setNotes("");
-      onStatusChange();
+      onStatusChange(newStatus);
     } catch (error: any) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status");
