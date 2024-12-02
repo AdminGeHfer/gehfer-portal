@@ -5,6 +5,7 @@ import { RNCDetailForm } from "./RNCDetailForm";
 import { RNCCommentSection } from "./RNCCommentSection";
 import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
+import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
 import { BackButton } from "@/components/atoms/BackButton";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -27,7 +28,7 @@ interface RNCDetailLayoutProps {
   onWhatsApp: () => void;
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
-  onRefresh: (options?: RefetchOptions) => void;
+  onRefresh: (options?: RefetchOptions) => Promise<void>;
 }
 
 export const RNCDetailLayout = ({
@@ -165,6 +166,10 @@ export const RNCDetailLayout = ({
                   currentStatus={workflowStatus || "open"}
                   onStatusChange={handleStatusChange}
                 />
+              </Card>
+
+              <Card className="p-6">
+                <RNCWorkflowHistory rncId={id} />
               </Card>
             </div>
           </div>
