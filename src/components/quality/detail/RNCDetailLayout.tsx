@@ -57,19 +57,18 @@ export const RNCDetailLayout = ({
           .select("*")
           .eq("rnc_id", id)
           .order("created_at", { ascending: false })
-          .limit(1);
+          .limit(1)
+          .single();
 
         if (error) {
+          if (error.code === 'PGRST116') {
+            return "open" as WorkflowStatusEnum;
+          }
           console.error("Error fetching workflow status:", error);
           return "open" as WorkflowStatusEnum;
         }
 
-        // If no transitions exist yet, return default status
-        if (!data || data.length === 0) {
-          return "open" as WorkflowStatusEnum;
-        }
-
-        return data[0].to_status as WorkflowStatusEnum;
+        return data.to_status as WorkflowStatusEnum;
       } catch (error) {
         console.error("Error in workflow status query:", error);
         return "open" as WorkflowStatusEnum;
