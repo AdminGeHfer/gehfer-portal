@@ -27,7 +27,7 @@ interface RNCDetailLayoutProps {
   onWhatsApp: () => void;
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
-  onRefresh: (options?: RefetchOptions) => Promise<void>;
+  onRefresh: (options?: RefetchOptions) => void;
 }
 
 export const RNCDetailLayout = ({

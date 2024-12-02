@@ -122,6 +122,10 @@ const RNCDetail = () => {
     }
   };
 
+  const handleRefresh = (options?: any) => {
+    refetch(options);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -153,7 +157,6 @@ const RNCDetail = () => {
   return (
     <RNCDetailLayout
       rnc={rnc}
-      id={id || ""}
       isEditing={isEditing}
       isPrinting={isPrinting}
       isDeleteDialogOpen={isDeleteDialogOpen}
@@ -166,7 +169,7 @@ const RNCDetail = () => {
       setIsDeleteDialogOpen={setIsDeleteDialogOpen}
       isDeleting={isDeleting}
       canEdit={rnc.canEdit}
-      onRefresh={refetch}
+      onRefresh={handleRefresh}
     />
   );
 };
