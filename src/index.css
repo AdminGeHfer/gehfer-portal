@@ -56,10 +56,24 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-sans font-semibold;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-track-transparent {
+    scrollbar-color: transparent transparent;
+  }
+  
+  .scrollbar-thumb-muted {
+    scrollbar-color: hsl(var(--muted)) transparent;
   }
 }
 
@@ -70,4 +84,36 @@
 
 .dark .form-message {
   @apply text-red-400;
+}
+
+/* Responsive Grid Layouts */
+.grid-responsive {
+  @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+}
+
+.grid-responsive-lg {
+  @apply grid gap-6 sm:grid-cols-2 lg:grid-cols-3;
+}
+
+/* Container Paddings */
+.container-padding {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+/* Responsive Typography */
+.text-responsive {
+  @apply text-sm sm:text-base;
+}
+
+.heading-responsive {
+  @apply text-xl sm:text-2xl lg:text-3xl;
+}
+
+/* Responsive Spacing */
+.section-spacing {
+  @apply py-4 sm:py-6 lg:py-8;
+}
+
+.content-spacing {
+  @apply space-y-4 sm:space-y-6;
 }

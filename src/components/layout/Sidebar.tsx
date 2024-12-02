@@ -14,7 +14,7 @@ export function Sidebar({ children, className }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "relative h-screen border-r bg-card transition-all duration-300",
+        "fixed left-0 top-0 z-20 h-screen border-r bg-card transition-all duration-300 lg:relative",
         isCollapsed ? "w-16" : "w-64",
         className
       )}
@@ -22,7 +22,7 @@ export function Sidebar({ children, className }: SidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-3 top-6 z-10 hidden h-6 w-6 rounded-full border bg-background md:flex"
+        className="absolute -right-3 top-6 z-30 hidden h-6 w-6 rounded-full border bg-background lg:flex"
         onClick={toggleSidebar}
       >
         {isCollapsed ? (
@@ -31,7 +31,9 @@ export function Sidebar({ children, className }: SidebarProps) {
           <ChevronLeft className="h-4 w-4" />
         )}
       </Button>
-      <div className="h-full overflow-y-auto">{children}</div>
+      <div className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
+        {children}
+      </div>
     </aside>
   );
 }

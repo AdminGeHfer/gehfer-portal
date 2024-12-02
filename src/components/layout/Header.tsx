@@ -28,29 +28,29 @@ export function Header({ title = "Portal GeHfer" }: HeaderProps) {
         .single();
 
       return {
-        name: profile?.name || 'Thiago Nobrega',
+        name: profile?.name || 'Usuário',
       };
     },
   });
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-6">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-4">
           {title === "Portal GeHfer" ? (
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <span className="text-lg font-semibold">G</span>
               </div>
-              <h1 className="text-xl font-semibold">{title}</h1>
+              <h1 className="text-xl font-semibold hidden sm:block">{title}</h1>
             </div>
           ) : (
-            <h1 className="text-xl font-semibold">{title}</h1>
+            <h1 className="text-xl font-semibold truncate">{title}</h1>
           )}
         </div>
         
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <span className="text-sm text-muted-foreground hidden sm:block">
             Bem-vindo, {user?.name}
           </span>
           
