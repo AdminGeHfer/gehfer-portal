@@ -13,6 +13,7 @@ import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
+  id?: string;
   isEditing: boolean;
   isPrinting: boolean;
   isDeleteDialogOpen: boolean;
