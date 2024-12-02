@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { toast } from "sonner";
+import { RefetchOptions } from "@tanstack/react-query";
+import { WorkflowStatusEnum } from "@/types/rnc";
 
 const RNCDetail = () => {
   const { id } = useParams();

@@ -29,6 +29,7 @@ interface RNCDetailLayoutProps {
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
   onRefresh: (options?: RefetchOptions) => Promise<void>;
+  onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
 }
 
 export const RNCDetailLayout = ({
@@ -45,7 +46,8 @@ export const RNCDetailLayout = ({
   onWhatsApp,
   onFieldChange,
   setIsDeleteDialogOpen,
-  onRefresh
+  onRefresh,
+  onStatusChange
 }: RNCDetailLayoutProps) => {
   const { id } = useParams<{ id: string }>();
   if (!id) return null;
@@ -78,41 +80,6 @@ export const RNCDetailLayout = ({
     }
   });
 
-  const handleStatusChange = async (newStatus: WorkflowStatusEnum) => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error("Usuário não autenticado");
-      }
-
-      // Update RNC status
-      const { error: rncError } = await supabase
-        .from('rncs')
-        .update({ workflow_status: newStatus })
-        .eq('id', id);
-
-      if (rncError) throw rncError;
-
-      // Create transition record
-      const { error: transitionError } = await supabase
-        .from('rnc_workflow_transitions')
-        .insert({
-          rnc_id: id,
-          from_status: workflowStatus,
-          to_status: newStatus,
-          created_by: userData.user.id
-        });
-
-      if (transitionError) throw transitionError;
-
-      onRefresh();
-      toast.success("Status atualizado com sucesso");
-    } catch (error: any) {
-      console.error('Error updating status:', error);
-      toast.error("Erro ao atualizar status");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -130,7 +97,7 @@ export const RNCDetailLayout = ({
               onDelete={onDelete}
               onPrint={onPrint}
               onWhatsApp={onWhatsApp}
-              onStatusChange={handleStatusChange}
+              onStatusChange={onStatusChange}
               onRefresh={onRefresh}
               setIsDeleteDialogOpen={setIsDeleteDialogOpen}
               onCollectionRequest={() => {}}
@@ -164,7 +131,7 @@ export const RNCDetailLayout = ({
                 <RNCWorkflowStatus 
                   rncId={id}
                   currentStatus={workflowStatus || "open"}
-                  onStatusChange={handleStatusChange}
+                  onStatusChange={onStatusChange}
                 />
               </Card>
 
