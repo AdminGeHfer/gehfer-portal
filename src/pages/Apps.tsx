@@ -1,12 +1,82 @@
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck, Package } from "lucide-react";
+import { ClipboardCheck, Users, Truck, Package, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const Apps = () => {
+const modules = [
+  {
+    title: "Qualidade",
+    description: "Gestão de qualidade e controle de processos",
+    icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
+    route: "/quality/rnc",
+    submodules: [
+      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> },
+      { title: "Workflow", route: "/quality/workflow", icon: <GitBranch className="h-4 w-4" /> }
+    ]
+  },
+  {
+    title: "Administração",
+    description: "Ferramentas para gerenciar sua equipe e recursos",
+    icon: <Users className="h-12 w-12 text-primary" />,
+    route: "/admin/users"
+  },
+  {
+    title: "Portaria",
+    description: "Gestão de filas e controle de acesso",
+    icon: <Truck className="h-12 w-12 text-primary" />,
+    route: "/portaria/acesso"
+  },
+  {
+    title: "Cadastros",
+    description: "Gerenciamento de produtos e outros cadastros",
+    icon: <Package className="h-12 w-12 text-primary" />,
+    route: "/admin/products"
+  }
+];
+
+const ModuleCard = ({ title, description, icon, route, submodules }) => {
   const navigate = useNavigate();
 
+  return (
+    <Card 
+      className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
+      onClick={() => navigate(route)}
+    >
+      <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
+        {icon}
+      </div>
+      <div className="p-6">
+        <h3 className="text-xl font-semibold mb-2">{title}</h3>
+        <p className="text-muted-foreground mb-4">{description}</p>
+        <div className="flex flex-col gap-2">
+          {submodules ? (
+            submodules.map((submodule, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                className="justify-start"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(submodule.route);
+                }}
+              >
+                {submodule.icon}
+                <span className="ml-2">{submodule.title}</span>
+              </Button>
+            ))
+          ) : (
+            <div className="flex items-center text-primary hover:underline">
+              Acessar módulo
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+const Apps = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -19,69 +89,16 @@ const Apps = () => {
           </div>
         
           <div className="grid gap-6 md:grid-cols-3">
-            <Card 
-              className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
-              onClick={() => navigate("/quality/rnc")}
-            >
-              <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
-                <ClipboardCheck className="h-12 w-12 text-primary" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Qualidade</h3>
-                <p className="text-muted-foreground mb-4">Gestão de qualidade e controle de processos</p>
-                <div className="flex items-center text-primary hover:underline">
-                  Acessar módulo
-                </div>
-              </div>
-            </Card>
-
-            <Card 
-              className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
-              onClick={() => navigate("/admin/users")}
-            >
-              <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
-                <Users className="h-12 w-12 text-primary" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Administração</h3>
-                <p className="text-muted-foreground mb-4">Ferramentas para gerenciar sua equipe e recursos</p>
-                <div className="flex items-center text-primary hover:underline">
-                  Acessar módulo
-                </div>
-              </div>
-            </Card>
-
-            <Card 
-              className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
-              onClick={() => navigate("/portaria/acesso")}
-            >
-              <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
-                <Truck className="h-12 w-12 text-primary" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Portaria</h3>
-                <p className="text-muted-foreground mb-4">Gestão de filas e controle de acesso</p>
-                <div className="flex items-center text-primary hover:underline">
-                  Acessar módulo
-                </div>
-              </div>
-            </Card>
-
-            <Card 
-              className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
-              onClick={() => navigate("/admin/products")}
-            >
-              <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
-                <Package className="h-12 w-12 text-primary" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">Cadastros</h3>
-                <p className="text-muted-foreground mb-4">Gerenciamento de produtos e outros cadastros</p>
-                <div className="flex items-center text-primary hover:underline">
-                  Acessar módulo
-                </div>
-              </div>
-            </Card>
+            {modules.map((module, index) => (
+              <ModuleCard 
+                key={index}
+                title={module.title}
+                description={module.description}
+                icon={module.icon}
+                route={module.route}
+                submodules={module.submodules}
+              />
+            ))}
           </div>
         </div>
       </main>

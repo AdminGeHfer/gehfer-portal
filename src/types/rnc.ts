@@ -1,5 +1,6 @@
 export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
 export type StatusEnum = "open" | "in_progress" | "closed" | "Coletar" | "Coleta Programada" | "Coleta Solicitada";
+export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
 export interface RNC {
   id: string;
@@ -29,6 +30,7 @@ export interface RNC {
   closed_at?: string;
   title?: string;
   canEdit?: boolean;
+  workflow_status?: WorkflowStatusEnum;
 }
 
 export interface TimelineEvent {

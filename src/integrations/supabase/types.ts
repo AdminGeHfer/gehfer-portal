@@ -571,6 +571,57 @@ export type Database = {
           },
         ]
       }
+      rnc_workflow_transitions: {
+        Row: {
+          created_at: string
+          created_by: string
+          from_status:
+            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
+            | null
+          id: string
+          notes: string | null
+          rnc_id: string
+          to_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          from_status?:
+            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
+            | null
+          id?: string
+          notes?: string | null
+          rnc_id: string
+          to_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          from_status?:
+            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
+            | null
+          id?: string
+          notes?: string | null
+          rnc_id?: string
+          to_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rnc_workflow_transitions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rnc_workflow_transitions_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
+            referencedRelation: "rncs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rncs: {
         Row: {
           assigned_at: string | null
@@ -591,6 +642,9 @@ export type Database = {
           status: Database["public"]["Enums"]["status_enum"]
           type: string
           updated_at: string
+          workflow_status:
+            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
+            | null
         }
         Insert: {
           assigned_at?: string | null
@@ -611,6 +665,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_enum"]
           type: string
           updated_at?: string
+          workflow_status?:
+            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
+            | null
         }
         Update: {
           assigned_at?: string | null
@@ -631,6 +688,9 @@ export type Database = {
           status?: Database["public"]["Enums"]["status_enum"]
           type?: string
           updated_at?: string
+          workflow_status?:
+            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
+            | null
         }
         Relationships: [
           {
@@ -830,6 +890,131 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_states: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string
+          position_x: number
+          position_y: number
+          state_type: Database["public"]["Enums"]["workflow_state_type"]
+          workflow_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label: string
+          position_x: number
+          position_y: number
+          state_type: Database["public"]["Enums"]["workflow_state_type"]
+          workflow_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string
+          position_x?: number
+          position_y?: number
+          state_type?: Database["public"]["Enums"]["workflow_state_type"]
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_states_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_transitions: {
+        Row: {
+          created_at: string | null
+          from_state_id: string | null
+          id: string
+          label: string
+          to_state_id: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          from_state_id?: string | null
+          id?: string
+          label: string
+          to_state_id?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          from_state_id?: string | null
+          id?: string
+          label?: string
+          to_state_id?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_transitions_from_state_id_fkey"
+            columns: ["from_state_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_states"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_transitions_to_state_id_fkey"
+            columns: ["to_state_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_states"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_transitions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -852,6 +1037,13 @@ export type Database = {
         | "Comercial"
         | "Qualidade"
         | "Produção"
+      rnc_workflow_status_enum:
+        | "open"
+        | "analysis"
+        | "resolution"
+        | "solved"
+        | "closing"
+        | "closed"
       status_enum:
         | "open"
         | "in_progress"
@@ -859,6 +1051,13 @@ export type Database = {
         | "Coletar"
         | "Coleta Programada"
         | "Coleta Solicitada"
+      workflow_state_type:
+        | "open"
+        | "analysis"
+        | "resolution"
+        | "solved"
+        | "closing"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never

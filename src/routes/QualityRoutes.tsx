@@ -1,0 +1,23 @@
+import { lazy } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+
+const RNCList = lazy(() => import("@/pages/quality/RNCList"));
+const RNCDetail = lazy(() => import("@/pages/quality/RNCDetail"));
+const Dashboard = lazy(() => import("@/pages/quality/Dashboard"));
+const ScheduledCollections = lazy(() => import("@/pages/quality/ScheduledCollections"));
+const WorkflowEditor = lazy(() => import("@/pages/quality/workflow/WorkflowEditor"));
+
+const QualityRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/quality/dashboard" replace />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/rnc" element={<RNCList />} />
+      <Route path="/rnc/:id" element={<RNCDetail />} />
+      <Route path="/collections" element={<ScheduledCollections />} />
+      <Route path="/workflow" element={<WorkflowEditor />} />
+    </Routes>
+  );
+};
+
+export default QualityRoutes;

@@ -10,16 +10,18 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthGuard } from "./components/auth/AuthGuard";
 import { RoleGuard } from "./components/auth/RoleGuard";
 
+// Lazy loaded components
 const Login = lazy(() => import("./pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
-const RNCList = lazy(() => import("./pages/quality/RNCList"));
-const RNCDetail = lazy(() => import("./pages/quality/RNCDetail"));
-const Dashboard = lazy(() => import("./pages/quality/Dashboard"));
-const Users = lazy(() => import("./pages/admin/Users"));
-const Products = lazy(() => import("./pages/admin/Products"));
-const AccessControl = lazy(() => import("./pages/portaria/AccessControl"));
-const PortariaList = lazy(() => import("./pages/portaria/PortariaList"));
-const ScheduledCollections = lazy(() => import("./pages/quality/ScheduledCollections"));
+
+// Quality Module
+const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
+
+// Admin Module
+const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
+
+// Portaria Module
+const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
 
 // Configure QueryClient with performance optimizations
 const queryClient = new QueryClient({
@@ -64,36 +66,25 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/apps" element={<ProtectedRoute module="any"><Apps /></ProtectedRoute>} />
                 
-                {/* Quality Routes */}
-                <Route path="/quality" element={<Navigate to="/quality/dashboard" replace />} />
-                <Route path="/quality/dashboard" element={
-                  <ProtectedRoute module="quality"><Dashboard /></ProtectedRoute>
-                } />
-                <Route path="/quality/rnc" element={
-                  <ProtectedRoute module="quality"><RNCList /></ProtectedRoute>
-                } />
-                <Route path="/quality/rnc/:id" element={
-                  <ProtectedRoute module="quality"><RNCDetail /></ProtectedRoute>
-                } />
-                <Route path="/quality/collections" element={
-                  <ProtectedRoute module="quality"><ScheduledCollections /></ProtectedRoute>
+                {/* Quality Module Routes */}
+                <Route path="/quality/*" element={
+                  <ProtectedRoute module="quality">
+                    <QualityRoutes />
+                  </ProtectedRoute>
                 } />
                 
-                {/* Admin Routes */}
-                <Route path="/admin/users" element={
-                  <ProtectedRoute module="admin" action="write"><Users /></ProtectedRoute>
-                } />
-                <Route path="/admin/products" element={
-                  <ProtectedRoute module="admin" action="write"><Products /></ProtectedRoute>
+                {/* Admin Module Routes */}
+                <Route path="/admin/*" element={
+                  <ProtectedRoute module="admin">
+                    <AdminRoutes />
+                  </ProtectedRoute>
                 } />
                 
-                {/* Portaria Routes */}
-                <Route path="/portaria" element={<Navigate to="/portaria/acesso" replace />} />
-                <Route path="/portaria/acesso" element={
-                  <ProtectedRoute module="portaria"><AccessControl /></ProtectedRoute>
-                } />
-                <Route path="/portaria/filas" element={
-                  <ProtectedRoute module="portaria"><PortariaList /></ProtectedRoute>
+                {/* Portaria Module Routes */}
+                <Route path="/portaria/*" element={
+                  <ProtectedRoute module="portaria">
+                    <PortariaRoutes />
+                  </ProtectedRoute>
                 } />
                 
                 <Route path="/" element={<Navigate to="/login" replace />} />
