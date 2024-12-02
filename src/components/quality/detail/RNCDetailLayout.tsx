@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
+import { RefetchOptions } from "@tanstack/react-query";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -26,7 +27,7 @@ interface RNCDetailLayoutProps {
   onWhatsApp: () => void;
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
-  onRefresh: () => void;
+  onRefresh: (options?: RefetchOptions) => Promise<void>;
 }
 
 export const RNCDetailLayout = ({
