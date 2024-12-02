@@ -124,7 +124,7 @@ const RNCDetail = () => {
   };
 
   const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
-    return refetch(options);
+    await refetch(options);
   };
 
   if (isLoading) {
