@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ReturnItemsDialog } from "./ReturnItemsDialog";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -24,13 +24,14 @@ export function ReturnItemsList({ rncId, onStatusUpdate }: ReturnItemsListProps)
       const { data, error } = await supabase
         .from("collection_requests")
         .select(`
-          *,
+          id,
+          status,
+          created_at,
+          collection_address,
           return_items (
-            *,
+            id,
+            weight,
             product:products(id, name)
-          ),
-          collection_evidence (
-            *
           )
         `)
         .eq("rnc_id", rncId)
@@ -39,22 +40,27 @@ export function ReturnItemsList({ rncId, onStatusUpdate }: ReturnItemsListProps)
       if (error) throw error;
       return data;
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    cacheTime: 1000 * 60 * 30, // 30 minutes
   });
 
   const handleStatusUpdate = async (collectionId: string, newStatus: CollectionStatus) => {
-    const { error } = await supabase
-      .from("collection_requests")
-      .update({ status: newStatus })
-      .eq("id", collectionId);
+    try {
+      const { error } = await supabase
+        .from("collection_requests")
+        .update({ status: newStatus })
+        .eq("id", collectionId);
 
-    if (error) {
+      if (error) throw error;
+
+      toast.success("Status atualizado com sucesso");
+      onStatusUpdate();
+    } catch (error) {
       toast.error("Erro ao atualizar status");
-      return;
     }
-
-    toast.success("Status atualizado com sucesso");
-    onStatusUpdate();
   };
+
+  const memoizedCollections = useMemo(() => collections || [], [collections]);
 
   if (isLoading) {
     return <div>Carregando...</div>;
@@ -62,7 +68,7 @@ export function ReturnItemsList({ rncId, onStatusUpdate }: ReturnItemsListProps)
 
   return (
     <div className="space-y-4">
-      {collections?.map((collection) => (
+      {memoizedCollections.map((collection) => (
         <Card key={collection.id}>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">

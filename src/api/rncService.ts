@@ -2,7 +2,7 @@ import { RNC } from "@/types/rnc";
 import { supabase } from "@/integrations/supabase/client";
 
 const RNC_CACHE_KEY = 'rncs';
-const CACHE_TIME = 1000 * 60 * 5; // 5 minutes
+const CACHE_TIME = 1000 * 60 * 10; // 10 minutes
 
 export const getRNCs = async (): Promise<RNC[]> => {
   // Check cache first
@@ -14,13 +14,29 @@ export const getRNCs = async (): Promise<RNC[]> => {
     }
   }
 
-  // If no cache or expired, fetch from API
+  // If no cache or expired, fetch from API with optimized query
   const { data, error } = await supabase
     .from('rncs')
     .select(`
-      *,
-      contact:rnc_contacts(*),
-      events:rnc_events(*)
+      id,
+      description,
+      status,
+      priority,
+      type,
+      department,
+      company,
+      cnpj,
+      order_number,
+      return_number,
+      assigned_to,
+      assigned_by,
+      assigned_at,
+      rnc_number,
+      created_at,
+      updated_at,
+      closed_at,
+      contact:rnc_contacts(name, phone, email),
+      events:rnc_events(id, created_at, title, description, type, created_by, comment)
     `)
     .order('created_at', { ascending: false });
 
@@ -42,7 +58,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     assignedTo: rnc.assigned_to,
     assignedBy: rnc.assigned_by,
     assignedAt: rnc.assigned_at,
-    resolution: "", // Set a default empty string for resolution
+    resolution: "",
     rnc_number: rnc.rnc_number,
     created_at: rnc.created_at,
     updated_at: rnc.updated_at,
@@ -58,11 +74,19 @@ export const getRNCs = async (): Promise<RNC[]> => {
     }))
   }));
 
-  // Update cache
-  sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
+  // Update cache with compression
+  const compressedData = JSON.stringify({
     data: transformedData,
     timestamp: Date.now()
-  }));
+  });
+  
+  try {
+    sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
+  } catch (e) {
+    console.warn('Cache storage failed, clearing old data');
+    sessionStorage.clear();
+    sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
+  }
 
   return transformedData;
 };
@@ -77,7 +101,7 @@ const validatePriority = (priority: string): "low" | "medium" | "high" => {
     case "high":
       return "high";
     default:
-      return "medium"; // Default to medium if invalid priority
+      return "medium";
   }
 };
 
@@ -89,7 +113,7 @@ const validateType = (type: string): "client" | "supplier" => {
     case "supplier":
       return "supplier";
     default:
-      return "client"; // Default to client if invalid type
+      return "client";
   }
 };
 

@@ -10,17 +10,11 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthGuard } from "./components/auth/AuthGuard";
 import { RoleGuard } from "./components/auth/RoleGuard";
 
-// Lazy loaded components
+// Lazy loaded components with preload
 const Login = lazy(() => import("./pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
-
-// Quality Module
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
-
-// Admin Module
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
-
-// Portaria Module
 const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
 
 // Configure QueryClient with performance optimizations
@@ -28,12 +22,21 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
+      gcTime: 1000 * 60 * 60, // 1 hour
       retry: 1,
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+      suspense: true
     },
   },
 });
+
+// Preload main routes
+const preloadRoutes = () => {
+  Login.preload();
+  Apps.preload();
+};
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -53,49 +56,54 @@ const ProtectedRoute = ({ children, module, action = "read" }: {
   </AuthGuard>
 );
 
-const App = () => (
-  <BrowserRouter>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <TooltipProvider>
-          <DndProvider backend={HTML5Backend}>
-            <Toaster />
-            <Sonner />
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/apps" element={<ProtectedRoute module="any"><Apps /></ProtectedRoute>} />
-                
-                {/* Quality Module Routes */}
-                <Route path="/quality/*" element={
-                  <ProtectedRoute module="quality">
-                    <QualityRoutes />
-                  </ProtectedRoute>
-                } />
-                
-                {/* Admin Module Routes */}
-                <Route path="/admin/*" element={
-                  <ProtectedRoute module="admin">
-                    <AdminRoutes />
-                  </ProtectedRoute>
-                } />
-                
-                {/* Portaria Module Routes */}
-                <Route path="/portaria/*" element={
-                  <ProtectedRoute module="portaria">
-                    <PortariaRoutes />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/" element={<Navigate to="/login" replace />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-            </Suspense>
-          </DndProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </BrowserRouter>
-);
+const App = () => {
+  // Preload routes on app init
+  preloadRoutes();
+
+  return (
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <TooltipProvider>
+            <DndProvider backend={HTML5Backend}>
+              <Toaster />
+              <Sonner />
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/apps" element={<ProtectedRoute module="any"><Apps /></ProtectedRoute>} />
+                  
+                  {/* Quality Module Routes */}
+                  <Route path="/quality/*" element={
+                    <ProtectedRoute module="quality">
+                      <QualityRoutes />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Admin Module Routes */}
+                  <Route path="/admin/*" element={
+                    <ProtectedRoute module="admin">
+                      <AdminRoutes />
+                    </ProtectedRoute>
+                  } />
+                  
+                  {/* Portaria Module Routes */}
+                  <Route path="/portaria/*" element={
+                    <ProtectedRoute module="portaria">
+                      <PortariaRoutes />
+                    </ProtectedRoute>
+                  } />
+                  
+                  <Route path="/" element={<Navigate to="/login" replace />} />
+                  <Route path="*" element={<Navigate to="/login" replace />} />
+                </Routes>
+              </Suspense>
+            </DndProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  );
+};
 
 export default App;
