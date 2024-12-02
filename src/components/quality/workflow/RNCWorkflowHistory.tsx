@@ -9,7 +9,7 @@ interface RNCWorkflowHistoryProps {
 }
 
 export function RNCWorkflowHistory({ rncId }: RNCWorkflowHistoryProps) {
-  const { data: transitions } = useQuery({
+  const { data: transitions, isLoading, error } = useQuery({
     queryKey: ["workflow-transitions", rncId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -35,6 +35,36 @@ export function RNCWorkflowHistory({ rncId }: RNCWorkflowHistoryProps) {
     userId: transition.created_by,
     comment: transition.notes,
   })) || [];
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico do Workflow</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-muted-foreground">
+            Carregando histórico...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico do Workflow</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-destructive">
+            Erro ao carregar histórico
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (!transitions?.length) {
     return (
