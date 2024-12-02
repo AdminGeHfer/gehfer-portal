@@ -7,6 +7,7 @@ import { transformRNCData } from "@/utils/rncTransform";
 import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
 import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
+import { RefetchOptions } from "@tanstack/react-query";
 
 const RNCDetail = () => {
   const { id } = useParams();
@@ -122,8 +123,8 @@ const RNCDetail = () => {
     }
   };
 
-  const handleRefresh = (options?: any) => {
-    refetch(options);
+  const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
+    return refetch(options);
   };
 
   if (isLoading) {
@@ -170,6 +171,14 @@ const RNCDetail = () => {
       isDeleting={isDeleting}
       canEdit={rnc.canEdit}
       onRefresh={handleRefresh}
+      onStatusChange={async (newStatus) => {
+        if (!rnc) return;
+        const updatedRnc = {
+          ...rnc,
+          workflow_status: newStatus
+        };
+        await updateRNC.mutateAsync(updatedRnc);
+      }}
     />
   );
 };
