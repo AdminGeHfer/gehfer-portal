@@ -12,8 +12,6 @@ import { useEffect, useState } from "react";
 import { CollectionRequestDialog } from "../collection/CollectionRequestDialog";
 import { CollectionDetails } from "../collection/CollectionDetails";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
-import { RNCWorkflowTimeline } from "../workflow/RNCWorkflowTimeline";
-import WorkflowEditor from "../workflow/editor/WorkflowEditor";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -86,7 +84,7 @@ export function RNCDetailLayout({
             <TabsList className="w-full">
               <TabsTrigger value="details">Detalhes</TabsTrigger>
               <TabsTrigger value="collections">Coletas</TabsTrigger>
-              <TabsTrigger value="workflow">Workflow</TabsTrigger>
+              <TabsTrigger value="attachments">Anexos</TabsTrigger>
             </TabsList>
             <TabsContent value="details">
               <RNCDetailForm
@@ -98,8 +96,8 @@ export function RNCDetailLayout({
             <TabsContent value="collections">
               <CollectionDetails rncId={id} onStatusUpdate={onRefresh} showEvidence />
             </TabsContent>
-            <TabsContent value="workflow">
-              <WorkflowEditor /> {/* Added WorkflowEditor component */}
+            <TabsContent value="attachments">
+              <RNCAttachments rncId={id} onUpdate={onRefresh} />
             </TabsContent>
           </Tabs>
         </div>
@@ -111,15 +109,11 @@ export function RNCDetailLayout({
             onStatusChange={onRefresh}
           />
 
-          <Tabs defaultValue="workflow" className="w-full">
+          <Tabs defaultValue="comments">
             <TabsList className="w-full">
-              <TabsTrigger value="workflow" className="flex-1">Workflow</TabsTrigger>
               <TabsTrigger value="comments" className="flex-1">Comentários</TabsTrigger>
               <TabsTrigger value="timeline" className="flex-1">Timeline</TabsTrigger>
             </TabsList>
-            <TabsContent value="workflow">
-              <RNCWorkflowTimeline rncId={id} />
-            </TabsContent>
             <TabsContent value="comments">
               <RNCComments rncId={id} onCommentAdded={onRefresh} />
             </TabsContent>
@@ -146,4 +140,3 @@ export function RNCDetailLayout({
     </div>
   );
 }
-
