@@ -1,142 +1,53 @@
-import { Button } from "@/components/ui/button";
-import { RNCDetailForm } from "./RNCDetailForm";
+import { Header } from "@/components/layout/Header";
+import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
-import { RNCDeleteDialog } from "./RNCDeleteDialog";
-import { RNCTimeline } from "../RNCTimeline";
-import { RNCPrintLayout } from "../RNCPrintLayout";
-import { RNCComments } from "./RNCComments";
+import { RNCDetailForm } from "./RNCDetailForm";
+import { RNCCommentSection } from "./RNCCommentSection";
 import { RNCAttachments } from "./RNCAttachments";
-import { RNC } from "@/types/rnc";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEffect, useState } from "react";
-import { CollectionRequestDialog } from "../collection/CollectionRequestDialog";
-import { CollectionDetails } from "../collection/CollectionDetails";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
+import { BackButton } from "@/components/atoms/BackButton";
+import { useParams } from "react-router-dom";
 
-interface RNCDetailLayoutProps {
-  rnc: RNC;
-  id: string;
-  isEditing: boolean;
-  isPrinting: boolean;
-  isDeleteDialogOpen: boolean;
-  onEdit: () => void;
-  onSave: () => void;
-  onDelete: () => void;
-  onPrint: () => void;
-  onWhatsApp: () => void;
-  onFieldChange: (field: keyof RNC, value: any) => void;
-  setIsDeleteDialogOpen: (open: boolean) => void;
-  isDeleting: boolean;
-  canEdit: boolean;
-  onRefresh: () => void;
-}
-
-export function RNCDetailLayout({
-  rnc,
-  id,
-  isEditing,
-  isPrinting,
-  isDeleteDialogOpen,
-  onEdit,
-  onSave,
-  onDelete,
-  onPrint,
-  onWhatsApp,
-  onFieldChange,
-  setIsDeleteDialogOpen,
-  isDeleting,
-  canEdit,
-  onRefresh,
-}: RNCDetailLayoutProps) {
-  const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("details");
-
-  useEffect(() => {
-    if (isPrinting) {
-      window.print();
-    }
-  }, [isPrinting]);
-
-  if (isPrinting) {
-    return <RNCPrintLayout rnc={rnc} />;
-  }
+export const RNCDetailLayout = () => {
+  const { id } = useParams<{ id: string }>();
+  if (!id) return null;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <RNCDetailHeader
-        rnc={rnc}
-        onEdit={onEdit}
-        onSave={onSave}
-        onDelete={onDelete}
-        onPrint={onPrint}
-        onWhatsApp={onWhatsApp}
-        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-        isEditing={isEditing}
-        canEdit={canEdit}
-        onStatusChange={(status) => onFieldChange('status', status)}
-        onRefresh={onRefresh}
-        onCollectionRequest={() => setIsCollectionDialogOpen(true)}
-      />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <BackButton to="/quality/rnc" label="Voltar para Lista de RNCs" />
+        
+        <div className="space-y-8">
+          <Card className="p-6">
+            <RNCDetailHeader rncId={id} />
+          </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="w-full">
-              <TabsTrigger value="details">Detalhes</TabsTrigger>
-              <TabsTrigger value="collections">Coletas</TabsTrigger>
-              <TabsTrigger value="attachments">Anexos</TabsTrigger>
-            </TabsList>
-            <TabsContent value="details">
-              <RNCDetailForm
-                rnc={rnc}
-                isEditing={isEditing}
-                onFieldChange={onFieldChange}
-              />
-            </TabsContent>
-            <TabsContent value="collections">
-              <CollectionDetails rncId={id} onStatusUpdate={onRefresh} showEvidence />
-            </TabsContent>
-            <TabsContent value="attachments">
-              <RNCAttachments rncId={id} onUpdate={onRefresh} />
-            </TabsContent>
-          </Tabs>
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="md:col-span-2 space-y-8">
+              <Card className="p-6">
+                <RNCDetailForm rncId={id} />
+              </Card>
+
+              <Card className="p-6">
+                <RNCAttachments rncId={id} />
+              </Card>
+
+              <Card className="p-6">
+                <RNCCommentSection rncId={id} />
+              </Card>
+            </div>
+
+            <div className="space-y-8">
+              <Card className="p-6">
+                <RNCWorkflowStatus rncId={id} />
+              </Card>
+            </div>
+          </div>
         </div>
-
-        <div className="space-y-6">
-          <RNCWorkflowStatus
-            rncId={id}
-            currentStatus={rnc.workflow_status || 'open'}
-            onStatusChange={onRefresh}
-          />
-
-          <Tabs defaultValue="comments">
-            <TabsList className="w-full">
-              <TabsTrigger value="comments" className="flex-1">Comentários</TabsTrigger>
-              <TabsTrigger value="timeline" className="flex-1">Timeline</TabsTrigger>
-            </TabsList>
-            <TabsContent value="comments">
-              <RNCComments rncId={id} onCommentAdded={onRefresh} />
-            </TabsContent>
-            <TabsContent value="timeline">
-              <RNCTimeline events={rnc.timeline} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-
-      <CollectionRequestDialog
-        rncId={id}
-        open={isCollectionDialogOpen}
-        onOpenChange={setIsCollectionDialogOpen}
-      />
-
-      <RNCDeleteDialog
-        isOpen={isDeleteDialogOpen}
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={onDelete}
-        isDeleting={isDeleting}
-      />
+      </main>
     </div>
   );
-}
+};
+
+export default RNCDetailLayout;
