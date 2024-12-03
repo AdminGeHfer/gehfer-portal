@@ -30,7 +30,7 @@ export interface RNC {
   closed_at?: string;
   title?: string;
   canEdit?: boolean;
-  workflow_status: WorkflowStatusEnum;
+  workflow_status?: WorkflowStatusEnum;
 }
 
 export interface TimelineEvent {
@@ -62,5 +62,4 @@ export interface RNCFormData {
   assignedTo?: string;
   attachments?: File[];
   resolution?: string;
-  workflow_status?: WorkflowStatusEnum;
 }

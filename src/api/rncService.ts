@@ -35,7 +35,6 @@ export const getRNCs = async (): Promise<RNC[]> => {
       created_at,
       updated_at,
       closed_at,
-      workflow_status,
       contact:rnc_contacts(name, phone, email),
       events:rnc_events(id, created_at, title, description, type, created_by, comment)
     `)
@@ -64,7 +63,6 @@ export const getRNCs = async (): Promise<RNC[]> => {
     created_at: rnc.created_at,
     updated_at: rnc.updated_at,
     closed_at: rnc.closed_at,
-    workflow_status: rnc.workflow_status || "open",
     timeline: rnc.events.map((event: any) => ({
       id: event.id,
       date: event.created_at,
