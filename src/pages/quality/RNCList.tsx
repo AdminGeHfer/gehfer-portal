@@ -7,7 +7,7 @@ import { RNC } from "@/types/rnc";
 import { useRNCSearch } from "@/hooks/useRNCSearch";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { SidebarProvider } from "@/contexts/SidebarContext";
+import { QualitySidebar } from "@/components/quality/QualitySidebar";
 
 export default function RNCList() {
   const { rncs: rawRncs, isLoading, createRNC } = useRNCs();
@@ -58,30 +58,28 @@ export default function RNCList() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <SidebarProvider>
-        <div className="flex">
-          <Sidebar>
-            {/* Add your sidebar content here */}
-          </Sidebar>
-          <main className="flex-1 p-6">
-            <RNCListHeader onRNCCreated={handleRNCCreated} />
-            <div className="mt-6 space-y-4">
-              <RNCFilters
-                search={search}
-                onSearchChange={setSearch}
-                workflowStatus={workflowStatus}
-                onWorkflowStatusChange={setWorkflowStatus}
-                priority={priority}
-                onPriorityChange={setPriority}
-                type={type}
-                onTypeChange={setType}
-                onClearFilters={handleClearFilters}
-              />
-              <RNCListTable rncs={filteredRncs} isLoading={isLoading} />
-            </div>
-          </main>
-        </div>
-      </SidebarProvider>
+      <div className="flex">
+        <Sidebar className="w-64">
+          <QualitySidebar />
+        </Sidebar>
+        <main className="flex-1 p-6">
+          <RNCListHeader onRNCCreated={handleRNCCreated} />
+          <div className="mt-6 space-y-4">
+            <RNCFilters
+              search={search}
+              onSearchChange={setSearch}
+              workflowStatus={workflowStatus}
+              onWorkflowStatusChange={setWorkflowStatus}
+              priority={priority}
+              onPriorityChange={setPriority}
+              type={type}
+              onTypeChange={setType}
+              onClearFilters={handleClearFilters}
+            />
+            <RNCListTable rncs={filteredRncs} isLoading={isLoading} />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

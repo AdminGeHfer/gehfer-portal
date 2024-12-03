@@ -86,10 +86,16 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       setShowValidationErrors(true);
       console.log('Starting RNC submission with data:', data);
       
-      const rncId = await onSubmit(data);
+      // Add description to dialog content for accessibility
+      const rncId = await onSubmit({
+        ...data,
+        type: data.type || "client", // Ensure type is set
+        priority: data.priority || "medium", // Ensure priority is set
+      });
+      
       console.log('RNC created successfully with ID:', rncId);
 
-      if (data.attachments && data.attachments.length > 0) {
+      if (data.attachments?.length > 0) {
         console.log('Starting file uploads for RNC:', rncId);
         const { data: userData } = await supabase.auth.getUser();
         
@@ -141,6 +147,9 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
+
+      // Redirect after successful creation
+      window.location.href = `/quality/rnc/${rncId}`;
     } catch (error) {
       console.error('Error in RNC submission:', error);
       toast({
