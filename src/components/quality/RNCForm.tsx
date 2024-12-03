@@ -13,6 +13,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { DialogDescription } from "@/components/ui/dialog";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
@@ -56,7 +57,7 @@ const defaultValues: RNCFormData = {
 
 interface RNCFormProps {
   initialData?: Partial<RNCFormData>;
-  onSubmit: (data: RNCFormData) => Promise<string>;
+  onSubmit: (data: RNCFormData) => Promise<any>;
   mode?: "create" | "edit";
 }
 
@@ -72,7 +73,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       ...defaultValues,
       ...initialData,
     },
-    mode: "onSubmit" // Only validate on submit
+    mode: "onSubmit"
   });
 
   const handleSubmit = async (data: RNCFormData) => {
@@ -86,17 +87,16 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       setShowValidationErrors(true);
       console.log('Starting RNC submission with data:', data);
       
-      // Add description to dialog content for accessibility
-      const rncId = await onSubmit({
+      const response = await onSubmit({
         ...data,
-        type: data.type || "client", // Ensure type is set
-        priority: data.priority || "medium", // Ensure priority is set
+        type: data.type || "client",
+        priority: data.priority || "medium",
       });
-      
-      console.log('RNC created successfully with ID:', rncId);
+
+      console.log('RNC created successfully with ID:', response.id);
 
       if (data.attachments?.length > 0) {
-        console.log('Starting file uploads for RNC:', rncId);
+        console.log('Starting file uploads for RNC:', response.id);
         const { data: userData } = await supabase.auth.getUser();
         
         if (!userData.user) {
@@ -106,7 +106,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
         for (const file of data.attachments) {
           const fileExt = file.name.split('.').pop();
           const fileName = `${crypto.randomUUID()}.${fileExt}`;
-          const filePath = `${rncId}/${fileName}`;
+          const filePath = `${response.id}/${fileName}`;
 
           console.log('Uploading file:', {
             originalName: file.name,
@@ -126,7 +126,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
           const { error: dbError } = await supabase
             .from('rnc_attachments')
             .insert({
-              rnc_id: rncId,
+              rnc_id: response.id,
               filename: file.name,
               filesize: file.size,
               content_type: file.type,
@@ -148,8 +148,17 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
         description: "A RNC foi registrada no sistema.",
       });
 
-      // Redirect after successful creation
-      window.location.href = `/quality/rnc/${rncId}`;
+      // Only redirect if we have a valid ID
+      if (response.id && typeof response.id === 'string') {
+        window.location.href = `/quality/rnc/${response.id}`;
+      } else {
+        console.error('Invalid RNC ID received:', response);
+        toast({
+          title: "Erro ao processar RNC",
+          description: "ID da RNC inválido recebido do servidor.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Error in RNC submission:', error);
       toast({
@@ -164,12 +173,15 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Reset validation errors when changing tabs
     setShowValidationErrors(false);
   };
 
   return (
     <div className="space-y-6">
+      <DialogDescription>
+        Preencha os dados da RNC nos campos abaixo
+      </DialogDescription>
+      
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="company">Empresa</TabsTrigger>
