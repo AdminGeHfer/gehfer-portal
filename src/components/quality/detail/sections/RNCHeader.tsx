@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Package, Printer, Trash, WhatsappLogo } from "lucide-react";
+import { Edit, MessageSquare, Package, Printer, Trash } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RNCAssignButton } from "../RNCAssignButton";
 import { RNC } from "@/types/rnc";
@@ -38,7 +38,13 @@ export function RNCHeader({
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">RNC #{rnc.rnc_number || "Novo"}</h1>
           <Badge 
-            variant={rnc.status === "open" ? "warning" : rnc.status === "in_progress" ? "default" : "success"}
+            variant={
+              rnc.status === "open" 
+                ? "default" 
+                : rnc.status === "in_progress" 
+                ? "secondary" 
+                : "success"
+            }
             className="animate-fade-in"
           >
             {rnc.status === "open" ? "Aberto" : rnc.status === "in_progress" ? "Em Andamento" : "Fechado"}
@@ -78,7 +84,7 @@ export function RNCHeader({
           />
           
           <Button variant="outline" onClick={onWhatsApp}>
-            <WhatsappLogo className="mr-2 h-4 w-4" />
+            <MessageSquare className="mr-2 h-4 w-4" />
             WhatsApp
           </Button>
           
