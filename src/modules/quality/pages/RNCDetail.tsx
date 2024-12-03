@@ -1,59 +1,27 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
-import { transformRNCData } from "@/utils/rncTransform";
-import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
-import { RNC } from "@/types/rnc";
+import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
+import { WorkflowStatusEnum } from "@/types/rnc";
 
 const RNCDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: rnc, isLoading, refetch } = useQuery({
-    queryKey: ["rnc", id],
-    queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      const { data, error } = await supabase
-        .from("rncs")
-        .select(`
-          *,
-          contact:rnc_contacts(*),
-          events:rnc_events(*)
-        `)
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-
-      if (data.created_by !== user.user?.id) {
-        toast.error("Você não tem permissão para editar esta RNC");
-        return { ...transformRNCData(data), canEdit: false };
-      }
-
-      return { ...transformRNCData(data), canEdit: true };
-    },
-  });
-
-  const deleteRNC = useDeleteRNC(id!, () => {
-    toast.success("RNC excluída com sucesso");
-    navigate("/quality/rnc");
-  });
-
-  const updateRNC = useUpdateRNC(id!, {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rnc", id] });
-      setIsEditing(false);
-    },
-  });
+  const {
+    rnc,
+    isLoading,
+    deleteRNC,
+    updateRNC,
+    handleRefresh,
+    handleStatusChange
+  } = useRNCDetail(id!);
 
   const handlePrint = () => {
     setIsPrinting(true);
@@ -74,6 +42,7 @@ const RNCDetail = () => {
   const handleSave = async () => {
     if (!rnc) return;
     await updateRNC.mutateAsync(rnc);
+    setIsEditing(false);
   };
 
   const handleDelete = async () => {
@@ -87,6 +56,7 @@ const RNCDetail = () => {
     try {
       setIsDeleting(true);
       await deleteRNC.mutateAsync();
+      navigate("/quality/rnc");
     } catch (error) {
       toast.error("Erro ao excluir RNC");
     } finally {
@@ -102,7 +72,7 @@ const RNCDetail = () => {
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
-  const handleFieldChange = (field: keyof RNC, value: any) => {
+  const handleFieldChange = (field: keyof typeof rnc, value: any) => {
     if (!rnc) return;
     
     if (field === "contact") {
@@ -121,10 +91,6 @@ const RNCDetail = () => {
       };
       updateRNC.mutate(updatedRnc);
     }
-  };
-
-  const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
-    await refetch(options);
   };
 
   if (isLoading) {
@@ -175,7 +141,7 @@ const RNCDetail = () => {
         if (!rnc) return;
         const updatedRnc = {
           ...rnc,
-          workflow_status: newStatus
+          workflow_status: newStatus as WorkflowStatusEnum
         };
         await updateRNC.mutateAsync(updatedRnc);
       }}
