@@ -15,6 +15,8 @@ interface RNCFiltersProps {
   onWorkflowStatusChange: (value: string) => void;
   priority: string;
   onPriorityChange: (value: string) => void;
+  type: string;
+  onTypeChange: (value: string) => void;
   onClearFilters: () => void;
 }
 
@@ -25,6 +27,8 @@ export const RNCFilters = ({
   onWorkflowStatusChange,
   priority,
   onPriorityChange,
+  type,
+  onTypeChange,
   onClearFilters,
 }: RNCFiltersProps) => {
   return (
@@ -36,7 +40,7 @@ export const RNCFilters = ({
           onChange={onSearchChange}
           placeholder="Buscar RNCs..."
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select value={workflowStatus} onValueChange={onWorkflowStatusChange}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
@@ -60,6 +64,16 @@ export const RNCFilters = ({
               <SelectItem value="low">Baixa</SelectItem>
               <SelectItem value="medium">Média</SelectItem>
               <SelectItem value="high">Alta</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={type} onValueChange={onTypeChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="client">Cliente</SelectItem>
+              <SelectItem value="supplier">Fornecedor</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -1,22 +1,20 @@
-import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { useRNCs } from "@/hooks/useRNCs";
-import { RNCListHeader } from "@/components/quality/list/RNCListHeader";
-import { RNCListFilters } from "@/components/quality/list/RNCListFilters";
+import { useEffect, useState } from "react";
+import { RNCFilters } from "@/components/organisms/RNCFilters";
 import { RNCListTable } from "@/components/quality/list/RNCListTable";
+import { RNCListHeader } from "@/components/quality/list/RNCListHeader";
+import { useRNCs } from "@/hooks/useRNCs";
 import { RNC } from "@/types/rnc";
+import { useRNCSearch } from "@/hooks/useRNCSearch";
+import { Header } from "@/components/layout/Header";
 
-const RNCList = () => {
-  const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const { rncs, isLoading, createRNC } = useRNCs();
+export default function RNCList() {
+  const { rncs: rawRncs, isLoading, createRNC } = useRNCs();
+  const [search, setSearch] = useState("");
+  const [workflowStatus, setWorkflowStatus] = useState("all");
+  const [priority, setPriority] = useState("all");
+  const [type, setType] = useState("all");
 
-  const transformedRncs: RNC[] = rncs?.map(rnc => ({
+  const transformedRncs: RNC[] = rawRncs?.map(rnc => ({
     ...rnc,
     priority: rnc.priority as "low" | "medium" | "high",
     type: rnc.type as "client" | "supplier",
@@ -28,90 +26,54 @@ const RNCList = () => {
       description: event.description,
       type: event.type as "creation" | "update" | "status" | "comment" | "assignment",
       userId: event.created_by,
-      comment: event.comment
+      comment: event.comment || ""
     }))
   })) || [];
 
-  const filteredRncs = transformedRncs?.filter((rnc) => {
-    const matchesSearch =
-      searchTerm === "" ||
-      rnc.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rnc.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rnc.rnc_number?.toString().includes(searchTerm);
+  const filteredRncs = useRNCSearch(
+    transformedRncs,
+    search,
+    workflowStatus,
+    priority,
+    type
+  );
 
-    const matchesStatus = statusFilter === "all" || rnc.workflow_status === statusFilter;
-    const matchesDepartment = departmentFilter === "all" || rnc.department === departmentFilter;
-    const matchesPriority = priorityFilter === "all" || rnc.priority === priorityFilter;
+  const handleClearFilters = () => {
+    setSearch("");
+    setWorkflowStatus("all");
+    setPriority("all");
+    setType("all");
+  };
 
-    return matchesSearch && matchesStatus && matchesDepartment && matchesPriority;
-  });
-
-  const handleRNCCreated = () => {
-    // Refresh the RNCs list after creation
+  const handleRNCCreated = async () => {
+    // Refresh the list after creating a new RNC
     window.location.reload();
   };
 
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Header title="Lista de RNCs" />
-      
-      <div className="flex min-h-screen">
-        <aside className="w-64 border-r bg-card">
-          <div className="p-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/apps")}
-            >
-              Voltar para Apps
-            </Button>
-          </div>
-          <nav className="space-y-1 p-2">
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/quality/dashboard")}
-            >
-              Dashboard
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full justify-start"
-            >
-              RNCs
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => navigate("/quality/collections")}
-            >
-              Coletas
-            </Button>
-          </nav>
-        </aside>
-
-        <main className="flex-1 p-6">
-          <RNCListHeader onRNCCreated={handleRNCCreated} />
-          
-          <RNCListFilters
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            statusFilter={statusFilter}
-            onStatusChange={setStatusFilter}
-            departmentFilter={departmentFilter}
-            onDepartmentChange={setDepartmentFilter}
-            priorityFilter={priorityFilter}
-            onPriorityChange={setPriorityFilter}
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <RNCListHeader onRNCCreated={handleRNCCreated} />
+        <div className="mt-8 space-y-6">
+          <RNCFilters
+            search={search}
+            onSearchChange={setSearch}
+            workflowStatus={workflowStatus}
+            onWorkflowStatusChange={setWorkflowStatus}
+            priority={priority}
+            onPriorityChange={setPriority}
+            type={type}
+            onTypeChange={setType}
+            onClearFilters={handleClearFilters}
           />
-
-          <RNCListTable
-            rncs={filteredRncs}
-            isLoading={isLoading}
-          />
-        </main>
-      </div>
+          <RNCListTable rncs={filteredRncs} />
+        </div>
+      </main>
     </div>
   );
-};
-
-export default RNCList;
+}
