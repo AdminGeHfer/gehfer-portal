@@ -20,7 +20,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     .select(`
       id,
       description,
-      status,
+      workflow_status,
       priority,
       type,
       department,
@@ -46,7 +46,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
   const transformedData: RNC[] = data.map(rnc => ({
     id: rnc.id,
     description: rnc.description,
-    status: rnc.status,
+    workflow_status: rnc.workflow_status || "open",
     priority: validatePriority(rnc.priority),
     type: validateType(rnc.type),
     department: rnc.department,

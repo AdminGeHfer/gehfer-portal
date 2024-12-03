@@ -11,8 +11,8 @@ import {
 interface RNCFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
-  status: string;
-  onStatusChange: (value: string) => void;
+  workflowStatus: string;
+  onWorkflowStatusChange: (value: string) => void;
   priority: string;
   onPriorityChange: (value: string) => void;
   onClearFilters: () => void;
@@ -21,8 +21,8 @@ interface RNCFiltersProps {
 export const RNCFilters = ({
   search,
   onSearchChange,
-  status,
-  onStatusChange,
+  workflowStatus,
+  onWorkflowStatusChange,
   priority,
   onPriorityChange,
   onClearFilters,
@@ -37,15 +37,18 @@ export const RNCFilters = ({
           placeholder="Buscar RNCs..."
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select value={status} onValueChange={onStatusChange}>
+          <Select value={workflowStatus} onValueChange={onWorkflowStatusChange}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="open">Aberto</SelectItem>
-              <SelectItem value="in_progress">Em Andamento</SelectItem>
-              <SelectItem value="closed">Fechado</SelectItem>
+              <SelectItem value="analysis">Em Análise</SelectItem>
+              <SelectItem value="resolution">Em Resolução</SelectItem>
+              <SelectItem value="solved">Solucionado</SelectItem>
+              <SelectItem value="closing">Em Fechamento</SelectItem>
+              <SelectItem value="closed">Encerrado</SelectItem>
             </SelectContent>
           </Select>
           <Select value={priority} onValueChange={onPriorityChange}>

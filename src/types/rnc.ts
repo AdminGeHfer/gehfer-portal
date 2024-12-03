@@ -1,11 +1,9 @@
 export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
-export type StatusEnum = "open" | "in_progress" | "closed" | "Coletar" | "Coleta Programada" | "Coleta Solicitada";
 export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
 export interface RNC {
   id: string;
   description: string;
-  status: StatusEnum;
   priority: "low" | "medium" | "high";
   type: "client" | "supplier";
   department: DepartmentEnum;
@@ -58,7 +56,6 @@ export interface RNCFormData {
   cnpj: string;
   orderNumber?: string;
   returnNumber?: string;
-  status: StatusEnum;
   assignedTo?: string;
   attachments?: File[];
   resolution?: string;
