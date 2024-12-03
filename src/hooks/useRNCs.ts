@@ -23,7 +23,10 @@ export const useRNCs = () => {
   const getDashboardStats = () => {
     const total = rncs.length;
     const open = rncs.filter(rnc => rnc.workflow_status === WorkflowStatusEnum.OPEN).length;
-    const inProgress = rncs.filter(rnc => [WorkflowStatusEnum.ANALYSIS, WorkflowStatusEnum.RESOLUTION].includes(rnc.workflow_status as WorkflowStatusEnum)).length;
+    const inProgress = rncs.filter(rnc => 
+      rnc.workflow_status === WorkflowStatusEnum.ANALYSIS || 
+      rnc.workflow_status === WorkflowStatusEnum.RESOLUTION
+    ).length;
     const closed = rncs.filter(rnc => rnc.workflow_status === WorkflowStatusEnum.CLOSED).length;
 
     // Calculate average resolution time in days
