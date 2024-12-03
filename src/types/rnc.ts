@@ -36,6 +36,7 @@ export interface RNC {
   updated_at: string;
   closed_at?: string;
   timeline: TimelineEvent[];
+  title?: string;
 }
 
 export interface TimelineEvent {
@@ -46,4 +47,25 @@ export interface TimelineEvent {
   type: "creation" | "update" | "status" | "comment" | "assignment";
   userId: string;
   comment?: string;
+}
+
+export interface RNCFormData {
+  id?: string;
+  description: string;
+  priority: "low" | "medium" | "high";
+  type: "client" | "supplier";
+  department: DepartmentEnum;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  company: string;
+  cnpj: string;
+  orderNumber?: string;
+  returnNumber?: string;
+  assignedTo?: string;
+  attachments?: File[];
+  resolution?: string;
+  workflow_status: WorkflowStatusEnum;
 }

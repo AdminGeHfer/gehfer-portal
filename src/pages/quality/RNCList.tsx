@@ -14,16 +14,18 @@ const RNCList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const { rncs, isLoading } = useRNCs();
+  const { rncs, isLoading, createRNC } = useRNCs();
 
   const transformedRncs: RNC[] = rncs?.map(rnc => ({
     ...rnc,
+    priority: rnc.priority as "low" | "medium" | "high",
+    type: rnc.type as "client" | "supplier",
     timeline: rnc.events.map(event => ({
       id: event.id,
       date: event.created_at,
       title: event.title,
       description: event.description,
-      type: event.type,
+      type: event.type as "creation" | "update" | "status" | "comment" | "assignment",
       userId: event.created_by,
       comment: event.comment
     }))
@@ -42,6 +44,11 @@ const RNCList = () => {
 
     return matchesSearch && matchesStatus && matchesDepartment && matchesPriority;
   });
+
+  const handleRNCCreated = () => {
+    // Refresh the RNCs list after creation
+    window.location.reload();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,7 +90,7 @@ const RNCList = () => {
         </aside>
 
         <main className="flex-1 p-6">
-          <RNCListHeader />
+          <RNCListHeader onRNCCreated={handleRNCCreated} />
           
           <RNCListFilters
             searchTerm={searchTerm}
