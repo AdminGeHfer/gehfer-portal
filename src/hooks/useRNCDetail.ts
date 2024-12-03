@@ -11,18 +11,34 @@ export const useRNCDetail = (id: string) => {
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
+      // Validate if id is a valid UUID
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        toast.error("ID inválido para RNC");
+        return null;
+      }
+
       const { data: user } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("rncs")
         .select(`
           *,
-          contact:rnc_contacts(*),
+          contacts:rnc_contacts(*),
           events:rnc_events(*)
         `)
         .eq("id", id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching RNC:", error);
+        toast.error("Erro ao carregar RNC");
+        return null;
+      }
+
+      if (!data) {
+        toast.error("RNC não encontrada");
+        return null;
+      }
 
       if (data.created_by !== user.user?.id) {
         toast.error("Você não tem permissão para editar esta RNC");
@@ -31,6 +47,7 @@ export const useRNCDetail = (id: string) => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
+    enabled: Boolean(id),
   });
 
   const deleteRNC = useDeleteRNC(id, () => {
