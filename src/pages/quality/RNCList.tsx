@@ -20,6 +20,7 @@ const RNCList = () => {
     ...rnc,
     priority: rnc.priority as "low" | "medium" | "high",
     type: rnc.type as "client" | "supplier",
+    contact: rnc.contact?.[0] || { name: "", phone: "", email: "" },
     timeline: rnc.events.map(event => ({
       id: event.id,
       date: event.created_at,
