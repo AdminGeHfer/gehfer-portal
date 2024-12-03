@@ -6,12 +6,10 @@ import { RNCCommentSection } from "./RNCCommentSection";
 import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
 import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
-import { BackButton } from "@/components/atoms/BackButton";
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { RNC, WorkflowStatusEnum } from "@/types/rnc";
-import { toast } from "sonner";
+import { RNCCompanyInfo } from "./sections/RNCCompanyInfo";
+import { RNCContactInfo } from "./sections/RNCContactInfo";
+import { RNCHeader } from "./sections/RNCHeader";
+import { RNC } from "@/types/rnc";
 import { RefetchOptions } from "@tanstack/react-query";
 
 interface RNCDetailLayoutProps {
@@ -29,10 +27,10 @@ interface RNCDetailLayoutProps {
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
   onRefresh: (options?: RefetchOptions) => Promise<void>;
-  onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
+  onStatusChange: (status: string) => void;
 }
 
-export const RNCDetailLayout = ({
+export function RNCDetailLayout({
   rnc,
   isEditing,
   isPrinting,
@@ -47,54 +45,20 @@ export const RNCDetailLayout = ({
   onFieldChange,
   setIsDeleteDialogOpen,
   onRefresh,
-  onStatusChange
-}: RNCDetailLayoutProps) => {
-  const { id } = useParams<{ id: string }>();
-  if (!id) return null;
-
-  const { data: workflowStatus } = useQuery({
-    queryKey: ["workflow-status", id],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("rnc_workflow_transitions")
-          .select("*")
-          .eq("rnc_id", id)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
-
-        if (error) {
-          if (error.code === 'PGRST116') {
-            return "open" as WorkflowStatusEnum;
-          }
-          console.error("Error fetching workflow status:", error);
-          return "open" as WorkflowStatusEnum;
-        }
-
-        return data.to_status as WorkflowStatusEnum;
-      } catch (error) {
-        console.error("Error in workflow status query:", error);
-        return "open" as WorkflowStatusEnum;
-      }
-    }
-  });
-
+  onStatusChange,
+}: RNCDetailLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-8">
-        <BackButton to="/quality/rnc" label="Voltar para Lista de RNCs" />
-        
         <div className="space-y-8">
           <Card className="p-6">
-            <RNCDetailHeader 
+            <RNCHeader
               rnc={rnc}
-              isEditing={isEditing}
               canEdit={canEdit}
+              isEditing={isEditing}
               onEdit={onEdit}
               onSave={onSave}
-              onDelete={onDelete}
               onPrint={onPrint}
               onWhatsApp={onWhatsApp}
               onStatusChange={onStatusChange}
@@ -106,6 +70,8 @@ export const RNCDetailLayout = ({
 
           <div className="grid gap-8 md:grid-cols-3">
             <div className="md:col-span-2 space-y-8">
+              <RNCCompanyInfo rnc={rnc} />
+              
               <Card className="p-6">
                 <RNCDetailForm 
                   rnc={rnc}
@@ -114,13 +80,15 @@ export const RNCDetailLayout = ({
                 />
               </Card>
 
+              <RNCContactInfo rnc={rnc} />
+
               <Card className="p-6">
-                <RNCAttachments rncId={id} />
+                <RNCAttachments rncId={rnc.id} />
               </Card>
 
               <Card className="p-6">
                 <RNCCommentSection 
-                  rncId={id}
+                  rncId={rnc.id}
                   onCommentAdded={onRefresh}
                 />
               </Card>
@@ -129,14 +97,14 @@ export const RNCDetailLayout = ({
             <div className="space-y-8">
               <Card className="p-6">
                 <RNCWorkflowStatus 
-                  rncId={id}
-                  currentStatus={workflowStatus || "open"}
+                  rncId={rnc.id}
+                  currentStatus={rnc.workflow_status || "open"}
                   onStatusChange={onStatusChange}
                 />
               </Card>
 
               <Card className="p-6">
-                <RNCWorkflowHistory rncId={id} />
+                <RNCWorkflowHistory rncId={rnc.id} />
               </Card>
             </div>
           </div>
@@ -144,6 +112,4 @@ export const RNCDetailLayout = ({
       </main>
     </div>
   );
-};
-
-export default RNCDetailLayout;
+}
