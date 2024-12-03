@@ -40,7 +40,7 @@ const RNCList = () => {
       rnc.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rnc.rnc_number?.toString().includes(searchTerm);
     
-    const matchesStatus = statusFilter === "all" || rnc.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || rnc.workflow_status === statusFilter;
     const matchesDepartment = departmentFilter === "all" || rnc.department === departmentFilter;
     const matchesPriority = priorityFilter === "all" || rnc.priority === priorityFilter;
 
@@ -203,7 +203,7 @@ const RNCList = () => {
                       <TableCell>{rnc.company}</TableCell>
                       <TableCell>{rnc.department}</TableCell>
                       <TableCell>
-                        <RNCStatusBadge status={getStatus(rnc.status)} />
+                        <RNCStatusBadge status={getStatus(rnc.workflow_status)} />
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${

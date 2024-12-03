@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RNCAssignButton } from "./RNCAssignButton";
+import { getStatusLabel } from "@/types/workflow";
 
 interface RNCDetailHeaderProps {
   rnc: RNC;
@@ -59,20 +60,20 @@ export const RNCDetailHeader = ({
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold">RNC #{rnc.rnc_number || "Novo"}</h1>
             <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-              rnc.status === "open" 
+              rnc.workflow_status === "open" 
                 ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200"
-                : rnc.status === "in_progress"
+                : rnc.workflow_status === "analysis" || rnc.workflow_status === "resolution"
                 ? "bg-blue-50 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200"
                 : "bg-green-50 text-green-800 dark:bg-green-900/50 dark:text-green-200"
             }`}>
-              {rnc.status === "open" ? "Aberto" : rnc.status === "in_progress" ? "Em Andamento" : "Fechado"}
+              {getStatusLabel(rnc.workflow_status)}
             </span>
           </div>
         </div>
         
         <div className="flex gap-2">
           {canEdit && (
-            <Select defaultValue={rnc.status} onValueChange={onStatusChange}>
+            <Select defaultValue={rnc.workflow_status} onValueChange={onStatusChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Alterar Status" />
               </SelectTrigger>

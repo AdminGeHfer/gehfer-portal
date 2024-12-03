@@ -18,7 +18,7 @@ export const useRNCSearch = ({ rncs }: UseRNCSearchProps) => {
         rnc.company.toLowerCase().includes(search.toLowerCase());
 
       const matchesStatus =
-        statusFilter === "all" || rnc.status === statusFilter;
+        statusFilter === "all" || rnc.workflow_status === statusFilter;
 
       const matchesPriority =
         priorityFilter === "all" || rnc.priority === priorityFilter;

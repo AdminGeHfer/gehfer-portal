@@ -78,7 +78,7 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
               </div>
               <div>
                 <p className="font-medium text-gray-500">Status</p>
-                <p>{rnc.status}</p>
+                <p>{rnc.workflow_status}</p>
               </div>
             </div>
             <div>

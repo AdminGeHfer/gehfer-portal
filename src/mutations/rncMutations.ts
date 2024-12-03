@@ -56,7 +56,7 @@ export const useUpdateRNC = (
         .from("rncs")
         .update({
           description: updatedData.description,
-          status: updatedData.status,
+          workflow_status: updatedData.workflow_status,
           priority: updatedData.priority,
           type: updatedData.type,
           department: updatedData.department,
