@@ -6,6 +6,8 @@ import { useRNCs } from "@/hooks/useRNCs";
 import { RNC } from "@/types/rnc";
 import { useRNCSearch } from "@/hooks/useRNCSearch";
 import { Header } from "@/components/layout/Header";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { SidebarProvider } from "@/contexts/SidebarContext";
 
 export default function RNCList() {
   const { rncs: rawRncs, isLoading, createRNC } = useRNCs();
@@ -46,7 +48,6 @@ export default function RNCList() {
   };
 
   const handleRNCCreated = async () => {
-    // Refresh the list after creating a new RNC
     window.location.reload();
   };
 
@@ -57,23 +58,30 @@ export default function RNCList() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <RNCListHeader onRNCCreated={handleRNCCreated} />
-        <div className="mt-8 space-y-6">
-          <RNCFilters
-            search={search}
-            onSearchChange={setSearch}
-            workflowStatus={workflowStatus}
-            onWorkflowStatusChange={setWorkflowStatus}
-            priority={priority}
-            onPriorityChange={setPriority}
-            type={type}
-            onTypeChange={setType}
-            onClearFilters={handleClearFilters}
-          />
-          <RNCListTable rncs={filteredRncs} isLoading={isLoading} />
+      <SidebarProvider>
+        <div className="flex">
+          <Sidebar>
+            {/* Add your sidebar content here */}
+          </Sidebar>
+          <main className="flex-1 p-6">
+            <RNCListHeader onRNCCreated={handleRNCCreated} />
+            <div className="mt-6 space-y-4">
+              <RNCFilters
+                search={search}
+                onSearchChange={setSearch}
+                workflowStatus={workflowStatus}
+                onWorkflowStatusChange={setWorkflowStatus}
+                priority={priority}
+                onPriorityChange={setPriority}
+                type={type}
+                onTypeChange={setType}
+                onClearFilters={handleClearFilters}
+              />
+              <RNCListTable rncs={filteredRncs} isLoading={isLoading} />
+            </div>
+          </main>
         </div>
-      </main>
+      </SidebarProvider>
     </div>
   );
 }

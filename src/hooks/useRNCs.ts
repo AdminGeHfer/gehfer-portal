@@ -23,50 +23,17 @@ export const useRNCs = () => {
     },
   });
 
-  const getDashboardStats = () => {
-    if (!rncs) return {
-      total: 0,
-      open: 0,
-      inProgress: 0,
-      closed: 0,
-      averageResolutionTime: 0
-    };
-
-    const total = rncs.length;
-    const open = rncs.filter(rnc => rnc.status === 'open').length;
-    const inProgress = rncs.filter(rnc => rnc.status === 'in_progress').length;
-    const closed = rncs.filter(rnc => rnc.status === 'closed').length;
-
-    const closedRncs = rncs.filter(rnc => rnc.closed_at);
-    const totalResolutionTime = closedRncs.reduce((acc, rnc) => {
-      const start = new Date(rnc.created_at);
-      const end = new Date(rnc.closed_at!);
-      return acc + (end.getTime() - start.getTime());
-    }, 0);
-
-    const averageResolutionTime = closedRncs.length > 0 
-      ? Math.round(totalResolutionTime / closedRncs.length / (1000 * 60 * 60 * 24)) 
-      : 0;
-
-    return {
-      total,
-      open,
-      inProgress,
-      closed,
-      averageResolutionTime
-    };
-  };
-
   const createRNC = useMutation({
     mutationFn: async (data: RNCFormData) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Usuário não autenticado");
 
+      // First create the RNC
       const { data: rnc, error: rncError } = await supabase
         .from("rncs")
         .insert({
           description: data.description,
-          status: "open",
+          workflow_status: "open",
           priority: data.priority,
           type: data.type,
           department: data.department,
@@ -81,6 +48,7 @@ export const useRNCs = () => {
 
       if (rncError) throw rncError;
 
+      // Then create the contact
       const { error: contactError } = await supabase
         .from("rnc_contacts")
         .insert({
@@ -92,6 +60,7 @@ export const useRNCs = () => {
 
       if (contactError) throw contactError;
 
+      // Finally create the initial event
       const { error: eventError } = await supabase
         .from("rnc_events")
         .insert({
@@ -104,13 +73,14 @@ export const useRNCs = () => {
 
       if (eventError) throw eventError;
 
-      return rnc;
+      return rnc.id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rncs"] });
       toast.success("RNC criada com sucesso!");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error("Error creating RNC:", error);
       toast.error("Erro ao criar RNC: " + error.message);
     },
   });
@@ -119,6 +89,5 @@ export const useRNCs = () => {
     rncs,
     isLoading,
     createRNC,
-    getDashboardStats
   };
 };
