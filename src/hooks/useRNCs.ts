@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { RNC } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 
 export const useRNCs = () => {
   const { data: rncs = [], isLoading } = useQuery({
@@ -22,9 +22,9 @@ export const useRNCs = () => {
 
   const getDashboardStats = () => {
     const total = rncs.length;
-    const open = rncs.filter(rnc => rnc.workflow_status === "open").length;
-    const inProgress = rncs.filter(rnc => ["analysis", "resolution"].includes(rnc.workflow_status)).length;
-    const closed = rncs.filter(rnc => rnc.workflow_status === "closed").length;
+    const open = rncs.filter(rnc => rnc.workflow_status === WorkflowStatusEnum.OPEN).length;
+    const inProgress = rncs.filter(rnc => [WorkflowStatusEnum.ANALYSIS, WorkflowStatusEnum.RESOLUTION].includes(rnc.workflow_status as WorkflowStatusEnum)).length;
+    const closed = rncs.filter(rnc => rnc.workflow_status === WorkflowStatusEnum.CLOSED).length;
 
     // Calculate average resolution time in days
     const resolvedRncs = rncs.filter(rnc => rnc.closed_at);
@@ -48,6 +48,11 @@ export const useRNCs = () => {
   };
 
   const createRNC = async (data: Partial<RNC>) => {
+    const user = await supabase.auth.getUser();
+    const userId = user.data.user?.id;
+    
+    if (!userId) throw new Error("User not authenticated");
+
     const rncData = {
       description: data.description,
       priority: data.priority,
@@ -57,9 +62,9 @@ export const useRNCs = () => {
       cnpj: data.cnpj,
       order_number: data.orderNumber,
       return_number: data.returnNumber,
-      workflow_status: "open",
-      created_by: (await supabase.auth.getUser()).data.user?.id
-    };
+      workflow_status: WorkflowStatusEnum.OPEN,
+      created_by: userId
+    } as const;
 
     const { data: newRNC, error } = await supabase
       .from("rncs")
