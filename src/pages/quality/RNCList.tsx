@@ -71,7 +71,7 @@ export default function RNCList() {
             onTypeChange={setType}
             onClearFilters={handleClearFilters}
           />
-          <RNCListTable rncs={filteredRncs} />
+          <RNCListTable rncs={filteredRncs} isLoading={isLoading} />
         </div>
       </main>
     </div>
