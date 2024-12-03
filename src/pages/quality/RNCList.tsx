@@ -20,7 +20,7 @@ export default function RNCList() {
     ...rnc,
     priority: rnc.priority as "low" | "medium" | "high",
     type: rnc.type as "client" | "supplier",
-    contact: rnc.contact?.[0] || { name: "", phone: "", email: "" },
+    contact: rnc.contacts?.[0] || { name: "", phone: "", email: "" },
     timeline: rnc.events.map(event => ({
       id: event.id,
       date: event.created_at,

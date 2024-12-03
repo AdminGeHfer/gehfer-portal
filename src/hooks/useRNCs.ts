@@ -48,13 +48,40 @@ export const useRNCs = () => {
   };
 
   const createRNC = async (data: Partial<RNC>) => {
+    const rncData = {
+      description: data.description,
+      priority: data.priority,
+      type: data.type,
+      department: data.department,
+      company: data.company,
+      cnpj: data.cnpj,
+      order_number: data.orderNumber,
+      return_number: data.returnNumber,
+      workflow_status: "open",
+      created_by: (await supabase.auth.getUser()).data.user?.id
+    };
+
     const { data: newRNC, error } = await supabase
       .from("rncs")
-      .insert([data])
+      .insert([rncData])
       .select()
       .single();
 
     if (error) throw error;
+
+    if (data.contact && newRNC) {
+      const { error: contactError } = await supabase
+        .from("rnc_contacts")
+        .insert([{
+          rnc_id: newRNC.id,
+          name: data.contact.name,
+          phone: data.contact.phone,
+          email: data.contact.email
+        }]);
+
+      if (contactError) throw contactError;
+    }
+
     return newRNC;
   };
 
