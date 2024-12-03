@@ -6,6 +6,7 @@ import { useRNCs } from "@/hooks/useRNCs";
 import { RNCListHeader } from "@/components/quality/list/RNCListHeader";
 import { RNCListFilters } from "@/components/quality/list/RNCListFilters";
 import { RNCListTable } from "@/components/quality/list/RNCListTable";
+import { RNC } from "@/types/rnc";
 
 const RNCList = () => {
   const navigate = useNavigate();
@@ -13,9 +14,22 @@ const RNCList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const { rncs, isLoading, refetch } = useRNCs();
+  const { rncs, isLoading } = useRNCs();
 
-  const filteredRncs = rncs?.filter((rnc) => {
+  const transformedRncs: RNC[] = rncs?.map(rnc => ({
+    ...rnc,
+    timeline: rnc.events.map(event => ({
+      id: event.id,
+      date: event.created_at,
+      title: event.title,
+      description: event.description,
+      type: event.type,
+      userId: event.created_by,
+      comment: event.comment
+    }))
+  })) || [];
+
+  const filteredRncs = transformedRncs?.filter((rnc) => {
     const matchesSearch =
       searchTerm === "" ||
       rnc.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -27,7 +41,7 @@ const RNCList = () => {
     const matchesPriority = priorityFilter === "all" || rnc.priority === priorityFilter;
 
     return matchesSearch && matchesStatus && matchesDepartment && matchesPriority;
-  }) || [];
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -69,7 +83,7 @@ const RNCList = () => {
         </aside>
 
         <main className="flex-1 p-6">
-          <RNCListHeader onRNCCreated={refetch} />
+          <RNCListHeader />
           
           <RNCListFilters
             searchTerm={searchTerm}
