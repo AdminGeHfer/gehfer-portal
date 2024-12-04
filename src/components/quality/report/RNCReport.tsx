@@ -58,10 +58,10 @@ export const RNCReport = ({ rnc, workflowHistory }: RNCReportProps) => {
               <dt className="text-sm font-medium text-gray-600">CNPJ</dt>
               <dd>{rnc.cnpj}</dd>
             </div>
-            {rnc.order_number && (
+            {rnc.orderNumber && (
               <div>
                 <dt className="text-sm font-medium text-gray-600">Número do Pedido</dt>
-                <dd>{rnc.order_number}</dd>
+                <dd>{rnc.orderNumber}</dd>
               </div>
             )}
           </dl>

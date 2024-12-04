@@ -2,7 +2,6 @@ import { Header } from "@/components/layout/Header";
 import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailForm } from "./RNCDetailForm";
-import { RNCCommentSection } from "./RNCCommentSection";
 import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
 import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
@@ -83,11 +82,11 @@ export const RNCDetailLayout = ({
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto py-2 px-2">
-        <div className="grid gap-4 lg:grid-cols-12">
+      <main className="container mx-auto py-1">
+        <div className="grid gap-2 lg:grid-cols-12">
           {/* Workflow Status - Com mais destaque */}
           <div className="lg:col-span-4 lg:order-2">
-            <div className="sticky top-4 space-y-4">
+            <div className="sticky top-4 space-y-2">
               <Card className="p-4 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
                   rncId={id}
@@ -103,9 +102,9 @@ export const RNCDetailLayout = ({
           </div>
 
           {/* Conteúdo Principal */}
-          <div className="lg:col-span-8 lg:order-1 space-y-4">
+          <div className="lg:col-span-8 lg:order-1 space-y-2">
             <Card className="bg-white/90 backdrop-blur-sm shadow-md">
-              <div className="p-3">
+              <div className="p-2">
                 <RNCDetailHeader 
                   rnc={rnc}
                   isEditing={isEditing}
@@ -134,13 +133,6 @@ export const RNCDetailLayout = ({
 
             <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
               <RNCAttachments rncId={id} />
-            </Card>
-
-            <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
-              <RNCCommentSection 
-                rncId={id}
-                onCommentAdded={onRefresh}
-              />
             </Card>
           </div>
         </div>
