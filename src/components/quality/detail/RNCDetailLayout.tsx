@@ -6,7 +6,6 @@ import { RNCCommentSection } from "./RNCCommentSection";
 import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
 import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
-import { BackButton } from "@/components/atoms/BackButton";
 import { useParams, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,10 +85,10 @@ export const RNCDetailLayout = ({
       <Header />
       <main className="container mx-auto py-2">
         <div className="grid gap-4 lg:grid-cols-12">
-          {/* Workflow Status - Lado direito com tamanho aumentado */}
-          <div className="lg:col-span-4 lg:order-2">
+          {/* Workflow Status - Com mais destaque */}
+          <div className="lg:col-span-5 lg:order-2">
             <div className="sticky top-4 space-y-4">
-              <Card className="p-6 bg-white/80 backdrop-blur-sm border-primary/10 shadow-lg hover:shadow-xl transition-all duration-200">
+              <Card className="p-6 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
                   rncId={id}
                   currentStatus={workflowStatus || "open"}
@@ -97,15 +96,15 @@ export const RNCDetailLayout = ({
                 />
               </Card>
               
-              <Card className="p-6 bg-white/60 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-200">
+              <Card className="p-6 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200">
                 <RNCWorkflowHistory rncId={id} />
               </Card>
             </div>
           </div>
 
-          {/* Conteúdo Principal - Reduzido para 8 colunas */}
-          <div className="lg:col-span-8 lg:order-1 space-y-4">
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+          {/* Conteúdo Principal */}
+          <div className="lg:col-span-7 lg:order-1 space-y-4">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md">
               <RNCDetailHeader 
                 rnc={rnc}
                 isEditing={isEditing}
@@ -123,7 +122,7 @@ export const RNCDetailLayout = ({
               />
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
               <RNCDetailForm 
                 rnc={rnc}
                 isEditing={isEditing}
@@ -131,11 +130,11 @@ export const RNCDetailLayout = ({
               />
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
               <RNCAttachments rncId={id} />
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
               <RNCCommentSection 
                 rncId={id}
                 onCommentAdded={onRefresh}
