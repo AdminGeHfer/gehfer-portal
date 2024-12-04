@@ -11,7 +11,7 @@ interface RNCReportProps {
 
 export function RNCReport({ rnc }: RNCReportProps) {
   const formatDate = (date: string) => {
-    return format(new Date(date), "dd/MM/yyyy 'às' HH:mm", {
+    return format(new Date(date), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", {
       locale: ptBR,
     });
   };
@@ -40,16 +40,18 @@ export function RNCReport({ rnc }: RNCReportProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-8 bg-white shadow-lg rounded-lg print:shadow-none print:p-0">
       {/* Cabeçalho */}
-      <div className="flex justify-between items-start border-b pb-4">
-        <div>
-          <h1 className="text-2xl font-bold">RNC #{rnc.rnc_number}</h1>
-          <p className="text-sm text-gray-500">{formatDate(rnc.created_at)}</p>
-        </div>
-        <div className="text-right">
-          <h2 className="text-xl font-semibold">GeHfer</h2>
-          <p className="text-sm text-gray-500">Sistema de Gestão da Qualidade</p>
-        </div>
-      </div>
+      <Card className="border-none shadow-none">
+        <CardContent className="flex justify-between items-start pt-6">
+          <div>
+            <h1 className="text-2xl font-bold">RNC #{rnc.rnc_number}</h1>
+            <p className="text-sm text-gray-500">{formatDate(rnc.created_at)}</p>
+          </div>
+          <div className="text-right">
+            <h2 className="text-xl font-semibold">GeHfer</h2>
+            <p className="text-sm text-gray-500">Sistema de Gestão da Qualidade</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Status e Prioridade */}
       <div className="grid grid-cols-2 gap-4">
@@ -145,33 +147,9 @@ export function RNCReport({ rnc }: RNCReportProps) {
         </CardContent>
       </Card>
 
-      {/* Linha do Tempo */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Histórico de Eventos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {rnc.timeline.map((event, index) => (
-              <div key={event.id} className="relative pl-4 pb-4">
-                <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-gray-400" />
-                {index !== rnc.timeline.length - 1 && (
-                  <div className="absolute left-1 top-3 w-px h-full bg-gray-200" />
-                )}
-                <div>
-                  <p className="font-medium">{event.title}</p>
-                  <time className="text-xs text-gray-500">{formatDate(event.date)}</time>
-                  <p className="text-gray-600 mt-1">{event.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Rodapé */}
       <div className="text-xs text-gray-500 pt-4 border-t">
-        <p>Documento gerado em {format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+        <p>Documento gerado em {format(new Date(), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}</p>
       </div>
     </div>
   );
