@@ -13,7 +13,6 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { DialogDescription } from "@/components/ui/dialog";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
@@ -29,7 +28,7 @@ const formSchema = z.object({
   returnNumber: z.string().optional(),
   company: z.string().min(1, "A empresa é obrigatória"),
   cnpj: z.string().min(14, "CNPJ inválido").max(14),
-  workflow_status: z.enum(["open", "in_progress", "closed"]).default("open"),
+  status: z.enum(["open", "in_progress", "closed"]).default("open"),
   assignedTo: z.string().optional(),
   attachments: z.array(z.instanceof(File)).optional(),
   resolution: z.string().optional(),
@@ -39,7 +38,7 @@ const defaultValues: RNCFormData = {
   description: "",
   priority: "medium",
   type: "client",
-  department: "Expedição", // Set a valid default department
+  department: "Expedição",
   contact: {
     name: "",
     phone: "",
@@ -57,7 +56,7 @@ const defaultValues: RNCFormData = {
 
 interface RNCFormProps {
   initialData?: Partial<RNCFormData>;
-  onSubmit: (data: RNCFormData) => Promise<any>;
+  onSubmit: (data: RNCFormData) => Promise<string>;
   mode?: "create" | "edit";
 }
 
@@ -73,7 +72,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       ...defaultValues,
       ...initialData,
     },
-    mode: "onSubmit"
+    mode: "onSubmit" // Only validate on submit
   });
 
   const handleSubmit = async (data: RNCFormData) => {
@@ -87,16 +86,11 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       setShowValidationErrors(true);
       console.log('Starting RNC submission with data:', data);
       
-      const response = await onSubmit({
-        ...data,
-        type: data.type || "client",
-        priority: data.priority || "medium",
-      });
+      const rncId = await onSubmit(data);
+      console.log('RNC created successfully with ID:', rncId);
 
-      console.log('RNC created successfully with ID:', response.id);
-
-      if (data.attachments?.length > 0) {
-        console.log('Starting file uploads for RNC:', response.id);
+      if (data.attachments && data.attachments.length > 0) {
+        console.log('Starting file uploads for RNC:', rncId);
         const { data: userData } = await supabase.auth.getUser();
         
         if (!userData.user) {
@@ -106,7 +100,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
         for (const file of data.attachments) {
           const fileExt = file.name.split('.').pop();
           const fileName = `${crypto.randomUUID()}.${fileExt}`;
-          const filePath = `${response.id}/${fileName}`;
+          const filePath = `${rncId}/${fileName}`;
 
           console.log('Uploading file:', {
             originalName: file.name,
@@ -126,7 +120,7 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
           const { error: dbError } = await supabase
             .from('rnc_attachments')
             .insert({
-              rnc_id: response.id,
+              rnc_id: rncId,
               filename: file.name,
               filesize: file.size,
               content_type: file.type,
@@ -147,18 +141,6 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
-
-      // Only redirect if we have a valid ID
-      if (response.id && typeof response.id === 'string') {
-        window.location.href = `/quality/rnc/${response.id}`;
-      } else {
-        console.error('Invalid RNC ID received:', response);
-        toast({
-          title: "Erro ao processar RNC",
-          description: "ID da RNC inválido recebido do servidor.",
-          variant: "destructive",
-        });
-      }
     } catch (error) {
       console.error('Error in RNC submission:', error);
       toast({
@@ -173,15 +155,12 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    // Reset validation errors when changing tabs
     setShowValidationErrors(false);
   };
 
   return (
     <div className="space-y-6">
-      <DialogDescription>
-        Preencha os dados da RNC nos campos abaixo
-      </DialogDescription>
-      
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="company">Empresa</TabsTrigger>

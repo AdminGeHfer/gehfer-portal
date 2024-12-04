@@ -1,4 +1,4 @@
-import { RNC } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 
@@ -7,6 +7,18 @@ interface RNCPrintProps {
 }
 
 export function RNCPrint({ rnc }: RNCPrintProps) {
+  const getStatusLabel = (status: WorkflowStatusEnum) => {
+    const labels: Record<WorkflowStatusEnum, string> = {
+      open: "Aberto",
+      analysis: "Em Análise",
+      resolution: "Em Resolução",
+      solved: "Solucionado",
+      closing: "Em Fechamento",
+      closed: "Encerrado"
+    };
+    return labels[status];
+  };
+
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6 print:p-0">
       <div className="flex justify-between items-start">
@@ -56,7 +68,7 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
             </div>
             <div>
               <p className="text-sm text-gray-500">Status</p>
-              <p>{rnc.workflow_status}</p>
+              <p>{getStatusLabel(rnc.workflow_status)}</p>
             </div>
           </div>
           <div>

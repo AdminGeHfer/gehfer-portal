@@ -9,7 +9,6 @@ import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
-import { RNCAttachments } from "./RNCAttachments";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,6 +32,26 @@ const formSchema = z.object({
   attachments: z.array(z.instanceof(File)).optional(),
   resolution: z.string().optional(),
 });
+
+const defaultValues: RNCFormData = {
+  description: "",
+  priority: "medium",
+  type: "client",
+  department: "Expedição", // Set a valid default department
+  contact: {
+    name: "",
+    phone: "",
+    email: "",
+  },
+  company: "",
+  cnpj: "",
+  orderNumber: "",
+  returnNumber: "",
+  workflow_status: "open",
+  assignedTo: "",
+  attachments: [],
+  resolution: "",
+};
 
 interface RNCDetailFormProps {
   rnc: RNC;
@@ -157,12 +176,6 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
           </form>
         </Form>
       </Tabs>
-      {rnc.id && (
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Anexos</h3>
-          <RNCAttachments rncId={rnc.id} />
-        </div>
-      )}
     </div>
   );
 }

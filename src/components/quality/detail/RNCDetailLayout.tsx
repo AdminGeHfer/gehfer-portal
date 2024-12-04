@@ -49,7 +49,7 @@ export const RNCDetailLayout = ({
   onRefresh,
   onStatusChange
 }: RNCDetailLayoutProps) => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   if (!id) return null;
 
   const { data: workflowStatus } = useQuery({
@@ -61,21 +61,19 @@ export const RNCDetailLayout = ({
           .select("*")
           .eq("rnc_id", id)
           .order("created_at", { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
 
-        if (error) {
-          if (error.code === 'PGRST116') {
-            return "open" as WorkflowStatusEnum;
-          }
-          console.error("Error fetching workflow status:", error);
-          return "open" as WorkflowStatusEnum;
+        if (error) throw error;
+        
+        // If no transitions found, return the RNC's current status
+        if (!data || data.length === 0) {
+          return rnc.workflow_status;
         }
 
-        return data.to_status as WorkflowStatusEnum;
+        return data[0].to_status as WorkflowStatusEnum;
       } catch (error) {
         console.error("Error in workflow status query:", error);
-        return "open" as WorkflowStatusEnum;
+        return rnc.workflow_status;
       }
     }
   });
@@ -100,7 +98,6 @@ export const RNCDetailLayout = ({
               onStatusChange={onStatusChange}
               onRefresh={onRefresh}
               setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-              onCollectionRequest={() => {}}
             />
           </Card>
 

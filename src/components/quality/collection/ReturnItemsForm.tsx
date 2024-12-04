@@ -5,16 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Plus, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
 import { toast } from "sonner";
-
-interface ReturnItemsFormProps {
-  onSubmit: (items: { product_id: string; weight: number }[]) => Promise<void>;
-  isSubmitting: boolean;
-}
+import { ProductSelector } from "./ProductSelector";
 
 type FormItem = {
   productId: string;
@@ -22,11 +14,16 @@ type FormItem = {
   productName?: string;
 };
 
+interface ReturnItemsFormProps {
+  onSubmit: (items: { product_id: string; weight: number }[]) => Promise<void>;
+  isSubmitting: boolean;
+}
+
 export function ReturnItemsForm({ onSubmit, isSubmitting }: ReturnItemsFormProps) {
   const [items, setItems] = useState<FormItem[]>([
     { productId: "", weight: 0 },
   ]);
-  const [open, setOpen] = useState<number>(-1);
+  const [openPopoverIndex, setOpenPopoverIndex] = useState<number>(-1);
 
   const { data: products, isLoading: isProductsLoading } = useQuery({
     queryKey: ["products"],
@@ -53,21 +50,24 @@ export function ReturnItemsForm({ onSubmit, isSubmitting }: ReturnItemsFormProps
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const handleChange = (index: number, field: keyof FormItem, value: string | number) => {
+  const handleSelectProduct = (index: number, productId: string) => {
+    const product = products?.find(p => p.id === productId);
     const newItems = [...items];
-    if (field === "productId") {
-      const product = products?.find(p => p.id === value);
-      newItems[index] = {
-        ...newItems[index],
-        productId: value as string,
-        productName: product?.name
-      };
-    } else if (field === "weight") {
-      newItems[index] = {
-        ...newItems[index],
-        weight: Number(value)
-      };
-    }
+    newItems[index] = {
+      ...newItems[index],
+      productId: productId,
+      productName: product?.name
+    };
+    setItems(newItems);
+    setOpenPopoverIndex(-1);
+  };
+
+  const handleWeightChange = (index: number, value: string) => {
+    const newItems = [...items];
+    newItems[index] = {
+      ...newItems[index],
+      weight: Number(value)
+    };
     setItems(newItems);
   };
 
@@ -75,7 +75,6 @@ export function ReturnItemsForm({ onSubmit, isSubmitting }: ReturnItemsFormProps
     e.preventDefault();
     if (isSubmitting) return;
 
-    // Validate that all items have a product selected and weight > 0
     const hasInvalidItems = items.some(item => !item.productId || item.weight <= 0);
     if (hasInvalidItems) {
       toast.error("Por favor, preencha todos os campos corretamente");
@@ -101,53 +100,21 @@ export function ReturnItemsForm({ onSubmit, isSubmitting }: ReturnItemsFormProps
           <div key={index} className="flex gap-4 items-end">
             <div className="flex-1">
               <Label>Produto</Label>
-              <Popover open={open === index} onOpenChange={(isOpen) => setOpen(isOpen ? index : -1)}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      "w-full justify-between",
-                      !item.productId && "text-muted-foreground"
-                    )}
-                  >
-                    {item.productName || "Selecione o produto"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Buscar produto..." />
-                    <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
-                    <CommandGroup>
-                      {products?.map((product) => (
-                        <CommandItem
-                          key={product.id}
-                          value={product.name}
-                          onSelect={() => {
-                            handleChange(index, "productId", product.id);
-                            setOpen(-1);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              item.productId === product.id ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {product.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <ProductSelector
+                products={products || []}
+                selectedProductId={item.productId}
+                productName={item.productName}
+                onSelect={(productId) => handleSelectProduct(index, productId)}
+                isOpen={openPopoverIndex === index}
+                onOpenChange={(isOpen) => setOpenPopoverIndex(isOpen ? index : -1)}
+              />
             </div>
             <div className="flex-1">
               <Label>Peso do Material (kg)</Label>
               <Input
                 type="number"
                 value={item.weight}
-                onChange={(e) => handleChange(index, "weight", e.target.value)}
+                onChange={(e) => handleWeightChange(index, e.target.value)}
                 min={0}
                 step="0.01"
               />

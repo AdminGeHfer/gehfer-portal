@@ -1,4 +1,4 @@
-import { RNC } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { format } from "date-fns";
 import { FileIcon, ImageIcon } from "lucide-react";
 
@@ -21,6 +21,18 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
       ...event,
       date: format(new Date(event.date), "dd/MM/yyyy 'às' HH:mm")
     }));
+
+  const getStatusLabel = (status: WorkflowStatusEnum) => {
+    const labels: Record<WorkflowStatusEnum, string> = {
+      open: "Aberto",
+      analysis: "Em Análise",
+      resolution: "Em Resolução",
+      solved: "Solucionado",
+      closing: "Em Fechamento",
+      closed: "Encerrado"
+    };
+    return labels[status];
+  };
 
   return (
     <div className="print-content p-6 max-w-[210mm] mx-auto bg-white">
@@ -78,7 +90,7 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
               </div>
               <div>
                 <p className="font-medium text-gray-500">Status</p>
-                <p>{rnc.workflow_status}</p>
+                <p>{getStatusLabel(rnc.workflow_status)}</p>
               </div>
             </div>
             <div>

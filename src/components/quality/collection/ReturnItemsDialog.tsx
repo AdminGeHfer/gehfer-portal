@@ -57,7 +57,7 @@ export function ReturnItemsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-medium">

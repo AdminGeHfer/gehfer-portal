@@ -6,19 +6,20 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkflowStatusEnum } from "@/types/rnc";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface RNCWorkflowStatusProps {
   rncId: string;
   currentStatus: WorkflowStatusEnum;
-  onStatusChange: (newStatus: WorkflowStatusEnum) => void;
+  onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
 }
 
 export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCWorkflowStatusProps) {
   const [notes, setNotes] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
-  const { data: workflow } = useQuery({
+  const { data: workflow, isLoading } = useQuery({
     queryKey: ['workflow-template', 'default'],
     queryFn: async () => {
       const { data: template } = await supabase
@@ -26,6 +27,10 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
         .select('*')
         .eq('is_default', true)
         .single();
+
+      if (!template) {
+        throw new Error("No default workflow template found");
+      }
 
       const { data: states } = await supabase
         .from('workflow_states')
@@ -39,20 +44,21 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
 
       return {
         template,
-        states,
-        transitions
+        states: states || [],
+        transitions: transitions || []
       };
     }
   });
 
   const getNextStates = () => {
-    if (!workflow) return [];
+    if (!workflow?.states || !workflow?.transitions) return [];
     
     const currentState = workflow.states.find(s => s.state_type === currentStatus);
     if (!currentState) return [];
 
     return workflow.transitions
       .filter(t => t.from_state_id === currentState.id)
+      .filter(t => t.to_state?.state_type) // Ensure to_state exists and has state_type
       .map(t => ({
         type: t.to_state.state_type,
         label: t.to_state.label
@@ -60,7 +66,9 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
   };
 
   const handleStatusChange = async (newStatus: WorkflowStatusEnum) => {
+    if (isUpdating) return;
     setIsUpdating(true);
+    
     try {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
@@ -88,9 +96,19 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
 
       if (transitionError) throw transitionError;
 
+      // Invalidate queries immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['rnc', rncId] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-transitions', rncId] }),
+        queryClient.invalidateQueries({ queryKey: ['workflow-status', rncId] }),
+        queryClient.invalidateQueries({ queryKey: ['rncs'] })
+      ]);
+      
+      // Call onStatusChange after invalidating queries
+      await onStatusChange(newStatus);
+      
       toast.success("Status atualizado com sucesso");
       setNotes("");
-      onStatusChange(newStatus);
     } catch (error: any) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status");
@@ -129,6 +147,19 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
 
     return configs[status] || configs.open;
   };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Status do Workflow</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-muted-foreground">Carregando...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const nextStates = getNextStates();
   const config = getStatusConfig(currentStatus);
