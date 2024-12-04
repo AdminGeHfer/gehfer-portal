@@ -14,12 +14,12 @@ import { RNCTimeline } from "../RNCTimeline";
 interface RNCDetailLayoutProps {
   rnc: RNC;
   isEditing: boolean;
-  isPrinting: boolean;
+  isGeneratingPDF: boolean;
   isDeleteDialogOpen: boolean;
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
-  onPrint: () => void;
+  onGeneratePDF: () => void;
   onWhatsApp: () => void;
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
@@ -32,12 +32,12 @@ interface RNCDetailLayoutProps {
 export function RNCDetailLayout({
   rnc,
   isEditing,
-  isPrinting,
+  isGeneratingPDF,
   isDeleteDialogOpen,
   onEdit,
   onSave,
   onDelete,
-  onPrint,
+  onGeneratePDF,
   onWhatsApp,
   onFieldChange,
   setIsDeleteDialogOpen,
@@ -46,20 +46,12 @@ export function RNCDetailLayout({
   onRefresh,
   onStatusChange,
 }: RNCDetailLayoutProps) {
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-
-  const handleGeneratePDF = () => {
-    if (isGeneratingPDF) return;
-    setIsGeneratingPDF(true);
-    onPrint();
-  };
-
-  if (isPrinting) {
+  if (isGeneratingPDF) {
     return (
       <RNCReportPreview 
         rnc={rnc} 
         onClose={() => {
-          setIsGeneratingPDF(false);
+          onGeneratePDF();
         }} 
       />
     );
@@ -94,7 +86,7 @@ export function RNCDetailLayout({
                   onEdit={onEdit}
                   onSave={onSave}
                   onDelete={onDelete}
-                  onPrint={handleGeneratePDF}
+                  onGeneratePDF={onGeneratePDF}
                   onWhatsApp={onWhatsApp}
                   canEdit={canEdit}
                   onStatusChange={onStatusChange}

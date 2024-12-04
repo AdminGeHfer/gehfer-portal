@@ -1,5 +1,5 @@
 import { Button } from "@/components/atoms/Button";
-import { Package, Printer, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";
+import { Package, FilePdf, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";
 import { RNC } from "@/types/rnc";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { CollectionRequestDialog } from "../collection/CollectionRequestDialog";
@@ -13,7 +13,7 @@ interface RNCDetailHeaderProps {
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
-  onPrint: () => void;
+  onGeneratePDF: () => void;
   onWhatsApp: () => void;
   onStatusChange: (status: string) => void;
   onRefresh: () => void;
@@ -29,7 +29,7 @@ export const RNCDetailHeader = ({
   onEdit,
   onSave,
   onDelete,
-  onPrint,
+  onGeneratePDF,
   onWhatsApp,
   onStatusChange,
   onRefresh,
@@ -51,9 +51,9 @@ export const RNCDetailHeader = ({
           <Package className="w-4 h-4 mr-1" />
           Solicitar Coleta
         </Button>
-        <Button variant="outline" size="sm" onClick={onPrint}>
-          <Printer className="w-4 h-4 mr-1" />
-          Imprimir
+        <Button variant="outline" size="sm" onClick={onGeneratePDF}>
+          <FilePdf className="w-4 h-4 mr-1" />
+          PDF
         </Button>
         <Button variant="outline" size="sm" onClick={onWhatsApp}>
           <WhatsappLogo weight="fill" className="w-4 h-4 mr-1" />
