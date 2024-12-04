@@ -7,14 +7,16 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkflowStatusEnum } from "@/types/rnc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { RefetchOptions } from "@tanstack/react-query";
 
 interface RNCWorkflowStatusProps {
   rncId: string;
   currentStatus: WorkflowStatusEnum;
   onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
+  onRefresh: (options?: RefetchOptions) => Promise<void>;
 }
 
-export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCWorkflowStatusProps) {
+export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefresh }: RNCWorkflowStatusProps) {
   const [notes, setNotes] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const queryClient = useQueryClient();
@@ -107,8 +109,9 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
         queryClient.invalidateQueries({ queryKey: ['rncs'] })
       ]);
       
-      // Call onStatusChange after invalidating queries
+      // Call onStatusChange and onRefresh after invalidating queries
       await onStatusChange(newStatus);
+      await onRefresh();
       
       toast.success("Status atualizado com sucesso");
       setNotes("");
