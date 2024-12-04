@@ -1,44 +1,35 @@
 import { RNC } from "@/types/rnc";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getStatusLabel } from "@/types/workflow";
 
 interface RNCReportProps {
   rnc: RNC;
-  workflowHistory: any[];
 }
 
-export const RNCReport = ({ rnc, workflowHistory }: RNCReportProps) => {
+export function RNCReport({ rnc }: RNCReportProps) {
   return (
-    <div className="bg-white p-8 max-w-4xl mx-auto">
-      {/* Cabeçalho */}
-      <div className="border-b pb-4 mb-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Relatório RNC #{rnc.rnc_number}</h1>
-          <div className="text-right">
-            <p className="text-sm text-gray-600">
-              Data de Criação: {format(new Date(rnc.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-            </p>
-            {rnc.closed_at && (
-              <p className="text-sm text-gray-600">
-                Data de Fechamento: {format(new Date(rnc.closed_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-              </p>
-            )}
-          </div>
-        </div>
+    <div className="max-w-4xl mx-auto bg-white p-8 shadow-lg">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold">Relatório de Não Conformidade</h1>
+        <p className="text-gray-600">RNC #{rnc.rnc_number}</p>
       </div>
 
-      {/* Informações Principais */}
-      <div className="grid grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-2 gap-8 mb-8">
         <div>
           <h2 className="text-lg font-semibold mb-4">Informações Gerais</h2>
-          <dl className="space-y-2">
+          <dl className="grid grid-cols-1 gap-4">
             <div>
-              <dt className="text-sm font-medium text-gray-600">Tipo</dt>
-              <dd>{rnc.type === 'client' ? 'Cliente' : 'Fornecedor'}</dd>
+              <dt className="text-sm font-medium text-gray-600">Status</dt>
+              <dd className="font-semibold">{getStatusLabel(rnc.workflow_status)}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-600">Prioridade</dt>
-              <dd className="capitalize">{rnc.priority}</dd>
+              <dd>{rnc.priority}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-600">Tipo</dt>
+              <dd>{rnc.type}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-600">Departamento</dt>
@@ -48,8 +39,8 @@ export const RNCReport = ({ rnc, workflowHistory }: RNCReportProps) => {
         </div>
 
         <div>
-          <h2 className="text-lg font-semibold mb-4">Informações da Empresa</h2>
-          <dl className="space-y-2">
+          <h2 className="text-lg font-semibold mb-4">Dados da Empresa</h2>
+          <dl className="grid grid-cols-1 gap-4">
             <div>
               <dt className="text-sm font-medium text-gray-600">Empresa</dt>
               <dd>{rnc.company}</dd>
@@ -68,31 +59,45 @@ export const RNCReport = ({ rnc, workflowHistory }: RNCReportProps) => {
         </div>
       </div>
 
-      {/* Descrição */}
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-4">Descrição</h2>
-        <p className="text-gray-800 whitespace-pre-wrap">{rnc.description}</p>
+        <p className="text-gray-700 whitespace-pre-wrap">{rnc.description}</p>
       </div>
 
-      {/* Histórico do Workflow */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Histórico de Status</h2>
-        <div className="space-y-4">
-          {workflowHistory.map((event, index) => (
-            <div key={index} className="flex items-start gap-4 pb-4 border-b last:border-0">
-              <div className="flex-1">
-                <p className="font-medium">{event.title}</p>
-                <p className="text-sm text-gray-600">
-                  {format(new Date(event.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                </p>
-                {event.description && (
-                  <p className="text-sm text-gray-700 mt-1">{event.description}</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-4">Contato</h2>
+        <dl className="grid grid-cols-3 gap-4">
+          <div>
+            <dt className="text-sm font-medium text-gray-600">Nome</dt>
+            <dd>{rnc.contact.name}</dd>
+          </div>
+          <div>
+            <dt className="text-sm font-medium text-gray-600">Telefone</dt>
+            <dd>{rnc.contact.phone}</dd>
+          </div>
+          <div>
+            <dt className="text-sm font-medium text-gray-600">Email</dt>
+            <dd>{rnc.contact.email}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div className="text-sm text-gray-500 mt-8 pt-4 border-t">
+        <p>
+          Criado em:{" "}
+          {format(new Date(rnc.created_at), "dd/MM/yyyy 'às' HH:mm", {
+            locale: ptBR,
+          })}
+        </p>
+        {rnc.closed_at && (
+          <p>
+            Fechado em:{" "}
+            {format(new Date(rnc.closed_at), "dd/MM/yyyy 'às' HH:mm", {
+              locale: ptBR,
+            })}
+          </p>
+        )}
       </div>
     </div>
   );
-};
+}

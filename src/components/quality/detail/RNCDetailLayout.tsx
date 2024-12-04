@@ -1,14 +1,12 @@
-import { Header } from "@/components/layout/Header";
 import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailForm } from "./RNCDetailForm";
 import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
 import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
-import { useParams, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { RNC, WorkflowStatusEnum } from "@/types/rnc";
+import { RNCDeleteDialog } from "./RNCDeleteDialog";
+import { RNC } from "@/types/rnc";
+import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
 
 interface RNCDetailLayoutProps {
@@ -16,8 +14,6 @@ interface RNCDetailLayoutProps {
   isEditing: boolean;
   isPrinting: boolean;
   isDeleteDialogOpen: boolean;
-  isDeleting: boolean;
-  canEdit: boolean;
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
@@ -25,17 +21,17 @@ interface RNCDetailLayoutProps {
   onWhatsApp: () => void;
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
+  isDeleting: boolean;
+  canEdit: boolean;
   onRefresh: (options?: RefetchOptions) => Promise<void>;
-  onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
+  onStatusChange: (newStatus: string) => void;
 }
 
-export const RNCDetailLayout = ({
+export function RNCDetailLayout({
   rnc,
   isEditing,
   isPrinting,
   isDeleteDialogOpen,
-  isDeleting,
-  canEdit,
   onEdit,
   onSave,
   onDelete,
@@ -43,40 +39,24 @@ export const RNCDetailLayout = ({
   onWhatsApp,
   onFieldChange,
   setIsDeleteDialogOpen,
+  isDeleting,
+  canEdit,
   onRefresh,
-  onStatusChange
-}: RNCDetailLayoutProps) => {
-  const { id } = useParams();
-  if (!id) return <Navigate to="/quality/rnc" replace />;
+  onStatusChange,
+}: RNCDetailLayoutProps) {
+  const id = rnc.id;
 
-  const { data: workflowStatus } = useQuery({
-    queryKey: ["workflow-status", id],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("rnc_workflow_transitions")
-          .select("*")
-          .eq("rnc_id", id)
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          return rnc.workflow_status;
-        }
-
-        return data[0].to_status as WorkflowStatusEnum;
-      } catch (error) {
-        console.error("Error in workflow status query:", error);
-        return rnc.workflow_status;
-      }
-    },
-    enabled: !!rnc
-  });
-
-  if (!rnc) {
-    return <Navigate to="/quality/rnc" replace />;
+  if (isPrinting) {
+    return (
+      <div className="p-8 bg-white min-h-screen">
+        <RNCDetailForm
+          rnc={rnc}
+          isEditing={false}
+          onFieldChange={onFieldChange}
+          isPrinting={true}
+        />
+      </div>
+    );
   }
 
   return (
@@ -90,12 +70,12 @@ export const RNCDetailLayout = ({
               <Card className="p-4 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
                   rncId={id}
-                  currentStatus={workflowStatus || "open"}
+                  currentStatus={rnc.workflow_status}
                   onStatusChange={onStatusChange}
+                  onRefresh={onRefresh}
                 />
               </Card>
-              
-              <Card className="p-4 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200">
+              <Card className="p-4 bg-white/90 backdrop-blur-sm shadow-md">
                 <RNCWorkflowHistory rncId={id} />
               </Card>
             </div>
@@ -108,26 +88,22 @@ export const RNCDetailLayout = ({
                 <RNCDetailHeader 
                   rnc={rnc}
                   isEditing={isEditing}
-                  canEdit={canEdit}
                   onEdit={onEdit}
                   onSave={onSave}
-                  onDelete={onDelete}
+                  onDelete={() => setIsDeleteDialogOpen(true)}
                   onPrint={onPrint}
                   onWhatsApp={onWhatsApp}
-                  onStatusChange={onStatusChange}
-                  onRefresh={onRefresh}
-                  setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-                  isDeleteDialogOpen={isDeleteDialogOpen}
-                  isDeleting={isDeleting}
+                  canEdit={canEdit}
                 />
               </div>
             </Card>
 
             <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
-              <RNCDetailForm 
+              <RNCDetailForm
                 rnc={rnc}
                 isEditing={isEditing}
                 onFieldChange={onFieldChange}
+                isPrinting={false}
               />
             </Card>
 
@@ -137,8 +113,13 @@ export const RNCDetailLayout = ({
           </div>
         </div>
       </main>
+
+      <RNCDeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={onDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
-};
-
-export default RNCDetailLayout;
+}
