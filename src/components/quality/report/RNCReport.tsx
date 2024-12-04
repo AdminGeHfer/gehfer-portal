@@ -57,10 +57,15 @@ export function RNCReport({ rnc }: RNCReportProps) {
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Status</CardTitle>
+            <CardTitle className="text-lg">Status do Workflow</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-lg font-medium">{getStatusLabel(rnc.workflow_status)}</p>
+            {rnc.assignedTo && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Atribuído para: {rnc.assignedTo}
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -143,6 +148,35 @@ export function RNCReport({ rnc }: RNCReportProps) {
           <div>
             <p className="text-sm text-gray-500">Email</p>
             <p className="font-medium">{rnc.contact.email}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Histórico do Workflow */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico do Workflow</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {rnc.timeline
+              .filter(event => event.type === 'status')
+              .map((event, index) => (
+                <div key={event.id} className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
+                  <div className="min-w-[120px]">
+                    <time className="text-sm text-muted-foreground">
+                      {format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })}
+                    </time>
+                  </div>
+                  <div>
+                    <p className="font-medium">{event.title}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                    {event.comment && (
+                      <p className="text-sm bg-muted p-2 rounded mt-2">{event.comment}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
           </div>
         </CardContent>
       </Card>
