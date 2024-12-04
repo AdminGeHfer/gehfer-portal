@@ -2,10 +2,22 @@ import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const TopBar = () => {
   const navigate = useNavigate();
   const userName = "João Silva"; // Será dinâmico posteriormente
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logout realizado com sucesso");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Erro ao fazer logout");
+    }
+  };
 
   return (
     <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -32,7 +44,12 @@ const TopBar = () => {
               <User className="h-4 w-4" />
             </AvatarFallback>
           </Avatar>
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleLogout}
+            className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
+          >
             <LogOut className="h-5 w-5" />
           </Button>
         </div>
