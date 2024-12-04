@@ -5,7 +5,7 @@ import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
 import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
 import { RNCDeleteDialog } from "./RNCDeleteDialog";
-import { RNC } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
 
@@ -24,7 +24,7 @@ interface RNCDetailLayoutProps {
   isDeleting: boolean;
   canEdit: boolean;
   onRefresh: (options?: RefetchOptions) => Promise<void>;
-  onStatusChange: (newStatus: string) => void;
+  onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
 }
 
 export function RNCDetailLayout({
@@ -53,7 +53,6 @@ export function RNCDetailLayout({
           rnc={rnc}
           isEditing={false}
           onFieldChange={onFieldChange}
-          isPrinting={true}
         />
       </div>
     );
@@ -94,6 +93,11 @@ export function RNCDetailLayout({
                   onPrint={onPrint}
                   onWhatsApp={onWhatsApp}
                   canEdit={canEdit}
+                  onStatusChange={onStatusChange}
+                  onRefresh={onRefresh}
+                  setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                  isDeleteDialogOpen={isDeleteDialogOpen}
+                  isDeleting={isDeleting}
                 />
               </div>
             </Card>
@@ -103,7 +107,6 @@ export function RNCDetailLayout({
                 rnc={rnc}
                 isEditing={isEditing}
                 onFieldChange={onFieldChange}
-                isPrinting={false}
               />
             </Card>
 
