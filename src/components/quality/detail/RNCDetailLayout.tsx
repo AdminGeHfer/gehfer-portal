@@ -11,6 +11,7 @@ import { RNCReport } from "../report/RNCReport";
 import { RNCTimeline } from "../RNCTimeline";
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
+import { toast } from "sonner";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -49,20 +50,30 @@ export function RNCDetailLayout({
 }: RNCDetailLayoutProps) {
   const handlePrint = async () => {
     const element = document.getElementById('rnc-report');
-    if (!element) return;
+    if (!element) {
+      toast.error("Erro ao gerar PDF: elemento não encontrado");
+      return;
+    }
 
     const opt = {
       margin: 10,
       filename: `RNC-${rnc.rnc_number}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        logging: true
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
-      await html2pdf().set(opt).from(element).save();
+      const pdf = await html2pdf().set(opt).from(element).save();
+      toast.success("PDF gerado com sucesso!");
+      return pdf;
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
+      toast.error("Erro ao gerar PDF");
     }
   };
 
