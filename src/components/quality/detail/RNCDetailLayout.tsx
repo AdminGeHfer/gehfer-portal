@@ -84,16 +84,12 @@ export const RNCDetailLayout = ({
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto py-4">
-        <div className="mb-6">
-          <BackButton to="/quality/rnc" />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-12">
-          {/* Workflow Status - Destacado */}
-          <div className="lg:col-span-3 lg:order-2">
+      <main className="container mx-auto py-2">
+        <div className="grid gap-4 lg:grid-cols-12">
+          {/* Workflow Status - Lado direito com tamanho aumentado */}
+          <div className="lg:col-span-4 lg:order-2">
             <div className="sticky top-4 space-y-4">
-              <Card className="p-4 bg-white/80 backdrop-blur-sm border-primary/10 shadow-lg hover:shadow-xl transition-all duration-200">
+              <Card className="p-6 bg-white/80 backdrop-blur-sm border-primary/10 shadow-lg hover:shadow-xl transition-all duration-200">
                 <RNCWorkflowStatus 
                   rncId={id}
                   currentStatus={workflowStatus || "open"}
@@ -101,14 +97,14 @@ export const RNCDetailLayout = ({
                 />
               </Card>
               
-              <Card className="p-4 bg-white/60 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-200">
+              <Card className="p-6 bg-white/60 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-200">
                 <RNCWorkflowHistory rncId={id} />
               </Card>
             </div>
           </div>
 
-          {/* Conteúdo Principal */}
-          <div className="lg:col-span-9 lg:order-1 space-y-4">
+          {/* Conteúdo Principal - Reduzido para 8 colunas */}
+          <div className="lg:col-span-8 lg:order-1 space-y-4">
             <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
               <RNCDetailHeader 
                 rnc={rnc}
