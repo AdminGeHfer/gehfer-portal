@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailForm } from "./RNCDetailForm";
@@ -57,7 +57,7 @@ export function RNCDetailLayout({
       setIsGeneratingPDF(true);
       console.log('Starting PDF generation...');
 
-      // Ensure the report element is rendered
+      // Temporarily show the report element
       onPrint();
 
       // Wait for next frame to ensure DOM is updated
@@ -101,13 +101,14 @@ export function RNCDetailLayout({
       toast.error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setIsGeneratingPDF(false);
-      // Disable print mode after PDF generation
+      // Hide the report element after PDF generation
       if (isPrinting) {
         onPrint();
       }
     }
   };
 
+  // Only render the report when isPrinting is true
   if (isPrinting) {
     return (
       <div id="rnc-report" ref={reportRef} className="p-4 bg-white">
