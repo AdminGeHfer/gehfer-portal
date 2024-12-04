@@ -1,4 +1,4 @@
-import { RNC } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { supabase } from "@/integrations/supabase/client";
 
 const RNC_CACHE_KEY = 'rncs';
@@ -46,7 +46,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
   const transformedData: RNC[] = data.map(rnc => ({
     id: rnc.id,
     description: rnc.description,
-    workflow_status: rnc.workflow_status || "open",
+    workflow_status: validateWorkflowStatus(rnc.workflow_status),
     priority: validatePriority(rnc.priority),
     type: validateType(rnc.type),
     department: rnc.department,
@@ -89,6 +89,26 @@ export const getRNCs = async (): Promise<RNC[]> => {
   }
 
   return transformedData;
+};
+
+// Helper function to validate workflow status
+const validateWorkflowStatus = (status: string): WorkflowStatusEnum => {
+  switch (status?.toLowerCase()) {
+    case "open":
+      return "open";
+    case "analysis":
+      return "analysis";
+    case "resolution":
+      return "resolution";
+    case "solved":
+      return "solved";
+    case "closing":
+      return "closing";
+    case "closed":
+      return "closed";
+    default:
+      return "open";
+  }
 };
 
 // Helper function to validate priority
