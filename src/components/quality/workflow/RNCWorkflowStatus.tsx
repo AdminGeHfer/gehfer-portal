@@ -39,7 +39,7 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
 
       const { data: transitions } = await supabase
         .from('workflow_transitions')
-        .select('*, from_state:workflow_states!workflow_transitions_from_state_id_fkey(*), to_state:workflow_states!workflow_transitions_to_state_id_fkey(*)')
+        .select('*')
         .eq('workflow_id', template.id);
 
       return {
@@ -58,11 +58,14 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
 
     return workflow.transitions
       .filter(t => t.from_state_id === currentState.id)
-      .filter(t => t.to_state?.state_type) // Ensure to_state exists and has state_type
-      .map(t => ({
-        type: t.to_state.state_type,
-        label: t.to_state.label
-      }));
+      .map(t => {
+        const toState = workflow.states.find(s => s.id === t.to_state_id);
+        return toState ? {
+          type: toState.state_type as WorkflowStatusEnum,
+          label: toState.label
+        } : null;
+      })
+      .filter(Boolean);
   };
 
   const handleStatusChange = async (newStatus: WorkflowStatusEnum) => {
@@ -96,7 +99,7 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
 
       if (transitionError) throw transitionError;
 
-      // Invalidate queries immediately
+      // Invalidate queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['rnc', rncId] }),
         queryClient.invalidateQueries({ queryKey: ['workflow-transitions', rncId] }),
@@ -117,8 +120,8 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
     }
   };
 
-  const getStatusConfig = (status: string) => {
-    const configs: Record<string, { label: string, className: string }> = {
+  const getStatusConfig = (status: WorkflowStatusEnum) => {
+    const configs: Record<WorkflowStatusEnum, { label: string, className: string }> = {
       open: {
         label: "Aberto",
         className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
@@ -188,12 +191,12 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange }: RNCW
             <div className="space-y-2">
               {nextStates.map((state) => (
                 <Button 
-                  key={state.type}
-                  onClick={() => handleStatusChange(state.type as WorkflowStatusEnum)}
+                  key={state?.type}
+                  onClick={() => state?.type && handleStatusChange(state.type)}
                   disabled={isUpdating}
                   className="w-full"
                 >
-                  {state.label}
+                  {state?.label}
                 </Button>
               ))}
             </div>

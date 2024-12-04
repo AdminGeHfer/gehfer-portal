@@ -6,23 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AddStateDialog } from './AddStateDialog';
 import { FlowCanvas } from './components/FlowCanvas';
-
-interface WorkflowState {
-  id: string;
-  label: string;
-  state_type: 'open' | 'analysis' | 'resolution' | 'solved' | 'closing' | 'closed';
-  position_x: number;
-  position_y: number;
-  workflow_id: string;
-}
-
-interface WorkflowTransition {
-  id: string;
-  from_state_id: string;
-  to_state_id: string;
-  label: string;
-  workflow_id: string;
-}
+import { WorkflowStatusEnum } from '@/types/rnc';
 
 export function WorkflowEditorCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -62,15 +46,15 @@ export function WorkflowEditorCanvas() {
 
   useEffect(() => {
     if (workflow) {
-      const flowNodes = workflow.states.map((state: WorkflowState) => ({
+      const flowNodes = workflow.states.map((state: any) => ({
         id: state.id,
         type: 'stateNode',
         position: { x: state.position_x, y: state.position_y },
-        data: { label: state.label, type: state.state_type },
+        data: { label: state.label, type: state.state_type as WorkflowStatusEnum },
         draggable: true,
       }));
 
-      const flowEdges = workflow.transitions.map((transition: WorkflowTransition) => ({
+      const flowEdges = workflow.transitions.map((transition: any) => ({
         id: transition.id,
         source: transition.from_state_id,
         target: transition.to_state_id,
@@ -115,12 +99,13 @@ export function WorkflowEditorCanvas() {
         style: { stroke: '#64748b' },
       }]);
 
+      await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
       toast.success('Transição salva com sucesso');
     } catch (error) {
       console.error('Erro ao salvar transição:', error);
       toast.error('Erro ao salvar transição');
     }
-  }, [workflow?.template.id, nodes]);
+  }, [workflow?.template.id, nodes, queryClient]);
 
   const handleSave = async () => {
     if (!workflow?.template.id) return;
@@ -137,12 +122,12 @@ export function WorkflowEditorCanvas() {
 
       const { error } = await supabase
         .from('workflow_states')
-        .upsert(updates);
+        .upsert(updates, { onConflict: 'id' });
 
       if (error) throw error;
 
+      await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
       toast.success('Workflow salvo com sucesso');
-      queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
     } catch (error) {
       console.error('Erro ao salvar workflow:', error);
       toast.error('Erro ao salvar workflow');
@@ -157,11 +142,13 @@ export function WorkflowEditorCanvas() {
     if (!selectedNode) return;
 
     try {
+      // First delete transitions
       await supabase
         .from('workflow_transitions')
         .delete()
         .or(`from_state_id.eq.${selectedNode},to_state_id.eq.${selectedNode}`);
 
+      // Then delete the state
       const { error } = await supabase
         .from('workflow_states')
         .delete()
@@ -175,8 +162,8 @@ export function WorkflowEditorCanvas() {
       ));
       setSelectedNode(null);
       
+      await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
       toast.success('Estado removido com sucesso');
-      queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
     } catch (error) {
       console.error('Erro ao deletar estado:', error);
       toast.error('Erro ao deletar estado');
