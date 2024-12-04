@@ -52,15 +52,8 @@ export function RNCDetailLayout({
   const reportRef = useRef<HTMLDivElement>(null);
   const isPrintingRef = useRef(false);
 
-  useEffect(() => {
-    isPrintingRef.current = isPrinting;
-  }, [isPrinting]);
-
   const handlePrint = async () => {
     try {
-      onPrint(); // Ativa o modo de impressão
-
-      // Aguarda o próximo ciclo de renderização
       await new Promise(resolve => requestAnimationFrame(resolve));
 
       if (!reportRef.current) {
@@ -70,7 +63,7 @@ export function RNCDetailLayout({
       }
 
       const opt = {
-        margin: 10,
+        margin: [5, 5], // Reduced margins [top/bottom, left/right] in mm
         filename: `RNC-${rnc.rnc_number}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
@@ -81,11 +74,14 @@ export function RNCDetailLayout({
           windowHeight: 768,
           scrollY: -window.scrollY,
           scrollX: -window.scrollX,
-          onrendered: (canvas: HTMLCanvasElement) => {
-            console.log('Canvas rendered successfully', canvas.width, canvas.height);
-          }
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait',
+          compress: true
+        },
+        pagebreak: { mode: 'avoid-all' }
       };
 
       await html2pdf().set(opt).from(reportRef.current).save();
@@ -104,7 +100,7 @@ export function RNCDetailLayout({
 
   if (isPrinting) {
     return (
-      <div id="rnc-report" ref={reportRef} className="p-8 bg-white min-h-screen">
+      <div id="rnc-report" ref={reportRef} className="p-4 bg-white">
         <RNCReport rnc={rnc} />
       </div>
     );
