@@ -24,7 +24,20 @@ const Login = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-background" />
+        <motion.div
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+        >
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+        </motion.div>
+      </div>
+
       <Button
         variant="ghost"
         size="icon"
@@ -44,7 +57,7 @@ const Login = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <Card className="border-2">
+        <Card className="border-2 backdrop-blur-sm bg-background/80">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
               <motion.div 

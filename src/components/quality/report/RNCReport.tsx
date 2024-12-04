@@ -39,7 +39,7 @@ export function RNCReport({ rnc }: RNCReportProps) {
   };
 
   return (
-    <div className="space-y-4 p-8">
+    <div className="space-y-4 p-8 bg-white text-black">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">RNC #{rnc.rnc_number}</h1>

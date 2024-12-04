@@ -1,8 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck, Package, GitBranch } from "lucide-react";
+import { ClipboardCheck, Users, Truck, Package, GitBranch, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const modules = [
   {
@@ -77,9 +79,34 @@ const ModuleCard = ({ title, description, icon, route, submodules }) => {
 };
 
 const Apps = () => {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success("Logout realizado com sucesso");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Erro ao fazer logout");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-16 items-center justify-between px-6">
+          <h1 className="text-2xl font-semibold">Portal GeHfer</h1>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={handleLogout}
+            className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </div>
+      </header>
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
