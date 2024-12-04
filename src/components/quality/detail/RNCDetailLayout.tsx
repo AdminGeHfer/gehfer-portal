@@ -95,7 +95,7 @@ export function RNCDetailLayout({
       console.error('Detailed error in PDF generation:', error);
       toast.error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
-      // Garante que o modo de impressão seja desativado apenas se ainda estiver ativo
+      // Desativa o modo de impressão após gerar o PDF
       if (isPrintingRef.current) {
         onPrint();
       }
