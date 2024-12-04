@@ -1,10 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MessageSquare, UserCheck, AlertCircle, Clock } from "lucide-react";
+import { getStatusLabel } from "@/types/workflow";
 
 interface TimelineEvent {
   id: string;
@@ -93,7 +95,7 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Linha do Tempo</CardTitle>
+        <CardTitle>Histórico do Workflow</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="relative space-y-4">
@@ -128,7 +130,7 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
                     </div>
                   </div>
                   <time className="text-xs text-muted-foreground">
-                    {format(parseISO(event.date), "dd/MM/yyyy HH:mm")}
+                    {format(parseISO(event.date), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                   </time>
                 </div>
                 <div className="pl-8">
