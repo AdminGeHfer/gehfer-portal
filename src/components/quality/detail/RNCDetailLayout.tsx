@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailForm } from "./RNCDetailForm";
@@ -8,10 +9,10 @@ import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
 import { RNCReport } from "../report/RNCReport";
-import { RNCTimeline } from "../RNCTimeline";
 // @ts-ignore
 import html2pdf from 'html2pdf.js';
 import { toast } from "sonner";
+import { RNCTimeline } from "../RNCTimeline";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -48,15 +49,22 @@ export function RNCDetailLayout({
   onRefresh,
   onStatusChange,
 }: RNCDetailLayoutProps) {
+  const reportRef = useRef<HTMLDivElement>(null);
+  const isPrintingRef = useRef(false);
+
+  useEffect(() => {
+    isPrintingRef.current = isPrinting;
+  }, [isPrinting]);
+
   const handlePrint = async () => {
-    // Primeiro ativamos o modo de impressão
-    onPrint();
-    
-    // Aguardamos um pouco mais de tempo para garantir que o elemento seja renderizado
-    setTimeout(async () => {
-      const element = document.getElementById('rnc-report');
-      
-      if (!element) {
+    try {
+      onPrint(); // Ativa o modo de impressão
+
+      // Aguarda o próximo ciclo de renderização
+      await new Promise(resolve => requestAnimationFrame(resolve));
+
+      if (!reportRef.current) {
+        console.error('Report element not found in DOM');
         toast.error("Erro ao gerar PDF: elemento não encontrado");
         return;
       }
@@ -72,27 +80,31 @@ export function RNCDetailLayout({
           windowWidth: 1024,
           windowHeight: 768,
           scrollY: -window.scrollY,
-          scrollX: -window.scrollX
+          scrollX: -window.scrollX,
+          onrendered: (canvas: HTMLCanvasElement) => {
+            console.log('Canvas rendered successfully', canvas.width, canvas.height);
+          }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      try {
-        await html2pdf().set(opt).from(element).save();
-        toast.success("PDF gerado com sucesso!");
-      } catch (error) {
-        console.error('Erro ao gerar PDF:', error);
-        toast.error("Erro ao gerar PDF");
-      } finally {
-        // Desativa o modo de impressão após a geração do PDF
-        setTimeout(() => onPrint(), 1000);
+      await html2pdf().set(opt).from(reportRef.current).save();
+      console.log('PDF generation completed successfully');
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error('Detailed error in PDF generation:', error);
+      toast.error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    } finally {
+      // Garante que o modo de impressão seja desativado apenas se ainda estiver ativo
+      if (isPrintingRef.current) {
+        onPrint();
       }
-    }, 1000); // Aumentamos o tempo de espera para 1 segundo
+    }
   };
 
   if (isPrinting) {
     return (
-      <div id="rnc-report" className="p-8 bg-white min-h-screen">
+      <div id="rnc-report" ref={reportRef} className="p-8 bg-white min-h-screen">
         <RNCReport rnc={rnc} />
       </div>
     );
