@@ -24,7 +24,7 @@ const Login = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background to-accent/20 animate-gradient" />
       
@@ -32,9 +32,33 @@ const Login = () => {
       <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10 animate-pulse" />
       
       {/* Animated circles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl animate-blob" />
-        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-accent/20 to-transparent rounded-full blur-3xl animate-blob animation-delay-2000" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 180, 270, 360],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ 
+            duration: 20,
+            ease: "linear",
+            repeat: Infinity,
+          }}
+          className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl"
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [360, 270, 180, 90, 0],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ 
+            duration: 20,
+            ease: "linear",
+            repeat: Infinity,
+          }}
+          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-accent/20 to-transparent rounded-full blur-3xl"
+        />
       </div>
 
       {/* Theme toggle button */}
