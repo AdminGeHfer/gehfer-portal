@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailForm } from "./RNCDetailForm";
@@ -8,9 +8,7 @@ import { RNCDeleteDialog } from "./RNCDeleteDialog";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
-import { RNCReport } from "../report/RNCReport";
-import { generatePDF } from "@/utils/pdfUtils";
-import { toast } from "sonner";
+import { RNCReportPreview } from "../report/RNCReportPreview";
 import { RNCTimeline } from "../RNCTimeline";
 
 interface RNCDetailLayoutProps {
@@ -48,47 +46,24 @@ export function RNCDetailLayout({
   onRefresh,
   onStatusChange,
 }: RNCDetailLayoutProps) {
-  const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const handleGeneratePDF = async () => {
     if (isGeneratingPDF) return;
-
-    try {
-      setIsGeneratingPDF(true);
-      
-      // Show the report component temporarily
-      onPrint();
-      
-      // Wait for next frame to ensure DOM is updated
-      await new Promise(resolve => requestAnimationFrame(resolve));
-
-      if (!reportRef.current) {
-        console.error('Report element not found in DOM');
-        toast.error("Erro ao gerar PDF: elemento não encontrado");
-        return;
-      }
-
-      await generatePDF({
-        filename: `RNC-${rnc.rnc_number}.pdf`,
-        element: reportRef.current
-      });
-
-    } catch (error) {
-      console.error('Error in handleGeneratePDF:', error);
-    } finally {
-      setIsGeneratingPDF(false);
-      // Hide the report component
-      onPrint();
-    }
+    setIsGeneratingPDF(true);
+    onPrint(); // This now just toggles the preview component
   };
 
   // Only render the report when isPrinting is true
   if (isPrinting) {
     return (
-      <div id="rnc-report" ref={reportRef} className="p-4 bg-white">
-        <RNCReport rnc={rnc} />
-      </div>
+      <RNCReportPreview 
+        rnc={rnc} 
+        onClose={() => {
+          setIsGeneratingPDF(false);
+          onPrint();
+        }} 
+      />
     );
   }
 

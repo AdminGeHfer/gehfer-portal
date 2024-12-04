@@ -32,8 +32,19 @@ export const generatePDF = async ({ filename, element }: GeneratePDFOptions) => 
   };
 
   try {
-    await html2pdf().set(options).from(element).save();
-    console.log('PDF generation completed successfully');
+    // Use a Promise to handle the PDF generation
+    await new Promise((resolve, reject) => {
+      html2pdf()
+        .set(options)
+        .from(element)
+        .save()
+        .then(() => {
+          console.log('PDF generation completed successfully');
+          resolve(true);
+        })
+        .catch(reject);
+    });
+    
     toast.success("PDF gerado com sucesso!");
   } catch (error) {
     console.error('Error generating PDF:', error);
