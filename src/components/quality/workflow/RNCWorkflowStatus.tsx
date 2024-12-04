@@ -1,13 +1,12 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkflowStatusEnum } from "@/types/rnc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefetchOptions } from "@tanstack/react-query";
+import { WorkflowStatusBadge } from "./status/WorkflowStatusBadge";
+import { WorkflowTransitionForm } from "./status/WorkflowTransitionForm";
 
 interface RNCWorkflowStatusProps {
   rncId: string;
@@ -16,8 +15,12 @@ interface RNCWorkflowStatusProps {
   onRefresh: (options?: RefetchOptions) => Promise<void>;
 }
 
-export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefresh }: RNCWorkflowStatusProps) {
-  const [notes, setNotes] = useState("");
+export function RNCWorkflowStatus({ 
+  rncId, 
+  currentStatus, 
+  onStatusChange, 
+  onRefresh 
+}: RNCWorkflowStatusProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const queryClient = useQueryClient();
 
@@ -70,7 +73,7 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefr
       .filter(Boolean);
   };
 
-  const handleStatusChange = async (newStatus: WorkflowStatusEnum) => {
+  const handleStatusChange = async (newStatus: WorkflowStatusEnum, notes: string) => {
     if (isUpdating) return;
     setIsUpdating(true);
     
@@ -80,15 +83,7 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefr
         throw new Error("Usuário não autenticado");
       }
 
-      // Update RNC status
-      const { error: rncError } = await supabase
-        .from('rncs')
-        .update({ workflow_status: newStatus })
-        .eq('id', rncId);
-
-      if (rncError) throw rncError;
-
-      // Create transition record
+      // Create transition record with notes
       const { error: transitionError } = await supabase
         .from('rnc_workflow_transitions')
         .insert({
@@ -101,6 +96,9 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefr
 
       if (transitionError) throw transitionError;
 
+      // Update RNC status
+      await onStatusChange(newStatus);
+      
       // Invalidate queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['rnc', rncId] }),
@@ -109,49 +107,15 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefr
         queryClient.invalidateQueries({ queryKey: ['rncs'] })
       ]);
       
-      // Call onStatusChange and onRefresh after invalidating queries
-      await onStatusChange(newStatus);
       await onRefresh();
       
       toast.success("Status atualizado com sucesso");
-      setNotes("");
     } catch (error: any) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status");
     } finally {
       setIsUpdating(false);
     }
-  };
-
-  const getStatusConfig = (status: WorkflowStatusEnum) => {
-    const configs: Record<WorkflowStatusEnum, { label: string, className: string }> = {
-      open: {
-        label: "Aberto",
-        className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-      },
-      analysis: {
-        label: "Em Análise",
-        className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-      },
-      resolution: {
-        label: "Em Resolução",
-        className: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100"
-      },
-      solved: {
-        label: "Solucionado",
-        className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-      },
-      closing: {
-        label: "Em Fechamento",
-        className: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100"
-      },
-      closed: {
-        label: "Encerrado",
-        className: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100"
-      }
-    };
-
-    return configs[status] || configs.open;
   };
 
   if (isLoading) {
@@ -168,7 +132,6 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefr
   }
 
   const nextStates = getNextStates();
-  const config = getStatusConfig(currentStatus);
 
   return (
     <Card>
@@ -177,33 +140,15 @@ export function RNCWorkflowStatus({ rncId, currentStatus, onStatusChange, onRefr
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
-          <Badge variant="outline" className={config.className}>
-            {config.label}
-          </Badge>
+          <WorkflowStatusBadge status={currentStatus} />
         </div>
 
         {nextStates.length > 0 && (
-          <>
-            <Textarea
-              placeholder="Notas sobre a transição (opcional)"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
-
-            <div className="space-y-2">
-              {nextStates.map((state) => (
-                <Button 
-                  key={state?.type}
-                  onClick={() => state?.type && handleStatusChange(state.type)}
-                  disabled={isUpdating}
-                  className="w-full"
-                >
-                  {state?.label}
-                </Button>
-              ))}
-            </div>
-          </>
+          <WorkflowTransitionForm
+            nextStates={nextStates}
+            onTransition={handleStatusChange}
+            isUpdating={isUpdating}
+          />
         )}
       </CardContent>
     </Card>

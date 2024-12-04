@@ -16,6 +16,7 @@ interface TimelineEvent {
   type: "creation" | "update" | "status" | "comment" | "assignment";
   userId: string;
   comment?: string;
+  notes?: string;
 }
 
 interface RNCTimelineProps {
@@ -137,9 +138,9 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
                   <p className="text-sm text-muted-foreground mt-1">
                     {event.description}
                   </p>
-                  {event.comment && (
+                  {(event.notes || event.comment) && (
                     <div className="mt-2 p-3 bg-muted rounded-lg">
-                      <p className="text-sm">{event.comment}</p>
+                      <p className="text-sm">{event.notes || event.comment}</p>
                     </div>
                   )}
                 </div>
