@@ -1,12 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNodesState, useEdgesState, Connection, Edge, Node, useOnSelectionChange } from 'reactflow';
-import 'reactflow/dist/style.css';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  Connection,
+  Edge,
+  Node,
+  useNodesState,
+  useEdgesState,
+  useOnSelectionChange
+} from 'reactflow';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { AddStateDialog } from './AddStateDialog';
-import { FlowCanvas } from './components/FlowCanvas';
-import { WorkflowStatusEnum } from '@/types/rnc';
+import { StateNode } from './StateNode';
+import { WorkflowControls } from './components/WorkflowControls';
+import { useWorkflowData } from './hooks/useWorkflowData';
+import { useQueryClient } from '@tanstack/react-query';
+
+const nodeTypes = {
+  stateNode: StateNode,
+};
 
 export function WorkflowEditorCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -15,40 +29,12 @@ export function WorkflowEditorCanvas() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { workflow, isLoading, handleSave } = useWorkflowData();
 
   useOnSelectionChange({
     onChange: ({ edges, nodes }) => {
       setSelectedNode(nodes[0]?.id || null);
       setSelectedEdge(edges[0]?.id || null);
-    },
-  });
-
-  const { data: workflow, isLoading } = useQuery({
-    queryKey: ['workflow-template', 'default'],
-    queryFn: async () => {
-      const { data: template, error: templateError } = await supabase
-        .from('workflow_templates')
-        .select('*')
-        .eq('is_default', true)
-        .single();
-
-      if (templateError) throw templateError;
-
-      const { data: states, error: statesError } = await supabase
-        .from('workflow_states')
-        .select('*')
-        .eq('workflow_id', template.id);
-
-      if (statesError) throw statesError;
-
-      const { data: transitions, error: transitionsError } = await supabase
-        .from('workflow_transitions')
-        .select('*')
-        .eq('workflow_id', template.id);
-
-      if (transitionsError) throw transitionsError;
-
-      return { template, states, transitions };
     },
   });
 
@@ -58,9 +44,9 @@ export function WorkflowEditorCanvas() {
         id: state.id,
         type: 'stateNode',
         position: { x: state.position_x, y: state.position_y },
-        data: { 
-          label: state.label, 
-          type: state.state_type as WorkflowStatusEnum,
+        data: {
+          label: state.label,
+          type: state.state_type,
           assigned_to: state.assigned_to,
           send_email: state.send_email,
           email_template: state.email_template,
@@ -163,37 +149,6 @@ export function WorkflowEditorCanvas() {
     }
   };
 
-  const handleSave = async () => {
-    if (!workflow?.template.id) return;
-
-    try {
-      const updates = nodes.map((node) => ({
-        id: node.id,
-        workflow_id: workflow.template.id,
-        position_x: Math.round(node.position.x),
-        position_y: Math.round(node.position.y),
-        label: node.data.label,
-        state_type: node.data.type,
-      }));
-
-      const { error } = await supabase
-        .from('workflow_states')
-        .upsert(updates, { onConflict: 'id' });
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
-      toast.success('Workflow salvo com sucesso');
-    } catch (error) {
-      console.error('Erro ao salvar workflow:', error);
-      toast.error('Erro ao salvar workflow');
-    }
-  };
-
-  const handleNodeClick = useCallback((_, node: Node) => {
-    setSelectedNode(node.id);
-  }, []);
-
   const handleDeleteNode = async () => {
     if (!selectedNode) return;
 
@@ -233,20 +188,28 @@ export function WorkflowEditorCanvas() {
   return (
     <div className="space-y-4">
       <div className="h-[600px] border rounded-lg">
-        <FlowCanvas
+        <ReactFlow
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeClick={handleNodeClick}
-          onAddState={() => setIsAddingState(true)}
-          onSave={handleSave}
-          onDelete={handleDeleteNode}
-          onDeleteEdge={handleDeleteEdge}
-          selectedNode={selectedNode}
-          selectedEdge={selectedEdge}
-        />
+          nodeTypes={nodeTypes}
+          fitView
+          style={{ background: 'rgb(248, 250, 252)' }}
+        >
+          <Controls />
+          <MiniMap />
+          <Background gap={12} size={1} />
+          <WorkflowControls
+            onAddState={() => setIsAddingState(true)}
+            onSave={() => handleSave(nodes, edges)}
+            onDelete={handleDeleteNode}
+            onDeleteEdge={handleDeleteEdge}
+            selectedNode={selectedNode}
+            selectedEdge={selectedEdge}
+          />
+        </ReactFlow>
       </div>
 
       <AddStateDialog
