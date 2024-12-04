@@ -48,7 +48,7 @@ export function RNCDetailLayout({
 }: RNCDetailLayoutProps) {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  const handleGeneratePDF = async () => {
+  const handleGeneratePDF = () => {
     if (isGeneratingPDF) return;
     setIsGeneratingPDF(true);
     onPrint();
@@ -60,7 +60,6 @@ export function RNCDetailLayout({
         rnc={rnc} 
         onClose={() => {
           setIsGeneratingPDF(false);
-          onPrint();
         }} 
       />
     );
