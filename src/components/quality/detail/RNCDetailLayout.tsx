@@ -83,12 +83,12 @@ export const RNCDetailLayout = ({
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto py-2">
+      <main className="container mx-auto py-2 px-2">
         <div className="grid gap-4 lg:grid-cols-12">
           {/* Workflow Status - Com mais destaque */}
-          <div className="lg:col-span-5 lg:order-2">
+          <div className="lg:col-span-4 lg:order-2">
             <div className="sticky top-4 space-y-4">
-              <Card className="p-6 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <Card className="p-4 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
                   rncId={id}
                   currentStatus={workflowStatus || "open"}
@@ -96,50 +96,52 @@ export const RNCDetailLayout = ({
                 />
               </Card>
               
-              <Card className="p-6 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200">
+              <Card className="p-4 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200">
                 <RNCWorkflowHistory rncId={id} />
               </Card>
             </div>
           </div>
 
           {/* Conteúdo Principal */}
-          <div className="lg:col-span-7 lg:order-1 space-y-4">
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md">
-              <RNCDetailHeader 
-                rnc={rnc}
-                isEditing={isEditing}
-                canEdit={canEdit}
-                onEdit={onEdit}
-                onSave={onSave}
-                onDelete={onDelete}
-                onPrint={onPrint}
-                onWhatsApp={onWhatsApp}
-                onStatusChange={onStatusChange}
-                onRefresh={onRefresh}
-                setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-                isDeleteDialogOpen={isDeleteDialogOpen}
-                isDeleting={isDeleting}
-              />
-            </div>
+          <div className="lg:col-span-8 lg:order-1 space-y-4">
+            <Card className="bg-white/90 backdrop-blur-sm shadow-md">
+              <div className="p-3">
+                <RNCDetailHeader 
+                  rnc={rnc}
+                  isEditing={isEditing}
+                  canEdit={canEdit}
+                  onEdit={onEdit}
+                  onSave={onSave}
+                  onDelete={onDelete}
+                  onPrint={onPrint}
+                  onWhatsApp={onWhatsApp}
+                  onStatusChange={onStatusChange}
+                  onRefresh={onRefresh}
+                  setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                  isDeleteDialogOpen={isDeleteDialogOpen}
+                  isDeleting={isDeleting}
+                />
+              </div>
+            </Card>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
+            <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
               <RNCDetailForm 
                 rnc={rnc}
                 isEditing={isEditing}
                 onFieldChange={onFieldChange}
               />
-            </div>
+            </Card>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
+            <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
               <RNCAttachments rncId={id} />
-            </div>
+            </Card>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md">
+            <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
               <RNCCommentSection 
                 rncId={id}
                 onCommentAdded={onRefresh}
               />
-            </div>
+            </Card>
           </div>
         </div>
       </main>
