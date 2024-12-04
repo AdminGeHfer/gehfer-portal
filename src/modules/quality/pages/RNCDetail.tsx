@@ -14,7 +14,7 @@ const RNCDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -55,12 +55,8 @@ const RNCDetail = () => {
     },
   });
 
-  const handlePrint = () => {
-    setIsPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-    }, 100);
+  const handleGeneratePDF = () => {
+    setIsGeneratingPDF(!isGeneratingPDF);
   };
 
   const handleEdit = () => {
@@ -159,12 +155,12 @@ const RNCDetail = () => {
     <RNCDetailLayout
       rnc={rnc}
       isEditing={isEditing}
-      isPrinting={isPrinting}
+      isGeneratingPDF={isGeneratingPDF}
       isDeleteDialogOpen={isDeleteDialogOpen}
       onEdit={handleEdit}
       onSave={handleSave}
       onDelete={handleDelete}
-      onPrint={handlePrint}
+      onGeneratePDF={handleGeneratePDF}
       onWhatsApp={handleWhatsApp}
       onFieldChange={handleFieldChange}
       setIsDeleteDialogOpen={setIsDeleteDialogOpen}
