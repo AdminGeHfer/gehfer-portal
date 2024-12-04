@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ReactFlowProvider, useNodesState, useEdgesState, useOnSelectionChange, Connection, Edge } from 'reactflow';
+import { ReactFlowProvider, useNodesState, useEdgesState, Connection, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,13 +16,6 @@ export function WorkflowEditorCanvas() {
   const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { workflow, isLoading, handleSave } = useWorkflowData();
-
-  useOnSelectionChange({
-    onChange: ({ edges, nodes }) => {
-      setSelectedNode(nodes[0]?.id || null);
-      setSelectedEdge(edges[0]?.id || null);
-    },
-  });
 
   useEffect(() => {
     if (workflow) {
@@ -181,7 +174,8 @@ export function WorkflowEditorCanvas() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
-            onNodeClick={() => {}}
+            onNodeClick={(_, node) => setSelectedNode(node.id)}
+            onEdgeClick={(_, edge) => setSelectedEdge(edge.id)}
             onAddState={() => setIsAddingState(true)}
             onSave={() => handleSave(nodes, edges)}
             onDelete={handleDeleteNode}
