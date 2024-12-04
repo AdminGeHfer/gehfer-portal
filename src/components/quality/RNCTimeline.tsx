@@ -1,12 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageSquare, UserCheck, AlertCircle, Clock } from "lucide-react";
-import { getStatusLabel } from "@/types/workflow";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, UserCheck, Clock, AlertCircle } from "lucide-react";
 
 interface TimelineEvent {
   id: string;
@@ -104,10 +102,7 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
             <div key={event.id} className="flex gap-4">
               <div className="relative flex items-center justify-center">
                 <div
-                  className={cn(
-                    "h-8 w-8 rounded-full flex items-center justify-center",
-                    getEventColor(event.type)
-                  )}
+                  className={`h-8 w-8 rounded-full flex items-center justify-center text-white ${getEventColor(event.type)}`}
                 >
                   {getEventIcon(event.type)}
                 </div>
@@ -131,7 +126,7 @@ export function RNCTimeline({ events }: RNCTimelineProps) {
                     </div>
                   </div>
                   <time className="text-xs text-muted-foreground">
-                    {format(parseISO(event.date), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
+                    {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR })}
                   </time>
                 </div>
                 <div className="pl-8">

@@ -47,8 +47,6 @@ export function RNCDetailLayout({
   onRefresh,
   onStatusChange,
 }: RNCDetailLayoutProps) {
-  const id = rnc.id;
-
   const handlePrint = async () => {
     const element = document.getElementById('rnc-report');
     if (!element) return;
@@ -62,8 +60,7 @@ export function RNCDetailLayout({
     };
 
     try {
-      const pdf = await html2pdf().set(opt).from(element).save();
-      return pdf;
+      await html2pdf().set(opt).from(element).save();
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
     }
@@ -87,7 +84,7 @@ export function RNCDetailLayout({
             <div className="sticky top-4 space-y-2">
               <Card className="p-4 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
-                  rncId={id}
+                  rncId={rnc.id}
                   currentStatus={rnc.workflow_status}
                   onStatusChange={onStatusChange}
                   onRefresh={onRefresh}
@@ -127,7 +124,7 @@ export function RNCDetailLayout({
             </Card>
 
             <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
-              <RNCAttachments rncId={id} />
+              <RNCAttachments rncId={rnc.id} />
             </Card>
 
             {/* Histórico do Workflow - Centralizado abaixo */}
