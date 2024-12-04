@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const CLIENT_ID = Deno.env.get("GMAIL_CLIENT_ID");
+const CLIENT_SECRET = Deno.env.get("GMAIL_CLIENT_SECRET");
+const REFRESH_TOKEN = Deno.env.get("GMAIL_REFRESH_TOKEN");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,78 +11,100 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  from: string;
   to: string[];
   subject: string;
   html: string;
 }
 
+async function getAccessToken() {
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: CLIENT_ID!,
+      client_secret: CLIENT_SECRET!,
+      refresh_token: REFRESH_TOKEN!,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  const data = await response.json();
+  return data.access_token;
+}
+
+async function sendGmail(accessToken: string, to: string[], subject: string, html: string) {
+  const emailContent = [
+    "Content-Type: text/html; charset=utf-8",
+    "MIME-Version: 1.0",
+    `To: ${to.join(", ")}`,
+    `Subject: ${subject}`,
+    "",
+    html,
+  ].join("\r\n");
+
+  const encodedEmail = btoa(emailContent).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+  const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      raw: encodedEmail,
+    }),
+  });
+
+  return response.json();
+}
+
 const handler = async (req: Request): Promise<Response> => {
-  console.log("=== Email Function Started ===");
-  console.log("Request method:", req.method);
-  console.log("Request headers:", Object.fromEntries(req.headers.entries()));
+  console.log("=== Gmail Send Function Started ===");
   
   if (req.method === "OPTIONS") {
-    console.log("Handling CORS preflight request");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    if (!RESEND_API_KEY) {
-      console.error("CRITICAL ERROR: RESEND_API_KEY is not configured");
-      throw new Error("RESEND_API_KEY is not configured");
+    if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
+      console.error("Gmail credentials not configured");
+      throw new Error("Gmail credentials not configured");
     }
 
-    console.log("Parsing email request body");
     const emailRequest: EmailRequest = await req.json();
-    console.log("Email request data:", {
-      from: emailRequest.from,
+    console.log("Email request received:", {
       to: emailRequest.to,
       subject: emailRequest.subject,
-      htmlLength: emailRequest.html?.length || 0
+      htmlLength: emailRequest.html?.length || 0,
     });
 
-    console.log("Sending request to Resend API");
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: emailRequest.from,
-        to: emailRequest.to,
-        subject: emailRequest.subject,
-        html: emailRequest.html,
-      }),
-    });
+    const accessToken = await getAccessToken();
+    console.log("Access token obtained successfully");
 
-    const responseData = await res.json();
-    console.log("Resend API response status:", res.status);
-    console.log("Resend API response:", responseData);
+    const result = await sendGmail(
+      accessToken,
+      emailRequest.to,
+      emailRequest.subject,
+      emailRequest.html
+    );
 
-    if (res.ok) {
-      console.log("Email sent successfully");
-      return new Response(JSON.stringify(responseData), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    } else {
-      console.error("Error response from Resend API:", responseData);
-      return new Response(JSON.stringify({ error: responseData }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-  } catch (error: any) {
-    console.error("Critical error in send-workflow-email function:", error);
-    console.error("Error stack:", error.stack);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+    console.log("Email sent successfully:", result);
+    return new Response(JSON.stringify(result), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } finally {
-    console.log("=== Email Function Completed ===");
+
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 };
 
