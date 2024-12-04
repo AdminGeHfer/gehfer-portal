@@ -48,7 +48,7 @@ export function RNCReport({ rnc }: RNCReportProps) {
           <CardTitle>Histórico do Workflow</CardTitle>
         </CardHeader>
         <CardContent>
-          <RNCTimeline events={rnc.timeline} />
+          <RNCTimeline rncId={rnc.id} />
         </CardContent>
       </Card>
     </div>
