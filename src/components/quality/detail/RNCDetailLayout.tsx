@@ -9,8 +9,7 @@ import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
 import { RNCReport } from "../report/RNCReport";
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
+import { generatePDF } from "@/utils/pdfUtils";
 import { toast } from "sonner";
 import { RNCTimeline } from "../RNCTimeline";
 
@@ -52,14 +51,15 @@ export function RNCDetailLayout({
   const reportRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  const handlePrint = async () => {
+  const handleGeneratePDF = async () => {
+    if (isGeneratingPDF) return;
+
     try {
       setIsGeneratingPDF(true);
-      console.log('Starting PDF generation...');
-
-      // Temporarily show the report element
+      
+      // Show the report component temporarily
       onPrint();
-
+      
       // Wait for next frame to ensure DOM is updated
       await new Promise(resolve => requestAnimationFrame(resolve));
 
@@ -69,42 +69,17 @@ export function RNCDetailLayout({
         return;
       }
 
-      console.log('Report element found, generating PDF...');
-
-      const opt = {
-        margin: [5, 5],
+      await generatePDF({
         filename: `RNC-${rnc.rnc_number}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          logging: true,
-          windowWidth: 1024,
-          windowHeight: 768,
-          scrollY: -window.scrollY,
-          scrollX: -window.scrollX,
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait',
-          compress: true
-        },
-        pagebreak: { mode: 'avoid-all' }
-      };
+        element: reportRef.current
+      });
 
-      await html2pdf().set(opt).from(reportRef.current).save();
-      console.log('PDF generation completed successfully');
-      toast.success("PDF gerado com sucesso!");
     } catch (error) {
-      console.error('Detailed error in PDF generation:', error);
-      toast.error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      console.error('Error in handleGeneratePDF:', error);
     } finally {
       setIsGeneratingPDF(false);
-      // Hide the report element after PDF generation
-      if (isPrinting) {
-        onPrint();
-      }
+      // Hide the report component
+      onPrint();
     }
   };
 
@@ -146,7 +121,7 @@ export function RNCDetailLayout({
                   onEdit={onEdit}
                   onSave={onSave}
                   onDelete={onDelete}
-                  onPrint={handlePrint}
+                  onPrint={handleGeneratePDF}
                   onWhatsApp={onWhatsApp}
                   canEdit={canEdit}
                   onStatusChange={onStatusChange}
