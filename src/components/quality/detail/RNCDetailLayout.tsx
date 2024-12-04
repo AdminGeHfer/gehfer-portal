@@ -75,10 +75,9 @@ export const RNCDetailLayout = ({
         return rnc.workflow_status;
       }
     },
-    enabled: !!rnc // Só executa a query se tiver uma RNC
+    enabled: !!rnc
   });
 
-  // Se a RNC não existir mais, redireciona para a lista
   if (!rnc) {
     return <Navigate to="/quality/rnc" replace />;
   }
@@ -86,11 +85,11 @@ export const RNCDetailLayout = ({
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <BackButton to="/quality/rnc" label="Voltar para Lista de RNCs" />
+      <main className="container mx-auto p-4 space-y-6">
+        <BackButton to="/quality/rnc" />
         
-        <div className="space-y-8">
-          <Card className="p-6">
+        <div className="space-y-6">
+          <Card className="p-6 shadow-sm bg-white/50 backdrop-blur-sm">
             <RNCDetailHeader 
               rnc={rnc}
               isEditing={isEditing}
@@ -108,9 +107,9 @@ export const RNCDetailLayout = ({
             />
           </Card>
 
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-8">
-              <Card className="p-6">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <RNCDetailForm 
                   rnc={rnc}
                   isEditing={isEditing}
@@ -118,11 +117,11 @@ export const RNCDetailLayout = ({
                 />
               </Card>
 
-              <Card className="p-6">
+              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <RNCAttachments rncId={id} />
               </Card>
 
-              <Card className="p-6">
+              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <RNCCommentSection 
                   rncId={id}
                   onCommentAdded={onRefresh}
@@ -130,8 +129,8 @@ export const RNCDetailLayout = ({
               </Card>
             </div>
 
-            <div className="space-y-8">
-              <Card className="p-6">
+            <div className="space-y-6">
+              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white/50 backdrop-blur-sm">
                 <RNCWorkflowStatus 
                   rncId={id}
                   currentStatus={workflowStatus || "open"}
@@ -139,7 +138,7 @@ export const RNCDetailLayout = ({
                 />
               </Card>
 
-              <Card className="p-6">
+              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <RNCWorkflowHistory rncId={id} />
               </Card>
             </div>
