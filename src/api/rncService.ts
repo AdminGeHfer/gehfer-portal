@@ -1,5 +1,6 @@
-import { RNC, WorkflowStatusEnum } from "@/types/rnc";
+import { RNC } from "@/types/rnc";
 import { supabase } from "@/integrations/supabase/client";
+import { transformRNCData } from "@/utils/rncTransform";
 
 const RNC_CACHE_KEY = 'rncs';
 const CACHE_TIME = 1000 * 60 * 10; // 10 minutes
@@ -14,7 +15,6 @@ export const getRNCs = async (): Promise<RNC[]> => {
     }
   }
 
-  // If no cache or expired, fetch from API with optimized query
   const { data, error } = await supabase
     .from('rncs')
     .select(`
@@ -40,40 +40,17 @@ export const getRNCs = async (): Promise<RNC[]> => {
     `)
     .order('created_at', { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching RNCs:', error);
+    throw error;
+  }
 
-  // Transform the data to match RNC type
-  const transformedData: RNC[] = data.map(rnc => ({
-    id: rnc.id,
-    description: rnc.description,
-    workflow_status: validateWorkflowStatus(rnc.workflow_status),
-    priority: validatePriority(rnc.priority),
-    type: validateType(rnc.type),
-    department: rnc.department,
-    contact: rnc.contact[0] || { name: "", phone: "", email: "" },
-    company: rnc.company,
-    cnpj: rnc.cnpj,
-    orderNumber: rnc.order_number,
-    returnNumber: rnc.return_number,
-    assignedTo: rnc.assigned_to,
-    assignedBy: rnc.assigned_by,
-    assignedAt: rnc.assigned_at,
-    resolution: "",
-    rnc_number: rnc.rnc_number,
-    created_at: rnc.created_at,
-    updated_at: rnc.updated_at,
-    closed_at: rnc.closed_at,
-    timeline: rnc.events.map((event: any) => ({
-      id: event.id,
-      date: event.created_at,
-      title: event.title,
-      description: event.description,
-      type: event.type,
-      userId: event.created_by,
-      comment: event.comment
-    }))
-  }));
+  if (!data) {
+    return [];
+  }
 
+  const transformedData = data.map(transformRNCData);
+  
   // Update cache with compression
   const compressedData = JSON.stringify({
     data: transformedData,
@@ -91,52 +68,31 @@ export const getRNCs = async (): Promise<RNC[]> => {
   return transformedData;
 };
 
-// Helper function to validate workflow status
-const validateWorkflowStatus = (status: string): WorkflowStatusEnum => {
-  switch (status?.toLowerCase()) {
-    case "open":
-      return "open";
-    case "analysis":
-      return "analysis";
-    case "resolution":
-      return "resolution";
-    case "solved":
-      return "solved";
-    case "closing":
-      return "closing";
-    case "closed":
-      return "closed";
-    default:
-      return "open";
-  }
-};
+export const getRNCById = async (id: string): Promise<RNC | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('rncs')
+      .select(`
+        *,
+        contact:rnc_contacts(*),
+        events:rnc_events(*)
+      `)
+      .eq('id', id)
+      .maybeSingle();
 
-// Helper function to validate priority
-const validatePriority = (priority: string): "low" | "medium" | "high" => {
-  switch (priority?.toLowerCase()) {
-    case "low":
-      return "low";
-    case "medium":
-      return "medium";
-    case "high":
-      return "high";
-    default:
-      return "medium";
-  }
-};
+    if (error) {
+      console.error('Error fetching RNC:', error);
+      throw error;
+    }
 
-// Helper function to validate type
-const validateType = (type: string): "client" | "supplier" => {
-  switch (type?.toLowerCase()) {
-    case "client":
-      return "client";
-    case "supplier":
-      return "supplier";
-    default:
-      return "client";
-  }
-};
+    if (!data) {
+      console.log(`No RNC found with id: ${id}`);
+      return null;
+    }
 
-export const invalidateRNCCache = () => {
-  sessionStorage.removeItem(RNC_CACHE_KEY);
+    return transformRNCData(data);
+  } catch (error) {
+    console.error('Error in getRNCById:', error);
+    throw error;
+  }
 };

@@ -3,10 +3,10 @@ import { ArrowLeft, Printer } from "@phosphor-icons/react";
 import { useNavigate } from "react-router-dom";
 import { RNC } from "@/types/rnc";
 import { WhatsappLogo, Trash, Package } from "@phosphor-icons/react";
-import { RNCAssignButton } from "./RNCAssignButton";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { CollectionRequestDialog } from "../collection/CollectionRequestDialog";
 import { useState } from "react";
+import { RNCDeleteDialog } from "./RNCDeleteDialog";
 
 interface RNCDetailHeaderProps {
   rnc: RNC;
@@ -20,6 +20,8 @@ interface RNCDetailHeaderProps {
   onStatusChange: (status: string) => void;
   onRefresh: () => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
+  isDeleteDialogOpen: boolean;
+  isDeleting: boolean;
 }
 
 export const RNCDetailHeader = ({
@@ -34,6 +36,8 @@ export const RNCDetailHeader = ({
   onStatusChange,
   onRefresh,
   setIsDeleteDialogOpen,
+  isDeleteDialogOpen,
+  isDeleting
 }: RNCDetailHeaderProps) => {
   const navigate = useNavigate();
   const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
@@ -66,11 +70,6 @@ export const RNCDetailHeader = ({
             <Printer className="mr-2 h-4 w-4" />
             Imprimir
           </Button>
-          <RNCAssignButton
-            rncId={rnc.id}
-            currentAssignee={rnc.assignedTo}
-            onAssigned={onRefresh}
-          />
           <Button variant="outline" onClick={onWhatsApp}>
             <WhatsappLogo weight="fill" className="mr-2 h-4 w-4" />
             WhatsApp
@@ -100,6 +99,13 @@ export const RNCDetailHeader = ({
         rncId={rnc.id}
         open={isCollectionDialogOpen}
         onOpenChange={setIsCollectionDialogOpen}
+      />
+
+      <RNCDeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={onDelete}
+        isDeleting={isDeleting}
       />
     </div>
   );

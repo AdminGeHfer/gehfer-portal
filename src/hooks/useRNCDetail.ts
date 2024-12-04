@@ -4,9 +4,11 @@ import { transformRNCData } from "@/utils/rncTransform";
 import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export const useRNCDetail = (id: string) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
@@ -20,9 +22,21 @@ export const useRNCDetail = (id: string) => {
           events:rnc_events(*)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle(); // Changed from single() to maybeSingle()
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // Record not found
+          navigate("/quality/rnc");
+          return null;
+        }
+        throw error;
+      }
+
+      if (!data) {
+        navigate("/quality/rnc");
+        return null;
+      }
 
       if (data.created_by !== user.user?.id) {
         toast.error("Você não tem permissão para editar esta RNC");
@@ -31,11 +45,14 @@ export const useRNCDetail = (id: string) => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
+    retry: false // Don't retry if the record is not found
   });
 
   const deleteRNC = useDeleteRNC(id, () => {
+    queryClient.invalidateQueries({ queryKey: ["rncs"] });
+    queryClient.removeQueries({ queryKey: ["rnc", id] });
+    navigate("/quality/rnc");
     toast.success("RNC excluída com sucesso");
-    return Promise.resolve();
   });
 
   const updateRNC = useUpdateRNC(id, {

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface RNCDeleteDialogProps {
-  isOpen: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
@@ -18,14 +17,13 @@ interface RNCDeleteDialogProps {
 }
 
 export const RNCDeleteDialog = ({ 
-  isOpen, 
   open, 
   onOpenChange, 
   onConfirm, 
   isDeleting 
 }: RNCDeleteDialogProps) => {
   return (
-    <AlertDialog open={open || isOpen} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir RNC</AlertDialogTitle>

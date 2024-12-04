@@ -2,9 +2,12 @@ import { Handle, NodeProps, Position } from 'reactflow';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
+import { Save } from 'lucide-react';
 
 interface StateNodeData {
   label: string;
@@ -18,6 +21,7 @@ interface StateNodeData {
 }
 
 export function StateNode({ data }: NodeProps<StateNodeData>) {
+  const [localTemplate, setLocalTemplate] = useState(data.email_template || '');
   const { data: users } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -30,6 +34,10 @@ export function StateNode({ data }: NodeProps<StateNodeData>) {
       return data;
     }
   });
+
+  const handleSaveTemplate = () => {
+    data.onEmailTemplateChange?.(localTemplate);
+  };
 
   const getStateColor = (type: string) => {
     switch (type) {
@@ -81,24 +89,39 @@ export function StateNode({ data }: NodeProps<StateNodeData>) {
           </div>
 
           {data.send_email && (
-            <textarea
-              placeholder="Template do email..."
-              value={data.email_template}
-              onChange={(e) => data.onEmailTemplateChange?.(e.target.value)}
-              className="w-full text-sm p-2 rounded border"
-              rows={3}
-            />
+            <div className="space-y-2">
+              <textarea
+                placeholder="Template do email... 
+Variáveis disponíveis:
+{nome} - Nome do usuário atribuído
+{numero_rnc} - Número da RNC
+{status_anterior} - Status anterior
+{status_novo} - Novo status"
+                value={localTemplate}
+                onChange={(e) => setLocalTemplate(e.target.value)}
+                className="w-full text-sm p-2 rounded border min-h-[120px]"
+                rows={5}
+              />
+              <Button 
+                onClick={handleSaveTemplate}
+                className="w-full"
+                size="sm"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Salvar Template
+              </Button>
+            </div>
           )}
 
           <Select
-            value={data.assigned_to}
+            value={data.assigned_to || "unassigned"}
             onValueChange={data.onAssigneeChange}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Atribuir a..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Ninguém</SelectItem>
+              <SelectItem value="unassigned">Ninguém</SelectItem>
               {users?.map((user) => (
                 <SelectItem key={user.id} value={user.id}>
                   {user.name}

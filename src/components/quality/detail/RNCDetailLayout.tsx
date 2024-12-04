@@ -7,7 +7,7 @@ import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
 import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
 import { BackButton } from "@/components/atoms/BackButton";
-import { useParams } from "react-router-dom";
+import { useParams, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
@@ -50,7 +50,7 @@ export const RNCDetailLayout = ({
   onStatusChange
 }: RNCDetailLayoutProps) => {
   const { id } = useParams();
-  if (!id) return null;
+  if (!id) return <Navigate to="/quality/rnc" replace />;
 
   const { data: workflowStatus } = useQuery({
     queryKey: ["workflow-status", id],
@@ -65,7 +65,6 @@ export const RNCDetailLayout = ({
 
         if (error) throw error;
         
-        // If no transitions found, return the RNC's current status
         if (!data || data.length === 0) {
           return rnc.workflow_status;
         }
@@ -75,8 +74,14 @@ export const RNCDetailLayout = ({
         console.error("Error in workflow status query:", error);
         return rnc.workflow_status;
       }
-    }
+    },
+    enabled: !!rnc // Só executa a query se tiver uma RNC
   });
+
+  // Se a RNC não existir mais, redireciona para a lista
+  if (!rnc) {
+    return <Navigate to="/quality/rnc" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,6 +103,8 @@ export const RNCDetailLayout = ({
               onStatusChange={onStatusChange}
               onRefresh={onRefresh}
               setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+              isDeleteDialogOpen={isDeleteDialogOpen}
+              isDeleting={isDeleting}
             />
           </Card>
 
