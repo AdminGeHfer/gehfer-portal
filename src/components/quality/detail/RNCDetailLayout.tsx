@@ -11,7 +11,6 @@ import { useParams, Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
-import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
 
 interface RNCDetailLayoutProps {
@@ -85,62 +84,66 @@ export const RNCDetailLayout = ({
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto p-4 space-y-6">
-        <BackButton to="/quality/rnc" />
-        
-        <div className="space-y-6">
-          <Card className="p-6 shadow-sm bg-white/50 backdrop-blur-sm">
-            <RNCDetailHeader 
-              rnc={rnc}
-              isEditing={isEditing}
-              canEdit={canEdit}
-              onEdit={onEdit}
-              onSave={onSave}
-              onDelete={onDelete}
-              onPrint={onPrint}
-              onWhatsApp={onWhatsApp}
-              onStatusChange={onStatusChange}
-              onRefresh={onRefresh}
-              setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-              isDeleteDialogOpen={isDeleteDialogOpen}
-              isDeleting={isDeleting}
-            />
-          </Card>
+      <main className="container mx-auto py-4">
+        <div className="mb-6">
+          <BackButton to="/quality/rnc" />
+        </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <RNCDetailForm 
-                  rnc={rnc}
-                  isEditing={isEditing}
-                  onFieldChange={onFieldChange}
-                />
-              </Card>
-
-              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <RNCAttachments rncId={id} />
-              </Card>
-
-              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-                <RNCCommentSection 
-                  rncId={id}
-                  onCommentAdded={onRefresh}
-                />
-              </Card>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200 bg-white/50 backdrop-blur-sm">
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Workflow Status - Destacado */}
+          <div className="lg:col-span-3 lg:order-2">
+            <div className="sticky top-4 space-y-4">
+              <Card className="p-4 bg-white/80 backdrop-blur-sm border-primary/10 shadow-lg hover:shadow-xl transition-all duration-200">
                 <RNCWorkflowStatus 
                   rncId={id}
                   currentStatus={workflowStatus || "open"}
                   onStatusChange={onStatusChange}
                 />
               </Card>
-
-              <Card className="p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+              
+              <Card className="p-4 bg-white/60 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-200">
                 <RNCWorkflowHistory rncId={id} />
               </Card>
+            </div>
+          </div>
+
+          {/* Conteúdo Principal */}
+          <div className="lg:col-span-9 lg:order-1 space-y-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+              <RNCDetailHeader 
+                rnc={rnc}
+                isEditing={isEditing}
+                canEdit={canEdit}
+                onEdit={onEdit}
+                onSave={onSave}
+                onDelete={onDelete}
+                onPrint={onPrint}
+                onWhatsApp={onWhatsApp}
+                onStatusChange={onStatusChange}
+                onRefresh={onRefresh}
+                setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                isDeleteDialogOpen={isDeleteDialogOpen}
+                isDeleting={isDeleting}
+              />
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+              <RNCDetailForm 
+                rnc={rnc}
+                isEditing={isEditing}
+                onFieldChange={onFieldChange}
+              />
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+              <RNCAttachments rncId={id} />
+            </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md">
+              <RNCCommentSection 
+                rncId={id}
+                onCommentAdded={onRefresh}
+              />
             </div>
           </div>
         </div>
