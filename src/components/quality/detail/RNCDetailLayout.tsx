@@ -102,7 +102,7 @@ export function RNCDetailLayout({
                   isEditing={isEditing}
                   onEdit={onEdit}
                   onSave={onSave}
-                  onDelete={() => setIsDeleteDialogOpen(true)}
+                  onDelete={onDelete}
                   onPrint={handlePrint}
                   onWhatsApp={onWhatsApp}
                   canEdit={canEdit}
@@ -129,7 +129,7 @@ export function RNCDetailLayout({
 
             {/* Histórico do Workflow - Centralizado abaixo */}
             <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
-              <RNCTimeline events={rnc.timeline} />
+              <RNCTimeline rncId={rnc.id} />
             </Card>
           </div>
         </div>
