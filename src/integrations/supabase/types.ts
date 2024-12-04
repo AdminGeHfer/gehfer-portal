@@ -883,33 +883,56 @@ export type Database = {
       }
       workflow_states: {
         Row: {
+          assigned_to: string | null
           created_at: string | null
+          email_template: string | null
           id: string
           label: string
           position_x: number
           position_y: number
+          send_email: boolean | null
           state_type: Database["public"]["Enums"]["workflow_state_type"]
           workflow_id: string | null
         }
         Insert: {
+          assigned_to?: string | null
           created_at?: string | null
+          email_template?: string | null
           id?: string
           label: string
           position_x: number
           position_y: number
+          send_email?: boolean | null
           state_type: Database["public"]["Enums"]["workflow_state_type"]
           workflow_id?: string | null
         }
         Update: {
+          assigned_to?: string | null
           created_at?: string | null
+          email_template?: string | null
           id?: string
           label?: string
           position_x?: number
           position_y?: number
+          send_email?: boolean | null
           state_type?: Database["public"]["Enums"]["workflow_state_type"]
           workflow_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_workflow_states_assigned_to"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_states_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workflow_states_workflow_id_fkey"
             columns: ["workflow_id"]

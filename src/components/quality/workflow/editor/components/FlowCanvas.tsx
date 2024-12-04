@@ -24,7 +24,9 @@ interface FlowCanvasProps {
   onAddState: () => void;
   onSave: () => void;
   onDelete: () => void;
+  onDeleteEdge: () => void;
   selectedNode: string | null;
+  selectedEdge: string | null;
 }
 
 export const FlowCanvas = ({
@@ -37,7 +39,9 @@ export const FlowCanvas = ({
   onAddState,
   onSave,
   onDelete,
+  onDeleteEdge,
   selectedNode,
+  selectedEdge,
 }: FlowCanvasProps) => {
   return (
     <ReactFlow
@@ -58,7 +62,9 @@ export const FlowCanvas = ({
         onAddState={onAddState}
         onSave={onSave}
         onDelete={onDelete}
+        onDeleteEdge={onDeleteEdge}
         selectedNode={selectedNode}
+        selectedEdge={selectedEdge}
       />
     </ReactFlow>
   );

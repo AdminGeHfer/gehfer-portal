@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNodesState, useEdgesState, Connection, Edge, Node } from 'reactflow';
+import { useNodesState, useEdgesState, Connection, Edge, Node, useOnSelectionChange } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +13,15 @@ export function WorkflowEditorCanvas() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [isAddingState, setIsAddingState] = useState(false);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  useOnSelectionChange({
+    onChange: ({ edges, nodes }) => {
+      setSelectedNode(nodes[0]?.id || null);
+      setSelectedEdge(edges[0]?.id || null);
+    },
+  });
 
   const { data: workflow, isLoading } = useQuery({
     queryKey: ['workflow-template', 'default'],
@@ -50,7 +58,16 @@ export function WorkflowEditorCanvas() {
         id: state.id,
         type: 'stateNode',
         position: { x: state.position_x, y: state.position_y },
-        data: { label: state.label, type: state.state_type as WorkflowStatusEnum },
+        data: { 
+          label: state.label, 
+          type: state.state_type as WorkflowStatusEnum,
+          assigned_to: state.assigned_to,
+          send_email: state.send_email,
+          email_template: state.email_template,
+          onAssigneeChange: (value: string) => handleStateUpdate(state.id, { assigned_to: value }),
+          onEmailToggle: (checked: boolean) => handleStateUpdate(state.id, { send_email: checked }),
+          onEmailTemplateChange: (value: string) => handleStateUpdate(state.id, { email_template: value }),
+        },
         draggable: true,
       }));
 
@@ -67,6 +84,23 @@ export function WorkflowEditorCanvas() {
       setEdges(flowEdges);
     }
   }, [workflow, setNodes, setEdges]);
+
+  const handleStateUpdate = async (stateId: string, updates: any) => {
+    try {
+      const { error } = await supabase
+        .from('workflow_states')
+        .update(updates)
+        .eq('id', stateId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
+      toast.success('Estado atualizado com sucesso');
+    } catch (error) {
+      console.error('Error updating state:', error);
+      toast.error('Erro ao atualizar estado');
+    }
+  };
 
   const onConnect = useCallback(async (params: Connection | Edge) => {
     if (!workflow?.template.id || !params.source || !params.target) return;
@@ -106,6 +140,28 @@ export function WorkflowEditorCanvas() {
       toast.error('Erro ao salvar transição');
     }
   }, [workflow?.template.id, nodes, queryClient]);
+
+  const handleDeleteEdge = async () => {
+    if (!selectedEdge) return;
+
+    try {
+      const { error } = await supabase
+        .from('workflow_transitions')
+        .delete()
+        .eq('id', selectedEdge);
+
+      if (error) throw error;
+
+      setEdges((eds) => eds.filter((edge) => edge.id !== selectedEdge));
+      setSelectedEdge(null);
+      
+      await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
+      toast.success('Transição removida com sucesso');
+    } catch (error) {
+      console.error('Erro ao deletar transição:', error);
+      toast.error('Erro ao deletar transição');
+    }
+  };
 
   const handleSave = async () => {
     if (!workflow?.template.id) return;
@@ -187,7 +243,9 @@ export function WorkflowEditorCanvas() {
           onAddState={() => setIsAddingState(true)}
           onSave={handleSave}
           onDelete={handleDeleteNode}
+          onDeleteEdge={handleDeleteEdge}
           selectedNode={selectedNode}
+          selectedEdge={selectedEdge}
         />
       </div>
 

@@ -1,8 +1,36 @@
 import { Handle, NodeProps, Position } from 'reactflow';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-export function StateNode({ data }: NodeProps) {
+interface StateNodeData {
+  label: string;
+  type: string;
+  assigned_to?: string;
+  send_email?: boolean;
+  email_template?: string;
+  onAssigneeChange?: (value: string) => void;
+  onEmailToggle?: (checked: boolean) => void;
+  onEmailTemplateChange?: (value: string) => void;
+}
+
+export function StateNode({ data }: NodeProps<StateNodeData>) {
+  const { data: users } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .eq('active', true);
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const getStateColor = (type: string) => {
     switch (type) {
       case 'open':
@@ -26,7 +54,7 @@ export function StateNode({ data }: NodeProps) {
     <div className={cn(
       "px-4 py-2 shadow-lg rounded-lg border-2",
       "transition-colors duration-200",
-      "min-w-[180px] text-center",
+      "min-w-[240px]",
       getStateColor(data.type)
     )}>
       <Handle
@@ -35,10 +63,51 @@ export function StateNode({ data }: NodeProps) {
         className="!bg-gray-400 !w-3 !h-3"
       />
       
-      <div className="font-medium">{data.label}</div>
-      <Badge variant="secondary" className="mt-1">
-        {data.type}
-      </Badge>
+      <div className="space-y-3">
+        <div className="text-center">
+          <div className="font-medium">{data.label}</div>
+          <Badge variant="secondary" className="mt-1">
+            {data.type}
+          </Badge>
+        </div>
+
+        <div className="space-y-2 pt-2 border-t">
+          <div className="flex items-center justify-between">
+            <span className="text-sm">Enviar Email</span>
+            <Switch
+              checked={data.send_email}
+              onCheckedChange={data.onEmailToggle}
+            />
+          </div>
+
+          {data.send_email && (
+            <textarea
+              placeholder="Template do email..."
+              value={data.email_template}
+              onChange={(e) => data.onEmailTemplateChange?.(e.target.value)}
+              className="w-full text-sm p-2 rounded border"
+              rows={3}
+            />
+          )}
+
+          <Select
+            value={data.assigned_to}
+            onValueChange={data.onAssigneeChange}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Atribuir a..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Ninguém</SelectItem>
+              {users?.map((user) => (
+                <SelectItem key={user.id} value={user.id}>
+                  {user.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       
       <Handle
         type="source"

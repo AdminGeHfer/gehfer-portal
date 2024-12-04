@@ -7,9 +7,18 @@ interface FlowControlsProps {
   onSave: () => void;
   onDelete: () => void;
   selectedNode: string | null;
+  selectedEdge: string | null;
+  onDeleteEdge: () => void;
 }
 
-export const FlowControls = ({ onAddState, onSave, onDelete, selectedNode }: FlowControlsProps) => {
+export const FlowControls = ({ 
+  onAddState, 
+  onSave, 
+  onDelete, 
+  selectedNode,
+  selectedEdge,
+  onDeleteEdge 
+}: FlowControlsProps) => {
   return (
     <Panel position="top-right" className="space-x-2">
       <Button
@@ -28,6 +37,16 @@ export const FlowControls = ({ onAddState, onSave, onDelete, selectedNode }: Flo
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Excluir Estado
+        </Button>
+      )}
+      {selectedEdge && (
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={onDeleteEdge}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Excluir Conexão
         </Button>
       )}
       <Button size="sm" onClick={onSave}>
