@@ -51,10 +51,9 @@ export function RNCDetailLayout({
   const handleGeneratePDF = async () => {
     if (isGeneratingPDF) return;
     setIsGeneratingPDF(true);
-    onPrint(); // This now just toggles the preview component
+    onPrint();
   };
 
-  // Only render the report when isPrinting is true
   if (isPrinting) {
     return (
       <RNCReportPreview 
@@ -75,7 +74,7 @@ export function RNCDetailLayout({
           {/* Workflow Status - Com mais destaque */}
           <div className="lg:col-span-4 lg:order-2">
             <div className="sticky top-4 space-y-2">
-              <Card className="p-4 bg-gradient-to-br from-white/90 to-white/70 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <Card className="p-4 bg-card/90 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
                   rncId={rnc.id}
                   currentStatus={rnc.workflow_status}
@@ -88,7 +87,7 @@ export function RNCDetailLayout({
 
           {/* Conteúdo Principal */}
           <div className="lg:col-span-8 lg:order-1 space-y-2">
-            <Card className="bg-white/90 backdrop-blur-sm shadow-md">
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md">
               <div className="p-2">
                 <RNCDetailHeader 
                   rnc={rnc}
@@ -108,7 +107,7 @@ export function RNCDetailLayout({
               </div>
             </Card>
 
-            <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md p-4">
               <RNCDetailForm
                 rnc={rnc}
                 isEditing={isEditing}
@@ -116,12 +115,11 @@ export function RNCDetailLayout({
               />
             </Card>
 
-            <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md p-4">
               <RNCAttachments rncId={rnc.id} />
             </Card>
 
-            {/* Histórico do Workflow - Centralizado abaixo */}
-            <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md p-4">
               <RNCTimeline rncId={rnc.id} />
             </Card>
           </div>

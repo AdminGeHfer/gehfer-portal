@@ -35,7 +35,7 @@ export function RNCReportPreview({ rnc, onClose }: RNCReportPreviewProps) {
   setTimeout(handleGeneratePDF, 100);
 
   return (
-    <div id="rnc-report" ref={reportRef} className="p-4 bg-white">
+    <div id="rnc-report" ref={reportRef} className="p-4 bg-background text-foreground print:bg-white print:text-black">
       <RNCReport rnc={rnc} />
     </div>
   );
