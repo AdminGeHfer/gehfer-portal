@@ -13,11 +13,11 @@ import { SidebarProvider } from "@/contexts/SidebarContext";
 import { CollapsibleSidebar } from "@/components/layout/CollapsibleSidebar";
 import { SidebarNav } from "@/components/layout/SidebarNav";
 
-const Login = lazy(() => import("./pages/Login"));
-const Apps = lazy(() => import("./pages/Apps"));
-const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
-const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
-const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
+const Login = lazy(() => import("@/pages/Login"));
+const Apps = lazy(() => import("@/pages/Apps"));
+const QualityRoutes = lazy(() => import("@/routes/QualityRoutes"));
+const AdminRoutes = lazy(() => import("@/routes/AdminRoutes"));
+const PortariaRoutes = lazy(() => import("@/routes/PortariaRoutes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
