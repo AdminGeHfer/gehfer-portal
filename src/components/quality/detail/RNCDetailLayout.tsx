@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailForm } from "./RNCDetailForm";
@@ -50,10 +50,17 @@ export function RNCDetailLayout({
   onStatusChange,
 }: RNCDetailLayoutProps) {
   const reportRef = useRef<HTMLDivElement>(null);
-  const isPrintingRef = useRef(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const handlePrint = async () => {
     try {
+      setIsGeneratingPDF(true);
+      console.log('Starting PDF generation...');
+
+      // Ensure the report element is rendered
+      onPrint();
+
+      // Wait for next frame to ensure DOM is updated
       await new Promise(resolve => requestAnimationFrame(resolve));
 
       if (!reportRef.current) {
@@ -62,8 +69,10 @@ export function RNCDetailLayout({
         return;
       }
 
+      console.log('Report element found, generating PDF...');
+
       const opt = {
-        margin: [5, 5], // Reduced margins [top/bottom, left/right] in mm
+        margin: [5, 5],
         filename: `RNC-${rnc.rnc_number}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
@@ -91,8 +100,9 @@ export function RNCDetailLayout({
       console.error('Detailed error in PDF generation:', error);
       toast.error(`Erro ao gerar PDF: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
-      // Desativa o modo de impressão após gerar o PDF
-      if (isPrintingRef.current) {
+      setIsGeneratingPDF(false);
+      // Disable print mode after PDF generation
+      if (isPrinting) {
         onPrint();
       }
     }
