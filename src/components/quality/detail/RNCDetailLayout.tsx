@@ -9,6 +9,8 @@ import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
 import { RNCReport } from "../report/RNCReport";
 import { RNCTimeline } from "../RNCTimeline";
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
