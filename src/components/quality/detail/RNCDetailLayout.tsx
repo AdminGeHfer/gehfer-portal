@@ -8,6 +8,7 @@ import { RNCDeleteDialog } from "./RNCDeleteDialog";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
+import html2pdf from 'html2pdf.js';
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -46,14 +47,30 @@ export function RNCDetailLayout({
 }: RNCDetailLayoutProps) {
   const id = rnc.id;
 
+  const handlePrint = async () => {
+    const element = document.getElementById('rnc-report');
+    if (!element) return;
+
+    const opt = {
+      margin: 10,
+      filename: `RNC-${rnc.rnc_number}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+      const pdf = await html2pdf().set(opt).from(element).save();
+      return pdf;
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+    }
+  };
+
   if (isPrinting) {
     return (
-      <div className="p-8 bg-white min-h-screen">
-        <RNCDetailForm
-          rnc={rnc}
-          isEditing={false}
-          onFieldChange={onFieldChange}
-        />
+      <div id="rnc-report" className="p-8 bg-white min-h-screen">
+        <RNCReport rnc={rnc} />
       </div>
     );
   }
@@ -113,6 +130,31 @@ export function RNCDetailLayout({
             <Card className="bg-white/90 backdrop-blur-sm shadow-md p-4">
               <RNCAttachments rncId={id} />
             </Card>
+          </div>
+        </div>
+
+        {/* Histórico do Workflow - Centralizado abaixo */}
+        <div className="mt-6">
+          <h3 className="text-base font-semibold text-gray-900 border-b pb-1 mb-4">
+            Histórico do Workflow
+          </h3>
+          <div className="space-y-4">
+            {rnc.timeline.map((event, index) => (
+              <div key={index} className="relative pl-4 pb-4 text-sm">
+                <div className="absolute left-0 top-1.5 w-2 h-2 rounded-full bg-gray-400" />
+                {index !== rnc.timeline.length - 1 && (
+                  <div className="absolute left-1 top-3 w-px h-full bg-gray-200" />
+                )}
+                <div>
+                  <p className="font-medium">{event.title}</p>
+                  <time className="text-xs text-gray-500">{event.date}</time>
+                  <p className="text-gray-600 mt-1">{event.description}</p>
+                  {event.comment && (
+                    <p className="text-gray-600 mt-1 italic">"{event.comment}"</p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </main>

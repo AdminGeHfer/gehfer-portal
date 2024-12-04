@@ -4,28 +4,18 @@ import { ptBR } from "date-fns/locale";
 import { getStatusLabel } from "@/types/workflow";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import html2pdf from 'html2pdf.js';
 
 interface RNCReportProps {
   rnc: RNC;
+  onGeneratePDF?: () => void;
 }
 
-export function RNCReport({ rnc }: RNCReportProps) {
+export function RNCReport({ rnc, onGeneratePDF }: RNCReportProps) {
   const formatDate = (date: string) => {
     return format(new Date(date), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", {
       locale: ptBR,
     });
-  };
-
-  const getStatusLabel = (status: WorkflowStatusEnum) => {
-    const labels: Record<WorkflowStatusEnum, string> = {
-      open: "Aberto",
-      analysis: "Em Análise",
-      resolution: "Em Resolução",
-      solved: "Solucionado",
-      closing: "Em Fechamento",
-      closed: "Encerrado"
-    };
-    return labels[status];
   };
 
   const getPriorityLabel = (priority: string) => {
@@ -40,22 +30,20 @@ export function RNCReport({ rnc }: RNCReportProps) {
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-8 bg-white shadow-lg rounded-lg print:shadow-none print:p-0">
       {/* Cabeçalho */}
-      <Card className="border-none shadow-none">
-        <CardContent className="flex justify-between items-start pt-6">
-          <div>
-            <h1 className="text-2xl font-bold">RNC #{rnc.rnc_number}</h1>
-            <p className="text-sm text-gray-500">{formatDate(rnc.created_at)}</p>
-          </div>
-          <div className="text-right">
-            <h2 className="text-xl font-semibold">GeHfer</h2>
-            <p className="text-sm text-gray-500">Sistema de Gestão da Qualidade</p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex justify-between items-start border-b pb-4">
+        <div>
+          <h1 className="text-2xl font-bold">RNC #{rnc.rnc_number}</h1>
+          <p className="text-sm text-gray-500">{formatDate(rnc.created_at)}</p>
+        </div>
+        <div className="text-right">
+          <h2 className="text-xl font-semibold">GeHfer</h2>
+          <p className="text-sm text-gray-500">Sistema de Gestão da Qualidade</p>
+        </div>
+      </div>
 
       {/* Status e Prioridade */}
       <div className="grid grid-cols-2 gap-4">
-        <Card>
+        <Card className="bg-white/50 backdrop-blur-sm border border-gray-100">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Status do Workflow</CardTitle>
           </CardHeader>
@@ -68,7 +56,7 @@ export function RNCReport({ rnc }: RNCReportProps) {
             )}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white/50 backdrop-blur-sm border border-gray-100">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Prioridade</CardTitle>
           </CardHeader>
@@ -79,7 +67,7 @@ export function RNCReport({ rnc }: RNCReportProps) {
       </div>
 
       {/* Dados da Empresa */}
-      <Card>
+      <Card className="bg-white/50 backdrop-blur-sm border border-gray-100">
         <CardHeader>
           <CardTitle>Dados da Empresa</CardTitle>
         </CardHeader>
@@ -108,7 +96,7 @@ export function RNCReport({ rnc }: RNCReportProps) {
       </Card>
 
       {/* Detalhes da Não Conformidade */}
-      <Card>
+      <Card className="bg-white/50 backdrop-blur-sm border border-gray-100">
         <CardHeader>
           <CardTitle>Detalhes da Não Conformidade</CardTitle>
         </CardHeader>
@@ -132,7 +120,7 @@ export function RNCReport({ rnc }: RNCReportProps) {
       </Card>
 
       {/* Contato */}
-      <Card>
+      <Card className="bg-white/50 backdrop-blur-sm border border-gray-100">
         <CardHeader>
           <CardTitle>Informações de Contato</CardTitle>
         </CardHeader>
@@ -153,7 +141,7 @@ export function RNCReport({ rnc }: RNCReportProps) {
       </Card>
 
       {/* Histórico do Workflow */}
-      <Card>
+      <Card className="bg-white/50 backdrop-blur-sm border border-gray-100">
         <CardHeader>
           <CardTitle>Histórico do Workflow</CardTitle>
         </CardHeader>
@@ -162,19 +150,19 @@ export function RNCReport({ rnc }: RNCReportProps) {
             {rnc.timeline
               .filter(event => event.type === 'status')
               .map((event, index) => (
-                <div key={event.id} className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
-                  <div className="min-w-[120px]">
+                <div key={event.id} className="flex flex-col p-4 rounded-lg bg-muted/30 border border-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-medium text-lg">{event.title}</p>
                     <time className="text-sm text-muted-foreground">
-                      {format(new Date(event.date), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </time>
                   </div>
-                  <div>
-                    <p className="font-medium">{event.title}</p>
-                    <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-                    {event.comment && (
-                      <p className="text-sm bg-muted p-2 rounded mt-2">{event.comment}</p>
-                    )}
-                  </div>
+                  <p className="text-sm text-muted-foreground">{event.description}</p>
+                  {event.comment && (
+                    <div className="mt-2 p-3 bg-white/50 rounded-md border border-gray-100">
+                      <p className="text-sm italic">"{event.comment}"</p>
+                    </div>
+                  )}
                 </div>
               ))}
           </div>
