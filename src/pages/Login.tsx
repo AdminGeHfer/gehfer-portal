@@ -24,25 +24,25 @@ const Login = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-background" />
-        <motion.div
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
-        </motion.div>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background to-accent/20 animate-gradient" />
+      
+      {/* Animated grid pattern */}
+      <div className="absolute inset-0 bg-[url('/pattern.png')] opacity-10 animate-pulse" />
+      
+      {/* Animated circles */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl animate-blob" />
+        <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-accent/20 to-transparent rounded-full blur-3xl animate-blob animation-delay-2000" />
       </div>
 
+      {/* Theme toggle button */}
       <Button
         variant="ghost"
         size="icon"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="fixed top-4 right-4"
+        className="fixed top-4 right-4 backdrop-blur-sm bg-background/50"
       >
         {theme === "dark" ? (
           <Sun className="h-5 w-5" />
@@ -55,26 +55,33 @@ const Login = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md relative z-10"
       >
-        <Card className="border-2 backdrop-blur-sm bg-background/80">
+        <Card className="backdrop-blur-md bg-background/80 border border-border/50 shadow-xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
               <motion.div 
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-                className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary"
+                transition={{ 
+                  duration: 0.5,
+                  type: "spring",
+                  stiffness: 260,
+                  damping: 20 
+                }}
+                className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/90 shadow-lg"
               >
-                <span className="text-2xl font-bold text-primary-foreground">G</span>
+                <span className="text-3xl font-bold text-primary-foreground">G</span>
               </motion.div>
             </div>
-            <CardTitle className="text-2xl text-center">Portal GeHfer</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-3xl text-center font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+              Portal GeHfer
+            </CardTitle>
+            <CardDescription className="text-center text-muted-foreground/80">
               Entre com suas credenciais para acessar o sistema
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <Auth
               supabaseClient={supabase}
               appearance={{
@@ -94,8 +101,8 @@ const Login = () => {
                 },
                 className: {
                   container: 'space-y-4',
-                  button: 'w-full font-sans bg-primary hover:bg-primary/90 text-primary-foreground dark:text-primary-foreground',
-                  input: 'font-sans',
+                  button: 'w-full font-sans bg-primary hover:bg-primary/90 text-primary-foreground dark:text-primary-foreground transition-all duration-200 shadow-md hover:shadow-lg',
+                  input: 'font-sans backdrop-blur-sm bg-background/50 border-border/50',
                   label: 'font-sans',
                   anchor: 'font-sans text-primary hover:text-primary/80',
                 },
