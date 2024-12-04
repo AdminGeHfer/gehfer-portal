@@ -26,7 +26,8 @@ const ScheduledCollections = () => {
           return_items (
             *,
             product:products(id, name)
-          )
+          ),
+          collection_evidence (*)
         `)
         .order("created_at", { ascending: false });
 

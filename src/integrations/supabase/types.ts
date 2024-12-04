@@ -639,12 +639,9 @@ export type Database = {
           priority: string
           return_number: string | null
           rnc_number: number | null
-          status: Database["public"]["Enums"]["status_enum"]
           type: string
           updated_at: string
-          workflow_status:
-            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
-            | null
+          workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Insert: {
           assigned_at?: string | null
@@ -662,12 +659,9 @@ export type Database = {
           priority?: string
           return_number?: string | null
           rnc_number?: number | null
-          status?: Database["public"]["Enums"]["status_enum"]
           type: string
           updated_at?: string
-          workflow_status?:
-            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
-            | null
+          workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Update: {
           assigned_at?: string | null
@@ -685,12 +679,9 @@ export type Database = {
           priority?: string
           return_number?: string | null
           rnc_number?: number | null
-          status?: Database["public"]["Enums"]["status_enum"]
           type?: string
           updated_at?: string
-          workflow_status?:
-            | Database["public"]["Enums"]["rnc_workflow_status_enum"]
-            | null
+          workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Relationships: [
           {

@@ -1,15 +1,5 @@
 export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
-
-export const WorkflowStatusEnum = {
-  OPEN: "open",
-  ANALYSIS: "analysis",
-  RESOLUTION: "resolution",
-  SOLVED: "solved",
-  CLOSING: "closing",
-  CLOSED: "closed"
-} as const;
-
-export type WorkflowStatusEnum = typeof WorkflowStatusEnum[keyof typeof WorkflowStatusEnum];
+export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
 export interface RNC {
   id: string;
@@ -30,13 +20,15 @@ export interface RNC {
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
+  attachments?: File[];
+  timeline: TimelineEvent[];
   resolution?: string;
   rnc_number?: number;
   created_at: string;
   updated_at: string;
   closed_at?: string;
-  timeline: TimelineEvent[];
   title?: string;
+  canEdit?: boolean;
 }
 
 export interface TimelineEvent {
@@ -64,8 +56,8 @@ export interface RNCFormData {
   cnpj: string;
   orderNumber?: string;
   returnNumber?: string;
+  workflow_status: WorkflowStatusEnum;
   assignedTo?: string;
   attachments?: File[];
   resolution?: string;
-  workflow_status: WorkflowStatusEnum;
 }
