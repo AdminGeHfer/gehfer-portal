@@ -1,26 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  Connection,
-  Edge,
-  Node,
-  useNodesState,
-  useEdgesState,
-  useOnSelectionChange
-} from 'reactflow';
+import { ReactFlowProvider, useNodesState, useEdgesState, useOnSelectionChange, Connection, Edge } from 'reactflow';
+import 'reactflow/dist/style.css';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AddStateDialog } from './AddStateDialog';
-import { StateNode } from './StateNode';
-import { WorkflowControls } from './components/WorkflowControls';
+import { FlowCanvas } from './components/FlowCanvas';
 import { useWorkflowData } from './hooks/useWorkflowData';
 import { useQueryClient } from '@tanstack/react-query';
-
-const nodeTypes = {
-  stateNode: StateNode,
-};
 
 export function WorkflowEditorCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -188,20 +174,14 @@ export function WorkflowEditorCanvas() {
   return (
     <div className="space-y-4">
       <div className="h-[600px] border rounded-lg">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          nodeTypes={nodeTypes}
-          fitView
-          style={{ background: 'rgb(248, 250, 252)' }}
-        >
-          <Controls />
-          <MiniMap />
-          <Background gap={12} size={1} />
-          <WorkflowControls
+        <ReactFlowProvider>
+          <FlowCanvas
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={() => {}}
             onAddState={() => setIsAddingState(true)}
             onSave={() => handleSave(nodes, edges)}
             onDelete={handleDeleteNode}
@@ -209,7 +189,7 @@ export function WorkflowEditorCanvas() {
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
           />
-        </ReactFlow>
+        </ReactFlowProvider>
       </div>
 
       <AddStateDialog
