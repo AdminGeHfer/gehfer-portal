@@ -49,32 +49,37 @@ export function RNCDetailLayout({
   onStatusChange,
 }: RNCDetailLayoutProps) {
   const handlePrint = async () => {
-    const element = document.getElementById('rnc-report');
-    if (!element) {
-      toast.error("Erro ao gerar PDF: elemento não encontrado");
-      return;
-    }
+    onPrint(); // Chama onPrint para ativar isPrinting
+    
+    // Aguarda um momento para o elemento ser renderizado
+    setTimeout(async () => {
+      const element = document.getElementById('rnc-report');
+      if (!element) {
+        toast.error("Erro ao gerar PDF: elemento não encontrado");
+        return;
+      }
 
-    const opt = {
-      margin: 10,
-      filename: `RNC-${rnc.rnc_number}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2,
-        useCORS: true,
-        logging: true
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+      const opt = {
+        margin: 10,
+        filename: `RNC-${rnc.rnc_number}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          logging: true
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
 
-    try {
-      const pdf = await html2pdf().set(opt).from(element).save();
-      toast.success("PDF gerado com sucesso!");
-      return pdf;
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast.error("Erro ao gerar PDF");
-    }
+      try {
+        const pdf = await html2pdf().set(opt).from(element).save();
+        toast.success("PDF gerado com sucesso!");
+        return pdf;
+      } catch (error) {
+        console.error('Erro ao gerar PDF:', error);
+        toast.error("Erro ao gerar PDF");
+      }
+    }, 500); // Aguarda 500ms para garantir que o elemento foi renderizado
   };
 
   if (isPrinting) {
