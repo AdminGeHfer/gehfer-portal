@@ -60,11 +60,11 @@ export function RNCDetailLayout({
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto py-1">
-        <div className="grid gap-2 lg:grid-cols-12">
-          {/* Workflow Status - Com mais destaque */}
-          <div className="lg:col-span-4 lg:order-2">
-            <div className="sticky top-4 space-y-2">
+      <main className="container mx-auto py-4">
+        <div className="grid gap-4 lg:grid-cols-12">
+          {/* Workflow Status - Com mais destaque e espaço */}
+          <div className="lg:col-span-5 lg:order-2">
+            <div className="sticky top-4">
               <Card className="p-4 bg-card/90 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
                   rncId={rnc.id}
@@ -77,9 +77,9 @@ export function RNCDetailLayout({
           </div>
 
           {/* Conteúdo Principal */}
-          <div className="lg:col-span-8 lg:order-1 space-y-2">
+          <div className="lg:col-span-7 lg:order-1 space-y-4">
             <Card className="bg-card/90 backdrop-blur-sm shadow-md">
-              <div className="p-2">
+              <div className="p-4">
                 <RNCDetailHeader 
                   rnc={rnc}
                   isEditing={isEditing}
