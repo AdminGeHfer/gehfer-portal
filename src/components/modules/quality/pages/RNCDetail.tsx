@@ -41,6 +41,9 @@ const RNCDetail = () => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
+    // Add staleTime and refetchInterval for better real-time updates
+    staleTime: 1000, // Consider data stale after 1 second
+    refetchInterval: 2000, // Refetch every 2 seconds
   });
 
   const deleteRNC = useDeleteRNC(id!, () => {
@@ -50,7 +53,9 @@ const RNCDetail = () => {
 
   const updateRNC = useUpdateRNC(id!, {
     onSuccess: () => {
+      // Immediately invalidate queries to trigger a refresh
       queryClient.invalidateQueries({ queryKey: ["rnc", id] });
+      queryClient.invalidateQueries({ queryKey: ["rncs"] });
       setIsEditing(false);
     },
   });
@@ -121,6 +126,8 @@ const RNCDetail = () => {
 
   const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
     await refetch(options);
+    // Also invalidate related queries to ensure consistency
+    queryClient.invalidateQueries({ queryKey: ["rncs"] });
   };
 
   if (isLoading) {
@@ -174,6 +181,8 @@ const RNCDetail = () => {
           workflow_status: newStatus
         };
         await updateRNC.mutateAsync(updatedRnc);
+        // Force immediate refresh after status change
+        await handleRefresh();
       }}
     />
   );
