@@ -1,13 +1,31 @@
-import { LogOut, MessageSquare, Settings, User } from "lucide-react";
+import { LogOut, MessageSquare, Moon, Settings, Sun, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
+import { useQuery } from "@tanstack/react-query";
 
 const TopBar = () => {
   const navigate = useNavigate();
-  const userName = "João Silva"; // Será dinâmico posteriormente
+  const { theme, setTheme } = useTheme();
+  
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not found');
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('name, avatar_url')
+        .eq('id', user.id)
+        .single();
+      
+      return data;
+    }
+  });
 
   const handleLogout = async () => {
     try {
@@ -27,7 +45,7 @@ const TopBar = () => {
             The Four
           </span>
           <p className="text-muted-foreground">
-            Bem-vindo, <span className="font-medium text-foreground">{userName}</span>
+            Bem-vindo, <span className="font-medium text-foreground">{profile?.name || 'Usuário'}</span>
           </p>
         </div>
         
@@ -38,8 +56,19 @@ const TopBar = () => {
           <Button variant="ghost" size="icon">
             <Settings className="h-5 w-5" />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
           <Avatar className="h-8 w-8">
-            <AvatarImage src="https://github.com/shadcn.png" alt={userName} />
+            <AvatarImage src={profile?.avatar_url} alt={profile?.name} />
             <AvatarFallback>
               <User className="h-4 w-4" />
             </AvatarFallback>
