@@ -1,10 +1,9 @@
-import { Button } from "@/components/atoms/Button";
+import { Button } from "@/components/ui/button";
 import { Package, FilePdf, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";
 import { RNC } from "@/types/rnc";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
-import { CollectionRequestDialog } from "../collection/CollectionRequestDialog";
-import { useState } from "react";
 import { RNCDeleteDialog } from "./RNCDeleteDialog";
+import { useState } from "react";
 
 interface RNCDetailHeaderProps {
   rnc: RNC;
@@ -25,20 +24,18 @@ interface RNCDetailHeaderProps {
 export const RNCDetailHeader = ({
   rnc,
   isEditing,
-  canEdit,
   onEdit,
   onSave,
   onDelete,
   onGeneratePDF,
   onWhatsApp,
+  canEdit,
   onStatusChange,
   onRefresh,
   setIsDeleteDialogOpen,
   isDeleteDialogOpen,
   isDeleting
 }: RNCDetailHeaderProps) => {
-  const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
-
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex items-center gap-3 min-w-[200px]">
@@ -47,10 +44,6 @@ export const RNCDetailHeader = ({
       </div>
       
       <div className="flex flex-wrap gap-2 items-center">
-        <Button variant="outline" size="sm" onClick={() => setIsCollectionDialogOpen(true)}>
-          <Package className="w-4 h-4 mr-1" />
-          Solicitar Coleta
-        </Button>
         <Button variant="outline" size="sm" onClick={onGeneratePDF}>
           <FilePdf className="w-4 h-4 mr-1" />
           PDF
@@ -81,12 +74,6 @@ export const RNCDetailHeader = ({
           </>
         )}
       </div>
-
-      <CollectionRequestDialog
-        rncId={rnc.id}
-        open={isCollectionDialogOpen}
-        onOpenChange={setIsCollectionDialogOpen}
-      />
 
       <RNCDeleteDialog
         open={isDeleteDialogOpen}
