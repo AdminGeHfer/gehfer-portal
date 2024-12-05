@@ -83,7 +83,6 @@ export function RNCWorkflowStatus({
         throw new Error("Usuário não autenticado");
       }
 
-      // Create transition record with notes
       const { error: transitionError } = await supabase
         .from('rnc_workflow_transitions')
         .insert({
@@ -96,10 +95,8 @@ export function RNCWorkflowStatus({
 
       if (transitionError) throw transitionError;
 
-      // Update RNC status
       await onStatusChange(newStatus);
       
-      // Invalidate queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['rnc', rncId] }),
         queryClient.invalidateQueries({ queryKey: ['workflow-transitions', rncId] }),
@@ -120,8 +117,8 @@ export function RNCWorkflowStatus({
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="w-full max-w-[600px] mx-auto px-2">
+        <CardHeader className="px-3">
           <CardTitle>Status do Workflow</CardTitle>
         </CardHeader>
         <CardContent>
@@ -134,8 +131,8 @@ export function RNCWorkflowStatus({
   const nextStates = getNextStates();
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="w-full max-w-[600px] mx-auto px-2">
+      <CardHeader className="px-3">
         <CardTitle>Status do Workflow</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

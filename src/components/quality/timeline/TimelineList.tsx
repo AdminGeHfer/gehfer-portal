@@ -47,14 +47,14 @@ export function TimelineList({ events, getInitials, getUserName, isLoading }: Ti
       <CardContent>
         <div className="relative space-y-4">
           {events.map((event, index) => (
-            <div key={event.id}>
+            <div key={event.id} className="relative">
               <TimelineEvent
                 event={event}
                 getInitials={getInitials}
                 getUserName={getUserName}
               />
               {index !== events.length - 1 && (
-                <div className="absolute left-4 h-full w-0.5 -translate-x-1/2 bg-border" />
+                <div className="absolute left-4 top-8 bottom-0 w-0.5 -translate-x-1/2 bg-border" />
               )}
             </div>
           ))}
