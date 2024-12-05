@@ -1,12 +1,9 @@
-import { Button } from "@/components/atoms/Button";
-import { ArrowLeft, Printer } from "@phosphor-icons/react";
-import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Package, FilePdf, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";
 import { RNC } from "@/types/rnc";
-import { WhatsappLogo, Trash, Package } from "@phosphor-icons/react";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
-import { CollectionRequestDialog } from "../collection/CollectionRequestDialog";
-import { useState } from "react";
 import { RNCDeleteDialog } from "./RNCDeleteDialog";
+import { useState } from "react";
 
 interface RNCDetailHeaderProps {
   rnc: RNC;
@@ -15,7 +12,7 @@ interface RNCDetailHeaderProps {
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
-  onPrint: () => void;
+  onGeneratePDF: () => void;
   onWhatsApp: () => void;
   onStatusChange: (status: string) => void;
   onRefresh: () => void;
@@ -27,79 +24,56 @@ interface RNCDetailHeaderProps {
 export const RNCDetailHeader = ({
   rnc,
   isEditing,
-  canEdit,
   onEdit,
   onSave,
   onDelete,
-  onPrint,
+  onGeneratePDF,
   onWhatsApp,
+  canEdit,
   onStatusChange,
   onRefresh,
   setIsDeleteDialogOpen,
   isDeleteDialogOpen,
   isDeleting
 }: RNCDetailHeaderProps) => {
-  const navigate = useNavigate();
-  const [isCollectionDialogOpen, setIsCollectionDialogOpen] = useState(false);
-
   return (
-    <div className="mb-6">
-      <Button
-        variant="ghost"
-        className="mb-4"
-        onClick={() => navigate("/quality/rnc")}
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Voltar
-      </Button>
-
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold">RNC #{rnc.rnc_number || "Novo"}</h1>
-            <RNCStatusBadge status={rnc.workflow_status} />
-          </div>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsCollectionDialogOpen(true)}>
-            <Package className="mr-2 h-4 w-4" />
-            Solicitar Coleta
-          </Button>
-          <Button variant="outline" onClick={onPrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Imprimir
-          </Button>
-          <Button variant="outline" onClick={onWhatsApp}>
-            <WhatsappLogo weight="fill" className="mr-2 h-4 w-4" />
-            WhatsApp
-          </Button>
-          {canEdit && (
-            <>
-              <Button 
-                variant={isEditing ? "default" : "outline"}
-                onClick={isEditing ? onSave : onEdit}
-              >
-                {isEditing ? "Salvar" : "Editar"}
-              </Button>
-              <Button 
-                variant="outline" 
-                className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400"
-                onClick={() => setIsDeleteDialogOpen(true)}
-              >
-                <Trash className="mr-2 h-4 w-4" />
-                Excluir
-              </Button>
-            </>
-          )}
-        </div>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex items-center gap-3 min-w-[200px]">
+        <h1 className="text-xl font-semibold truncate">RNC #{rnc.rnc_number || "Novo"}</h1>
+        <RNCStatusBadge status={rnc.workflow_status} />
       </div>
-
-      <CollectionRequestDialog
-        rncId={rnc.id}
-        open={isCollectionDialogOpen}
-        onOpenChange={setIsCollectionDialogOpen}
-      />
+      
+      <div className="flex flex-wrap gap-2 items-center">
+        <Button variant="outline" size="sm" onClick={onGeneratePDF}>
+          <FilePdf className="w-4 h-4 mr-1" />
+          PDF
+        </Button>
+        <Button variant="outline" size="sm" onClick={onWhatsApp}>
+          <WhatsappLogo weight="fill" className="w-4 h-4 mr-1" />
+          WhatsApp
+        </Button>
+        {canEdit && (
+          <>
+            <Button 
+              variant={isEditing ? "default" : "outline"}
+              size="sm"
+              onClick={isEditing ? onSave : onEdit}
+            >
+              <PencilSimple className="w-4 h-4 mr-1" />
+              {isEditing ? "Salvar" : "Editar"}
+            </Button>
+            <Button 
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash className="w-4 h-4 mr-1" />
+              Excluir
+            </Button>
+          </>
+        )}
+      </div>
 
       <RNCDeleteDialog
         open={isDeleteDialogOpen}

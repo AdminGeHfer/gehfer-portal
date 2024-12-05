@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { LoginBackground } from "@/components/login/LoginBackground";
-import { LoginCard } from "@/components/login/LoginCard";
+import { LoginCard } from "../components/LoginCard";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,9 +22,8 @@ const Login = () => {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
-      <LoginBackground />
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800" />
       
-      {/* Theme toggle button */}
       <Button
         variant="ghost"
         size="icon"

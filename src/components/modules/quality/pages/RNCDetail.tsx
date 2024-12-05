@@ -14,7 +14,7 @@ const RNCDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -41,6 +41,9 @@ const RNCDetail = () => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
+    // Add staleTime and refetchInterval for better real-time updates
+    staleTime: 1000, // Consider data stale after 1 second
+    refetchInterval: 2000, // Refetch every 2 seconds
   });
 
   const deleteRNC = useDeleteRNC(id!, () => {
@@ -50,17 +53,15 @@ const RNCDetail = () => {
 
   const updateRNC = useUpdateRNC(id!, {
     onSuccess: () => {
+      // Immediately invalidate queries to trigger a refresh
       queryClient.invalidateQueries({ queryKey: ["rnc", id] });
+      queryClient.invalidateQueries({ queryKey: ["rncs"] });
       setIsEditing(false);
     },
   });
 
-  const handlePrint = () => {
-    setIsPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-    }, 100);
+  const handleGeneratePDF = () => {
+    setIsGeneratingPDF(!isGeneratingPDF);
   };
 
   const handleEdit = () => {
@@ -125,6 +126,8 @@ const RNCDetail = () => {
 
   const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
     await refetch(options);
+    // Also invalidate related queries to ensure consistency
+    queryClient.invalidateQueries({ queryKey: ["rncs"] });
   };
 
   if (isLoading) {
@@ -159,12 +162,12 @@ const RNCDetail = () => {
     <RNCDetailLayout
       rnc={rnc}
       isEditing={isEditing}
-      isPrinting={isPrinting}
+      isGeneratingPDF={isGeneratingPDF}
       isDeleteDialogOpen={isDeleteDialogOpen}
       onEdit={handleEdit}
       onSave={handleSave}
       onDelete={handleDelete}
-      onPrint={handlePrint}
+      onGeneratePDF={handleGeneratePDF}
       onWhatsApp={handleWhatsApp}
       onFieldChange={handleFieldChange}
       setIsDeleteDialogOpen={setIsDeleteDialogOpen}
@@ -178,6 +181,8 @@ const RNCDetail = () => {
           workflow_status: newStatus
         };
         await updateRNC.mutateAsync(updatedRnc);
+        // Force immediate refresh after status change
+        await handleRefresh();
       }}
     />
   );

@@ -21,7 +21,8 @@ export const BackButton = ({ to, label = "Voltar" }: BackButtonProps) => {
   return (
     <Button
       variant="ghost"
-      className="mb-4 hover:bg-primary/10"
+      size="sm"
+      className="hover:bg-primary/10 text-muted-foreground"
       onClick={handleClick}
     >
       <ArrowLeft className="mr-2 h-4 w-4" />

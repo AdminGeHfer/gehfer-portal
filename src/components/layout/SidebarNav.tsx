@@ -36,8 +36,7 @@ const modules: Module[] = [
     submodules: [
       { title: "Dashboard", path: "/quality/dashboard", icon: LayoutDashboard },
       { title: "RNCs", path: "/quality/rnc", icon: ClipboardCheck },
-      { title: "Workflow", path: "/quality/workflow", icon: GitBranch },
-      { title: "Coletas", path: "/quality/collections", icon: Truck }
+      { title: "Workflow", path: "/quality/workflow", icon: GitBranch }
     ]
   },
   {

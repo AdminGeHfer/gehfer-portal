@@ -24,41 +24,57 @@ export function RNCAttachments({ rncId, canEdit = false, onUploadComplete }: RNC
   const { data: attachments, isLoading } = useQuery({
     queryKey: ["rnc-attachments", rncId],
     queryFn: async () => {
-      console.log('Fetching attachments for RNC:', rncId);
-      const { data, error } = await supabase
+      console.log('[RNC-ATTACHMENTS] Iniciando busca para RNC:', rncId);
+      
+      // Verificar contexto do usuário
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('[RNC-ATTACHMENTS] Erro ao obter usuário:', userError);
+        throw userError;
+      }
+      console.log('[RNC-ATTACHMENTS] Contexto do usuário:', userData.user?.id);
+
+      // Buscar anexos
+      const { data, error, count } = await supabase
         .from('rnc_attachments')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('rnc_id', rncId);
 
       if (error) {
-        console.error("Error fetching attachments:", error);
+        console.error('[RNC-ATTACHMENTS] Erro na query:', error);
         throw error;
       }
+
+      console.log('[RNC-ATTACHMENTS] Total de registros encontrados:', count);
+      console.log('[RNC-ATTACHMENTS] Dados retornados:', data);
       
-      console.log('Fetched attachments:', data);
       return data as RNCAttachment[];
-    }
+    },
+    staleTime: 1000 * 60, // 1 minuto
+    gcTime: 1000 * 60 * 5 // 5 minutos (anteriormente cacheTime)
   });
 
   const downloadAttachment = async (attachment: RNCAttachment) => {
     try {
+      console.log('[RNC-ATTACHMENTS] Iniciando download:', attachment);
+
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         toast.error("Usuário não autenticado");
         return;
       }
 
-      // Use the stored file_path from the database
       const { data, error } = await supabase.storage
         .from('rnc-attachments')
         .download(attachment.file_path);
 
       if (error) {
-        console.error("Error downloading file:", error);
+        console.error("[RNC-ATTACHMENTS] Erro no download:", error);
         throw error;
       }
 
-      // Create and trigger download
+      console.log('[RNC-ATTACHMENTS] Download realizado com sucesso');
+
       const blob = new Blob([data], { type: attachment.content_type });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -71,38 +87,45 @@ export function RNCAttachments({ rncId, canEdit = false, onUploadComplete }: RNC
       
       toast.success("Download iniciado com sucesso");
     } catch (error: any) {
-      console.error("Error downloading file:", error);
+      console.error("[RNC-ATTACHMENTS] Erro completo no download:", error);
       toast.error(`Erro ao baixar arquivo: ${error.message}`);
     }
   };
 
   const deleteAttachment = async (attachment: RNCAttachment) => {
     try {
+      console.log('[RNC-ATTACHMENTS] Iniciando exclusão:', attachment);
+
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         toast.error("Usuário não autenticado");
         return;
       }
 
-      // Delete from storage using the stored file_path
       const { error: storageError } = await supabase.storage
         .from('rnc-attachments')
         .remove([attachment.file_path]);
 
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error('[RNC-ATTACHMENTS] Erro ao excluir do storage:', storageError);
+        throw storageError;
+      }
 
-      // Delete from database
       const { error: dbError } = await supabase
         .from('rnc_attachments')
         .delete()
         .eq('id', attachment.id);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('[RNC-ATTACHMENTS] Erro ao excluir do banco:', dbError);
+        throw dbError;
+      }
 
+      console.log('[RNC-ATTACHMENTS] Arquivo excluído com sucesso');
       toast.success("Arquivo excluído com sucesso");
       queryClient.invalidateQueries({ queryKey: ["rnc-attachments", rncId] });
     } catch (error: any) {
-      console.error("Error deleting attachment:", error);
+      console.error("[RNC-ATTACHMENTS] Erro completo na exclusão:", error);
       toast.error(`Erro ao excluir arquivo: ${error.message}`);
     }
   };

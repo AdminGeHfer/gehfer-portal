@@ -525,7 +525,6 @@ export type Database = {
       }
       rnc_events: {
         Row: {
-          comment: string | null
           created_at: string
           created_by: string
           description: string
@@ -535,7 +534,6 @@ export type Database = {
           type: string
         }
         Insert: {
-          comment?: string | null
           created_at?: string
           created_by: string
           description: string
@@ -545,7 +543,6 @@ export type Database = {
           type: string
         }
         Update: {
-          comment?: string | null
           created_at?: string
           created_by?: string
           description?: string

@@ -1,153 +1,128 @@
-import { Header } from "@/components/layout/Header";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailForm } from "./RNCDetailForm";
-import { RNCCommentSection } from "./RNCCommentSection";
 import { RNCAttachments } from "./RNCAttachments";
 import { RNCWorkflowStatus } from "../workflow/RNCWorkflowStatus";
-import { RNCWorkflowHistory } from "../workflow/RNCWorkflowHistory";
-import { BackButton } from "@/components/atoms/BackButton";
-import { useParams, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { RNCDeleteDialog } from "./RNCDeleteDialog";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
-import { toast } from "sonner";
+import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
+import { RNCReportPreview } from "../report/RNCReportPreview";
+import { RNCTimeline } from "../RNCTimeline";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
   isEditing: boolean;
-  isPrinting: boolean;
+  isGeneratingPDF: boolean;
   isDeleteDialogOpen: boolean;
-  isDeleting: boolean;
-  canEdit: boolean;
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
-  onPrint: () => void;
+  onGeneratePDF: () => void;
   onWhatsApp: () => void;
   onFieldChange: (field: keyof RNC, value: any) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
+  isDeleting: boolean;
+  canEdit: boolean;
   onRefresh: (options?: RefetchOptions) => Promise<void>;
   onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
 }
 
-export const RNCDetailLayout = ({
+export function RNCDetailLayout({
   rnc,
   isEditing,
-  isPrinting,
+  isGeneratingPDF,
   isDeleteDialogOpen,
-  isDeleting,
-  canEdit,
   onEdit,
   onSave,
   onDelete,
-  onPrint,
+  onGeneratePDF,
   onWhatsApp,
   onFieldChange,
   setIsDeleteDialogOpen,
+  isDeleting,
+  canEdit,
   onRefresh,
-  onStatusChange
-}: RNCDetailLayoutProps) => {
-  const { id } = useParams();
-  if (!id) return <Navigate to="/quality/rnc" replace />;
-
-  const { data: workflowStatus } = useQuery({
-    queryKey: ["workflow-status", id],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("rnc_workflow_transitions")
-          .select("*")
-          .eq("rnc_id", id)
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          return rnc.workflow_status;
-        }
-
-        return data[0].to_status as WorkflowStatusEnum;
-      } catch (error) {
-        console.error("Error in workflow status query:", error);
-        return rnc.workflow_status;
-      }
-    },
-    enabled: !!rnc // Só executa a query se tiver uma RNC
-  });
-
-  // Se a RNC não existir mais, redireciona para a lista
-  if (!rnc) {
-    return <Navigate to="/quality/rnc" replace />;
+  onStatusChange,
+}: RNCDetailLayoutProps) {
+  if (isGeneratingPDF) {
+    return (
+      <RNCReportPreview 
+        rnc={rnc} 
+        onClose={() => {
+          onGeneratePDF();
+        }} 
+      />
+    );
   }
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <BackButton to="/quality/rnc" label="Voltar para Lista de RNCs" />
-        
-        <div className="space-y-8">
-          <Card className="p-6">
-            <RNCDetailHeader 
-              rnc={rnc}
-              isEditing={isEditing}
-              canEdit={canEdit}
-              onEdit={onEdit}
-              onSave={onSave}
-              onDelete={onDelete}
-              onPrint={onPrint}
-              onWhatsApp={onWhatsApp}
-              onStatusChange={onStatusChange}
-              onRefresh={onRefresh}
-              setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-              isDeleteDialogOpen={isDeleteDialogOpen}
-              isDeleting={isDeleting}
-            />
-          </Card>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-8">
-              <Card className="p-6">
-                <RNCDetailForm 
-                  rnc={rnc}
-                  isEditing={isEditing}
-                  onFieldChange={onFieldChange}
-                />
-              </Card>
-
-              <Card className="p-6">
-                <RNCAttachments rncId={id} />
-              </Card>
-
-              <Card className="p-6">
-                <RNCCommentSection 
-                  rncId={id}
-                  onCommentAdded={onRefresh}
-                />
-              </Card>
-            </div>
-
-            <div className="space-y-8">
-              <Card className="p-6">
+      <main className="container mx-auto py-1">
+        <div className="grid gap-2 lg:grid-cols-12">
+          {/* Workflow Status - Com mais destaque */}
+          <div className="lg:col-span-4 lg:order-2">
+            <div className="sticky top-4 space-y-2">
+              <Card className="p-4 bg-card/90 backdrop-blur-lg border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <RNCWorkflowStatus 
-                  rncId={id}
-                  currentStatus={workflowStatus || "open"}
+                  rncId={rnc.id}
+                  currentStatus={rnc.workflow_status}
                   onStatusChange={onStatusChange}
+                  onRefresh={onRefresh}
                 />
-              </Card>
-
-              <Card className="p-6">
-                <RNCWorkflowHistory rncId={id} />
               </Card>
             </div>
           </div>
+
+          {/* Conteúdo Principal */}
+          <div className="lg:col-span-8 lg:order-1 space-y-2">
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md">
+              <div className="p-2">
+                <RNCDetailHeader 
+                  rnc={rnc}
+                  isEditing={isEditing}
+                  onEdit={onEdit}
+                  onSave={onSave}
+                  onDelete={onDelete}
+                  onGeneratePDF={onGeneratePDF}
+                  onWhatsApp={onWhatsApp}
+                  canEdit={canEdit}
+                  onStatusChange={onStatusChange}
+                  onRefresh={onRefresh}
+                  setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                  isDeleteDialogOpen={isDeleteDialogOpen}
+                  isDeleting={isDeleting}
+                />
+              </div>
+            </Card>
+
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md p-4">
+              <RNCDetailForm
+                rnc={rnc}
+                isEditing={isEditing}
+                onFieldChange={onFieldChange}
+              />
+            </Card>
+
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md p-4">
+              <RNCAttachments rncId={rnc.id} />
+            </Card>
+
+            <Card className="bg-card/90 backdrop-blur-sm shadow-md p-4">
+              <RNCTimeline rncId={rnc.id} />
+            </Card>
+          </div>
         </div>
       </main>
+
+      <RNCDeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={onDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
-};
-
-export default RNCDetailLayout;
+}

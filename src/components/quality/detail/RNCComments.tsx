@@ -15,6 +15,21 @@ interface RNCCommentsProps {
   onCommentAdded: () => void;
 }
 
+interface RNCEvent {
+  id: string;
+  rnc_id: string;
+  title: string;
+  description: string;
+  type: string;
+  created_at: string;
+  created_by: string;
+  comment?: string;
+  created_by_profile: {
+    name: string;
+    modules: string[];
+  };
+}
+
 export function RNCComments({ rncId, onCommentAdded }: RNCCommentsProps) {
   const { data: currentUser } = useQuery({
     queryKey: ["current-user"],
@@ -38,7 +53,7 @@ export function RNCComments({ rncId, onCommentAdded }: RNCCommentsProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as RNCEvent[];
     },
   });
 

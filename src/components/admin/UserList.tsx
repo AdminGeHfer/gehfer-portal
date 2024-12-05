@@ -1,11 +1,12 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Mail, UserCog, Trash2 } from "lucide-react";
+import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { UserListRow } from "./UserListRow";
 
 interface UserListProps {
   users: any[];
@@ -17,21 +18,58 @@ interface UserListProps {
 export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) {
   const { toast } = useToast();
   const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [userToResetPassword, setUserToResetPassword] = useState<any>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
-  const handleResetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
-      if (error) throw error;
-      toast({
-        title: "Email enviado",
-        description: "Um email de redefinição de senha foi enviado"
-      });
-    } catch (error: any) {
+  const handleResetPassword = async () => {
+    if (!userToResetPassword) return;
+    if (newPassword !== confirmPassword) {
       toast({
         title: "Erro",
-        description: error.message,
+        description: "As senhas não coincidem",
         variant: "destructive"
       });
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast({
+        title: "Erro",
+        description: "A senha deve ter pelo menos 6 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsResettingPassword(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await supabase.functions.invoke('admin-reset-password', {
+        body: {
+          userId: userToResetPassword.id,
+          password: newPassword
+        }
+      });
+
+      if (response.error) throw response.error;
+
+      toast({
+        title: "Senha alterada",
+        description: "A senha do usuário foi alterada com sucesso"
+      });
+      setUserToResetPassword(null);
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error: any) {
+      console.error('Error resetting password:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao alterar senha",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -55,25 +93,21 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'destructive';
-      case 'manager':
-        return 'default';
-      default:
-        return 'secondary';
-    }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'Administrador';
-      case 'manager':
-        return 'Gerente';
-      default:
-        return 'Usuário';
+  const handleSendPasswordReset = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      
+      toast({
+        title: "Email enviado",
+        description: "Um email de redefinição de senha foi enviado"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive"
+      });
     }
   };
 
@@ -96,54 +130,14 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
               <TableCell colSpan={6} className="text-center">Carregando...</TableCell>
             </TableRow>
           ) : users?.map((user) => (
-            <TableRow key={user.id} className="hover:bg-primary/5">
-              <TableCell>{user.name}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <Badge variant={getRoleBadgeVariant(user.role)}>
-                  {getRoleLabel(user.role)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1">
-                  {user.modules?.map((module: string) => (
-                    <Badge key={module} variant="secondary">
-                      {module}
-                    </Badge>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge variant={user.active ? "default" : "destructive"}>
-                  {user.active ? "Ativo" : "Inativo"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => user.email && handleResetPassword(user.email)}
-                  >
-                    <Mail className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => onEdit(user)}
-                  >
-                    <UserCog className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => setUserToDelete(user)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
+            <UserListRow
+              key={user.id}
+              user={user}
+              onEdit={onEdit}
+              onDelete={setUserToDelete}
+              onResetPassword={setUserToResetPassword}
+              onSendPasswordReset={handleSendPasswordReset}
+            />
           ))}
         </TableBody>
       </Table>
@@ -164,6 +158,56 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!userToResetPassword} onOpenChange={(open) => {
+        if (!open) {
+          setUserToResetPassword(null);
+          setNewPassword("");
+          setConfirmPassword("");
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar Senha - {userToResetPassword?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Input
+                type="password"
+                placeholder="Nova senha"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Input
+                type="password"
+                placeholder="Confirmar nova senha"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setUserToResetPassword(null);
+                setNewPassword("");
+                setConfirmPassword("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleResetPassword}
+              disabled={isResettingPassword}
+            >
+              {isResettingPassword ? "Alterando..." : "Alterar Senha"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

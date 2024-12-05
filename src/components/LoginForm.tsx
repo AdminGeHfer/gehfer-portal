@@ -85,17 +85,6 @@ const LoginForm = () => {
             Entrar
           </Button>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          className="text-center"
-        >
-          <a href="#" className="text-sm text-gray-600 hover:text-primary transition-colors">
-            Esqueceu sua senha?
-          </a>
-        </motion.div>
       </form>
     </div>
   );
