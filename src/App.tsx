@@ -5,8 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthGuard } from "./components/auth/AuthGuard";
 import { RoleGuard } from "./components/auth/RoleGuard";
 import { SidebarProvider } from "./contexts/SidebarContext";
@@ -57,64 +55,62 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <TooltipProvider>
-          <DndProvider backend={HTML5Backend}>
-            <SidebarProvider>
-              <div className="min-h-screen bg-background">
-                <Toaster />
-                <Sonner />
-                <Suspense fallback={<LoadingFallback />}>
-                  <div className="flex min-h-screen">
-                    <Routes>
-                      <Route path="/login" element={<Login />} />
-                      <Route
-                        path="/*"
-                        element={
-                          <ProtectedRoute module="any">
-                            <>
-                              <CollapsibleSidebar>
-                                <SidebarNav />
-                              </CollapsibleSidebar>
-                              <main className="flex-1 overflow-auto w-full">
-                                <Routes>
-                                  <Route path="/apps" element={<Apps />} />
-                                  <Route
-                                    path="/quality/*"
-                                    element={
-                                      <ProtectedRoute module="quality">
-                                        <QualityRoutes />
-                                      </ProtectedRoute>
-                                    }
-                                  />
-                                  <Route
-                                    path="/admin/*"
-                                    element={
-                                      <ProtectedRoute module="admin">
-                                        <AdminRoutes />
-                                      </ProtectedRoute>
-                                    }
-                                  />
-                                  <Route
-                                    path="/portaria/*"
-                                    element={
-                                      <ProtectedRoute module="portaria">
-                                        <PortariaRoutes />
-                                      </ProtectedRoute>
-                                    }
-                                  />
-                                  <Route path="/" element={<Navigate to="/apps" replace />} />
-                                  <Route path="*" element={<Navigate to="/apps" replace />} />
-                                </Routes>
-                              </main>
-                            </>
-                          </ProtectedRoute>
-                        }
-                      />
-                    </Routes>
-                  </div>
-                </Suspense>
-              </div>
-            </SidebarProvider>
-          </DndProvider>
+          <SidebarProvider>
+            <div className="min-h-screen bg-background">
+              <Toaster />
+              <Sonner />
+              <Suspense fallback={<LoadingFallback />}>
+                <div className="flex min-h-screen">
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route
+                      path="/*"
+                      element={
+                        <ProtectedRoute module="any">
+                          <>
+                            <CollapsibleSidebar>
+                              <SidebarNav />
+                            </CollapsibleSidebar>
+                            <main className="flex-1 overflow-auto w-full">
+                              <Routes>
+                                <Route path="/apps" element={<Apps />} />
+                                <Route
+                                  path="/quality/*"
+                                  element={
+                                    <ProtectedRoute module="quality">
+                                      <QualityRoutes />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/admin/*"
+                                  element={
+                                    <ProtectedRoute module="admin">
+                                      <AdminRoutes />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route
+                                  path="/portaria/*"
+                                  element={
+                                    <ProtectedRoute module="portaria">
+                                      <PortariaRoutes />
+                                    </ProtectedRoute>
+                                  }
+                                />
+                                <Route path="/" element={<Navigate to="/apps" replace />} />
+                                <Route path="*" element={<Navigate to="/apps" replace />} />
+                              </Routes>
+                            </main>
+                          </>
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </div>
+              </Suspense>
+            </div>
+          </SidebarProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
