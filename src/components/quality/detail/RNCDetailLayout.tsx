@@ -10,6 +10,7 @@ import { Header } from "@/components/layout/Header";
 import { RefetchOptions } from "@tanstack/react-query";
 import { RNCReportPreview } from "../report/RNCReportPreview";
 import { RNCTimeline } from "../RNCTimeline";
+import { UseMutationResult } from "@tanstack/react-query";
 
 interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -27,6 +28,7 @@ interface RNCDetailLayoutProps {
   canEdit: boolean;
   onRefresh: (options?: RefetchOptions) => Promise<void>;
   onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
+  updateRNC: UseMutationResult<any, Error, Partial<RNC>>;
 }
 
 export function RNCDetailLayout({
@@ -45,6 +47,7 @@ export function RNCDetailLayout({
   canEdit,
   onRefresh,
   onStatusChange,
+  updateRNC
 }: RNCDetailLayoutProps) {
   if (isGeneratingPDF) {
     return (
@@ -103,6 +106,7 @@ export function RNCDetailLayout({
                 rnc={rnc}
                 isEditing={isEditing}
                 onFieldChange={onFieldChange}
+                updateRNC={updateRNC}
               />
             </Card>
 

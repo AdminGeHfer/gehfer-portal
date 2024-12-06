@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
 import { transformRNCData } from "@/utils/rncTransform";
-import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
 import { subscribeToRNCChanges } from "@/api/rncService";
@@ -51,8 +50,6 @@ const RNCDetail = () => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
-    staleTime: 1000,
-    refetchInterval: 2000,
   });
 
   useEffect(() => {
