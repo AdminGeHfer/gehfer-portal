@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
@@ -12,7 +12,15 @@ import { RNC } from "@/types/rnc";
 
 const RNCDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Validate UUID format
+  const isValidUUID = (uuid: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
+  };
+
   const {
     isDeleteDialogOpen,
     setIsDeleteDialogOpen,
@@ -31,6 +39,12 @@ const RNCDetail = () => {
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
+      if (!id || !isValidUUID(id)) {
+        toast.error("ID inválido");
+        navigate("/quality/rnc");
+        return null;
+      }
+
       const { data: user } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("rncs")
@@ -51,6 +65,7 @@ const RNCDetail = () => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
+    enabled: !!id,
   });
 
   useEffect(() => {
