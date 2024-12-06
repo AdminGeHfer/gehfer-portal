@@ -106,7 +106,6 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
         toast.error("Número de RNC inválido");
         return null;
       }
-      // Fix: Remove eq. prefix for numeric queries
       query = query.eq('rnc_number', rncNumber);
     }
 

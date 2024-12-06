@@ -1,14 +1,11 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { getRNCById, subscribeToRNCChanges } from "@/api/rncService";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
-import { transformRNCData } from "@/utils/rncTransform";
 import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
-import { subscribeToRNCChanges } from "@/api/rncService";
 import { useRNCDetailState } from "@/hooks/useRNCDetailState";
-import { RNC } from "@/types/rnc";
 
 const RNCDetail = () => {
   const { id } = useParams();
@@ -40,51 +37,13 @@ const RNCDetail = () => {
         return null;
       }
 
-      const { data: user } = await supabase.auth.getUser();
-      let query = supabase
-        .from("rncs")
-        .select(`
-          *,
-          contact:rnc_contacts(*),
-          events:rnc_events(*)
-        `);
-
-      // Check if id is a UUID or RNC number
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (uuidRegex.test(id)) {
-        query = query.eq("id", id);
-      } else {
-        const rncNumber = parseInt(id);
-        if (isNaN(rncNumber)) {
-          toast.error("Número de RNC inválido");
-          navigate("/quality/rnc");
-          return null;
-        }
-        // Fix: Remove eq. prefix for numeric queries
-        query = query.eq("rnc_number", rncNumber);
-      }
-
-      const { data, error } = await query.maybeSingle();
-
-      if (error) {
-        console.error("Error fetching RNC:", error);
-        toast.error("RNC não encontrada");
+      const rnc = await getRNCById(id);
+      if (!rnc) {
         navigate("/quality/rnc");
         return null;
       }
 
-      if (!data) {
-        toast.error("RNC não encontrada");
-        navigate("/quality/rnc");
-        return null;
-      }
-
-      if (data.created_by !== user.user?.id) {
-        toast.error("Você não tem permissão para editar esta RNC");
-        return { ...transformRNCData(data), canEdit: false };
-      }
-
-      return { ...transformRNCData(data), canEdit: true };
+      return rnc;
     },
     enabled: !!id,
   });
