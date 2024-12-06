@@ -6,6 +6,7 @@ import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
 import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
 import { useRNCDetailState } from "@/hooks/useRNCDetailState";
+import { RNC } from "@/types/rnc";
 
 const RNCDetail = () => {
   const { id } = useParams();
