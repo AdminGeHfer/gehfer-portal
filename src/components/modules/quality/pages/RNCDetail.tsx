@@ -8,6 +8,7 @@ import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
 import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
+import { subscribeToRNCChanges } from "@/api/rncService";
 
 const RNCDetail = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ const RNCDetail = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
@@ -41,10 +43,22 @@ const RNCDetail = () => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
-    // Add staleTime and refetchInterval for better real-time updates
-    staleTime: 1000, // Consider data stale after 1 second
-    refetchInterval: 2000, // Refetch every 2 seconds
+    staleTime: 1000,
+    refetchInterval: 2000,
   });
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    if (!id) return;
+    
+    const unsubscribe = subscribeToRNCChanges(id, (updatedRNC) => {
+      queryClient.setQueryData(["rnc", id], updatedRNC);
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [id, queryClient]);
 
   const deleteRNC = useDeleteRNC(id!, () => {
     toast.success("RNC excluída com sucesso");
@@ -53,10 +67,16 @@ const RNCDetail = () => {
 
   const updateRNC = useUpdateRNC(id!, {
     onSuccess: () => {
-      // Immediately invalidate queries to trigger a refresh
       queryClient.invalidateQueries({ queryKey: ["rnc", id] });
       queryClient.invalidateQueries({ queryKey: ["rncs"] });
       setIsEditing(false);
+      setIsSaving(false);
+      toast.success("RNC atualizada com sucesso");
+    },
+    onError: (error) => {
+      setIsSaving(false);
+      toast.error(`Erro ao atualizar RNC: ${error.message}`);
+      console.error("Update error:", error);
     },
   });
 
@@ -73,8 +93,14 @@ const RNCDetail = () => {
   };
 
   const handleSave = async () => {
-    if (!rnc) return;
-    await updateRNC.mutateAsync(rnc);
+    if (!rnc || isSaving) return;
+    
+    try {
+      setIsSaving(true);
+      await updateRNC.mutateAsync(rnc);
+    } catch (error) {
+      console.error("Save error:", error);
+    }
   };
 
   const handleDelete = async () => {
@@ -126,7 +152,6 @@ const RNCDetail = () => {
 
   const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
     await refetch(options);
-    // Also invalidate related queries to ensure consistency
     queryClient.invalidateQueries({ queryKey: ["rncs"] });
   };
 
@@ -181,7 +206,6 @@ const RNCDetail = () => {
           workflow_status: newStatus
         };
         await updateRNC.mutateAsync(updatedRnc);
-        // Force immediate refresh after status change
         await handleRefresh();
       }}
     />

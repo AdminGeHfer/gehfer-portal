@@ -33,33 +33,14 @@ const formSchema = z.object({
   resolution: z.string().optional(),
 });
 
-const defaultValues: RNCFormData = {
-  description: "",
-  priority: "medium",
-  type: "client",
-  department: "Expedição", // Set a valid default department
-  contact: {
-    name: "",
-    phone: "",
-    email: "",
-  },
-  company: "",
-  cnpj: "",
-  orderNumber: "",
-  returnNumber: "",
-  workflow_status: "open",
-  assignedTo: "",
-  attachments: [],
-  resolution: "",
-};
-
 interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
   onFieldChange: (field: keyof RNC, value: any) => void;
+  onSave?: () => Promise<void>;
 }
 
-export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormProps) {
+export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDetailFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,14 +68,23 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
     
     try {
       setIsSubmitting(true);
+      
+      // Update all form fields
       Object.keys(data).forEach((key) => {
         onFieldChange(key as keyof RNC, data[key as keyof RNCFormData]);
       });
+
+      // Call parent save handler if provided
+      if (onSave) {
+        await onSave();
+      }
+
       toast({
         title: "RNC atualizada com sucesso",
         description: "As alterações foram salvas.",
       });
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Erro ao atualizar RNC",
         description: "Ocorreu um erro ao tentar atualizar a RNC.",
@@ -145,7 +135,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
                     if (activeTab === "contact") setActiveTab("details");
                   }}
                   className="w-32"
-                  disabled={activeTab === "company"}
+                  disabled={activeTab === "company" || isSubmitting}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Voltar
@@ -158,6 +148,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
                       if (activeTab === "details") setActiveTab("contact");
                     }}
                     className="w-32"
+                    disabled={isSubmitting}
                   >
                     Próximo
                     <ArrowRight className="ml-2 h-4 w-4" />
