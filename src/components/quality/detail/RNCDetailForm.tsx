@@ -70,8 +70,12 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
       setIsSubmitting(true);
       
       // Update all form fields
-      Object.keys(data).forEach((key) => {
-        onFieldChange(key as keyof RNC, data[key as keyof RNCFormData]);
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === "contact" && value && typeof value === "object") {
+          onFieldChange(key as keyof RNC, value);
+        } else {
+          onFieldChange(key as keyof RNC, value);
+        }
       });
 
       // Call parent save handler if provided

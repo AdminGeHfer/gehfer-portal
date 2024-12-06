@@ -125,7 +125,7 @@ const RNCDetail = () => {
         ...rnc,
         contact: {
           ...rnc.contact,
-          [value.target.name]: value.target.value
+          ...value
         }
       };
       updateRNC.mutate(updatedRnc);
