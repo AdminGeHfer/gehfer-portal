@@ -73,12 +73,10 @@ const RNCDetail = () => {
       setIsSaving(false);
       toast.success("RNC atualizada com sucesso");
     },
-    meta: {
-      onError: (error: Error) => {
-        setIsSaving(false);
-        toast.error(`Erro ao atualizar RNC: ${error.message}`);
-        console.error("Update error:", error);
-      }
+    onError: (error: Error) => {
+      setIsSaving(false);
+      toast.error(`Erro ao atualizar RNC: ${error.message}`);
+      console.error("Update error:", error);
     }
   });
 
