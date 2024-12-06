@@ -55,7 +55,6 @@ const RNCDetail = () => {
     refetchInterval: 2000,
   });
 
-  // Subscribe to real-time updates
   useEffect(() => {
     if (!id) return;
     
@@ -196,6 +195,7 @@ const RNCDetail = () => {
         await updateRNC.mutateAsync(updatedRnc);
         await handleRefresh();
       }}
+      updateRNC={updateRNC}
     />
   );
 };

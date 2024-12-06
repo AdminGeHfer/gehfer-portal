@@ -12,6 +12,7 @@ import { RNCFileUpload } from "./form/RNCFileUpload";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRNCContactForm } from "@/hooks/useRNCContactForm";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
@@ -38,12 +39,21 @@ interface RNCDetailFormProps {
   isEditing: boolean;
   onFieldChange: (field: keyof RNC, value: any) => void;
   onSave?: () => Promise<void>;
+  updateRNC: any; // Add proper type from your mutations
 }
 
-export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDetailFormProps) {
+export function RNCDetailForm({ 
+  rnc, 
+  isEditing, 
+  onFieldChange, 
+  onSave,
+  updateRNC 
+}: RNCDetailFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { isSaving, handleContactSave } = useRNCContactForm(rnc, updateRNC);
   
   const form = useForm<RNCFormData>({
     resolver: zodResolver(formSchema),
@@ -69,11 +79,9 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
     try {
       setIsSubmitting(true);
       
-      // Update all form fields
+      // Update all form fields except contact (handled separately)
       Object.entries(data).forEach(([key, value]) => {
-        if (key === "contact" && value && typeof value === "object") {
-          onFieldChange(key as keyof RNC, value);
-        } else {
+        if (key !== "contact") {
           onFieldChange(key as keyof RNC, value);
         }
       });
@@ -125,7 +133,11 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
 
             <TabsContent value="contact" className="space-y-6">
               <div className="grid gap-6">
-                <RNCContactInfo form={form} />
+                <RNCContactInfo 
+                  form={form} 
+                  onSave={handleContactSave}
+                  isSaving={isSaving}
+                />
               </div>
             </TabsContent>
 
