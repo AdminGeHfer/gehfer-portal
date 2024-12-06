@@ -36,7 +36,14 @@ export const getRNCs = async (): Promise<RNC[]> => {
       updated_at,
       closed_at,
       contact:rnc_contacts(name, phone, email),
-      events:rnc_events(id, created_at, title, description, type, created_by, comment)
+      events:rnc_events(
+        id, 
+        created_at, 
+        title, 
+        description, 
+        type, 
+        created_by
+      )
     `)
     .order('created_at', { ascending: false });
 
