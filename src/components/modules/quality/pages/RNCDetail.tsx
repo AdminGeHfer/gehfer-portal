@@ -1,24 +1,32 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
 import { transformRNCData } from "@/utils/rncTransform";
-import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
 import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
 import { subscribeToRNCChanges } from "@/api/rncService";
+import { useRNCDetailState } from "@/hooks/useRNCDetailState";
 
 const RNCDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const {
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    isGeneratingPDF,
+    setIsGeneratingPDF,
+    isEditing,
+    setIsEditing,
+    isDeleting,
+    setIsDeleting,
+    isSaving,
+    setIsSaving,
+    deleteRNC,
+    updateRNC
+  } = useRNCDetailState(id!);
 
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
@@ -59,28 +67,6 @@ const RNCDetail = () => {
       unsubscribe();
     };
   }, [id, queryClient]);
-
-  const deleteRNC = useDeleteRNC(id!, () => {
-    toast.success("RNC excluída com sucesso");
-    navigate("/quality/rnc");
-  });
-
-  const updateRNC = useUpdateRNC(id!, {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rnc", id] });
-      queryClient.invalidateQueries({ queryKey: ["rncs"] });
-      setIsEditing(false);
-      setIsSaving(false);
-      toast.success("RNC atualizada com sucesso");
-    },
-    meta: {
-      onError: (error: Error) => {
-        setIsSaving(false);
-        toast.error(`Erro ao atualizar RNC: ${error.message}`);
-        console.error("Update error:", error);
-      }
-    }
-  });
 
   const handleGeneratePDF = () => {
     setIsGeneratingPDF(!isGeneratingPDF);
