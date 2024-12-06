@@ -12,7 +12,6 @@ import { RNCFileUpload } from "./form/RNCFileUpload";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRNCContactForm } from "@/hooks/useRNCContactForm";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
@@ -39,21 +38,12 @@ interface RNCDetailFormProps {
   isEditing: boolean;
   onFieldChange: (field: keyof RNC, value: any) => void;
   onSave?: () => Promise<void>;
-  updateRNC: any; // Add proper type from your mutations
 }
 
-export function RNCDetailForm({ 
-  rnc, 
-  isEditing, 
-  onFieldChange, 
-  onSave,
-  updateRNC 
-}: RNCDetailFormProps) {
+export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDetailFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { isSaving, handleContactSave } = useRNCContactForm(rnc, updateRNC);
   
   const form = useForm<RNCFormData>({
     resolver: zodResolver(formSchema),
@@ -79,11 +69,9 @@ export function RNCDetailForm({
     try {
       setIsSubmitting(true);
       
-      // Update all form fields except contact (handled separately)
-      Object.entries(data).forEach(([key, value]) => {
-        if (key !== "contact") {
-          onFieldChange(key as keyof RNC, value);
-        }
+      // Update all form fields
+      Object.keys(data).forEach((key) => {
+        onFieldChange(key as keyof RNC, data[key as keyof RNCFormData]);
       });
 
       // Call parent save handler if provided
@@ -133,11 +121,7 @@ export function RNCDetailForm({
 
             <TabsContent value="contact" className="space-y-6">
               <div className="grid gap-6">
-                <RNCContactInfo 
-                  form={form} 
-                  onSave={handleContactSave}
-                  isSaving={isSaving}
-                />
+                <RNCContactInfo form={form} />
               </div>
             </TabsContent>
 
