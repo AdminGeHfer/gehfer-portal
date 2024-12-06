@@ -1,6 +1,7 @@
 import { RNC } from "@/types/rnc";
 import { supabase } from "@/integrations/supabase/client";
 import { transformRNCData } from "@/utils/rncTransform";
+import { toast } from "sonner";
 
 const RNC_CACHE_KEY = 'rncs';
 const CACHE_TIME = 1000 * 60 * 10; // 10 minutes
@@ -89,6 +90,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
   try {
     if (!isValidUUID(id)) {
       console.error(`Invalid UUID format: ${id}`);
+      toast.error("ID da RNC inválido");
       return null;
     }
 
@@ -109,6 +111,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
 
     if (!data) {
       console.log(`No RNC found with id: ${id}`);
+      toast.error("RNC não encontrada");
       return null;
     }
 
