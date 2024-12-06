@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 const RNCList = lazy(() => import("@/components/modules/quality/pages/RNCList"));
 const RNCDetail = lazy(() => import("@/components/modules/quality/pages/RNCDetail"));
 const Dashboard = lazy(() => import("@/components/modules/quality/pages/Dashboard"));
-const WorkflowEditor = lazy(() => import("@/components/modules/quality/pages/workflow/WorkflowEditor"));
+const WorkflowEditor = lazy(() => import("@/components/quality/workflow/editor/WorkflowEditor"));
 
 const QualityRoutes = () => {
   return (
