@@ -65,18 +65,19 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
     const transformedData = data.map(transformRNCData);
     
-    // Update cache with compression
-    const compressedData = JSON.stringify({
-      data: transformedData,
-      timestamp: Date.now()
-    });
-    
+    // Update cache
     try {
-      sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
+      sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
+        data: transformedData,
+        timestamp: Date.now()
+      }));
     } catch (e) {
       console.warn('Cache storage failed, clearing old data');
       sessionStorage.clear();
-      sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
+      sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
+        data: transformedData,
+        timestamp: Date.now()
+      }));
     }
 
     return transformedData;
@@ -88,21 +89,27 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
 export const getRNCById = async (id: string): Promise<RNC | null> => {
   try {
-    if (!isValidUUID(id)) {
-      console.error(`Invalid UUID format: ${id}`);
-      toast.error("ID da RNC inválido");
-      return null;
-    }
-
-    const { data, error } = await supabase
+    let query = supabase
       .from('rncs')
       .select(`
         *,
         contact:rnc_contacts(*),
         events:rnc_events(*)
-      `)
-      .eq('id', id)
-      .maybeSingle();
+      `);
+
+    // Check if id is UUID or RNC number
+    if (isValidUUID(id)) {
+      query = query.eq('id', id);
+    } else {
+      const rncNumber = parseInt(id);
+      if (isNaN(rncNumber)) {
+        toast.error("Número de RNC inválido");
+        return null;
+      }
+      query = query.eq('rnc_number', rncNumber);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error) {
       console.error('Error fetching RNC:', error);
@@ -110,7 +117,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
     }
 
     if (!data) {
-      console.log(`No RNC found with id: ${id}`);
+      console.log(`No RNC found with identifier: ${id}`);
       toast.error("RNC não encontrada");
       return null;
     }

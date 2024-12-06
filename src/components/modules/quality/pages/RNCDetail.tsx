@@ -15,12 +15,6 @@ const RNCDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Validate UUID format
-  const isValidUUID = (uuid: string) => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid);
-  };
-
   const {
     isDeleteDialogOpen,
     setIsDeleteDialogOpen,
@@ -36,27 +30,41 @@ const RNCDetail = () => {
     updateRNC
   } = useRNCDetailState(id!);
 
+  // Query to get RNC by ID or RNC number
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
-      if (!id || !isValidUUID(id)) {
+      if (!id) {
         toast.error("ID inválido");
         navigate("/quality/rnc");
         return null;
       }
 
       const { data: user } = await supabase.auth.getUser();
-      const { data, error } = await supabase
+      let query = supabase
         .from("rncs")
         .select(`
           *,
           contact:rnc_contacts(*),
           events:rnc_events(*)
-        `)
-        .eq("id", id)
-        .single();
+        `);
 
-      if (error) throw error;
+      // Check if id is a UUID or RNC number
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(id)) {
+        query = query.eq("id", id);
+      } else {
+        query = query.eq("rnc_number", parseInt(id));
+      }
+
+      const { data, error } = await query.single();
+
+      if (error) {
+        console.error("Error fetching RNC:", error);
+        toast.error("RNC não encontrada");
+        navigate("/quality/rnc");
+        return null;
+      }
 
       if (data.created_by !== user.user?.id) {
         toast.error("Você não tem permissão para editar esta RNC");
@@ -69,16 +77,16 @@ const RNCDetail = () => {
   });
 
   useEffect(() => {
-    if (!id) return;
+    if (!rnc?.id) return;
     
-    const unsubscribe = subscribeToRNCChanges(id, (updatedRNC) => {
+    const unsubscribe = subscribeToRNCChanges(rnc.id, (updatedRNC) => {
       queryClient.setQueryData(["rnc", id], updatedRNC);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [id, queryClient]);
+  }, [rnc?.id, queryClient, id]);
 
   const handleGeneratePDF = () => {
     setIsGeneratingPDF(!isGeneratingPDF);
