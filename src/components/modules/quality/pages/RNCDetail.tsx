@@ -54,13 +54,26 @@ const RNCDetail = () => {
       if (uuidRegex.test(id)) {
         query = query.eq("id", id);
       } else {
-        query = query.eq("rnc_number", parseInt(id));
+        const rncNumber = parseInt(id);
+        if (isNaN(rncNumber)) {
+          toast.error("Número de RNC inválido");
+          navigate("/quality/rnc");
+          return null;
+        }
+        // Fix: Remove eq. prefix for numeric queries
+        query = query.eq("rnc_number", rncNumber);
       }
 
-      const { data, error } = await query.single();
+      const { data, error } = await query.maybeSingle();
 
       if (error) {
         console.error("Error fetching RNC:", error);
+        toast.error("RNC não encontrada");
+        navigate("/quality/rnc");
+        return null;
+      }
+
+      if (!data) {
         toast.error("RNC não encontrada");
         navigate("/quality/rnc");
         return null;

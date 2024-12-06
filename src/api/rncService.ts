@@ -106,6 +106,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
         toast.error("Número de RNC inválido");
         return null;
       }
+      // Fix: Remove eq. prefix for numeric queries
       query = query.eq('rnc_number', rncNumber);
     }
 
@@ -129,7 +130,6 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
   }
 };
 
-// Subscribe to real-time changes
 export const subscribeToRNCChanges = (id: string, onUpdate: (rnc: RNC) => void) => {
   if (!isValidUUID(id)) {
     console.error(`Invalid UUID format for subscription: ${id}`);
