@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -73,11 +73,13 @@ const RNCDetail = () => {
       setIsSaving(false);
       toast.success("RNC atualizada com sucesso");
     },
-    onError: (error) => {
-      setIsSaving(false);
-      toast.error(`Erro ao atualizar RNC: ${error.message}`);
-      console.error("Update error:", error);
-    },
+    meta: {
+      onError: (error: Error) => {
+        setIsSaving(false);
+        toast.error(`Erro ao atualizar RNC: ${error.message}`);
+        console.error("Update error:", error);
+      }
+    }
   });
 
   const handleGeneratePDF = () => {
