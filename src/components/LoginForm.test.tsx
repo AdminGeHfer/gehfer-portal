@@ -52,7 +52,7 @@ describe('LoginForm', () => {
     console.log('👁️ Testando toggle de visibilidade da senha...')
     renderLoginForm()
     
-    const passwordInput = screen.getByPlaceholderText('Senha')
+    const passwordInput = screen.getByPlaceholderText('Senha') as HTMLInputElement
     console.log('Tipo inicial do campo:', passwordInput.getAttribute('type'))
     
     expect(passwordInput).toHaveAttribute('type', 'password')
@@ -124,7 +124,7 @@ describe('LoginForm', () => {
       password: passwordInput.value
     })
 
-    expect(emailInput).toHaveValue('test@example.com')
-    expect(passwordInput).toHaveValue('password123')
+    expect(emailInput.value).toBe('test@example.com')
+    expect(passwordInput.value).toBe('password123')
   })
 })
