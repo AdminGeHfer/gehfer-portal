@@ -89,8 +89,8 @@ describe('LoginForm', () => {
     console.log('✨ Testando login bem-sucedido...')
     renderLoginForm()
     
-    const emailInput = screen.getByPlaceholderText('Email')
-    const passwordInput = screen.getByPlaceholderText('Senha')
+    const emailInput = screen.getByPlaceholderText('Email') as HTMLInputElement
+    const passwordInput = screen.getByPlaceholderText('Senha') as HTMLInputElement
     const submitButton = screen.getByRole('button', { name: /entrar/i })
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
@@ -113,8 +113,8 @@ describe('LoginForm', () => {
     console.log('⌨️ Testando mudanças nos inputs...')
     renderLoginForm()
     
-    const emailInput = screen.getByPlaceholderText('Email')
-    const passwordInput = screen.getByPlaceholderText('Senha')
+    const emailInput = screen.getByPlaceholderText('Email') as HTMLInputElement
+    const passwordInput = screen.getByPlaceholderText('Senha') as HTMLInputElement
 
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
     fireEvent.change(passwordInput, { target: { value: 'password123' } })
