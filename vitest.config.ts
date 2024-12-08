@@ -9,11 +9,18 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     globals: true,
     coverage: {
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
         'src/setupTests.ts',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/index.tsx',
       ],
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80
     },
   },
   resolve: {

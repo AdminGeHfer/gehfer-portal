@@ -1,10 +1,23 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import LoginForm from './LoginForm'
 import { ToastProvider } from '@/components/ui/toast'
 
 describe('LoginForm', () => {
+  const mockNavigate = vi.fn()
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mock('react-router-dom', async () => {
+      const actual = await vi.importActual('react-router-dom')
+      return {
+        ...actual,
+        useNavigate: () => mockNavigate,
+      }
+    })
+  })
+
   const renderLoginForm = () => {
     return render(
       <BrowserRouter>
@@ -34,23 +47,19 @@ describe('LoginForm', () => {
     expect(passwordInput).toHaveAttribute('type', 'text')
   })
 
-  it('should show error toast when submitting empty form', () => {
+  it('should show error toast when submitting empty form', async () => {
     renderLoginForm()
     
     const submitButton = screen.getByRole('button', { name: /entrar/i })
     fireEvent.click(submitButton)
 
-    expect(screen.getByText('Erro ao fazer login')).toBeInTheDocument()
-    expect(screen.getByText('Por favor, preencha todos os campos')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao fazer login')).toBeInTheDocument()
+      expect(screen.getByText('Por favor, preencha todos os campos')).toBeInTheDocument()
+    })
   })
 
-  it('should navigate to /app on successful login', () => {
-    const navigateMock = vi.fn()
-    vi.mock('react-router-dom', () => ({
-      ...vi.importActual('react-router-dom'),
-      useNavigate: () => navigateMock,
-    }))
-
+  it('should navigate to /app on successful login', async () => {
     renderLoginForm()
     
     const emailInput = screen.getByPlaceholderText('Email')
@@ -61,6 +70,21 @@ describe('LoginForm', () => {
     fireEvent.change(passwordInput, { target: { value: 'password123' } })
     fireEvent.click(submitButton)
 
-    expect(navigateMock).toHaveBeenCalledWith('/app')
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/app')
+    })
+  })
+
+  it('should handle form input changes', () => {
+    renderLoginForm()
+    
+    const emailInput = screen.getByPlaceholderText('Email')
+    const passwordInput = screen.getByPlaceholderText('Senha')
+
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+    fireEvent.change(passwordInput, { target: { value: 'password123' } })
+
+    expect(emailInput).toHaveValue('test@example.com')
+    expect(passwordInput).toHaveValue('password123')
   })
 })

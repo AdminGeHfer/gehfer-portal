@@ -16,4 +16,11 @@ describe('LoginBackground', () => {
     const reflections = container.querySelectorAll('.bg-white\\/10')
     expect(reflections).toHaveLength(3)
   })
+
+  it('should apply correct animation classes', () => {
+    const { container } = render(<LoginBackground />)
+    
+    const gradientElement = container.querySelector('.animate-gradient')
+    expect(gradientElement).toBeInTheDocument()
+  })
 })
