@@ -15,7 +15,7 @@ export function WorkflowEditorCanvas() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { workflow, isLoading, handleSave } = useWorkflowData();
+  const { workflow, isLoading, error, handleSave } = useWorkflowData();
 
   useEffect(() => {
     if (workflow) {
@@ -106,62 +106,12 @@ export function WorkflowEditorCanvas() {
     }
   }, [workflow?.template.id, nodes, queryClient]);
 
-  const handleDeleteEdge = async () => {
-    if (!selectedEdge) return;
-
-    try {
-      const { error } = await supabase
-        .from('workflow_transitions')
-        .delete()
-        .eq('id', selectedEdge);
-
-      if (error) throw error;
-
-      setEdges((eds) => eds.filter((edge) => edge.id !== selectedEdge));
-      setSelectedEdge(null);
-      
-      await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
-      toast.success('Transição removida com sucesso');
-    } catch (error) {
-      console.error('Erro ao deletar transição:', error);
-      toast.error('Erro ao deletar transição');
-    }
-  };
-
-  const handleDeleteNode = async () => {
-    if (!selectedNode) return;
-
-    try {
-      // First delete transitions
-      await supabase
-        .from('workflow_transitions')
-        .delete()
-        .or(`from_state_id.eq.${selectedNode},to_state_id.eq.${selectedNode}`);
-
-      // Then delete the state
-      const { error } = await supabase
-        .from('workflow_states')
-        .delete()
-        .eq('id', selectedNode);
-
-      if (error) throw error;
-
-      setNodes((nds) => nds.filter((node) => node.id !== selectedNode));
-      setEdges((eds) => eds.filter(
-        (edge) => edge.source !== selectedNode && edge.target !== selectedNode
-      ));
-      setSelectedNode(null);
-      
-      await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
-      toast.success('Estado removido com sucesso');
-    } catch (error) {
-      console.error('Erro ao deletar estado:', error);
-      toast.error('Erro ao deletar estado');
-    }
-  };
+  if (error) {
+    return <div className="p-4 text-red-500">Error loading workflow: {error.message}</div>;
+  }
 
   if (isLoading) {
-    return <div>Carregando editor de workflow...</div>;
+    return <div className="p-4">Carregando editor de workflow...</div>;
   }
 
   return (
@@ -178,8 +128,6 @@ export function WorkflowEditorCanvas() {
             onEdgeClick={(_, edge) => setSelectedEdge(edge.id)}
             onAddState={() => setIsAddingState(true)}
             onSave={() => handleSave(nodes, edges)}
-            onDelete={handleDeleteNode}
-            onDeleteEdge={handleDeleteEdge}
             selectedNode={selectedNode}
             selectedEdge={selectedEdge}
           />
