@@ -1,20 +1,23 @@
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useRBAC } from "@/hooks/useRBAC";
-import { Permission, UserRole } from "@/types/auth";
 import { toast } from "sonner";
 
-interface RoleGuardProps {
+export interface RoleGuardProps {
   children: ReactNode;
-  requiredRole?: UserRole;
-  requiredPermission?: Permission;
+  module?: string;
+  requiredRole?: string;
+  requiredPermission?: string;
+  action?: string;
   department?: string;
 }
 
 export function RoleGuard({ 
   children, 
-  requiredRole, 
+  module,
+  requiredRole,
   requiredPermission,
+  action = "read",
   department 
 }: RoleGuardProps) {
   const { 
@@ -35,6 +38,7 @@ export function RoleGuard({
   const hasAccess = (
     (!requiredRole || hasMinimumRole(requiredRole)) &&
     (!requiredPermission || hasPermission(requiredPermission)) &&
+    (!module || hasPermission(`${module}.${action}`)) &&
     (!department || canAccessDepartment(department))
   );
 

@@ -1,19 +1,14 @@
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 
-interface RNCContactInfoProps {
+export interface RNCContactInfoProps {
   form: UseFormReturn<RNCFormData>;
+  showErrors?: boolean;
 }
 
-export const RNCContactInfo = ({ form }: RNCContactInfoProps) => {
+export function RNCContactInfo({ form, showErrors = true }: RNCContactInfoProps) {
   return (
     <div className="space-y-4">
       <FormField
@@ -23,31 +18,13 @@ export const RNCContactInfo = ({ form }: RNCContactInfoProps) => {
           <FormItem>
             <FormLabel>Nome do Contato *</FormLabel>
             <FormControl>
-              <Input 
-                placeholder="Digite o nome do contato" 
-                {...field} 
-              />
+              <Input placeholder="Digite o nome do contato" {...field} />
             </FormControl>
-            <FormMessage />
+            {showErrors && <FormMessage />}
           </FormItem>
         )}
       />
-      <FormField
-        control={form.control}
-        name="contact.phone"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Telefone</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Digite o telefone (opcional)" 
-                {...field} 
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+
       <FormField
         control={form.control}
         name="contact.email"
@@ -55,16 +32,26 @@ export const RNCContactInfo = ({ form }: RNCContactInfoProps) => {
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>
-              <Input 
-                type="email" 
-                placeholder="Digite o email (opcional)" 
-                {...field} 
-              />
+              <Input placeholder="Digite o email do contato" {...field} type="email" />
             </FormControl>
-            <FormMessage />
+            {showErrors && <FormMessage />}
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="contact.phone"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Telefone</FormLabel>
+            <FormControl>
+              <Input placeholder="Digite o telefone do contato" {...field} />
+            </FormControl>
+            {showErrors && <FormMessage />}
           </FormItem>
         )}
       />
     </div>
   );
-};
+}

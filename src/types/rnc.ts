@@ -1,63 +1,18 @@
-export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
-export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
+import * as z from "zod";
 
-export interface RNC {
-  id: string;
-  description: string;
-  workflow_status: WorkflowStatusEnum;
-  priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
-  department: DepartmentEnum;
-  contact: {
-    name: string;
-    phone: string;
-    email: string;
-  };
-  company: string;
-  cnpj: string;
-  orderNumber?: string;
-  returnNumber?: string;
-  assignedTo?: string;
-  assignedBy?: string;
-  assignedAt?: string;
-  attachments?: File[];
-  timeline: TimelineEvent[];
-  resolution?: string;
-  rnc_number?: number;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
-  title?: string;
-  canEdit?: boolean;
-}
+export const rncContactSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal(""))
+});
 
-export interface TimelineEvent {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
-  type: "creation" | "update" | "status" | "comment" | "assignment";
-  userId: string;
-  comment?: string;
-}
+export const rncSchema = z.object({
+  rnc_number: z.number().min(1, "Número da RNC é obrigatório"),
+  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  contact: rncContactSchema,
+  status: z.enum(["open", "in_progress", "resolved"]),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional()
+});
 
-export interface RNCFormData {
-  id?: string;
-  description: string;
-  priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
-  department: DepartmentEnum;
-  contact: {
-    name: string;
-    phone: string;
-    email: string;
-  };
-  company: string;
-  cnpj: string;
-  orderNumber?: string;
-  returnNumber?: string;
-  workflow_status: WorkflowStatusEnum;
-  assignedTo?: string;
-  attachments?: File[];
-  resolution?: string;
-}
+export type RNCFormData = z.infer<typeof rncSchema>;
