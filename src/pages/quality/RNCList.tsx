@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RNCForm } from "@/components/quality/RNCForm";
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRNCs } from "@/hooks/useRNCs";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
@@ -31,6 +31,10 @@ const RNCList = () => {
       console.error("Erro ao criar RNC:", error);
       throw error;
     }
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value as WorkflowStatusEnum | "all");
   };
 
   const filteredRncs = rncs?.filter((rnc) => {
@@ -83,7 +87,7 @@ const RNCList = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
             </SelectTrigger>
