@@ -62,8 +62,8 @@ export const useUpdateRNC = (
           department: updatedData.department,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
-          order_number: updatedData.orderNumber,
-          return_number: updatedData.returnNumber,
+          order_number: updatedData.order_number,
+          return_number: updatedData.return_number,
           resolution: updatedData.resolution,
           updated_at: new Date().toISOString(),
         })

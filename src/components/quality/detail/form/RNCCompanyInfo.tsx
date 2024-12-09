@@ -12,24 +12,25 @@ import { handleCNPJChange, formatCNPJ } from "@/utils/masks";
 
 interface RNCCompanyInfoProps {
   form: UseFormReturn<RNCFormData>;
+  showErrors?: boolean;
 }
 
-export const RNCCompanyInfo = ({ form }: RNCCompanyInfoProps) => {
+export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps) => {
   return (
     <div className="space-y-4">
       <FormField
         control={form.control}
         name="company"
-        render={({ field }) => (
+        render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Razão Social</FormLabel>
+            <FormLabel className="required-field">Razão Social</FormLabel>
             <FormControl>
               <Input 
                 placeholder="Nome da empresa" 
                 {...field} 
               />
             </FormControl>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />
@@ -37,9 +38,9 @@ export const RNCCompanyInfo = ({ form }: RNCCompanyInfoProps) => {
       <FormField
         control={form.control}
         name="cnpj"
-        render={({ field: { onChange, value, ...field } }) => (
+        render={({ field: { onChange, value, ...field }, fieldState }) => (
           <FormItem>
-            <FormLabel>CNPJ</FormLabel>
+            <FormLabel className="required-field">CNPJ</FormLabel>
             <FormControl>
               <Input 
                 placeholder="00.000.000/0000-00"
@@ -49,15 +50,15 @@ export const RNCCompanyInfo = ({ form }: RNCCompanyInfoProps) => {
                 {...field}
               />
             </FormControl>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />
 
       <FormField
         control={form.control}
-        name="orderNumber"
-        render={({ field }) => (
+        name="order_number"
+        render={({ field, fieldState }) => (
           <FormItem>
             <FormLabel>Nº do Pedido</FormLabel>
             <FormControl>
@@ -66,15 +67,15 @@ export const RNCCompanyInfo = ({ form }: RNCCompanyInfoProps) => {
                 {...field} 
               />
             </FormControl>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />
 
       <FormField
         control={form.control}
-        name="returnNumber"
-        render={({ field }) => (
+        name="return_number"
+        render={({ field, fieldState }) => (
           <FormItem>
             <FormLabel>Nº da Devolução</FormLabel>
             <FormControl>
@@ -83,7 +84,7 @@ export const RNCCompanyInfo = ({ form }: RNCCompanyInfoProps) => {
                 {...field} 
               />
             </FormControl>
-            <FormMessage />
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
           </FormItem>
         )}
       />

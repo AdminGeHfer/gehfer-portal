@@ -45,6 +45,14 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
             <p className="text-sm text-gray-500">CNPJ</p>
             <p>{rnc.cnpj}</p>
           </div>
+          <div>
+            <p className="text-sm text-gray-500">Nº do Pedido</p>
+            <p>{rnc.order_number || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Nº da Devolução</p>
+            <p>{rnc.return_number || "N/A"}</p>
+          </div>
         </CardContent>
       </Card>
 
@@ -55,14 +63,6 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Nº do Pedido</p>
-              <p>{rnc.orderNumber || "N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Nº da Devolução</p>
-              <p>{rnc.returnNumber || "N/A"}</p>
-            </div>
-            <div>
               <p className="text-sm text-gray-500">Tipo</p>
               <p>{rnc.type}</p>
             </div>
@@ -70,17 +70,25 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
               <p className="text-sm text-gray-500">Status</p>
               <p>{getStatusLabel(rnc.workflow_status)}</p>
             </div>
+            <div>
+              <p className="text-sm text-gray-500">Prioridade</p>
+              <p>{rnc.priority}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Departamento</p>
+              <p>{rnc.department}</p>
+            </div>
           </div>
           <div>
             <p className="text-sm text-gray-500">Descrição</p>
-            <p>{rnc.description}</p>
+            <p className="whitespace-pre-wrap">{rnc.description}</p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Contato</CardTitle>
+          <CardTitle>Informações de Contato</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
           <div>
