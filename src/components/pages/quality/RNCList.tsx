@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,19 +6,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RNCForm } from "@/components/quality/RNCForm";
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRNCs } from "@/hooks/useRNCs";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-import { RNCFormData } from "@/types/rnc";
+import { RNCFormData, WorkflowStatusEnum } from "@/types/rnc";
 
 const RNCList = () => {
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<WorkflowStatusEnum | "all">("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const { rncs, isLoading, createRNC } = useRNCs();
@@ -31,6 +31,10 @@ const RNCList = () => {
       console.error("Erro ao criar RNC:", error);
       throw error;
     }
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value as WorkflowStatusEnum | "all");
   };
 
   const filteredRncs = rncs?.filter((rnc) => {
@@ -83,18 +87,18 @@ const RNCList = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="open">Aberto</SelectItem>
-              <SelectItem value="analysis">Em Análise</SelectItem>
-              <SelectItem value="resolution">Em Resolução</SelectItem>
-              <SelectItem value="solved">Solucionado</SelectItem>
-              <SelectItem value="closing">Em Fechamento</SelectItem>
-              <SelectItem value="closed">Encerrado</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.OPEN}>Aberto</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.ANALYSIS}>Em Análise</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.RESOLUTION}>Em Resolução</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.SOLVED}>Solucionado</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.CLOSING}>Em Fechamento</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.CLOSED}>Encerrado</SelectItem>
             </SelectContent>
           </Select>
           <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
