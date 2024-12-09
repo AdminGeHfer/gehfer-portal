@@ -3,49 +3,6 @@ import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
 
-export const useDeleteRNC = (id: string, onSuccess: () => void) => {
-  return useMutation({
-    mutationFn: async () => {
-      // First delete related records
-      const { error: contactsError } = await supabase
-        .from("rnc_contacts")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (contactsError) throw contactsError;
-
-      const { error: eventsError } = await supabase
-        .from("rnc_events")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (eventsError) throw eventsError;
-
-      const { error: attachmentsError } = await supabase
-        .from("rnc_attachments")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (attachmentsError) throw attachmentsError;
-
-      // Finally delete the RNC
-      const { error } = await supabase
-        .from("rncs")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("RNC excluída com sucesso");
-      onSuccess();
-    },
-    onError: (error: Error) => {
-      toast.error("Erro ao excluir RNC: " + error.message);
-    },
-  });
-};
-
 type UpdateRNCMutationOptions = Omit<
   UseMutationOptions<void, Error, Partial<RNC>, unknown>,
   'mutationFn'
@@ -66,8 +23,8 @@ export const useUpdateRNC = (id: string, options?: UpdateRNCMutationOptions) => 
           department: updatedData.department,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
-          order_number: updatedData.orderNumber || null,
-          return_number: updatedData.returnNumber || null,
+          order_number: updatedData.order_number || null,
+          return_number: updatedData.return_number || null,
           resolution: updatedData.resolution,
           updated_at: new Date().toISOString(),
         })
