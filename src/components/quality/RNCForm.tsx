@@ -12,7 +12,6 @@ import { RNCFileUpload } from "./form/RNCFileUpload";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
 import { logAuditEvent } from "@/services/auditService";
 
 const formSchema = z.object({
@@ -84,7 +83,11 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       setShowValidationErrors(true);
       
       const rncId = await onSubmit(data);
-      await logAuditEvent('create', 'rnc', rncId);
+      await logAuditEvent({
+        action: 'create',
+        resourceType: 'rnc',
+        resourceId: rncId
+      });
 
       toast({
         title: "RNC criada com sucesso",
