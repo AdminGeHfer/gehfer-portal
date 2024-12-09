@@ -1,6 +1,6 @@
 export enum DepartmentEnum {
   EXPEDITION = "Expedição",
-  LOGISTICS = "Logistica",
+  LOGISTICS = "Logistica", 
   COMMERCIAL = "Comercial",
   QUALITY = "Qualidade",
   PRODUCTION = "Produção"
@@ -51,10 +51,10 @@ export interface RNC {
   assigned_at?: string;
   workflow_status: WorkflowStatusEnum;
   timeline?: TimelineEvent[];
-  contact: RNCContact;
   resolution?: string;
-  canEdit?: boolean;
   rnc_number?: number;
+  contact: RNCContact;
+  canEdit?: boolean;
 }
 
 export interface RNCFormData {
