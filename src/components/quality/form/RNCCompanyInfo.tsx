@@ -57,7 +57,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
 
       <FormField
         control={form.control}
-        name="order_number"
+        name="orderNumber"
         render={({ field, fieldState }) => (
           <FormItem>
             <FormLabel>Nº do Pedido</FormLabel>
@@ -74,7 +74,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
 
       <FormField
         control={form.control}
-        name="return_number"
+        name="returnNumber"
         render={({ field, fieldState }) => (
           <FormItem>
             <FormLabel>Nº da Devolução</FormLabel>

@@ -1,24 +1,34 @@
-export enum DepartmentEnum {
-  EXPEDITION = "Expedição",
-  LOGISTICS = "Logistica",
-  COMMERCIAL = "Comercial",
-  QUALITY = "Qualidade",
-  PRODUCTION = "Produção"
-}
+export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
+export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
-export enum WorkflowStatusEnum {
-  OPEN = "open",
-  ANALYSIS = "analysis",
-  RESOLUTION = "resolution",
-  SOLVED = "solved",
-  CLOSING = "closing",
-  CLOSED = "closed"
-}
-
-export interface RNCContact {
-  name: string;
-  phone: string;
-  email: string;
+export interface RNC {
+  id: string;
+  description: string;
+  workflow_status: WorkflowStatusEnum;
+  priority: "low" | "medium" | "high";
+  type: "client" | "supplier";
+  department: DepartmentEnum;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  company: string;
+  cnpj: string;
+  orderNumber?: string;
+  returnNumber?: string;
+  assignedTo?: string;
+  assignedBy?: string;
+  assignedAt?: string;
+  attachments?: File[];
+  timeline: TimelineEvent[];
+  resolution?: string;
+  rnc_number?: number;
+  created_at: string;
+  updated_at: string;
+  closed_at?: string;
+  title?: string;
+  canEdit?: boolean;
 }
 
 export interface TimelineEvent {
@@ -26,49 +36,28 @@ export interface TimelineEvent {
   date: string;
   title: string;
   description: string;
-  type: string;
+  type: "creation" | "update" | "status" | "comment" | "assignment";
   userId: string;
   comment?: string;
 }
 
-export interface RNC {
-  id: string;
-  title?: string;
-  description: string;
-  priority: 'low' | 'medium' | 'high';
-  type: string;
-  department: DepartmentEnum;
-  company: string;
-  cnpj: string;
-  order_number?: string;
-  return_number?: string;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
-  created_by: string;
-  assigned_to?: string;
-  assigned_by?: string;
-  assigned_at?: string;
-  workflow_status: WorkflowStatusEnum;
-  timeline?: TimelineEvent[];
-  resolution?: string;
-  rnc_number?: number;
-  contact: RNCContact;
-  canEdit?: boolean;
-}
-
 export interface RNCFormData {
+  id?: string;
   description: string;
-  priority: 'low' | 'medium' | 'high';
-  type: string;
+  priority: "low" | "medium" | "high";
+  type: "client" | "supplier";
   department: DepartmentEnum;
-  contact: RNCContact;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
   company: string;
   cnpj: string;
-  order_number?: string;
-  return_number?: string;
+  orderNumber?: string;
+  returnNumber?: string;
   workflow_status: WorkflowStatusEnum;
-  assigned_to?: string;
+  assignedTo?: string;
   attachments?: File[];
   resolution?: string;
 }

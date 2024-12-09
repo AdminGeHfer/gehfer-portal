@@ -2,31 +2,15 @@ import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useRBAC } from "@/hooks/useRBAC";
 import { toast } from "sonner";
-import { UserRole } from "@/types/auth";
 
-export interface RoleGuardProps {
+interface RoleGuardProps {
   children: ReactNode;
-  module?: string;
-  requiredRole?: UserRole;
-  requiredPermission?: string;
+  module: string;
   action?: string;
-  department?: string;
 }
 
-export function RoleGuard({ 
-  children, 
-  module,
-  requiredRole,
-  requiredPermission,
-  action = "read",
-  department 
-}: RoleGuardProps) {
-  const { 
-    hasMinimumRole, 
-    hasPermission, 
-    canAccessDepartment,
-    loading 
-  } = useRBAC();
+export function RoleGuard({ children, module, action = "read" }: RoleGuardProps) {
+  const { hasPermission, loading } = useRBAC();
 
   if (loading) {
     return (
@@ -36,14 +20,7 @@ export function RoleGuard({
     );
   }
 
-  const hasAccess = (
-    (!requiredRole || hasMinimumRole(requiredRole)) &&
-    (!requiredPermission || hasPermission(requiredPermission)) &&
-    (!module || hasPermission(`${module}.${action}`)) &&
-    (!department || canAccessDepartment(department))
-  );
-
-  if (!hasAccess) {
+  if (!hasPermission(module, action)) {
     toast.error("Você não tem permissão para acessar este recurso");
     return <Navigate to="/apps" replace />;
   }

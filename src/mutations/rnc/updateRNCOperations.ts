@@ -12,8 +12,8 @@ const updateRNCData = async (id: string, updatedData: Partial<RNC>) => {
       department: updatedData.department,
       company: updatedData.company,
       cnpj: updatedData.cnpj,
-      order_number: updatedData.order_number,
-      return_number: updatedData.return_number,
+      order_number: updatedData.orderNumber,
+      return_number: updatedData.returnNumber,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);

@@ -26,44 +26,34 @@ interface WorkflowData {
 export function useWorkflowData() {
   const queryClient = useQueryClient();
 
-  const { data: workflow, isLoading, error } = useQuery({
+  const { data: workflow, isLoading } = useQuery({
     queryKey: ['workflow-template', 'default'],
     queryFn: async () => {
-      try {
-        const { data: template, error: templateError } = await supabase
-          .from('workflow_templates')
-          .select('*')
-          .eq('is_default', true)
-          .single();
+      const { data: template } = await supabase
+        .from('workflow_templates')
+        .select('*')
+        .eq('is_default', true)
+        .single();
 
-        if (templateError) throw templateError;
-        if (!template) throw new Error("No default workflow template found");
-
-        const { data: states, error: statesError } = await supabase
-          .from('workflow_states')
-          .select('*')
-          .eq('workflow_id', template.id);
-
-        if (statesError) throw statesError;
-
-        const { data: transitions, error: transitionsError } = await supabase
-          .from('workflow_transitions')
-          .select('*')
-          .eq('workflow_id', template.id);
-
-        if (transitionsError) throw transitionsError;
-
-        console.log('Workflow data loaded:', { template, states, transitions });
-
-        return {
-          template,
-          states: states || [],
-          transitions: transitions || []
-        };
-      } catch (error) {
-        console.error('Error loading workflow data:', error);
-        throw error;
+      if (!template) {
+        throw new Error("No default workflow template found");
       }
+
+      const { data: states } = await supabase
+        .from('workflow_states')
+        .select('*')
+        .eq('workflow_id', template.id);
+
+      const { data: transitions } = await supabase
+        .from('workflow_transitions')
+        .select('*')
+        .eq('workflow_id', template.id);
+
+      return {
+        template,
+        states: states || [],
+        transitions: transitions || []
+      };
     }
   });
 
@@ -100,7 +90,6 @@ export function useWorkflowData() {
   return {
     workflow,
     isLoading,
-    error,
     handleSave
   };
 }

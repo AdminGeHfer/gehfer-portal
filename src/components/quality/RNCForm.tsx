@@ -2,7 +2,7 @@ import { Button } from "@/components/atoms/Button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
-import { RNCFormData, DepartmentEnum, WorkflowStatusEnum } from "@/types/rnc";
+import { RNCFormData } from "@/types/rnc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { RNCBasicInfo } from "./form/RNCBasicInfo";
@@ -12,24 +12,24 @@ import { RNCFileUpload } from "./form/RNCFileUpload";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { logAuditEvent } from "@/services/auditService";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
   priority: z.enum(["low", "medium", "high"]),
   type: z.enum(["client", "supplier"]),
-  department: z.nativeEnum(DepartmentEnum),
+  department: z.enum(["Expedição", "Logistica", "Comercial", "Qualidade", "Produção"]),
   contact: z.object({
     name: z.string().min(1, "O nome do contato é obrigatório"),
     phone: z.string().min(1, "O telefone é obrigatório"),
     email: z.string().email("Email inválido"),
   }),
+  orderNumber: z.string().optional(),
+  returnNumber: z.string().optional(),
   company: z.string().min(1, "A empresa é obrigatória"),
   cnpj: z.string().min(14, "CNPJ inválido").max(14),
-  order_number: z.string().optional(),
-  return_number: z.string().optional(),
-  workflow_status: z.nativeEnum(WorkflowStatusEnum).default(WorkflowStatusEnum.OPEN),
-  assigned_to: z.string().optional(),
+  status: z.enum(["open", "in_progress", "closed"]).default("open"),
+  assignedTo: z.string().optional(),
   attachments: z.array(z.instanceof(File)).optional(),
   resolution: z.string().optional(),
 });
@@ -38,7 +38,7 @@ const defaultValues: RNCFormData = {
   description: "",
   priority: "medium",
   type: "client",
-  department: DepartmentEnum.EXPEDITION,
+  department: "Expedição",
   contact: {
     name: "",
     phone: "",
@@ -46,10 +46,10 @@ const defaultValues: RNCFormData = {
   },
   company: "",
   cnpj: "",
-  order_number: "",
-  return_number: "",
-  workflow_status: WorkflowStatusEnum.OPEN,
-  assigned_to: "",
+  orderNumber: "",
+  returnNumber: "",
+  workflow_status: "open",
+  assignedTo: "",
   attachments: [],
   resolution: "",
 };
@@ -72,22 +72,70 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       ...defaultValues,
       ...initialData,
     },
-    mode: "onSubmit"
+    mode: "onSubmit" // Only validate on submit
   });
 
   const handleSubmit = async (data: RNCFormData) => {
-    if (isSubmitting) return;
+    if (isSubmitting) {
+      console.log('Submission already in progress, preventing duplicate submission');
+      return;
+    }
     
     try {
       setIsSubmitting(true);
       setShowValidationErrors(true);
+      console.log('Starting RNC submission with data:', data);
       
       const rncId = await onSubmit(data);
-      await logAuditEvent({
-        action: 'create',
-        resourceType: 'rnc',
-        resourceId: rncId
-      });
+      console.log('RNC created successfully with ID:', rncId);
+
+      if (data.attachments && data.attachments.length > 0) {
+        console.log('Starting file uploads for RNC:', rncId);
+        const { data: userData } = await supabase.auth.getUser();
+        
+        if (!userData.user) {
+          throw new Error("Usuário não autenticado");
+        }
+
+        for (const file of data.attachments) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
+          const filePath = `${rncId}/${fileName}`;
+
+          console.log('Uploading file:', {
+            originalName: file.name,
+            path: filePath,
+            size: file.size
+          });
+
+          const { error: uploadError } = await supabase.storage
+            .from('rnc-attachments')
+            .upload(filePath, file);
+
+          if (uploadError) {
+            console.error('File upload error:', uploadError);
+            throw uploadError;
+          }
+
+          const { error: dbError } = await supabase
+            .from('rnc_attachments')
+            .insert({
+              rnc_id: rncId,
+              filename: file.name,
+              filesize: file.size,
+              content_type: file.type,
+              created_by: userData.user.id,
+              file_path: filePath
+            });
+
+          if (dbError) {
+            console.error('Database error:', dbError);
+            throw dbError;
+          }
+
+          console.log('File uploaded and registered successfully:', file.name);
+        }
+      }
 
       toast({
         title: "RNC criada com sucesso",
@@ -105,9 +153,15 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Reset validation errors when changing tabs
+    setShowValidationErrors(false);
+  };
+
   return (
     <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="company">Empresa</TabsTrigger>
           <TabsTrigger value="details">Detalhes</TabsTrigger>

@@ -11,12 +11,12 @@ interface RNCReportProps {
 export function RNCReport({ rnc }: RNCReportProps) {
   const getStatusLabel = (status: WorkflowStatusEnum) => {
     const labels: Record<WorkflowStatusEnum, string> = {
-      [WorkflowStatusEnum.OPEN]: "Aberto",
-      [WorkflowStatusEnum.ANALYSIS]: "Em Análise",
-      [WorkflowStatusEnum.RESOLUTION]: "Em Resolução",
-      [WorkflowStatusEnum.SOLVED]: "Solucionado",
-      [WorkflowStatusEnum.CLOSING]: "Em Fechamento",
-      [WorkflowStatusEnum.CLOSED]: "Encerrado"
+      open: "Aberto",
+      analysis: "Em Análise",
+      resolution: "Em Resolução",
+      solved: "Solucionado",
+      closing: "Em Fechamento",
+      closed: "Encerrado"
     };
     return labels[status];
   };
@@ -69,11 +69,11 @@ export function RNCReport({ rnc }: RNCReportProps) {
             </div>
             <div>
               <h3 className="font-semibold">Nº do Pedido</h3>
-              <p>{rnc.order_number || "N/A"}</p>
+              <p>{rnc.orderNumber || "N/A"}</p>
             </div>
             <div>
               <h3 className="font-semibold">Nº da Devolução</h3>
-              <p>{rnc.return_number || "N/A"}</p>
+              <p>{rnc.returnNumber || "N/A"}</p>
             </div>
           </div>
         </CardContent>

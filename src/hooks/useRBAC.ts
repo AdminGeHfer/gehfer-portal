@@ -2,30 +2,32 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export type UserRole = 'admin' | 'manager' | 'analyst' | 'user';
-export type { UserRole as Role };
+export type Role = "admin" | "manager" | "user";
 
-export type Permission = 
-  | 'rnc.create' 
-  | 'rnc.edit' 
-  | 'rnc.delete' 
-  | 'rnc.view'
-  | 'rnc.assign'
-  | 'user.manage'
-  | 'role.manage'
-  | string;
+interface Permission {
+  module: string;
+  actions: string[];
+}
 
-const roleHierarchy: Record<UserRole, number> = {
-  admin: 4,
-  manager: 3,
-  analyst: 2,
-  user: 1
+const rolePermissions: Record<Role, Permission[]> = {
+  admin: [
+    { module: "any", actions: ["read", "write", "delete"] },
+    { module: "quality", actions: ["read", "write", "delete"] },
+    { module: "admin", actions: ["read", "write", "delete"] },
+    { module: "portaria", actions: ["read", "write", "delete"] }
+  ],
+  manager: [
+    { module: "quality", actions: ["read", "write"] },
+    { module: "portaria", actions: ["read", "write"] }
+  ],
+  user: [
+    { module: "quality", actions: ["read"] },
+    { module: "portaria", actions: ["read"] }
+  ]
 };
 
 export function useRBAC() {
-  const [userRole, setUserRole] = useState<UserRole>("user");
-  const [userDepartment, setUserDepartment] = useState<string | null>(null);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [userRole, setUserRole] = useState<Role>("user");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,34 +41,13 @@ export function useRBAC() {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role, department')
+          .select('role')
           .eq('id', user.id)
           .single();
 
-        if (profile?.role) {
-          setUserRole(profile.role as UserRole);
-          setUserDepartment(profile.department);
+        if (profile?.role && isValidRole(profile.role)) {
+          setUserRole(profile.role);
         }
-
-        // For now, we'll use a simplified permission system
-        // Later we can implement the role_permissions table
-        const defaultPermissions: Permission[] = [];
-        
-        if (profile?.role === 'admin') {
-          defaultPermissions.push(
-            'rnc.create', 'rnc.edit', 'rnc.delete', 'rnc.view', 'rnc.assign',
-            'user.manage', 'role.manage'
-          );
-        } else if (profile?.role === 'manager') {
-          defaultPermissions.push('rnc.create', 'rnc.edit', 'rnc.view', 'rnc.assign');
-        } else if (profile?.role === 'analyst') {
-          defaultPermissions.push('rnc.create', 'rnc.edit', 'rnc.view');
-        } else {
-          defaultPermissions.push('rnc.view');
-        }
-
-        setPermissions(defaultPermissions);
-
       } catch (error) {
         console.error('Error fetching user role:', error);
         toast.error("Erro ao carregar permissões do usuário");
@@ -78,25 +59,32 @@ export function useRBAC() {
     getUserRole();
   }, []);
 
-  function hasPermission(permission: Permission): boolean {
-    return permissions.includes(permission) || userRole === 'admin';
+  function isValidRole(role: string): role is Role {
+    return ["admin", "manager", "user"].includes(role);
   }
 
-  function canAccessDepartment(department: string): boolean {
-    return userRole === 'admin' || userDepartment === department;
+  function hasPermission(module: string, action: string): boolean {
+    // Admin has access to everything
+    if (userRole === "admin") return true;
+    
+    // Special case for "any" module
+    if (module === "any") return true;
+
+    const permissions = rolePermissions[userRole];
+    const modulePermissions = permissions.find(p => p.module === module);
+    return !!modulePermissions?.actions.includes(action);
   }
 
-  function hasMinimumRole(requiredRole: UserRole): boolean {
-    return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
+  function canAccessModule(module: string): boolean {
+    return rolePermissions[userRole].some(p => p.module === module);
   }
 
   return {
     role: userRole,
-    department: userDepartment,
     loading,
     hasPermission,
-    canAccessDepartment,
-    hasMinimumRole,
-    permissions
+    canAccessModule,
+    isAdmin: userRole === "admin",
+    isManager: userRole === "manager"
   };
 }

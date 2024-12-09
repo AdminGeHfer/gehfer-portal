@@ -46,12 +46,16 @@ export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   });
 };
 
-export const useUpdateRNC = (
-  id: string,
-  options?: Partial<UseMutationOptions<void, Error, Partial<RNC>>>
-) => {
-  return useMutation<void, Error, Partial<RNC>>({
+type UpdateRNCMutationOptions = Omit<
+  UseMutationOptions<void, Error, Partial<RNC>, unknown>,
+  'mutationFn'
+>;
+
+export const useUpdateRNC = (id: string, options?: UpdateRNCMutationOptions) => {
+  return useMutation({
     mutationFn: async (updatedData: Partial<RNC>) => {
+      console.log("Updating RNC with data:", updatedData);
+      
       const { error: rncError } = await supabase
         .from("rncs")
         .update({
@@ -62,14 +66,17 @@ export const useUpdateRNC = (
           department: updatedData.department,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
-          order_number: updatedData.order_number,
-          return_number: updatedData.return_number,
+          order_number: updatedData.orderNumber || null,
+          return_number: updatedData.returnNumber || null,
           resolution: updatedData.resolution,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
 
-      if (rncError) throw rncError;
+      if (rncError) {
+        console.error("Error updating RNC:", rncError);
+        throw rncError;
+      }
 
       if (updatedData.contact) {
         const { error: contactError } = await supabase
@@ -82,7 +89,10 @@ export const useUpdateRNC = (
           })
           .eq("rnc_id", id);
 
-        if (contactError) throw contactError;
+        if (contactError) {
+          console.error("Error updating contact:", contactError);
+          throw contactError;
+        }
       }
     },
     ...options,

@@ -3,36 +3,36 @@ import { DepartmentEnum, WorkflowStatusEnum } from "@/types/rnc";
 export const validateDepartment = (department: string): DepartmentEnum => {
   switch (department) {
     case "Expedição":
-      return DepartmentEnum.EXPEDITION;
+      return "Expedição";
     case "Logistica":
-      return DepartmentEnum.LOGISTICS;
+      return "Logistica";
     case "Comercial":
-      return DepartmentEnum.COMMERCIAL;
+      return "Comercial";
     case "Qualidade":
-      return DepartmentEnum.QUALITY;
+      return "Qualidade";
     case "Produção":
-      return DepartmentEnum.PRODUCTION;
+      return "Produção";
     default:
-      return DepartmentEnum.QUALITY;
+      return "Qualidade";
   }
 };
 
 export const validateWorkflowStatus = (status: string): WorkflowStatusEnum => {
   switch (status?.toLowerCase()) {
     case "open":
-      return WorkflowStatusEnum.OPEN;
+      return "open";
     case "analysis":
-      return WorkflowStatusEnum.ANALYSIS;
+      return "analysis";
     case "resolution":
-      return WorkflowStatusEnum.RESOLUTION;
+      return "resolution";
     case "solved":
-      return WorkflowStatusEnum.SOLVED;
+      return "solved";
     case "closing":
-      return WorkflowStatusEnum.CLOSING;
+      return "closing";
     case "closed":
-      return WorkflowStatusEnum.CLOSED;
+      return "closed";
     default:
-      return WorkflowStatusEnum.OPEN;
+      return "open";
   }
 };
 

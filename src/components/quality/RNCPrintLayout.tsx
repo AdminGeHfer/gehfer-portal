@@ -82,11 +82,11 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
               </div>
               <div>
                 <p className="font-medium text-gray-500">Nº do Pedido</p>
-                <p>{rnc.order_number || "N/A"}</p>
+                <p>{rnc.orderNumber || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-500">Nº da Devolução</p>
-                <p>{rnc.return_number || "N/A"}</p>
+                <p>{rnc.returnNumber || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-500">Status</p>

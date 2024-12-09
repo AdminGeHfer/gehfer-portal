@@ -16,20 +16,20 @@ export function RNCReport({ rnc }: RNCPrintLayoutProps) {
   };
 
   const comments = rnc.timeline
-    ?.filter(event => event.type === 'comment')
+    .filter(event => event.type === 'comment')
     .map(event => ({
       ...event,
       date: format(new Date(event.date), "dd/MM/yyyy 'às' HH:mm")
-    })) || [];
+    }));
 
   const getStatusLabel = (status: WorkflowStatusEnum) => {
     const labels: Record<WorkflowStatusEnum, string> = {
-      [WorkflowStatusEnum.OPEN]: "Aberto",
-      [WorkflowStatusEnum.ANALYSIS]: "Em Análise",
-      [WorkflowStatusEnum.RESOLUTION]: "Em Resolução",
-      [WorkflowStatusEnum.SOLVED]: "Solucionado",
-      [WorkflowStatusEnum.CLOSING]: "Em Fechamento",
-      [WorkflowStatusEnum.CLOSED]: "Encerrado"
+      open: "Aberto",
+      analysis: "Em Análise",
+      resolution: "Em Resolução",
+      solved: "Solucionado",
+      closing: "Em Fechamento",
+      closed: "Encerrado"
     };
     return labels[status];
   };
@@ -82,11 +82,11 @@ export function RNCReport({ rnc }: RNCPrintLayoutProps) {
               </div>
               <div>
                 <p className="font-medium text-gray-500">Nº do Pedido</p>
-                <p>{rnc.order_number || "N/A"}</p>
+                <p>{rnc.orderNumber || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-500">Nº da Devolução</p>
-                <p>{rnc.return_number || "N/A"}</p>
+                <p>{rnc.returnNumber || "N/A"}</p>
               </div>
               <div>
                 <p className="font-medium text-gray-500">Status</p>
