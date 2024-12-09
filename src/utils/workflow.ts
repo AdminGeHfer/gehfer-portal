@@ -2,12 +2,12 @@ import { WorkflowStatusEnum } from "@/types/rnc";
 
 export const getWorkflowStatusLabel = (status: WorkflowStatusEnum): string => {
   const labels: Record<WorkflowStatusEnum, string> = {
-    open: "Aberto",
-    analysis: "Em Análise",
-    resolution: "Em Resolução",
-    solved: "Solucionado",
-    closing: "Em Fechamento",
-    closed: "Encerrado"
+    [WorkflowStatusEnum.OPEN]: "Aberto",
+    [WorkflowStatusEnum.ANALYSIS]: "Em Análise",
+    [WorkflowStatusEnum.RESOLUTION]: "Em Resolução",
+    [WorkflowStatusEnum.SOLVED]: "Solucionado",
+    [WorkflowStatusEnum.CLOSING]: "Em Fechamento",
+    [WorkflowStatusEnum.CLOSED]: "Encerrado"
   };
   return labels[status] || status;
 };
