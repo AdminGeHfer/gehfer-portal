@@ -47,7 +47,6 @@ export interface RNC {
   closed_at?: string;
   created_by: string;
   assigned_to?: string;
-  rnc_number?: number;
   assigned_by?: string;
   assigned_at?: string;
   workflow_status: WorkflowStatusEnum;
