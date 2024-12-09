@@ -10,7 +10,13 @@ export interface AuditLog {
   created_at?: string;
 }
 
-export async function logAction(action: string, resourceType: string, resourceId: string, details?: any) {
+export const logAuditEvent = async (
+  action: string,
+  resourceType: string,
+  resourceId: string,
+  oldData: any = null,
+  newData: any = null
+) => {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
@@ -19,12 +25,8 @@ export async function logAction(action: string, resourceType: string, resourceId
   }
 
   try {
-    console.log("Logging action:", { action, resourceType, resourceId, details });
+    console.log("Logging action:", { action, resourceType, resourceId, oldData, newData });
     
-    // For now, we'll just log to console since the audit_logs table isn't ready
-    // When the table is created, uncomment the code below
-    
-    /*
     const { error } = await supabase
       .from('audit_logs')
       .insert({
@@ -32,13 +34,15 @@ export async function logAction(action: string, resourceType: string, resourceId
         action,
         resource_type: resourceType,
         resource_id: resourceId,
-        details
+        details: {
+          old: oldData,
+          new: newData
+        }
       });
 
     if (error) throw error;
-    */
     
   } catch (error) {
     console.error("Error logging action:", error);
   }
-}
+};
