@@ -1,48 +1,36 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export interface AuditLog {
-  id?: string;
-  user_id: string;
+export interface AuditEvent {
   action: string;
-  resource_type: string;
-  resource_id: string;
-  details?: any;
-  created_at?: string;
+  resourceType: string;
+  resourceId: string;
+  details?: Record<string, any>;
 }
 
-export const logAuditEvent = async (
-  action: string,
-  resourceType: string,
-  resourceId: string,
-  oldData: any = null,
-  newData: any = null
-) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    console.error("No user found when trying to log action");
-    return;
-  }
-
+export async function logAuditEvent(event: AuditEvent) {
   try {
-    console.log("Logging action:", { action, resourceType, resourceId, oldData, newData });
-    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No authenticated user found');
+      return;
+    }
+
     const { error } = await supabase
       .from('audit_logs')
       .insert({
         user_id: user.id,
-        action,
-        resource_type: resourceType,
-        resource_id: resourceId,
-        details: {
-          old: oldData,
-          new: newData
-        }
+        action: event.action,
+        resource_type: event.resourceType,
+        resource_id: event.resourceId,
+        details: event.details
       });
 
-    if (error) throw error;
-    
+    if (error) {
+      console.error('Error logging audit event:', error);
+      throw error;
+    }
   } catch (error) {
-    console.error("Error logging action:", error);
+    console.error('Error in logAuditEvent:', error);
+    throw error;
   }
-};
+}

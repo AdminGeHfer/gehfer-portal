@@ -1,60 +1,40 @@
-export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
-export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
-export type UserRole = "admin" | "manager" | "analyst" | "user";
-
-export interface RNCContact {
-  name: string;
-  phone?: string;
-  email?: string;
-}
-
 export interface RNC {
   id: string;
+  title?: string;
   description: string;
-  workflow_status: WorkflowStatusEnum;
-  priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
+  priority: 'low' | 'medium' | 'high';
+  type: string;
   department: DepartmentEnum;
-  contact: RNCContact;
   company: string;
   cnpj: string;
-  orderNumber?: string;
-  returnNumber?: string;
-  assignedTo?: string;
-  assignedBy?: string;
-  assignedAt?: string;
-  attachments?: File[];
-  resolution?: string;
-  rnc_number?: number;
+  order_number?: string;
+  return_number?: string;
   created_at: string;
   updated_at: string;
   closed_at?: string;
+  created_by: string;
+  assigned_to?: string;
+  rnc_number?: number;
+  assigned_by?: string;
+  assigned_at?: string;
+  workflow_status: WorkflowStatusEnum;
+  timeline?: Array<{
+    id: string;
+    date: string;
+    title: string;
+    description: string;
+    type: string;
+  }>;
 }
 
-export interface RNCFormData {
-  description: string;
-  priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
-  department: DepartmentEnum;
-  contact: RNCContact;
-  company: string;
-  cnpj: string;
-  orderNumber?: string;
-  returnNumber?: string;
-  workflow_status?: WorkflowStatusEnum;
-  assignedTo?: string;
-  attachments?: File[];
-  resolution?: string;
+export enum WorkflowStatusEnum {
+  OPEN = 'open',
+  IN_PROGRESS = 'in_progress',
+  RESOLVED = 'resolved'
 }
 
-export const getStatusLabel = (status: WorkflowStatusEnum): string => {
-  const labels: Record<WorkflowStatusEnum, string> = {
-    open: "Aberto",
-    analysis: "Em Análise",
-    resolution: "Em Resolução", 
-    solved: "Solucionado",
-    closing: "Em Fechamento",
-    closed: "Encerrado"
-  };
-  return labels[status] || status;
-};
+export enum DepartmentEnum {
+  QUALITY = 'quality',
+  PRODUCTION = 'production',
+  LOGISTICS = 'logistics'
+}

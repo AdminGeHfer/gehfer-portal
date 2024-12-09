@@ -2,11 +2,12 @@ import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useRBAC } from "@/hooks/useRBAC";
 import { toast } from "sonner";
+import { UserRole } from "@/types/auth";
 
 export interface RoleGuardProps {
   children: ReactNode;
   module?: string;
-  requiredRole?: string;
+  requiredRole?: UserRole;
   requiredPermission?: string;
   action?: string;
   department?: string;

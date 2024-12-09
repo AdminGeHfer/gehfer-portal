@@ -14,7 +14,7 @@ const userFormSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres").optional(),
-  role: z.enum(["admin", "manager", "user"] as const),
+  role: z.enum(['admin', 'manager', 'analyst', 'user'] as const),
   modules: z.array(z.string()).min(1, "Selecione pelo menos um módulo"),
   active: z.boolean()
 });
