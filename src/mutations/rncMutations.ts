@@ -46,8 +46,11 @@ export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   });
 };
 
-export const useUpdateRNC = (id: string, options?: Partial<UseMutationOptions<void, Error, Partial<RNC>>>) => {
-  return useMutation({
+export const useUpdateRNC = (
+  id: string,
+  options?: Partial<UseMutationOptions<void, Error, Partial<RNC>>>
+) => {
+  return useMutation<void, Error, Partial<RNC>>({
     mutationFn: async (updatedData: Partial<RNC>) => {
       const { error: rncError } = await supabase
         .from("rncs")

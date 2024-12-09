@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { RNCFormData, DepartmentEnum } from "@/types/rnc";
+import { RNCFormData, DepartmentEnum, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
 
 export const useRNCs = () => {
@@ -62,19 +62,18 @@ export const useRNCs = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Usuário não autenticado");
 
-      // First, create the RNC
       const { data: rnc, error: rncError } = await supabase
         .from("rncs")
         .insert({
           description: data.description,
-          workflow_status: "open",
+          workflow_status: WorkflowStatusEnum.OPEN,
           priority: data.priority,
           type: data.type,
           department: data.department,
           company: data.company,
           cnpj: data.cnpj,
-          order_number: data.orderNumber,
-          return_number: data.returnNumber,
+          order_number: data.order_number,
+          return_number: data.return_number,
           created_by: user.user.id,
         })
         .select()
@@ -85,7 +84,6 @@ export const useRNCs = () => {
         throw rncError;
       }
 
-      // Then, create the contact
       const { error: contactError } = await supabase
         .from("rnc_contacts")
         .insert({
@@ -100,7 +98,6 @@ export const useRNCs = () => {
         throw contactError;
       }
 
-      // Finally, create the initial event
       const { error: eventError } = await supabase
         .from("rnc_events")
         .insert({
