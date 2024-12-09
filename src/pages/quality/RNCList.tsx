@@ -12,6 +12,7 @@ import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { RNCFormData } from "@/types/rnc";
+import { WorkflowStatusEnum } from "@/types/rnc";
 
 const RNCList = () => {
   const navigate = useNavigate();
@@ -89,12 +90,12 @@ const RNCList = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="open">Aberto</SelectItem>
-              <SelectItem value="analysis">Em Análise</SelectItem>
-              <SelectItem value="resolution">Em Resolução</SelectItem>
-              <SelectItem value="solved">Solucionado</SelectItem>
-              <SelectItem value="closing">Em Fechamento</SelectItem>
-              <SelectItem value="closed">Encerrado</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.OPEN}>Aberto</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.ANALYSIS}>Em Análise</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.RESOLUTION}>Em Resolução</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.SOLVED}>Solucionado</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.CLOSING}>Em Fechamento</SelectItem>
+              <SelectItem value={WorkflowStatusEnum.CLOSED}>Encerrado</SelectItem>
             </SelectContent>
           </Select>
           <Select value={departmentFilter} onValueChange={setDepartmentFilter}>

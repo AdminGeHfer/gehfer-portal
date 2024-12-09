@@ -62,17 +62,14 @@ export const useUpdateRNC = (
           department: updatedData.department,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
-          order_number: updatedData.orderNumber,
-          return_number: updatedData.returnNumber,
+          order_number: updatedData.order_number,
+          return_number: updatedData.return_number,
           resolution: updatedData.resolution,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
 
-      if (rncError) {
-        console.error("Error updating RNC:", rncError);
-        throw rncError;
-      }
+      if (rncError) throw rncError;
 
       if (updatedData.contact) {
         const { error: contactError } = await supabase
@@ -85,23 +82,18 @@ export const useUpdateRNC = (
           })
           .eq("rnc_id", id);
 
-        if (contactError) {
-          console.error("Error updating contact:", contactError);
-          throw contactError;
-        }
+        if (contactError) throw contactError;
       }
     },
     ...options,
     onSuccess: (data, variables, context) => {
-      toast.success("RNC atualizada com sucesso");
       if (options?.onSuccess) {
         options.onSuccess(data, variables, context);
       }
     },
-    onError: (error: Error) => {
-      toast.error("Erro ao atualizar RNC: " + error.message);
+    onError: (error: Error, variables, context) => {
       if (options?.onError) {
-        options.onError(error, null as any, null as any);
+        options.onError(error, variables, context);
       }
     },
   });
