@@ -1,33 +1,19 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Permission, UserRole } from "@/types/auth";
 
-export type Role = "admin" | "manager" | "user";
-
-interface Permission {
-  module: string;
-  actions: string[];
-}
-
-const rolePermissions: Record<Role, Permission[]> = {
-  admin: [
-    { module: "any", actions: ["read", "write", "delete"] },
-    { module: "quality", actions: ["read", "write", "delete"] },
-    { module: "admin", actions: ["read", "write", "delete"] },
-    { module: "portaria", actions: ["read", "write", "delete"] }
-  ],
-  manager: [
-    { module: "quality", actions: ["read", "write"] },
-    { module: "portaria", actions: ["read", "write"] }
-  ],
-  user: [
-    { module: "quality", actions: ["read"] },
-    { module: "portaria", actions: ["read"] }
-  ]
+const roleHierarchy: Record<UserRole, number> = {
+  admin: 4,
+  manager: 3,
+  analyst: 2,
+  user: 1
 };
 
 export function useRBAC() {
-  const [userRole, setUserRole] = useState<Role>("user");
+  const [userRole, setUserRole] = useState<UserRole>("user");
+  const [userDepartment, setUserDepartment] = useState<string | null>(null);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,13 +27,26 @@ export function useRBAC() {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role')
+          .select('role, department')
           .eq('id', user.id)
           .single();
 
-        if (profile?.role && isValidRole(profile.role)) {
-          setUserRole(profile.role);
+        if (profile?.role) {
+          setUserRole(profile.role as UserRole);
+          setUserDepartment(profile.department);
         }
+
+        // Fetch user permissions
+        const { data: rolePermissions } = await supabase
+          .from('role_permissions')
+          .select('permissions (name)')
+          .eq('role', profile?.role)
+          .order('created_at', { ascending: true });
+
+        if (rolePermissions) {
+          setPermissions(rolePermissions.map(p => p.permissions.name));
+        }
+
       } catch (error) {
         console.error('Error fetching user role:', error);
         toast.error("Erro ao carregar permissões do usuário");
@@ -59,32 +58,25 @@ export function useRBAC() {
     getUserRole();
   }, []);
 
-  function isValidRole(role: string): role is Role {
-    return ["admin", "manager", "user"].includes(role);
+  function hasPermission(permission: Permission): boolean {
+    return permissions.includes(permission) || userRole === 'admin';
   }
 
-  function hasPermission(module: string, action: string): boolean {
-    // Admin has access to everything
-    if (userRole === "admin") return true;
-    
-    // Special case for "any" module
-    if (module === "any") return true;
-
-    const permissions = rolePermissions[userRole];
-    const modulePermissions = permissions.find(p => p.module === module);
-    return !!modulePermissions?.actions.includes(action);
+  function canAccessDepartment(department: string): boolean {
+    return userRole === 'admin' || userDepartment === department;
   }
 
-  function canAccessModule(module: string): boolean {
-    return rolePermissions[userRole].some(p => p.module === module);
+  function hasMinimumRole(requiredRole: UserRole): boolean {
+    return roleHierarchy[userRole] >= roleHierarchy[requiredRole];
   }
 
   return {
     role: userRole,
+    department: userDepartment,
     loading,
     hasPermission,
-    canAccessModule,
-    isAdmin: userRole === "admin",
-    isManager: userRole === "manager"
+    canAccessDepartment,
+    hasMinimumRole,
+    permissions
   };
 }

@@ -13,6 +13,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { logAuditEvent } from "@/services/auditService";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
@@ -21,14 +22,14 @@ const formSchema = z.object({
   department: z.enum(["Expedição", "Logistica", "Comercial", "Qualidade", "Produção"]),
   contact: z.object({
     name: z.string().min(1, "O nome do contato é obrigatório"),
-    phone: z.string().min(1, "O telefone é obrigatório"),
-    email: z.string().email("Email inválido"),
+    phone: z.string().optional(),
+    email: z.string().email("Email inválido").optional(),
   }),
-  orderNumber: z.string().optional(),
-  returnNumber: z.string().optional(),
   company: z.string().min(1, "A empresa é obrigatória"),
   cnpj: z.string().min(14, "CNPJ inválido").max(14),
-  status: z.enum(["open", "in_progress", "closed"]).default("open"),
+  orderNumber: z.string().optional(),
+  returnNumber: z.string().optional(),
+  workflow_status: z.enum(["open", "analysis", "resolution", "solved", "closing", "closed"]).default("open"),
   assignedTo: z.string().optional(),
   attachments: z.array(z.instanceof(File)).optional(),
   resolution: z.string().optional(),
@@ -88,6 +89,19 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       
       const rncId = await onSubmit(data);
       console.log('RNC created successfully with ID:', rncId);
+
+      // Log audit event
+      await logAuditEvent(
+        'create',
+        'rnc',
+        rncId,
+        null,
+        {
+          description: data.description,
+          type: data.type,
+          priority: data.priority
+        }
+      );
 
       if (data.attachments && data.attachments.length > 0) {
         console.log('Starting file uploads for RNC:', rncId);
