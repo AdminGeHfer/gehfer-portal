@@ -1,10 +1,23 @@
-import { TimelineEvent as TimelineEventType } from "@/types/rnc";
-import { getWorkflowStatusLabel } from "@/utils/workflow";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getWorkflowStatusLabel } from "@/utils/workflow";
+
+export type TimelineEventType = "creation" | "update" | "status" | "comment" | "assignment";
+
+export interface TimelineEventData {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  type: TimelineEventType;
+  userId: string;
+  userName?: string;
+  comment?: string;
+  notes?: string;
+}
 
 interface TimelineEventProps {
-  event: TimelineEventType;
+  event: TimelineEventData;
   userName?: string;
 }
 
@@ -63,9 +76,9 @@ export const TimelineEvent = ({ event, userName }: TimelineEventProps) => {
             por {userName}
           </p>
         )}
-        {event.comment && (
+        {event.notes && (
           <p className="mt-2 rounded-lg bg-gray-50 p-3 text-sm dark:bg-gray-800">
-            {event.comment}
+            {event.notes}
           </p>
         )}
       </div>
