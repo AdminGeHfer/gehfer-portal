@@ -1,4 +1,5 @@
 export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
+
 export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
 export interface RNC {
@@ -15,8 +16,8 @@ export interface RNC {
   };
   company: string;
   cnpj: string;
-  orderNumber?: string;
-  returnNumber?: string;
+  order_number?: string;
+  return_number?: string;
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
@@ -54,8 +55,8 @@ export interface RNCFormData {
   };
   company: string;
   cnpj: string;
-  orderNumber?: string;
-  returnNumber?: string;
+  order_number?: string;
+  return_number?: string;
   workflow_status: WorkflowStatusEnum;
   assignedTo?: string;
   attachments?: File[];
