@@ -1,7 +1,7 @@
 export enum DepartmentEnum {
   EXPEDITION = "Expedição",
   LOGISTICS = "Logistica",
-  COMMERCIAL = "Comercial",
+  COMMERCIAL = "Comercial", 
   QUALITY = "Qualidade",
   PRODUCTION = "Produção"
 }
@@ -54,6 +54,7 @@ export interface RNC {
   contact: RNCContact;
   resolution?: string;
   canEdit?: boolean;
+  rnc_number?: number;
 }
 
 export interface RNCFormData {

@@ -2,7 +2,7 @@ import { Button } from "@/components/atoms/Button";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
-import { RNCFormData } from "@/types/rnc";
+import { RNCFormData, DepartmentEnum, WorkflowStatusEnum } from "@/types/rnc";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { RNCBasicInfo } from "./form/RNCBasicInfo";
@@ -19,7 +19,7 @@ const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
   priority: z.enum(["low", "medium", "high"]),
   type: z.enum(["client", "supplier"]),
-  department: z.enum(["Expedição", "Logistica", "Comercial", "Qualidade", "Produção"]),
+  department: z.nativeEnum(DepartmentEnum),
   contact: z.object({
     name: z.string().min(1, "O nome do contato é obrigatório"),
     phone: z.string().optional(),
@@ -29,7 +29,7 @@ const formSchema = z.object({
   cnpj: z.string().min(14, "CNPJ inválido").max(14),
   order_number: z.string().optional(),
   return_number: z.string().optional(),
-  workflow_status: z.enum(["open", "analysis", "resolution", "solved", "closing", "closed"]).default("open"),
+  workflow_status: z.nativeEnum(WorkflowStatusEnum).default(WorkflowStatusEnum.OPEN),
   assigned_to: z.string().optional(),
   attachments: z.array(z.instanceof(File)).optional(),
   resolution: z.string().optional(),
@@ -39,7 +39,7 @@ const defaultValues: RNCFormData = {
   description: "",
   priority: "medium",
   type: "client",
-  department: "Expedição",
+  department: DepartmentEnum.EXPEDITION,
   contact: {
     name: "",
     phone: "",
@@ -49,7 +49,7 @@ const defaultValues: RNCFormData = {
   cnpj: "",
   order_number: "",
   return_number: "",
-  workflow_status: "open",
+  workflow_status: WorkflowStatusEnum.OPEN,
   assigned_to: "",
   attachments: [],
   resolution: "",
