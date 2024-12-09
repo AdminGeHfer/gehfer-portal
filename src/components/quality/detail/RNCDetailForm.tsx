@@ -27,8 +27,8 @@ const formSchema = z.object({
   return_number: z.string().optional(),
   company: z.string().min(1, "A empresa é obrigatória"),
   cnpj: z.string().min(14, "CNPJ inválido").max(14),
-  workflow_status: z.enum(["open", "in_progress", "closed"]).default("open"),
-  assignedTo: z.string().optional(),
+  workflow_status: z.enum(["open", "analysis", "resolution", "solved", "closing", "closed"]).default("open"),
+  assigned_to: z.string().optional(),
   attachments: z.array(z.instanceof(File)).optional(),
   resolution: z.string().optional(),
 });
@@ -58,7 +58,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
       order_number: rnc.order_number,
       return_number: rnc.return_number,
       workflow_status: rnc.workflow_status,
-      assignedTo: rnc.assigned_to,
+      assigned_to: rnc.assigned_to,
       resolution: rnc.resolution,
     },
   });

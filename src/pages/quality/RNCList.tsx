@@ -11,8 +11,7 @@ import { useRNCs } from "@/hooks/useRNCs";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
-import { RNCFormData } from "@/types/rnc";
-import { WorkflowStatusEnum } from "@/types/rnc";
+import { RNCFormData, WorkflowStatusEnum } from "@/types/rnc";
 
 const RNCList = () => {
   const navigate = useNavigate();
