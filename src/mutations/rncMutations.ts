@@ -54,6 +54,8 @@ type UpdateRNCMutationOptions = Omit<
 export const useUpdateRNC = (id: string, options?: UpdateRNCMutationOptions) => {
   return useMutation({
     mutationFn: async (updatedData: Partial<RNC>) => {
+      console.log("Updating RNC with data:", updatedData);
+      
       const { error: rncError } = await supabase
         .from("rncs")
         .update({
@@ -64,8 +66,8 @@ export const useUpdateRNC = (id: string, options?: UpdateRNCMutationOptions) => 
           department: updatedData.department,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
-          order_number: updatedData.orderNumber,
-          return_number: updatedData.returnNumber,
+          order_number: updatedData.orderNumber || null,
+          return_number: updatedData.returnNumber || null,
           resolution: updatedData.resolution,
           updated_at: new Date().toISOString(),
         })
