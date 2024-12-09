@@ -1,7 +1,7 @@
 export enum DepartmentEnum {
   EXPEDITION = "Expedição",
   LOGISTICS = "Logistica",
-  COMMERCIAL = "Comercial", 
+  COMMERCIAL = "Comercial",
   QUALITY = "Qualidade",
   PRODUCTION = "Produção"
 }
