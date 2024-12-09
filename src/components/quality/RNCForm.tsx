@@ -84,7 +84,6 @@ export function RNCForm({ initialData, onSubmit, mode = "create" }: RNCFormProps
       setShowValidationErrors(true);
       
       const rncId = await onSubmit(data);
-
       await logAuditEvent('create', 'rnc', rncId);
 
       toast({
