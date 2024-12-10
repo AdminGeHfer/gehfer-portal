@@ -20,6 +20,9 @@ export interface RNC {
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
+  assigned_to?: string;
+  assigned_by?: string;
+  assigned_at?: string;
   attachments?: File[];
   timeline: TimelineEvent[];
   resolution?: string;
@@ -27,6 +30,7 @@ export interface RNC {
   created_at: string;
   updated_at: string;
   closed_at?: string;
+  created_by: string;
   title?: string;
   canEdit?: boolean;
 }
