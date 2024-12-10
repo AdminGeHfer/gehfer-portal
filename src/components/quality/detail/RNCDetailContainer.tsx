@@ -128,6 +128,15 @@ export function RNCDetailContainer() {
         isEditing={isEditing}
         onEdit={handleEdit}
         onSave={handleSave}
+        onDelete={handleDelete}
+        onGeneratePDF={handleGeneratePDF}
+        onWhatsApp={handleWhatsApp}
+        canEdit={rnc.canEdit}
+        onStatusChange={handleStatusChange}
+        onRefresh={handleRefresh}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        isDeleting={isDeleting}
       />
       <RNCDetailContent
         rnc={rnc}
@@ -144,6 +153,9 @@ export function RNCDetailContainer() {
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
         isDeleting={isDeleting}
         canEdit={rnc.canEdit}
+        isEditing={isEditing}
+        onEdit={handleEdit}
+        onSave={handleSave}
       />
     </RNCDetailLayout>
   );
