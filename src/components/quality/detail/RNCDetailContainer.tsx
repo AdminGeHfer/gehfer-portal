@@ -19,10 +19,10 @@ export function RNCDetailContainer() {
   const {
     rnc,
     isLoading,
-    deleteRNC,
-    updateRNC,
-    handleRefresh,
-    handleStatusChange
+    handleDelete,
+    handleStatusChange,
+    handleFieldChange,
+    handleRefresh
   } = useRNCDetail(id!);
 
   const handleGeneratePDF = () => {
@@ -39,23 +39,8 @@ export function RNCDetailContainer() {
 
   const handleSave = async () => {
     if (!rnc) return;
-    await updateRNC.mutateAsync(rnc);
     setIsEditing(false);
-  };
-
-  const handleDelete = async () => {
-    if (!rnc?.canEdit || isDeleting) return;
-    
-    try {
-      setIsDeleting(true);
-      await deleteRNC.mutateAsync();
-      navigate("/quality/rnc");
-    } catch (error) {
-      toast.error("Erro ao excluir RNC");
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteDialogOpen(false);
-    }
+    toast.success("RNC atualizada com sucesso");
   };
 
   const handleWhatsApp = () => {
@@ -65,30 +50,9 @@ export function RNCDetailContainer() {
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
-  const handleFieldChange = (field: keyof RNC, value: any) => {
-    if (!rnc) return;
-    
-    if (field === "contact") {
-      const updatedRnc = {
-        ...rnc,
-        contact: {
-          ...rnc.contact,
-          [value.target.name]: value.target.value
-        }
-      };
-      updateRNC.mutate(updatedRnc);
-    } else {
-      const updatedRnc = {
-        ...rnc,
-        [field]: value
-      };
-      updateRNC.mutate(updatedRnc);
-    }
-  };
-
   if (isLoading || !rnc) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
         <div className="flex min-h-screen">
           <main className="flex-1 p-6">
             <div className="flex items-center justify-center h-full">
@@ -137,14 +101,36 @@ export function RNCDetailContainer() {
           isDeleteDialogOpen={isDeleteDialogOpen}
           isDeleting={isDeleting}
         />
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border p-6">
-          <RNCDetailContent
-            rnc={rnc}
-            isEditing={isEditing}
-            onRefresh={handleRefresh}
-            onStatusChange={handleStatusChange}
-            onFieldChange={handleFieldChange}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-card dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+              <RNCDetailContent
+                rnc={rnc}
+                isEditing={isEditing}
+                onRefresh={handleRefresh}
+                onStatusChange={handleStatusChange}
+                onFieldChange={handleFieldChange}
+              />
+            </div>
+          </div>
+          <div className="space-y-6">
+            <div className="bg-card dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+              <h2 className="text-lg font-semibold mb-4">Status do Workflow</h2>
+              <div className="space-y-4">
+                <RNCStatusBadge status={rnc.workflow_status} />
+                <textarea
+                  className="w-full min-h-[100px] p-3 rounded-md border bg-background resize-none"
+                  placeholder="Notas sobre a transição (opcional)"
+                />
+                <Button
+                  className="w-full bg-primary hover:bg-primary/90"
+                  onClick={() => handleStatusChange("analysis")}
+                >
+                  Em Análise
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="flex justify-end">
           <RNCDetailActions
