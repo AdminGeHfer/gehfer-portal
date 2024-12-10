@@ -9,7 +9,7 @@ interface RNCDetailActionsProps {
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
-  onGeneratePDF: () => void;
+  onPrint: () => void;
   onWhatsApp: () => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
   isDeleting: boolean;
@@ -22,7 +22,7 @@ export function RNCDetailActions({
   onEdit,
   onSave,
   onDelete,
-  onGeneratePDF,
+  onPrint,
   onWhatsApp,
   setIsDeleteDialogOpen,
   isDeleting
@@ -32,7 +32,7 @@ export function RNCDetailActions({
       <Button 
         variant="outline" 
         className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
-        onClick={onGeneratePDF}
+        onClick={onPrint}
       >
         <Printer className="mr-2 h-4 w-4" />
         Imprimir

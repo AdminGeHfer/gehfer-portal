@@ -8,7 +8,7 @@ import { RNCForm } from "@/components/quality/RNCForm";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { RNCFormData } from "@/types/rnc";
+import { RNCFormData, WorkflowStatusEnum } from "@/types/rnc";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -44,7 +44,7 @@ const RNCList = () => {
       title: "Produto entregue com defeito",
       company: "PX COMERCIO DE FERRO E ACO PNTALENSE LTDA",
       department: "Qualidade",
-      workflow_status: "resolution",
+      workflow_status: WorkflowStatusEnum.RESOLUTION,
       priority: "medium",
       date: "09/12/2024"
     },
@@ -54,7 +54,7 @@ const RNCList = () => {
       title: "Material fora das especificações",
       company: "BORTOLON",
       department: "Qualidade",
-      workflow_status: "solved",
+      workflow_status: WorkflowStatusEnum.SOLVED,
       priority: "medium",
       date: "05/12/2024"
     }
