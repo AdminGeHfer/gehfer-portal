@@ -13,7 +13,7 @@ export const useRNCDetail = (id: string) => {
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("rncs")
         .select(`
@@ -22,11 +22,10 @@ export const useRNCDetail = (id: string) => {
           events:rnc_events(*)
         `)
         .eq("id", id)
-        .maybeSingle(); // Changed from single() to maybeSingle()
+        .maybeSingle();
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // Record not found
           navigate("/quality/rnc");
           return null;
         }
@@ -45,7 +44,7 @@ export const useRNCDetail = (id: string) => {
 
       return { ...transformRNCData(data), canEdit: true };
     },
-    retry: false // Don't retry if the record is not found
+    retry: false
   });
 
   const deleteRNC = useDeleteRNC(id, () => {

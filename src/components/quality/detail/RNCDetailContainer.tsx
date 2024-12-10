@@ -44,12 +44,7 @@ export function RNCDetailContainer() {
   };
 
   const handleDelete = async () => {
-    if (!rnc?.canEdit) {
-      toast.error("Você não tem permissão para excluir esta RNC");
-      return;
-    }
-    
-    if (isDeleting) return;
+    if (!rnc?.canEdit || isDeleting) return;
     
     try {
       setIsDeleting(true);
@@ -147,16 +142,15 @@ export function RNCDetailContainer() {
       />
       <RNCDetailActions
         rnc={rnc}
+        isEditing={isEditing}
+        canEdit={rnc.canEdit}
+        onEdit={handleEdit}
+        onSave={handleSave}
         onDelete={handleDelete}
         onGeneratePDF={handleGeneratePDF}
         onWhatsApp={handleWhatsApp}
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
         isDeleting={isDeleting}
-        canEdit={rnc.canEdit}
-        isEditing={isEditing}
-        onEdit={handleEdit}
-        onSave={handleSave}
-        onPrint={handleGeneratePDF}
       />
     </RNCDetailLayout>
   );
