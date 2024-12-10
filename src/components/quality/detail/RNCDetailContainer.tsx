@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
-import { toast } from "sonner";
 import { RNCDetailLayout } from "./RNCDetailLayout";
 import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDetailContent } from "./RNCDetailContent";
+import { toast } from "sonner";
 
 export function RNCDetailContainer() {
   const { id } = useParams();
@@ -85,32 +85,34 @@ export function RNCDetailContainer() {
 
   return (
     <RNCDetailLayout
-      header={
-        <RNCDetailHeader
-          rnc={rnc}
-          isEditing={isEditing}
-          onEdit={handleEdit}
-          onSave={handleSave}
-        />
-      }
-      actions={
-        <RNCDetailActions
-          rnc={rnc}
-          isGeneratingPDF={isGeneratingPDF}
-          isDeleteDialogOpen={isDeleteDialogOpen}
-          onGeneratePDF={handleGeneratePDF}
-          onDelete={handleDelete}
-          onWhatsApp={handleWhatsApp}
-          setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-          isDeleting={isDeleting}
-        />
-      }
+      rnc={rnc}
+      isEditing={isEditing}
+      isGeneratingPDF={isGeneratingPDF}
+      isDeleteDialogOpen={isDeleteDialogOpen}
+      onEdit={handleEdit}
+      onSave={handleSave}
+      onDelete={handleDelete}
+      onGeneratePDF={handleGeneratePDF}
+      onWhatsApp={handleWhatsApp}
+      setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+      isDeleting={isDeleting}
+      canEdit={rnc.canEdit}
+      onRefresh={handleRefresh}
+      onStatusChange={handleStatusChange}
     >
       <RNCDetailContent
         rnc={rnc}
         isEditing={isEditing}
         onRefresh={handleRefresh}
         onStatusChange={handleStatusChange}
+        onFieldChange={(field, value) => {
+          if (!rnc) return;
+          const updatedRnc = {
+            ...rnc,
+            [field]: value
+          };
+          updateRNC.mutate(updatedRnc);
+        }}
       />
     </RNCDetailLayout>
   );

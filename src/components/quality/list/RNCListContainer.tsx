@@ -5,20 +5,19 @@ import { RNCFormData } from "@/types/rnc";
 import { RNCListHeader } from "./RNCListHeader";
 import { RNCListFilters } from "./RNCListFilters";
 import { RNCListTable } from "./RNCListTable";
+import { transformRNCData } from "@/utils/rncTransform";
 
 export function RNCListContainer() {
   const navigate = useNavigate();
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const { rncs, isLoading, createRNC } = useRNCs();
 
-  const handleSubmit = async (data: RNCFormData): Promise<string> => {
+  const handleSubmit = async (data: RNCFormData) => {
     try {
       const result = await createRNC.mutateAsync(data);
-      setIsFormOpen(false);
       return result.id;
     } catch (error) {
       console.error("Erro ao criar RNC:", error);
@@ -26,7 +25,7 @@ export function RNCListContainer() {
     }
   };
 
-  const filteredRncs = rncs?.filter((rnc) => {
+  const filteredRncs = rncs?.map(transformRNCData).filter((rnc) => {
     const matchesSearch = 
       searchTerm === "" ||
       rnc.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,21 +42,19 @@ export function RNCListContainer() {
   return (
     <div className="min-h-screen bg-background">
       <RNCListHeader 
-        isFormOpen={isFormOpen}
-        setIsFormOpen={setIsFormOpen}
-        onSubmit={handleSubmit}
+        onRNCCreated={() => {}} 
       />
       
       <main className="flex-1 p-6">
         <RNCListFilters
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          onSearchChange={setSearchTerm}
           statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
+          onStatusChange={setStatusFilter}
           departmentFilter={departmentFilter}
-          setDepartmentFilter={setDepartmentFilter}
+          onDepartmentChange={setDepartmentFilter}
           priorityFilter={priorityFilter}
-          setPriorityFilter={setPriorityFilter}
+          onPriorityChange={setPriorityFilter}
         />
 
         <RNCListTable
