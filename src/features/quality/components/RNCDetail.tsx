@@ -19,7 +19,7 @@ export const RNCDetail = ({ id }: RNCDetailProps) => {
     handleDelete,
     handleStatusChange,
     handleFieldChange,
-    refetch
+    handleRefresh
   } = useRNCDetail(id);
 
   if (isLoading) {
@@ -50,7 +50,7 @@ export const RNCDetail = ({ id }: RNCDetailProps) => {
       onWhatsApp={() => {}}
       onStatusChange={handleStatusChange}
       onFieldChange={handleFieldChange}
-      onRefresh={refetch}
+      onRefresh={handleRefresh}
       setIsDeleteDialogOpen={setIsDeleteDialogOpen}
       isDeleteDialogOpen={isDeleteDialogOpen}
       isDeleting={isDeleting}

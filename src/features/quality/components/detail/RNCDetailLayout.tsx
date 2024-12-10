@@ -1,78 +1,54 @@
-import { RNCDetailHeader } from "./RNCDetailHeader";
-import { RNCDetailContent } from "./RNCDetailContent";
-import { RNCDetailActions } from "./RNCDetailActions";
-import { RNC } from "@/types/rnc";
-import { WorkflowStatusEnum } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
+import { Header } from "@/components/layout/Header";
+import { RNCDetailHeader } from "@/components/quality/detail/RNCDetailHeader";
+import { RNCDetailContent } from "@/components/quality/detail/RNCDetailContent";
+import { RNCDetailActions } from "@/components/quality/detail/RNCDetailActions";
 
-interface RNCDetailLayoutProps {
+export interface RNCDetailLayoutProps {
   rnc: RNC;
   isEditing: boolean;
-  canEdit: boolean;
+  isGeneratingPDF: boolean;
+  isDeleteDialogOpen: boolean;
   onEdit: () => void;
-  onSave: () => Promise<void>;
+  onSave: () => void;
   onDelete: () => void;
   onGeneratePDF: () => void;
   onWhatsApp: () => void;
-  onStatusChange: (status: WorkflowStatusEnum) => Promise<void>;
   onFieldChange: (field: keyof RNC, value: any) => void;
-  onRefresh: () => Promise<void>;
   setIsDeleteDialogOpen: (open: boolean) => void;
-  isDeleteDialogOpen: boolean;
   isDeleting: boolean;
+  canEdit: boolean;
+  onRefresh: () => Promise<void>;
+  onStatusChange: (status: WorkflowStatusEnum) => Promise<void>;
+  children?: React.ReactNode;
 }
 
-export const RNCDetailLayout = ({
+export function RNCDetailLayout({
   rnc,
   isEditing,
-  canEdit,
+  isGeneratingPDF,
+  isDeleteDialogOpen,
   onEdit,
   onSave,
   onDelete,
   onGeneratePDF,
   onWhatsApp,
+  setIsDeleteDialogOpen,
+  isDeleting,
+  canEdit,
+  onRefresh,
   onStatusChange,
   onFieldChange,
-  onRefresh,
-  setIsDeleteDialogOpen,
-  isDeleteDialogOpen,
-  isDeleting
-}: RNCDetailLayoutProps) => {
+  children
+}: RNCDetailLayoutProps) {
   return (
-    <div className="space-y-6 p-6">
-      <RNCDetailHeader
-        rnc={rnc}
-        isEditing={isEditing}
-        canEdit={canEdit}
-        onEdit={onEdit}
-        onSave={onSave}
-        onDelete={onDelete}
-        onGeneratePDF={onGeneratePDF}
-        onWhatsApp={onWhatsApp}
-        onStatusChange={onStatusChange}
-        onRefresh={onRefresh}
-        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-        isDeleteDialogOpen={isDeleteDialogOpen}
-        isDeleting={isDeleting}
-      />
-
-      <RNCDetailContent
-        rnc={rnc}
-        isEditing={isEditing}
-        onRefresh={onRefresh}
-        onStatusChange={onStatusChange}
-        onFieldChange={onFieldChange}
-      />
-
-      <RNCDetailActions
-        rnc={rnc}
-        isEditing={isEditing}
-        canEdit={canEdit}
-        onEdit={onEdit}
-        onSave={onSave}
-        onDelete={onDelete}
-        onGeneratePDF={onGeneratePDF}
-        onWhatsApp={onWhatsApp}
-      />
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto py-1">
+        <div className="space-y-4">
+          {children}
+        </div>
+      </main>
     </div>
   );
-};
+}

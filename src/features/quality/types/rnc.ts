@@ -1,4 +1,4 @@
-import { WorkflowStatusEnum, DepartmentEnum } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum, DepartmentEnum } from "@/types/rnc";
 
 export interface RNCDetailProps {
   id: string;
@@ -55,6 +55,8 @@ export interface RNCDetailActionsProps {
   onEdit: () => void;
   onSave: () => Promise<void>;
   onDelete: () => void;
-  onGeneratePDF: () => void;
+  onPrint: () => void;
   onWhatsApp: () => void;
+  setIsDeleteDialogOpen: (open: boolean) => void;
+  isDeleting: boolean;
 }

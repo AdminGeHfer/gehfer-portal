@@ -156,6 +156,7 @@ export function RNCDetailContainer() {
         isEditing={isEditing}
         onEdit={handleEdit}
         onSave={handleSave}
+        onPrint={handleGeneratePDF}
       />
     </RNCDetailLayout>
   );
