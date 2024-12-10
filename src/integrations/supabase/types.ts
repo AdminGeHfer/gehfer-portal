@@ -398,7 +398,6 @@ export type Database = {
           active: boolean | null
           avatar_url: string | null
           created_at: string
-          department: string | null
           email: string | null
           id: string
           modules: string[] | null
@@ -410,7 +409,6 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           created_at?: string
-          department?: string | null
           email?: string | null
           id: string
           modules?: string[] | null
@@ -422,7 +420,6 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           created_at?: string
-          department?: string | null
           email?: string | null
           id?: string
           modules?: string[] | null
@@ -667,7 +664,6 @@ export type Database = {
           company: string
           created_at: string
           created_by: string
-          department: Database["public"]["Enums"]["department_enum"]
           description: string
           id: string
           order_number: string | null
@@ -687,7 +683,6 @@ export type Database = {
           company: string
           created_at?: string
           created_by: string
-          department: Database["public"]["Enums"]["department_enum"]
           description: string
           id?: string
           order_number?: string | null
@@ -707,7 +702,6 @@ export type Database = {
           company?: string
           created_at?: string
           created_by?: string
-          department?: Database["public"]["Enums"]["department_enum"]
           description?: string
           id?: string
           order_number?: string | null
@@ -1080,12 +1074,6 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
-      department_enum:
-        | "Expedição"
-        | "Logistica"
-        | "Comercial"
-        | "Qualidade"
-        | "Produção"
       rnc_workflow_status_enum:
         | "open"
         | "analysis"
