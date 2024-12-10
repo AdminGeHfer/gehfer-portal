@@ -6,7 +6,7 @@ import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDetailContent } from "./RNCDetailContent";
 import { toast } from "sonner";
-import { RNC, WorkflowStatusEnum } from "@/types/rnc";
+import { RNC } from "@/types/rnc";
 
 export function RNCDetailContainer() {
   const { id } = useParams();
@@ -88,11 +88,14 @@ export function RNCDetailContainer() {
 
   if (isLoading || !rnc) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
         <div className="flex min-h-screen">
           <main className="flex-1 p-6">
             <div className="flex items-center justify-center h-full">
-              <p>{isLoading ? "Carregando..." : "RNC não encontrada"}</p>
+              <div className="text-center space-y-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground">{isLoading ? "Carregando..." : "RNC não encontrada"}</p>
+              </div>
             </div>
           </main>
         </div>
@@ -118,40 +121,46 @@ export function RNCDetailContainer() {
       onRefresh={handleRefresh}
       onStatusChange={handleStatusChange}
     >
-      <RNCDetailHeader
-        rnc={rnc}
-        isEditing={isEditing}
-        onEdit={handleEdit}
-        onSave={handleSave}
-        onDelete={handleDelete}
-        onGeneratePDF={handleGeneratePDF}
-        onWhatsApp={handleWhatsApp}
-        canEdit={rnc.canEdit}
-        onStatusChange={handleStatusChange}
-        onRefresh={handleRefresh}
-        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-        isDeleteDialogOpen={isDeleteDialogOpen}
-        isDeleting={isDeleting}
-      />
-      <RNCDetailContent
-        rnc={rnc}
-        isEditing={isEditing}
-        onRefresh={handleRefresh}
-        onStatusChange={handleStatusChange}
-        onFieldChange={handleFieldChange}
-      />
-      <RNCDetailActions
-        rnc={rnc}
-        isEditing={isEditing}
-        canEdit={rnc.canEdit}
-        onEdit={handleEdit}
-        onSave={handleSave}
-        onDelete={handleDelete}
-        onGeneratePDF={handleGeneratePDF}
-        onWhatsApp={handleWhatsApp}
-        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-        isDeleting={isDeleting}
-      />
+      <div className="space-y-6 animate-fade-in">
+        <RNCDetailHeader
+          rnc={rnc}
+          isEditing={isEditing}
+          onEdit={handleEdit}
+          onSave={handleSave}
+          onDelete={handleDelete}
+          onGeneratePDF={handleGeneratePDF}
+          onWhatsApp={handleWhatsApp}
+          canEdit={rnc.canEdit}
+          onStatusChange={handleStatusChange}
+          onRefresh={handleRefresh}
+          setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+          isDeleteDialogOpen={isDeleteDialogOpen}
+          isDeleting={isDeleting}
+        />
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border p-6">
+          <RNCDetailContent
+            rnc={rnc}
+            isEditing={isEditing}
+            onRefresh={handleRefresh}
+            onStatusChange={handleStatusChange}
+            onFieldChange={handleFieldChange}
+          />
+        </div>
+        <div className="flex justify-end">
+          <RNCDetailActions
+            rnc={rnc}
+            isEditing={isEditing}
+            canEdit={rnc.canEdit}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onGeneratePDF={handleGeneratePDF}
+            onWhatsApp={handleWhatsApp}
+            setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+            isDeleting={isDeleting}
+          />
+        </div>
+      </div>
     </RNCDetailLayout>
   );
 }

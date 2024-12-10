@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { RNC } from "@/types/rnc";
-import { Printer, WhatsappLogo, Trash } from "@phosphor-icons/react";
+import { Printer, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";
 
 interface RNCDetailActionsProps {
   rnc: RNC;
@@ -9,9 +9,10 @@ interface RNCDetailActionsProps {
   onEdit: () => void;
   onSave: () => void;
   onDelete: () => void;
-  onPrint: () => void;
+  onGeneratePDF: () => void;
   onWhatsApp: () => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
+  isDeleting: boolean;
 }
 
 export function RNCDetailActions({
@@ -21,17 +22,26 @@ export function RNCDetailActions({
   onEdit,
   onSave,
   onDelete,
-  onPrint,
+  onGeneratePDF,
   onWhatsApp,
-  setIsDeleteDialogOpen
+  setIsDeleteDialogOpen,
+  isDeleting
 }: RNCDetailActionsProps) {
   return (
-    <div className="flex gap-2">
-      <Button variant="outline" onClick={onPrint}>
+    <div className="flex gap-2 animate-fade-in">
+      <Button 
+        variant="outline" 
+        className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+        onClick={onGeneratePDF}
+      >
         <Printer className="mr-2 h-4 w-4" />
         Imprimir
       </Button>
-      <Button variant="outline" onClick={onWhatsApp}>
+      <Button 
+        variant="outline"
+        className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+        onClick={onWhatsApp}
+      >
         <WhatsappLogo weight="fill" className="mr-2 h-4 w-4" />
         WhatsApp
       </Button>
@@ -39,14 +49,17 @@ export function RNCDetailActions({
         <>
           <Button 
             variant={isEditing ? "default" : "outline"}
+            className={isEditing ? "" : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"}
             onClick={isEditing ? onSave : onEdit}
           >
+            <PencilSimple className="mr-2 h-4 w-4" />
             {isEditing ? "Salvar" : "Editar"}
           </Button>
           <Button 
             variant="outline" 
-            className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400"
+            className="text-destructive hover:text-destructive-foreground hover:bg-destructive/90 bg-white dark:bg-gray-800"
             onClick={() => setIsDeleteDialogOpen(true)}
+            disabled={isDeleting}
           >
             <Trash className="mr-2 h-4 w-4" />
             Excluir

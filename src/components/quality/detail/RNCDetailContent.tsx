@@ -17,7 +17,7 @@ export function RNCDetailContent({
   onFieldChange,
 }: RNCDetailContentProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <RNCDetailForm
         rnc={rnc}
         isEditing={isEditing}
