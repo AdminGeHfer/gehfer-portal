@@ -37,7 +37,7 @@ export const useRNCDetail = (id: string) => {
         return null;
       }
 
-      if (data.created_by !== user.user?.id) {
+      if (!user || data.created_by !== user.id) {
         toast.error("Você não tem permissão para editar esta RNC");
         return { ...transformRNCData(data), canEdit: false };
       }

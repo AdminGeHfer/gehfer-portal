@@ -1,12 +1,15 @@
 import { useRNCDetail } from "../hooks/useRNCDetail";
 import { RNCDetailLayout } from "./detail/RNCDetailLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useState } from "react";
 
 interface RNCDetailProps {
   id: string;
 }
 
 export const RNCDetail = ({ id }: RNCDetailProps) => {
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  
   const {
     rnc,
     isLoading,
@@ -21,6 +24,10 @@ export const RNCDetail = ({ id }: RNCDetailProps) => {
     handleFieldChange,
     handleRefresh
   } = useRNCDetail(id);
+
+  const handleGeneratePDF = () => {
+    setIsGeneratingPDF(!isGeneratingPDF);
+  };
 
   if (isLoading) {
     return (
@@ -42,11 +49,12 @@ export const RNCDetail = ({ id }: RNCDetailProps) => {
     <RNCDetailLayout
       rnc={rnc}
       isEditing={isEditing}
+      isGeneratingPDF={isGeneratingPDF}
       canEdit={rnc.canEdit}
       onEdit={handleEdit}
       onSave={handleSave}
       onDelete={handleDelete}
-      onGeneratePDF={() => {}}
+      onGeneratePDF={handleGeneratePDF}
       onWhatsApp={() => {}}
       onStatusChange={handleStatusChange}
       onFieldChange={handleFieldChange}
