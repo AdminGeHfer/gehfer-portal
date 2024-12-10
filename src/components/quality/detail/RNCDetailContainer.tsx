@@ -6,6 +6,7 @@ import { RNCDetailHeader } from "./RNCDetailHeader";
 import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDetailContent } from "./RNCDetailContent";
 import { toast } from "sonner";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 
 export function RNCDetailContainer() {
   const { id } = useParams();
@@ -69,6 +70,27 @@ export function RNCDetailContainer() {
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
   };
 
+  const handleFieldChange = (field: keyof RNC, value: any) => {
+    if (!rnc) return;
+    
+    if (field === "contact") {
+      const updatedRnc = {
+        ...rnc,
+        contact: {
+          ...rnc.contact,
+          [value.target.name]: value.target.value
+        }
+      };
+      updateRNC.mutate(updatedRnc);
+    } else {
+      const updatedRnc = {
+        ...rnc,
+        [field]: value
+      };
+      updateRNC.mutate(updatedRnc);
+    }
+  };
+
   if (isLoading || !rnc) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -94,25 +116,34 @@ export function RNCDetailContainer() {
       onDelete={handleDelete}
       onGeneratePDF={handleGeneratePDF}
       onWhatsApp={handleWhatsApp}
+      onFieldChange={handleFieldChange}
       setIsDeleteDialogOpen={setIsDeleteDialogOpen}
       isDeleting={isDeleting}
       canEdit={rnc.canEdit}
       onRefresh={handleRefresh}
       onStatusChange={handleStatusChange}
     >
+      <RNCDetailHeader
+        rnc={rnc}
+        isEditing={isEditing}
+        onEdit={handleEdit}
+        onSave={handleSave}
+      />
       <RNCDetailContent
         rnc={rnc}
         isEditing={isEditing}
         onRefresh={handleRefresh}
         onStatusChange={handleStatusChange}
-        onFieldChange={(field, value) => {
-          if (!rnc) return;
-          const updatedRnc = {
-            ...rnc,
-            [field]: value
-          };
-          updateRNC.mutate(updatedRnc);
-        }}
+        onFieldChange={handleFieldChange}
+      />
+      <RNCDetailActions
+        rnc={rnc}
+        onDelete={handleDelete}
+        onGeneratePDF={handleGeneratePDF}
+        onWhatsApp={handleWhatsApp}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        isDeleting={isDeleting}
+        canEdit={rnc.canEdit}
       />
     </RNCDetailLayout>
   );
