@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RNCDetailLayout } from "@/components/quality/detail/RNCDetailLayout";
 import { transformRNCData } from "@/utils/rncTransform";
 import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
-import { RNC } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
 import { RefetchOptions } from "@tanstack/react-query";
 
@@ -167,7 +167,7 @@ const RNCDetail = () => {
       isDeleting={isDeleting}
       canEdit={rnc.canEdit}
       onRefresh={handleRefresh}
-      onStatusChange={async (newStatus) => {
+      onStatusChange={async (newStatus: WorkflowStatusEnum) => {
         if (!rnc) return;
         const updatedRnc = {
           ...rnc,
