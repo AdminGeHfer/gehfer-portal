@@ -15,7 +15,7 @@ export const useRNCDetail = (id: string) => {
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("rncs")
         .select(`
@@ -28,7 +28,7 @@ export const useRNCDetail = (id: string) => {
 
       if (error) throw error;
 
-      if (!user || data.created_by !== user.id) {
+      if (!userData.user || data.created_by !== userData.user.id) {
         toast.error("Você não tem permissão para editar esta RNC");
         return { ...transformRNCData(data), canEdit: false };
       }

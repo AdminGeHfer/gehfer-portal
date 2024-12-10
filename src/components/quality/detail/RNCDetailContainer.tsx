@@ -7,6 +7,8 @@ import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDetailContent } from "./RNCDetailContent";
 import { toast } from "sonner";
 import { RNC } from "@/types/rnc";
+import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
+import { Button } from "@/components/atoms/Button";
 
 export function RNCDetailContainer() {
   const { id } = useParams();
@@ -140,7 +142,7 @@ export function RNCDetailContainer() {
             onEdit={handleEdit}
             onSave={handleSave}
             onDelete={handleDelete}
-            onGeneratePDF={handleGeneratePDF}
+            onPrint={handleGeneratePDF}
             onWhatsApp={handleWhatsApp}
             setIsDeleteDialogOpen={setIsDeleteDialogOpen}
             isDeleting={isDeleting}
