@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
 const groqApiKey = Deno.env.get('GROQ_API_KEY')
@@ -67,12 +67,15 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     } else {
-      const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
       if (!openAIApiKey) {
         throw new Error('OpenAI API key not configured')
       }
 
       console.log('Using OpenAI model for chat completion')
+      
+      // Limit conversation history for OpenAI to stay within context limits
+      const MAX_MESSAGES = 8 // More conservative limit for OpenAI
+      const truncatedMessages = messages.slice(-MAX_MESSAGES)
       
       const openAIModel = model === 'gpt-4o-mini' ? 'gpt-3.5-turbo' : 'gpt-4'
       
@@ -89,15 +92,22 @@ serve(async (req) => {
               role: 'system', 
               content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
             },
-            ...messages
+            ...truncatedMessages
           ],
           temperature: 0.7,
+          max_tokens: 1000, // Limit response size
         }),
       })
 
       if (!response.ok) {
         const error = await response.json()
         console.error('OpenAI API error:', error)
+        
+        // Handle context length error specifically
+        if (error.error?.code === 'context_length_exceeded') {
+          throw new Error('A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.')
+        }
+        
         throw new Error(`OpenAI API error: ${JSON.stringify(error)}`)
       }
 

@@ -98,8 +98,9 @@ export const ChatContainer = () => {
       });
 
       if (response.error) {
-        // Check for rate limit error and show user-friendly message
-        if (response.error.message?.includes('Limite de tokens excedido')) {
+        // Check for specific error types and show user-friendly messages
+        if (response.error.message?.includes('Limite de tokens excedido') ||
+            response.error.message?.includes('conversa ficou muito longa')) {
           throw new Error('A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.');
         }
         throw response.error;
