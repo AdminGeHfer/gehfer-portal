@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -36,8 +37,8 @@ serve(async (req) => {
 
       console.log('Using Groq model for chat completion');
       
-      // Updated model name for LLaMA to match Groq's API
-      const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama2-70b';
+      // Map frontend model names to Groq API model names
+      const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama-3.3-70b-versatile';
       
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -55,7 +56,7 @@ serve(async (req) => {
             ...truncatedMessages
           ],
           temperature: 0.7,
-          max_tokens: 1000,
+          max_tokens: model === 'groq-mixtral' ? 32768 : 8192,
         }),
       });
 
