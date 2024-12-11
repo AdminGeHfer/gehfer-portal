@@ -8,14 +8,12 @@ const IntelligenceRoutes = () => {
       <ConversationList />
       <div className="flex-1">
         <Routes>
-          <Route path="/chat/:conversationId" element={<Chat />} />
-          <Route path="/chat" element={
+          <Route path=":conversationId" element={<Chat />} />
+          <Route path="/" element={
             <div className="flex items-center justify-center h-full text-muted-foreground">
               <p>Selecione ou crie uma nova conversa para começar</p>
             </div>
           } />
-          <Route path="/" element={<Navigate to="/intelligence/chat" replace />} />
-          <Route path="*" element={<Navigate to="/intelligence/chat" replace />} />
         </Routes>
       </div>
     </div>
