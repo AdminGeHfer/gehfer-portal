@@ -1,15 +1,27 @@
 import { Route, Routes } from "react-router-dom";
-import Hub from "@/pages/intelligence/Hub";
-import Chat from "@/pages/intelligence/Chat";
+import { ConversationList } from "@/components/intelligence/ConversationList";
+import { Chat } from "@/components/intelligence/Chat";
 
 const IntelligenceRoutes = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Hub />} />
-      <Route path="/hub" element={<Hub />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/chat/:conversationId" element={<Chat />} />
-    </Routes>
+    <div className="flex h-[calc(100vh-4rem)]">
+      <ConversationList />
+      <div className="flex-1 p-4">
+        <Routes>
+          <Route path="/chat/:conversationId" element={<Chat />} />
+          <Route 
+            path="/*" 
+            element={
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">
+                  Selecione ou crie uma nova conversa para começar
+                </p>
+              </div>
+            } 
+          />
+        </Routes>
+      </div>
+    </div>
   );
 };
 

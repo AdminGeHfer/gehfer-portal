@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
@@ -12,6 +12,7 @@ export const ConversationList = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { conversationId } = useParams();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -94,7 +95,7 @@ export const ConversationList = () => {
   };
 
   return (
-    <div className="w-64 border-r border-border h-[calc(100vh-4rem)] flex flex-col">
+    <div className="w-64 border-r border-border h-full flex flex-col">
       <div className="p-4">
         <Button 
           onClick={createNewConversation}
@@ -117,7 +118,7 @@ export const ConversationList = () => {
               transition={{ duration: 0.3 }}
             >
               <Button
-                variant="ghost"
+                variant={conversationId === conversation.id ? "secondary" : "ghost"}
                 className="w-full justify-start"
                 onClick={() => navigate(`/intelligence/chat/${conversation.id}`)}
               >

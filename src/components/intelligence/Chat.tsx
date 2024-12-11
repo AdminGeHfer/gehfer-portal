@@ -126,8 +126,12 @@ export const Chat = () => {
     }
   };
 
+  if (!conversationId) {
+    return null;
+  }
+
   return (
-    <Card className="flex flex-col h-[calc(100vh-12rem)] backdrop-blur-sm bg-background/30">
+    <Card className="flex flex-col h-[calc(100vh-6rem)] backdrop-blur-sm bg-background/30">
       <MessageList messages={messages} />
       <div className="p-4 border-t">
         <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
