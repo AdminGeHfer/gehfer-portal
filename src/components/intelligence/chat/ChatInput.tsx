@@ -5,6 +5,7 @@ import { MessageSquare, Paperclip } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   onSubmit: (content: string) => void;
