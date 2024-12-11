@@ -1,46 +1,55 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { RNC } from "@/types/rnc";
 
-export interface RNCListTableProps {
+interface RNCListTableProps {
   rncs: RNC[];
-  isLoading: boolean;
   onRowClick: (id: string) => void;
 }
 
-export function RNCListTable({ rncs, isLoading, onRowClick }: RNCListTableProps) {
+export const RNCListTable = ({ rncs, onRowClick }: RNCListTableProps) => {
   return (
-    <div className="overflow-auto">
-      <table className="min-w-full">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">ID</th>
-            <th className="px-4 py-2">Descrição</th>
-            <th className="px-4 py-2">Status</th>
-            <th className="px-4 py-2">Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading ? (
-            <tr>
-              <td colSpan={4} className="text-center">Carregando...</td>
-            </tr>
-          ) : rncs.length === 0 ? (
-            <tr>
-              <td colSpan={4} className="text-center">Nenhuma RNC encontrada</td>
-            </tr>
-          ) : (
-            rncs.map((rnc) => (
-              <tr key={rnc.id} onClick={() => onRowClick(rnc.id)} className="cursor-pointer hover:bg-gray-100">
-                <td className="px-4 py-2">{rnc.id}</td>
-                <td className="px-4 py-2">{rnc.description}</td>
-                <td className="px-4 py-2">{rnc.workflow_status}</td>
-                <td className="px-4 py-2">
-                  <button className="text-blue-500">Editar</button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+    <div className="bg-white dark:bg-gray-800 rounded-lg border animate-fade-in overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-b border-gray-200 dark:border-gray-700">
+            <TableHead className="w-[100px] font-medium">Número</TableHead>
+            <TableHead className="font-medium">Empresa</TableHead>
+            <TableHead className="w-[150px] font-medium">Departamento</TableHead>
+            <TableHead className="w-[150px] font-medium">Status</TableHead>
+            <TableHead className="w-[120px] font-medium">Prioridade</TableHead>
+            <TableHead className="w-[120px] font-medium text-right">Data</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rncs.map((rnc) => (
+            <TableRow
+              key={rnc.id}
+              className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
+              onClick={() => onRowClick(rnc.id)}
+            >
+              <TableCell className="font-medium">#{rnc.rnc_number}</TableCell>
+              <TableCell className="max-w-[300px] truncate">{rnc.company}</TableCell>
+              <TableCell>{rnc.department}</TableCell>
+              <TableCell>
+                <RNCStatusBadge status={rnc.workflow_status} />
+              </TableCell>
+              <TableCell>
+                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                  rnc.priority === "high"
+                    ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                    : rnc.priority === "medium"
+                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                    : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                }`}>
+                  {rnc.priority === "high" ? "Alta" : rnc.priority === "medium" ? "Média" : "Baixa"}
+                </span>
+              </TableCell>
+              <TableCell className="text-right">{rnc.date}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
-}
+};
