@@ -19,49 +19,6 @@ interface ModuleCardProps {
   isHighlighted?: boolean;
 }
 
-const ModuleCard = ({ title, description, icon, route, submodules, isHighlighted }: ModuleCardProps) => {
-  const navigate = useNavigate();
-
-  return (
-    <Card 
-      className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism ${
-        isHighlighted ? 'col-span-2 md:col-span-2' : ''
-      }`}
-      onClick={() => navigate(route)}
-    >
-      <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
-        {icon}
-      </div>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{title}</h3>
-        <p className="text-muted-foreground mb-4">{description}</p>
-        <div className="flex flex-col gap-2">
-          {submodules ? (
-            submodules.map((submodule, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="justify-start"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(submodule.route);
-                }}
-              >
-                {submodule.icon}
-                <span className="ml-2">{submodule.title}</span>
-              </Button>
-            ))
-          ) : (
-            <div className="flex items-center text-primary hover:underline">
-              Acessar módulo
-            </div>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
-};
-
 const modules = [
   {
     title: "GeHfer Intelligence",
@@ -145,15 +102,47 @@ const Apps = () => {
         
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {modules.map((module, index) => (
-              <ModuleCard 
+              <motion.div
                 key={index}
-                title={module.title}
-                description={module.description}
-                icon={module.icon}
-                route={module.route}
-                submodules={module.submodules}
-                primary={module.primary}
-              />
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card 
+                  className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20 ${
+                    module.isHighlighted ? 'col-span-2 md:col-span-2 ring-2 ring-primary/50' : ''
+                  }`}
+                  onClick={() => navigate(module.route)}
+                >
+                  <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      {module.icon}
+                    </motion.div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                      {module.title}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">{module.description}</p>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start group-hover:text-primary transition-colors"
+                    >
+                      Acessar módulo
+                      <motion.span
+                        className="ml-2"
+                        initial={{ x: 0 }}
+                        whileHover={{ x: 5 }}
+                      >
+                        →
+                      </motion.span>
+                    </Button>
+                  </div>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -172,3 +161,5 @@ const Apps = () => {
     </div>
   );
 };
+
+export default Apps;

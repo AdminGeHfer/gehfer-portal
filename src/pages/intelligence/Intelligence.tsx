@@ -5,9 +5,12 @@ import { Brain, MessageSquare, Settings, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
-interface HeaderProps {
+interface ModuleCardProps {
   title: string;
-  description?: string;
+  description: string;
+  icon: React.ReactElement;
+  route: string;
+  isHighlighted?: boolean;
 }
 
 const modules = [
@@ -39,9 +42,14 @@ const modules = [
 ];
 
 const Intelligence = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
-      <Header title="GeHfer Intelligence" description="Central de Inteligência Artificial" />
+      <Header 
+        title="GeHfer Intelligence" 
+        subtitle="Central de Inteligência Artificial" 
+      />
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
@@ -51,7 +59,9 @@ const Intelligence = () => {
             transition={{ duration: 0.5 }}
             className="mb-8"
           >
-            <h2 className="text-2xl font-semibold mb-2">Bem-vindo ao GeHfer Intelligence</h2>
+            <h2 className="text-2xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+              Bem-vindo ao GeHfer Intelligence
+            </h2>
             <p className="text-muted-foreground">
               Acesse nossos assistentes virtuais especializados e otimize seus processos
             </p>
@@ -59,10 +69,47 @@ const Intelligence = () => {
         
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
             {modules.map((module, index) => (
-              <ModuleCard 
+              <motion.div
                 key={index}
-                {...module}
-              />
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Card 
+                  className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20 ${
+                    module.isHighlighted ? 'col-span-2 md:col-span-2 ring-2 ring-primary/50' : ''
+                  }`}
+                  onClick={() => navigate(module.route)}
+                >
+                  <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      {module.icon}
+                    </motion.div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                      {module.title}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">{module.description}</p>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start group-hover:text-primary transition-colors"
+                    >
+                      Acessar módulo
+                      <motion.span
+                        className="ml-2"
+                        initial={{ x: 0 }}
+                        whileHover={{ x: 5 }}
+                      >
+                        →
+                      </motion.span>
+                    </Button>
+                  </div>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
