@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Upload } from "lucide-react";
+import { MessageSquare, Paperclip } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 interface ChatInputProps {
   onSubmit: (content: string) => void;
@@ -12,6 +14,7 @@ interface ChatInputProps {
 
 export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps) => {
   const [input, setInput] = useState("");
+  const { conversationId } = useParams();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,28 +23,39 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
     setInput("");
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!conversationId) {
+      toast.error("Por favor, crie uma nova conversa antes de enviar arquivos");
+      return;
+    }
+    
+    onFileUpload(file);
+    e.target.value = '';
+  };
+
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 p-4 border-t bg-background/50">
       <div className="flex-1 flex gap-2">
-        <Input
-          type="file"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) onFileUpload(file);
-          }}
-          id="file-upload"
-        />
-        <label htmlFor="file-upload">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="icon"
-            className="shrink-0"
+        <div className="relative flex items-center">
+          <Input
+            type="file"
+            className="hidden"
+            onChange={handleFileUpload}
+            id="file-upload"
+          />
+          <label 
+            htmlFor="file-upload"
+            className={cn(
+              "cursor-pointer p-2 rounded-md hover:bg-accent",
+              !conversationId && "opacity-50 cursor-not-allowed"
+            )}
           >
-            <Upload className="h-4 w-4" />
-          </Button>
-        </label>
+            <Paperclip className="h-5 w-5" />
+          </label>
+        </div>
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}

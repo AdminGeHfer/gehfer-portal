@@ -37,7 +37,7 @@ export function CollapsibleSidebar({ children }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "relative hidden h-screen border-r bg-card transition-all duration-300 lg:block",
+        "relative h-screen border-r bg-card transition-all duration-300 lg:block",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
