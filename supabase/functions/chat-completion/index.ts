@@ -29,7 +29,7 @@ serve(async (req) => {
         .join('\n') + '\nAssistant:'
 
       const response = await fetch(
-        'https://api-inference.huggingface.co/models/meta-llama/Llama-2-70b-chat-hf',
+        'https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct',
         {
           method: 'POST',
           headers: {
