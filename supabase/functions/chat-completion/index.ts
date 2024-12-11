@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
@@ -25,6 +24,10 @@ serve(async (req) => {
 
       console.log('Using Groq model for chat completion')
       
+      // Limit conversation history for Groq to stay within rate limits
+      const MAX_MESSAGES = 10
+      const truncatedMessages = messages.slice(-MAX_MESSAGES)
+      
       const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama2-70b-4096'
       
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -40,15 +43,22 @@ serve(async (req) => {
               role: 'system', 
               content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
             },
-            ...messages
+            ...truncatedMessages
           ],
           temperature: 0.7,
+          max_tokens: 1000, // Limit response size
         }),
       })
 
       if (!response.ok) {
         const error = await response.json()
         console.error('Groq API error:', error)
+        
+        // Handle rate limit error specifically
+        if (error.error?.code === 'rate_limit_exceeded') {
+          throw new Error('Limite de tokens excedido. Por favor, aguarde um momento antes de tentar novamente ou use um modelo diferente.')
+        }
+        
         throw new Error(`Groq API error: ${JSON.stringify(error)}`)
       }
 
@@ -63,7 +73,9 @@ serve(async (req) => {
       }
 
       console.log('Using OpenAI model for chat completion')
-
+      
+      const openAIModel = model === 'gpt-4o-mini' ? 'gpt-3.5-turbo' : 'gpt-4'
+      
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -71,7 +83,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: model,
+          model: openAIModel,
           messages: [
             { 
               role: 'system', 
@@ -90,10 +102,9 @@ serve(async (req) => {
       }
 
       const data = await response.json()
-      return new Response(
-        JSON.stringify(data),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
   } catch (error) {
     console.error('Error in chat-completion function:', error)

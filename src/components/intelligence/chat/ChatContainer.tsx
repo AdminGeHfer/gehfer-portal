@@ -97,7 +97,13 @@ export const ChatContainer = () => {
         },
       });
 
-      if (response.error) throw response.error;
+      if (response.error) {
+        // Check for rate limit error and show user-friendly message
+        if (response.error.message?.includes('Limite de tokens excedido')) {
+          throw new Error('A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.');
+        }
+        throw response.error;
+      }
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
@@ -117,7 +123,7 @@ export const ChatContainer = () => {
       console.error('Error in chat flow:', error);
       toast({
         title: "Erro ao enviar mensagem",
-        description: error.message,
+        description: error.message || "Ocorreu um erro ao processar sua mensagem",
         variant: "destructive",
       });
     } finally {
