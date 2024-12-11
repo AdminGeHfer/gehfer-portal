@@ -1,31 +1,23 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
-import { Send, Bot, User } from "lucide-react";
-
-interface Message {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-  created_at?: string;
-}
+import { Message } from "@/types/ai";
+import { ChatInput } from "./ChatInput";
+import { MessageList } from "./MessageList";
 
 export const Chat = () => {
   const { conversationId } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadMessages();
-    subscribeToMessages();
+    if (conversationId) {
+      loadMessages();
+      subscribeToMessages();
+    }
   }, [conversationId]);
 
   const loadMessages = async () => {
@@ -46,7 +38,7 @@ export const Chat = () => {
       return;
     }
 
-    setMessages(data);
+    setMessages(data as Message[]);
   };
 
   const subscribeToMessages = () => {
@@ -64,7 +56,6 @@ export const Chat = () => {
         },
         (payload) => {
           setMessages((current) => [...current, payload.new as Message]);
-          scrollToBottom();
         }
       )
       .subscribe();
@@ -74,27 +65,23 @@ export const Chat = () => {
     };
   };
 
-  const scrollToBottom = () => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!input.trim() || !conversationId || isLoading) return;
+  const handleSubmit = async (content: string) => {
+    if (!conversationId || isLoading) return;
 
     setIsLoading(true);
-    const userMessage = { role: 'user' as const, content: input };
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      conversation_id: conversationId,
+      role: 'user',
+      content,
+      created_at: new Date().toISOString(),
+    };
 
     try {
       // Save user message
       const { error: saveError } = await supabase
         .from('ai_messages')
-        .insert({
-          conversation_id: conversationId,
-          role: userMessage.role,
-          content: userMessage.content,
-        });
+        .insert(userMessage);
 
       if (saveError) throw saveError;
 
@@ -105,21 +92,22 @@ export const Chat = () => {
 
       if (response.error) throw response.error;
 
-      const assistantMessage = response.data.choices[0].message;
+      const assistantMessage: Message = {
+        id: crypto.randomUUID(),
+        conversation_id: conversationId,
+        role: 'assistant',
+        content: response.data.choices[0].message.content,
+        created_at: new Date().toISOString(),
+      };
 
       // Save AI response
       const { error: saveAiError } = await supabase
         .from('ai_messages')
-        .insert({
-          conversation_id: conversationId,
-          role: assistantMessage.role,
-          content: assistantMessage.content,
-        });
+        .insert(assistantMessage);
 
       if (saveAiError) throw saveAiError;
 
-      setInput("");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error sending message",
         description: error.message,
@@ -132,72 +120,9 @@ export const Chat = () => {
 
   return (
     <Card className="flex flex-col h-[calc(100vh-12rem)] backdrop-blur-sm bg-background/30">
-      <ScrollArea 
-        ref={scrollAreaRef}
-        className="flex-1 p-4 space-y-4"
-      >
-        {messages.map((message, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`flex items-start gap-3 ${
-              message.role === 'assistant' ? 'justify-start' : 'justify-end'
-            }`}
-          >
-            {message.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-primary" />
-              </div>
-            )}
-            <div
-              className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === 'assistant'
-                  ? 'bg-accent text-accent-foreground'
-                  : 'bg-primary text-primary-foreground'
-              }`}
-            >
-              {message.content}
-            </div>
-            {message.role === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-            )}
-          </motion.div>
-        ))}
-      </ScrollArea>
-
+      <MessageList messages={messages} />
       <div className="p-4 border-t">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-          className="flex gap-2"
-        >
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="min-h-[2.5rem] max-h-32"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-          />
-          <Button 
-            type="submit" 
-            size="icon"
-            disabled={isLoading}
-            className="shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
+        <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
       </div>
     </Card>
   );

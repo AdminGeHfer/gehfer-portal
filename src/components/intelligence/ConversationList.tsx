@@ -6,12 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface Conversation {
-  id: string;
-  title: string;
-  created_at: string;
-}
+import { Conversation } from "@/types/ai";
 
 export const ConversationList = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -38,7 +33,7 @@ export const ConversationList = () => {
       return;
     }
 
-    setConversations(data);
+    setConversations(data as Conversation[]);
   };
 
   const subscribeToConversations = () => {
@@ -63,10 +58,14 @@ export const ConversationList = () => {
   };
 
   const createNewConversation = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const { data, error } = await supabase
       .from('ai_conversations')
       .insert({
         title: 'Nova Conversa',
+        user_id: user.id,
       })
       .select()
       .single();
