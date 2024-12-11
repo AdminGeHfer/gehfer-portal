@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { RNCDetailLayout } from "./RNCDetailLayout";
 import { RNCDetailHeader } from "./RNCDetailHeader";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function RNCDetailContainer() {
   const navigate = useNavigate();
+  const { id } = useParams(); // Get id from URL params
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -61,33 +62,6 @@ export function RNCDetailContainer() {
               Criado em {format(new Date(rnc.created_at), "dd/MM/yyyy HH:mm")}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleGeneratePDF}>
-              PDF
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => {}}>
-              WhatsApp
-            </Button>
-            {rnc.canEdit && (
-              <>
-                <Button
-                  variant={isEditing ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setIsEditing(!isEditing)}
-                >
-                  {isEditing ? "Salvar" : "Editar"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                >
-                  Excluir
-                </Button>
-              </>
-            )}
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -123,6 +97,8 @@ export function RNCDetailContainer() {
                   rnc={rnc}
                   isEditing={isEditing}
                   onFieldChange={handleFieldChange}
+                  onRefresh={handleRefresh}
+                  onStatusChange={handleStatusChange}
                 />
               </TabsContent>
               <TabsContent value="contato" className="space-y-4 mt-4">

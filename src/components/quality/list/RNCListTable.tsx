@@ -1,13 +1,24 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { RNC } from "@/types/rnc";
+import { format } from "date-fns";
 
 interface RNCListTableProps {
   rncs: RNC[];
   onRowClick: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export const RNCListTable = ({ rncs, onRowClick }: RNCListTableProps) => {
+export const RNCListTable = ({ rncs, onRowClick, isLoading }: RNCListTableProps) => {
+  if (isLoading) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg border animate-fade-in overflow-hidden p-8 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4 text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border animate-fade-in overflow-hidden">
       <Table>
@@ -45,7 +56,9 @@ export const RNCListTable = ({ rncs, onRowClick }: RNCListTableProps) => {
                   {rnc.priority === "high" ? "Alta" : rnc.priority === "medium" ? "Média" : "Baixa"}
                 </span>
               </TableCell>
-              <TableCell className="text-right">{rnc.date}</TableCell>
+              <TableCell className="text-right">
+                {format(new Date(rnc.created_at), "dd/MM/yyyy")}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
