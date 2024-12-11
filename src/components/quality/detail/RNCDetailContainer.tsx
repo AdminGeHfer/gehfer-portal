@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { RNCDetailLayout } from "./RNCDetailLayout";
 import { RNCDetailHeader } from "./RNCDetailHeader";
-import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDetailContent } from "./RNCDetailContent";
-import { toast } from "sonner";
-import { RNC } from "@/types/rnc";
+import { RNCTimeline } from "../RNCTimeline";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
-import { Button } from "@/components/atoms/Button";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 export function RNCDetailContainer() {
-  const { id } = useParams();
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -31,30 +31,9 @@ export function RNCDetailContainer() {
     setIsGeneratingPDF(!isGeneratingPDF);
   };
 
-  const handleEdit = () => {
-    if (!rnc?.canEdit) {
-      toast.error("Você não tem permissão para editar esta RNC");
-      return;
-    }
-    setIsEditing(true);
-  };
-
-  const handleSave = async () => {
-    if (!rnc) return;
-    setIsEditing(false);
-    toast.success("RNC atualizada com sucesso");
-  };
-
-  const handleWhatsApp = () => {
-    if (!rnc) return;
-    const phone = rnc.contact.phone.replace(/\D/g, "");
-    const message = encodeURIComponent(`Olá! Gostaria de falar sobre a RNC #${rnc.rnc_number}`);
-    window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-  };
-
   if (isLoading || !rnc) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-background">
         <div className="flex min-h-screen">
           <main className="flex-1 p-6">
             <div className="flex items-center justify-center h-full">
@@ -70,62 +49,117 @@ export function RNCDetailContainer() {
   }
 
   return (
-    <RNCDetailLayout
-      rnc={rnc}
-      isEditing={isEditing}
-      isGeneratingPDF={isGeneratingPDF}
-      isDeleteDialogOpen={isDeleteDialogOpen}
-      onEdit={handleEdit}
-      onSave={handleSave}
-      onDelete={handleDelete}
-      onGeneratePDF={handleGeneratePDF}
-      onWhatsApp={handleWhatsApp}
-      onFieldChange={handleFieldChange}
-      setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-      isDeleting={isDeleting}
-      canEdit={rnc.canEdit}
-      onRefresh={handleRefresh}
-      onStatusChange={handleStatusChange}
-    >
-      <div className="space-y-6 animate-fade-in">
-        <RNCDetailHeader
-          rnc={rnc}
-          isEditing={isEditing}
-          onEdit={handleEdit}
-          onSave={handleSave}
-          onDelete={handleDelete}
-          onGeneratePDF={handleGeneratePDF}
-          onWhatsApp={handleWhatsApp}
-          canEdit={rnc.canEdit}
-          onStatusChange={handleStatusChange}
-          onRefresh={handleRefresh}
-          setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-          isDeleteDialogOpen={isDeleteDialogOpen}
-          isDeleting={isDeleting}
-        />
+    <div className="min-h-screen bg-background">
+      <main className="container mx-auto py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold flex items-center gap-3">
+              RNC #{rnc.rnc_number}
+              <RNCStatusBadge status={rnc.workflow_status} />
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Criado em {format(new Date(rnc.created_at), "dd/MM/yyyy HH:mm")}
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleGeneratePDF}>
+              PDF
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {}}>
+              WhatsApp
+            </Button>
+            {rnc.canEdit && (
+              <>
+                <Button
+                  variant={isEditing ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEditing(!isEditing)}
+                >
+                  {isEditing ? "Salvar" : "Editar"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                >
+                  Excluir
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-card dark:bg-gray-800 rounded-lg shadow-sm border p-6">
-              <RNCDetailContent
-                rnc={rnc}
-                isEditing={isEditing}
-                onRefresh={handleRefresh}
-                onStatusChange={handleStatusChange}
-                onFieldChange={handleFieldChange}
-              />
+            <Tabs defaultValue="empresa" className="w-full">
+              <TabsList className="w-full grid grid-cols-3">
+                <TabsTrigger value="empresa">Empresa</TabsTrigger>
+                <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
+                <TabsTrigger value="contato">Contato</TabsTrigger>
+              </TabsList>
+              <TabsContent value="empresa" className="space-y-4 mt-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Razão Social</label>
+                    <p className="text-lg">{rnc.company}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">CNPJ</label>
+                    <p className="text-lg">{rnc.cnpj}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Nº do Pedido</label>
+                    <p className="text-lg">{rnc.order_number || "-"}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Nº da Devolução</label>
+                    <p className="text-lg">{rnc.return_number || "-"}</p>
+                  </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="detalhes" className="space-y-4 mt-4">
+                <RNCDetailContent
+                  rnc={rnc}
+                  isEditing={isEditing}
+                  onFieldChange={handleFieldChange}
+                />
+              </TabsContent>
+              <TabsContent value="contato" className="space-y-4 mt-4">
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Nome</label>
+                    <p className="text-lg">{rnc.contact.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Telefone</label>
+                    <p className="text-lg">{rnc.contact.phone}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Email</label>
+                    <p className="text-lg">{rnc.contact.email}</p>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="bg-card rounded-lg border p-6">
+              <h2 className="text-lg font-semibold mb-4">Histórico do Workflow</h2>
+              <RNCTimeline rncId={rnc.id} />
             </div>
           </div>
+
           <div className="space-y-6">
-            <div className="bg-card dark:bg-gray-800 rounded-lg shadow-sm border p-6">
+            <div className="bg-card rounded-lg border p-6">
               <h2 className="text-lg font-semibold mb-4">Status do Workflow</h2>
               <div className="space-y-4">
                 <RNCStatusBadge status={rnc.workflow_status} />
-                <textarea
-                  className="w-full min-h-[100px] p-3 rounded-md border bg-background resize-none"
+                <Textarea
+                  className="w-full min-h-[100px]"
                   placeholder="Notas sobre a transição (opcional)"
                 />
                 <Button
-                  className="w-full bg-primary hover:bg-primary/90"
+                  className="w-full"
                   onClick={() => handleStatusChange("analysis")}
                 >
                   Em Análise
@@ -134,21 +168,7 @@ export function RNCDetailContainer() {
             </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          <RNCDetailActions
-            rnc={rnc}
-            isEditing={isEditing}
-            canEdit={rnc.canEdit}
-            onEdit={handleEdit}
-            onSave={handleSave}
-            onDelete={handleDelete}
-            onPrint={handleGeneratePDF}
-            onWhatsApp={handleWhatsApp}
-            setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-            isDeleting={isDeleting}
-          />
-        </div>
-      </div>
-    </RNCDetailLayout>
+      </main>
+    </div>
   );
 }
