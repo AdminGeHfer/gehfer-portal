@@ -6,12 +6,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/ai";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export const Chat = () => {
   const { conversationId } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (conversationId) {
@@ -60,7 +64,6 @@ export const Chat = () => {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          console.log('New message received:', payload);
           setMessages((current) => [...current, payload.new as Message]);
         }
       )
@@ -71,10 +74,8 @@ export const Chat = () => {
     if (!conversationId || isLoading || !content.trim()) return;
 
     setIsLoading(true);
-    console.log('Sending message:', content);
 
     try {
-      // Save user message
       const userMessage: Message = {
         id: crypto.randomUUID(),
         conversation_id: conversationId,
@@ -89,17 +90,12 @@ export const Chat = () => {
 
       if (saveError) throw saveError;
 
-      // Get AI response
-      console.log('Calling chat-completion function');
       const response = await supabase.functions.invoke('chat-completion', {
         body: { messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })) },
       });
 
       if (response.error) throw response.error;
 
-      console.log('AI response received:', response.data);
-
-      // Save AI response
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         conversation_id: conversationId,
@@ -131,11 +127,25 @@ export const Chat = () => {
   }
 
   return (
-    <Card className="flex flex-col h-[calc(100vh-6rem)] backdrop-blur-sm bg-background/30">
-      <MessageList messages={messages} />
-      <div className="p-4 border-t">
-        <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+    <div className="flex flex-col h-full p-4 space-y-4">
+      <div className="flex items-center space-x-4">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => navigate('/intelligence/chat')}
+          className="hover:bg-accent"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h2 className="text-2xl font-semibold tracking-tight">Chat</h2>
       </div>
-    </Card>
+      
+      <Card className="flex flex-col flex-1 backdrop-blur-sm bg-card/30">
+        <MessageList messages={messages} />
+        <div className="p-4 border-t bg-background/50">
+          <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+        </div>
+      </Card>
+    </div>
   );
 };

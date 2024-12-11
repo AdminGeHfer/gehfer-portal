@@ -1,6 +1,6 @@
 import { Message } from "@/types/ai";
 import { motion } from "framer-motion";
-import { Bot, User } from "lucide-react";
+import { MessageSquare, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
 
@@ -20,7 +20,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
   return (
     <ScrollArea 
       ref={scrollAreaRef}
-      className="flex-1 p-4 space-y-4"
+      className="flex-1 p-6 space-y-6"
     >
       {messages.map((message, index) => (
         <motion.div
@@ -28,17 +28,22 @@ export const MessageList = ({ messages }: MessageListProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className={`flex items-start gap-3 ${
-            message.role === 'assistant' ? 'justify-start' : 'justify-end'
+          className={`flex items-start gap-4 ${
+            message.role === 'assistant' ? 'justify-start' : 'flex-row-reverse'
           }`}
         >
-          {message.role === 'assistant' && (
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Bot className="w-4 h-4 text-primary" />
-            </div>
-          )}
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            message.role === 'assistant' 
+              ? 'bg-primary/10 text-primary' 
+              : 'bg-secondary/10 text-secondary-foreground'
+          }`}>
+            {message.role === 'assistant' 
+              ? <MessageSquare className="w-4 h-4" />
+              : <User className="w-4 h-4" />
+            }
+          </div>
           <div
-            className={`max-w-[80%] rounded-lg p-3 ${
+            className={`max-w-[80%] rounded-lg p-4 ${
               message.role === 'assistant'
                 ? 'bg-accent text-accent-foreground'
                 : 'bg-primary text-primary-foreground'
@@ -46,11 +51,6 @@ export const MessageList = ({ messages }: MessageListProps) => {
           >
             {message.content}
           </div>
-          {message.role === 'user' && (
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="w-4 h-4 text-primary" />
-            </div>
-          )}
         </motion.div>
       ))}
     </ScrollArea>

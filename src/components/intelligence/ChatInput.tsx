@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 
 interface ChatInputProps {
   onSubmit: (content: string) => void;
@@ -23,8 +23,8 @@ export const ChatInput = ({ onSubmit, isLoading }: ChatInputProps) => {
       <Textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Type your message..."
-        className="min-h-[2.5rem] max-h-32"
+        placeholder="Digite sua mensagem..."
+        className="min-h-[2.5rem] max-h-32 bg-background/50"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -36,9 +36,9 @@ export const ChatInput = ({ onSubmit, isLoading }: ChatInputProps) => {
         type="submit" 
         size="icon"
         disabled={isLoading}
-        className="shrink-0"
+        className="shrink-0 bg-primary/90 hover:bg-primary"
       >
-        <Send className="h-4 w-4" />
+        <MessageSquare className="h-4 w-4" />
       </Button>
     </form>
   );
