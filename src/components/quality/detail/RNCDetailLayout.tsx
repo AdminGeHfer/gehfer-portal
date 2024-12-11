@@ -40,7 +40,7 @@ export function RNCDetailLayout({
 }: RNCDetailLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header title={`RNC #${rnc.rnc_number || '-'}`} />
       <main className="container mx-auto py-1">
         <div className="space-y-4">
           {children}
