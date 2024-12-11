@@ -17,7 +17,6 @@ export const ModelSelect = ({ value, onValueChange, disabled }: ModelSelectProps
       <SelectContent>
         <SelectItem value="gpt-4o-mini">GPT-4 Mini</SelectItem>
         <SelectItem value="gpt-4o">GPT-4</SelectItem>
-        <SelectItem value="llama-70b">Falcon 7B</SelectItem>
         <SelectItem value="groq-mixtral">Groq Mixtral-8x7B</SelectItem>
         <SelectItem value="groq-llama">Groq LLaMA-2-70B</SelectItem>
       </SelectContent>

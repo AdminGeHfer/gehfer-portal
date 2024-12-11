@@ -2,7 +2,6 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
-const huggingFaceApiKey = Deno.env.get('HUGGING_FACE_API_KEY')
 const groqApiKey = Deno.env.get('GROQ_API_KEY')
 
 const corsHeaders = {
@@ -57,66 +56,6 @@ serve(async (req) => {
       return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
-    } else if (model === 'llama-70b') {
-      const hfApiKey = Deno.env.get('HUGGING_FACE_API_KEY')
-      if (!hfApiKey) {
-        throw new Error('Hugging Face API key not configured')
-      }
-
-      console.log('Using Hugging Face model for chat completion')
-      
-      // Format messages into a conversation string
-      const conversation = messages
-        .map(m => `${m.role === 'assistant' ? 'Assistant' : 'Human'}: ${m.content}`)
-        .join('\n') + '\nAssistant:'
-
-      const response = await fetch(
-        'https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${hfApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            inputs: conversation,
-            parameters: {
-              max_new_tokens: 1000,
-              temperature: 0.7,
-              top_p: 0.9,
-              do_sample: true,
-              return_full_text: false,
-            }
-          }),
-        }
-      )
-
-      if (!response.ok) {
-        const error = await response.json()
-        console.error('Hugging Face API error:', error)
-        throw new Error(`Hugging Face API error: ${JSON.stringify(error)}`)
-      }
-
-      const data = await response.json()
-      console.log('Hugging Face response:', data)
-
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        throw new Error('Invalid response format from Hugging Face')
-      }
-
-      const generatedText = data[0].generated_text.trim()
-
-      return new Response(
-        JSON.stringify({
-          choices: [{
-            message: {
-              role: 'assistant',
-              content: generatedText,
-            }
-          }]
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
     } else {
       const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
       if (!openAIApiKey) {
