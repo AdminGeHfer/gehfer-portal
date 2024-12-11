@@ -10,34 +10,40 @@ import { Conversation } from "@/types/ai";
 
 export const ConversationList = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     loadConversations();
-    subscribeToConversations();
+    const subscription = subscribeToConversations();
+    return () => {
+      subscription?.unsubscribe();
+    };
   }, []);
 
   const loadConversations = async () => {
-    const { data, error } = await supabase
-      .from('ai_conversations')
-      .select('*')
-      .order('created_at', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('ai_conversations')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    if (error) {
+      if (error) throw error;
+      setConversations(data as Conversation[]);
+      
+    } catch (error: any) {
+      console.error('Error loading conversations:', error);
       toast({
-        title: "Error loading conversations",
+        title: "Erro ao carregar conversas",
         description: error.message,
         variant: "destructive",
       });
-      return;
     }
-
-    setConversations(data as Conversation[]);
   };
 
   const subscribeToConversations = () => {
-    const subscription = supabase
+    return supabase
       .channel('ai_conversations')
       .on(
         'postgres_changes',
@@ -51,35 +57,40 @@ export const ConversationList = () => {
         }
       )
       .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   };
 
   const createNewConversation = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (isLoading) return;
+    setIsLoading(true);
 
-    const { data, error } = await supabase
-      .from('ai_conversations')
-      .insert({
-        title: 'Nova Conversa',
-        user_id: user.id,
-      })
-      .select()
-      .single();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
 
-    if (error) {
+      const { data, error } = await supabase
+        .from('ai_conversations')
+        .insert({
+          title: 'Nova Conversa',
+          user_id: user.id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log('New conversation created:', data);
+      navigate(`/intelligence/chat/${data.id}`);
+      
+    } catch (error: any) {
+      console.error('Error creating conversation:', error);
       toast({
-        title: "Error creating conversation",
+        title: "Erro ao criar conversa",
         description: error.message,
         variant: "destructive",
       });
-      return;
+    } finally {
+      setIsLoading(false);
     }
-
-    navigate(`/intelligence/chat/${data.id}`);
   };
 
   return (
@@ -89,6 +100,7 @@ export const ConversationList = () => {
           onClick={createNewConversation}
           className="w-full"
           variant="outline"
+          disabled={isLoading}
         >
           <Plus className="w-4 h-4 mr-2" />
           Nova Conversa

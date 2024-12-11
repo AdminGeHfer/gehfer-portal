@@ -13,30 +13,52 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json()
+    console.log('Processing chat completion request:', { messageCount: messages.length })
+
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured')
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',
-        messages,
+        messages: [
+          { 
+            role: 'system', 
+            content: 'Você é um assistente da GeHfer, uma empresa especializada em gestão de qualidade e logística. Seja sempre prestativo e profissional.' 
+          },
+          ...messages
+        ],
         temperature: 0.7,
-        stream: false,
       }),
     })
 
+    if (!response.ok) {
+      const error = await response.json()
+      console.error('OpenAI API error:', error)
+      throw new Error('Failed to get response from OpenAI')
+    }
+
     const data = await response.json()
+    console.log('Successfully generated response')
+
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error('Error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    console.error('Error in chat-completion function:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
 })

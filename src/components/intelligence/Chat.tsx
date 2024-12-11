@@ -16,35 +16,40 @@ export const Chat = () => {
   useEffect(() => {
     if (conversationId) {
       loadMessages();
-      subscribeToMessages();
+      const subscription = subscribeToMessages();
+      return () => {
+        subscription?.unsubscribe();
+      };
     }
   }, [conversationId]);
 
   const loadMessages = async () => {
     if (!conversationId) return;
     
-    const { data, error } = await supabase
-      .from('ai_messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('ai_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
 
-    if (error) {
+      if (error) throw error;
+      setMessages(data as Message[]);
+      
+    } catch (error: any) {
+      console.error('Error loading messages:', error);
       toast({
-        title: "Error loading messages",
+        title: "Erro ao carregar mensagens",
         description: error.message,
         variant: "destructive",
       });
-      return;
     }
-
-    setMessages(data as Message[]);
   };
 
   const subscribeToMessages = () => {
     if (!conversationId) return;
 
-    const subscription = supabase
+    return supabase
       .channel('ai_messages')
       .on(
         'postgres_changes',
@@ -55,30 +60,29 @@ export const Chat = () => {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
+          console.log('New message received:', payload);
           setMessages((current) => [...current, payload.new as Message]);
         }
       )
       .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   };
 
   const handleSubmit = async (content: string) => {
-    if (!conversationId || isLoading) return;
+    if (!conversationId || isLoading || !content.trim()) return;
 
     setIsLoading(true);
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      conversation_id: conversationId,
-      role: 'user',
-      content,
-      created_at: new Date().toISOString(),
-    };
+    console.log('Sending message:', content);
 
     try {
       // Save user message
+      const userMessage: Message = {
+        id: crypto.randomUUID(),
+        conversation_id: conversationId,
+        role: 'user',
+        content,
+        created_at: new Date().toISOString(),
+      };
+
       const { error: saveError } = await supabase
         .from('ai_messages')
         .insert(userMessage);
@@ -86,12 +90,16 @@ export const Chat = () => {
       if (saveError) throw saveError;
 
       // Get AI response
+      console.log('Calling chat-completion function');
       const response = await supabase.functions.invoke('chat-completion', {
-        body: { messages: [...messages, userMessage] },
+        body: { messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })) },
       });
 
       if (response.error) throw response.error;
 
+      console.log('AI response received:', response.data);
+
+      // Save AI response
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         conversation_id: conversationId,
@@ -100,7 +108,6 @@ export const Chat = () => {
         created_at: new Date().toISOString(),
       };
 
-      // Save AI response
       const { error: saveAiError } = await supabase
         .from('ai_messages')
         .insert(assistantMessage);
@@ -108,8 +115,9 @@ export const Chat = () => {
       if (saveAiError) throw saveAiError;
 
     } catch (error: any) {
+      console.error('Error in chat flow:', error);
       toast({
-        title: "Error sending message",
+        title: "Erro ao enviar mensagem",
         description: error.message,
         variant: "destructive",
       });
