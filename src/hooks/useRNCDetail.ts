@@ -38,11 +38,14 @@ export const useRNCDetail = (id: string) => {
   });
 
   const handleEdit = () => {
-    if (!rnc?.canEdit) {
+    if (!rnc) return;
+    
+    // Allow editing for admins, managers, or the RNC creator
+    if (rnc.canEdit) {
+      setIsEditing(true);
+    } else {
       toast.error("Você não tem permissão para editar esta RNC");
-      return;
     }
-    setIsEditing(true);
   };
 
   const handleSave = async () => {
