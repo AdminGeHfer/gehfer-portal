@@ -1,68 +1,56 @@
-import { Brain, Home, Users, FileText, Settings, Building2 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { useSidebar } from "@/contexts/SidebarContext";
+import { Brain, ClipboardCheck, Users, Truck } from "lucide-react";
 
-export function SidebarNav() {
-  const { isCollapsed } = useSidebar();
-
-  const routes = [
+export const SidebarNav = () => {
+  const navItems = [
     {
-      label: "Apps",
-      icon: Home,
+      title: "Apps",
       href: "/apps",
-      color: "text-sky-500",
+      icon: <ClipboardCheck className="h-5 w-5" />,
     },
     {
-      label: "Intelligence",
-      icon: Brain,
-      href: "/intelligence/hub",
-      color: "text-violet-500",
+      title: "Intelligence",
+      href: "/intelligence",
+      icon: <Brain className="h-5 w-5" />,
     },
     {
-      label: "Qualidade",
-      icon: FileText,
+      title: "Qualidade",
       href: "/quality",
-      color: "text-pink-700",
+      icon: <ClipboardCheck className="h-5 w-5" />,
     },
     {
-      label: "Portaria",
-      icon: Building2,
-      href: "/portaria",
-      color: "text-orange-700",
-    },
-    {
-      label: "Admin",
-      icon: Settings,
+      title: "Administração",
       href: "/admin",
-      color: "text-emerald-500",
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
+      title: "Portaria",
+      href: "/portaria",
+      icon: <Truck className="h-5 w-5" />,
     },
   ];
 
   return (
-    <div
-      data-collapsed={isCollapsed}
-      className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2"
-    >
-      <nav className="grid gap-1 px-2 group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
-        {routes.map((route, index) => (
-          <NavLink
-            key={route.href}
-            to={route.href}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors",
-                isActive ? "bg-accent" : "transparent",
-                isCollapsed ? "justify-center" : ""
-              )
-            }
-          >
-            <route.icon className={cn("h-4 w-4", route.color)} />
-            {!isCollapsed && <span>{route.label}</span>}
-          </NavLink>
-        ))}
-      </nav>
-    </div>
+    <nav className="space-y-1">
+      {navItems.map((item) => (
+        <NavLink
+          key={item.href}
+          to={item.href}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              "hover:bg-accent hover:text-accent-foreground",
+              isActive
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground"
+            )
+          }
+        >
+          {item.icon}
+          <span className="ml-3">{item.title}</span>
+        </NavLink>
+      ))}
+    </nav>
   );
-}
+};

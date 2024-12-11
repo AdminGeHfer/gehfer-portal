@@ -17,7 +17,6 @@ const Intelligence = lazy(() => import("./pages/intelligence/Intelligence"));
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
-const IntelligenceRoutes = lazy(() => import("./routes/IntelligenceRoutes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,7 +75,7 @@ const App = () => (
                             <main className="flex-1 overflow-auto w-full">
                               <Routes>
                                 <Route path="/apps" element={<Apps />} />
-                                <Route path="/intelligence/*" element={<IntelligenceRoutes />} />
+                                <Route path="/intelligence/*" element={<Intelligence />} />
                                 <Route
                                   path="/quality/*"
                                   element={
