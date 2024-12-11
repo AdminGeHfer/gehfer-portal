@@ -1,20 +1,27 @@
 import { Card } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck, Package, GitBranch, LogOut } from "lucide-react";
+import { ClipboardCheck, Users, Truck, Package, Brain, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const modules = [
+  {
+    title: "GeHfer Intelligence",
+    description: "Central de Inteligência Artificial e Assistentes Virtuais",
+    icon: <Brain className="h-12 w-12 text-primary" />,
+    route: "/intelligence",
+    primary: true
+  },
   {
     title: "Qualidade",
     description: "Gestão de qualidade e controle de processos",
     icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
     route: "/quality/rnc",
     submodules: [
-      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> },
-      { title: "Workflow", route: "/quality/workflow", icon: <GitBranch className="h-4 w-4" /> }
+      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> }
     ]
   },
   {
@@ -109,13 +116,20 @@ const Apps = () => {
       </header>
       
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-fade-in">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
             <h2 className="text-2xl font-semibold mb-2">Selecione um módulo para começar</h2>
-            <p className="text-muted-foreground mb-8">Acesse as ferramentas e recursos disponíveis</p>
-          </div>
+            <p className="text-muted-foreground">
+              Acesse as ferramentas e recursos disponíveis
+            </p>
+          </motion.div>
         
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {modules.map((module, index) => (
               <ModuleCard 
                 key={index}
@@ -124,6 +138,7 @@ const Apps = () => {
                 icon={module.icon}
                 route={module.route}
                 submodules={module.submodules}
+                primary={module.primary}
               />
             ))}
           </div>
