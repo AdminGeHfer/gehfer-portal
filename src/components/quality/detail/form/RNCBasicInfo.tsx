@@ -19,9 +19,10 @@ import {
 
 interface RNCBasicInfoProps {
   form: UseFormReturn<RNCFormData>;
+  isEditing?: boolean;
 }
 
-export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
+export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => {
   return (
     <div className="space-y-4">
       <FormField
@@ -35,6 +36,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
                 placeholder="Descreva detalhadamente a não conformidade"
                 className="min-h-[100px]"
                 {...field}
+                disabled={!isEditing}
               />
             </FormControl>
             <FormMessage />
@@ -48,7 +50,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Departamento</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o departamento" />
@@ -73,7 +75,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Tipo</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o tipo" />
@@ -95,7 +97,7 @@ export const RNCBasicInfo = ({ form }: RNCBasicInfoProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Prioridade</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a prioridade" />

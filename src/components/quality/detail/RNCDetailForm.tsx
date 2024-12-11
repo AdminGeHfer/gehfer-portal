@@ -9,6 +9,7 @@ import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
+import { RNCAttachments } from "./RNCAttachments";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -108,20 +109,21 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <TabsContent value="company" className="space-y-6">
               <div className="grid gap-6">
-                <RNCCompanyInfo form={form} />
+                <RNCCompanyInfo form={form} isEditing={isEditing} />
               </div>
             </TabsContent>
 
             <TabsContent value="details" className="space-y-6">
               <div className="grid gap-6">
-                <RNCBasicInfo form={form} />
-                <RNCFileUpload form={form} />
+                <RNCBasicInfo form={form} isEditing={isEditing} />
+                {isEditing && <RNCFileUpload form={form} />}
+                <RNCAttachments rncId={rnc.id} canEdit={isEditing} />
               </div>
             </TabsContent>
 
             <TabsContent value="contact" className="space-y-6">
               <div className="grid gap-6">
-                <RNCContactInfo form={form} />
+                <RNCContactInfo form={form} isEditing={isEditing} />
               </div>
             </TabsContent>
 
