@@ -32,6 +32,7 @@ export const useRNCDetail = (id: string) => {
 
       // Check if user can edit this RNC
       const canEdit = isAdmin || isManager || (userData.user && data.created_by === userData.user.id);
+      console.log("User permissions:", { isAdmin, isManager, userId: userData.user?.id, createdBy: data.created_by, canEdit });
 
       return { ...transformRNCData(data), canEdit };
     },
@@ -40,8 +41,7 @@ export const useRNCDetail = (id: string) => {
   const handleEdit = () => {
     if (!rnc) return;
     
-    // Allow editing for admins, managers, or the RNC creator
-    if (rnc.canEdit) {
+    if (isAdmin || isManager || rnc.canEdit) {
       setIsEditing(true);
     } else {
       toast.error("Você não tem permissão para editar esta RNC");
@@ -64,7 +64,7 @@ export const useRNCDetail = (id: string) => {
   };
 
   const handleDelete = async () => {
-    if (!rnc?.canEdit || isDeleting) return;
+    if ((!isAdmin && !isManager && !rnc?.canEdit) || isDeleting) return;
     
     try {
       setIsDeleting(true);
