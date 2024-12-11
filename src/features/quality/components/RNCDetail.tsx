@@ -22,12 +22,15 @@ export const RNCDetail = ({ id }: RNCDetailProps) => {
     handleDelete,
     handleStatusChange,
     handleFieldChange,
-    handleRefresh,
     refetch
   } = useRNCDetail(id);
 
   const handleGeneratePDF = () => {
     setIsGeneratingPDF(!isGeneratingPDF);
+  };
+
+  const handleRefresh = async () => {
+    await refetch();
   };
 
   if (isLoading) {
