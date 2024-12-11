@@ -1,6 +1,6 @@
 import { Message } from "@/types/ai";
 import { motion } from "framer-motion";
-import { MessageSquare, User } from "lucide-react";
+import { MessageSquare, User, Paperclip } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
 
@@ -16,6 +16,28 @@ export const MessageList = ({ messages }: MessageListProps) => {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const renderMessageContent = (content: string) => {
+    // Check if the message contains a file attachment
+    const fileMatch = content.match(/\[Arquivo anexado: (.*?)\]\((.*?)\)/);
+    if (fileMatch) {
+      const [, fileName, fileUrl] = fileMatch;
+      return (
+        <div className="flex items-center space-x-2">
+          <Paperclip className="h-4 w-4" />
+          <a 
+            href={fileUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="underline hover:text-primary"
+          >
+            {fileName}
+          </a>
+        </div>
+      );
+    }
+    return content;
+  };
 
   return (
     <ScrollArea 
@@ -49,7 +71,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
                 : 'bg-primary text-primary-foreground'
             }`}
           >
-            {message.content}
+            {renderMessageContent(message.content)}
           </div>
         </motion.div>
       ))}
