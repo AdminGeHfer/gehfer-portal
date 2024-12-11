@@ -53,6 +53,7 @@ const RNCList = () => {
       cnpj: "12345678901234",
       created_at: "2024-03-09T00:00:00.000Z",
       updated_at: "2024-03-09T00:00:00.000Z",
+      created_by: "user-1", // Added missing required field
       timeline: []
     },
     {
@@ -73,6 +74,7 @@ const RNCList = () => {
       cnpj: "98765432109876",
       created_at: "2024-03-05T00:00:00.000Z",
       updated_at: "2024-03-05T00:00:00.000Z",
+      created_by: "user-2", // Added missing required field
       timeline: []
     }
   ];
@@ -110,7 +112,7 @@ const RNCList = () => {
         </aside>
 
         <main className="flex-1 p-6">
-          <RNCListHeader onRNCCreated={handleSubmit} />
+          <RNCListHeader onRNCCreated={() => handleSubmit} />
           
           <RNCListFilters
             searchTerm={searchTerm}
