@@ -72,9 +72,9 @@ const Apps = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-16 items-center justify-between px-6">
-          <h1 className="text-2xl font-semibold">Portal GeHfer</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Portal GeHfer</h1>
           <Button 
             variant="ghost" 
             size="icon"
@@ -107,10 +107,11 @@ const Apps = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                className={module.isHighlighted ? 'md:col-span-2' : ''}
               >
                 <Card 
                   className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20 ${
-                    module.isHighlighted ? 'col-span-2 md:col-span-2 ring-2 ring-primary/50' : ''
+                    module.isHighlighted ? 'ring-2 ring-primary/50' : ''
                   }`}
                   onClick={() => navigate(module.route)}
                 >
