@@ -12,7 +12,7 @@ const MAX_MESSAGES = {
   'gpt-4o-mini': 8,
   'gpt-4o': 12,
   'groq-mixtral': 10,
-  'groq-llama2': 10,
+  'groq-llama': 10,
 };
 
 serve(async (req) => {
@@ -36,7 +36,8 @@ serve(async (req) => {
 
       console.log('Using Groq model for chat completion');
       
-      const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama2-70b-4096';
+      // Updated model name for LLaMA to match Groq's API
+      const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama2-70b';
       
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
