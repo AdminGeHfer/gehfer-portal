@@ -5,7 +5,7 @@ import { WorkflowEditorCanvas } from "@/components/quality/workflow/editor/Workf
 export default function WorkflowEditor() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header title="Editor de Workflow" />
       <main className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
