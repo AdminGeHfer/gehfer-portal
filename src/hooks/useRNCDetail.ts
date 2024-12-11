@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { transformRNCData } from "@/utils/rncTransform";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
+import { useRBAC } from "./useRBAC";
 
 export const useRNCDetail = (id: string) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -11,6 +12,7 @@ export const useRNCDetail = (id: string) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
+  const { isAdmin, isManager } = useRBAC();
 
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
@@ -28,12 +30,10 @@ export const useRNCDetail = (id: string) => {
 
       if (error) throw error;
 
-      if (!userData.user || data.created_by !== userData.user.id) {
-        toast.error("Você não tem permissão para editar esta RNC");
-        return { ...transformRNCData(data), canEdit: false };
-      }
+      // Check if user can edit this RNC
+      const canEdit = isAdmin || isManager || (userData.user && data.created_by === userData.user.id);
 
-      return { ...transformRNCData(data), canEdit: true };
+      return { ...transformRNCData(data), canEdit };
     },
   });
 
