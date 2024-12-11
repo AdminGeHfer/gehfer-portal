@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/ai";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { ChatHeader } from "./ChatHeader";
+import { truncateMessages } from "@/utils/chatUtils";
 
 export const ChatContainer = () => {
   const { conversationId } = useParams();
@@ -90,18 +91,28 @@ export const ChatContainer = () => {
 
       if (saveError) throw saveError;
 
+      // Get truncated messages for the API call
+      const truncatedMessages = truncateMessages(
+        [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
+        model
+      );
+
       const response = await supabase.functions.invoke('chat-completion', {
         body: { 
-          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
+          messages: truncatedMessages,
           model 
         },
       });
 
       if (response.error) {
-        // Check for specific error types and show user-friendly messages
         if (response.error.message?.includes('Limite de tokens excedido') ||
             response.error.message?.includes('conversa ficou muito longa')) {
-          throw new Error('A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.');
+          toast({
+            title: "Limite de mensagens atingido",
+            description: "A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.",
+            variant: "destructive",
+          });
+          return;
         }
         throw response.error;
       }
