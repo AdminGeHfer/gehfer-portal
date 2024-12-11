@@ -9,7 +9,11 @@ import {
   Package, 
   GitBranch,
   Home,
-  LayoutDashboard
+  LayoutDashboard,
+  Brain,
+  MessageSquare,
+  Settings,
+  Building2
 } from "lucide-react";
 
 interface Module {
@@ -28,6 +32,17 @@ const modules: Module[] = [
     title: "Home",
     icon: Home,
     path: "/apps",
+  },
+  {
+    title: "GeHfer Intelligence",
+    icon: Brain,
+    path: "/intelligence",
+    submodules: [
+      { title: "Hub IA", path: "/intelligence/hub", icon: Brain },
+      { title: "Setores", path: "/intelligence/sectors", icon: Building2 },
+      { title: "Chat", path: "/intelligence/chat", icon: MessageSquare },
+      { title: "Configurações", path: "/intelligence/settings", icon: Settings }
+    ]
   },
   {
     title: "Qualidade",

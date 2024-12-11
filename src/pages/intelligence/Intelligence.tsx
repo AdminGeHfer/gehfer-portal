@@ -5,13 +5,18 @@ import { Brain, MessageSquare, Settings, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
+interface HeaderProps {
+  title: string;
+  description?: string;
+}
+
 const modules = [
   {
     title: "Hub IA",
     description: "Central de assistentes virtuais inteligentes",
     icon: <Brain className="h-12 w-12 text-primary" />,
     route: "/intelligence/hub",
-    primary: true
+    isHighlighted: true
   },
   {
     title: "Setores",
@@ -33,34 +38,10 @@ const modules = [
   }
 ];
 
-const ModuleCard = ({ title, description, icon, route, primary = false }) => {
-  const navigate = useNavigate();
-
-  return (
-    <Card 
-      className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in ${
-        primary ? 'col-span-2 md:col-span-2' : ''
-      }`}
-      onClick={() => navigate(route)}
-    >
-      <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
-        {icon}
-      </div>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{title}</h3>
-        <p className="text-muted-foreground mb-4">{description}</p>
-        <div className="flex items-center text-primary hover:underline">
-          Acessar módulo
-        </div>
-      </div>
-    </Card>
-  );
-};
-
 const Intelligence = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Header title="GeHfer Intelligence" subtitle="Central de Inteligência Artificial" />
+      <Header title="GeHfer Intelligence" description="Central de Inteligência Artificial" />
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
@@ -80,11 +61,7 @@ const Intelligence = () => {
             {modules.map((module, index) => (
               <ModuleCard 
                 key={index}
-                title={module.title}
-                description={module.description}
-                icon={module.icon}
-                route={module.route}
-                primary={module.primary}
+                {...module}
               />
             ))}
           </div>

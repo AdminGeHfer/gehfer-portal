@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
 import { ClipboardCheck, Users, Truck, Package, Brain, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,49 +6,27 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-const modules = [
-  {
-    title: "GeHfer Intelligence",
-    description: "Central de Inteligência Artificial e Assistentes Virtuais",
-    icon: <Brain className="h-12 w-12 text-primary" />,
-    route: "/intelligence",
-    primary: true
-  },
-  {
-    title: "Qualidade",
-    description: "Gestão de qualidade e controle de processos",
-    icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
-    route: "/quality/rnc",
-    submodules: [
-      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> }
-    ]
-  },
-  {
-    title: "Administração",
-    description: "Ferramentas para gerenciar sua equipe e recursos",
-    icon: <Users className="h-12 w-12 text-primary" />,
-    route: "/admin/users"
-  },
-  {
-    title: "Portaria",
-    description: "Gestão de filas e controle de acesso",
-    icon: <Truck className="h-12 w-12 text-primary" />,
-    route: "/portaria/acesso"
-  },
-  {
-    title: "Cadastros",
-    description: "Gerenciamento de produtos e outros cadastros",
-    icon: <Package className="h-12 w-12 text-primary" />,
-    route: "/admin/products"
-  }
-];
+interface ModuleCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactElement;
+  route: string;
+  submodules?: {
+    title: string;
+    route: string;
+    icon: React.ReactElement;
+  }[];
+  isHighlighted?: boolean;
+}
 
-const ModuleCard = ({ title, description, icon, route, submodules }) => {
+const ModuleCard = ({ title, description, icon, route, submodules, isHighlighted }: ModuleCardProps) => {
   const navigate = useNavigate();
 
   return (
     <Card 
-      className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
+      className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism ${
+        isHighlighted ? 'col-span-2 md:col-span-2' : ''
+      }`}
       onClick={() => navigate(route)}
     >
       <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
@@ -84,6 +61,43 @@ const ModuleCard = ({ title, description, icon, route, submodules }) => {
     </Card>
   );
 };
+
+const modules = [
+  {
+    title: "GeHfer Intelligence",
+    description: "Central de Inteligência Artificial e Assistentes Virtuais",
+    icon: <Brain className="h-12 w-12 text-primary" />,
+    route: "/intelligence",
+    isHighlighted: true
+  },
+  {
+    title: "Qualidade",
+    description: "Gestão de qualidade e controle de processos",
+    icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
+    route: "/quality/rnc",
+    submodules: [
+      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> }
+    ]
+  },
+  {
+    title: "Administração",
+    description: "Ferramentas para gerenciar sua equipe e recursos",
+    icon: <Users className="h-12 w-12 text-primary" />,
+    route: "/admin/users"
+  },
+  {
+    title: "Portaria",
+    description: "Gestão de filas e controle de acesso",
+    icon: <Truck className="h-12 w-12 text-primary" />,
+    route: "/portaria/acesso"
+  },
+  {
+    title: "Cadastros",
+    description: "Gerenciamento de produtos e outros cadastros",
+    icon: <Package className="h-12 w-12 text-primary" />,
+    route: "/admin/products"
+  }
+];
 
 const Apps = () => {
   const { signOut } = useAuth();
@@ -158,5 +172,3 @@ const Apps = () => {
     </div>
   );
 };
-
-export default Apps;
