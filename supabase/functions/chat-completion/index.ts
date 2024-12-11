@@ -32,7 +32,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'Você é um assistente da GeHfer, uma empresa especializada em gestão de qualidade e logística. Seja sempre prestativo e profissional.' 
+            content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
           },
           ...messages
         ],
