@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { FilePdf, WhatsappLogo, PencilSimple, Trash } from "@phosphor-icons/react";
 import { toast } from "sonner";
+import { RNCReportPreview } from "../report/RNCReportPreview";
+import { RNCDetailForm } from "./RNCDetailForm";
 
 export function RNCDetailContainer() {
   const navigate = useNavigate();
@@ -22,18 +24,46 @@ export function RNCDetailContainer() {
   const {
     rnc,
     isLoading,
-    handleDelete,
+    handleDelete: onDelete,
     handleStatusChange,
     handleFieldChange,
     handleRefresh
   } = useRNCDetail(id!);
 
   const handleGeneratePDF = () => {
-    setIsGeneratingPDF(!isGeneratingPDF);
+    if (!rnc) return;
+    setIsGeneratingPDF(true);
   };
 
   const handleWhatsApp = () => {
-    toast.info("Funcionalidade em desenvolvimento");
+    if (!rnc) return;
+    const text = `RNC #${rnc.rnc_number}\nEmpresa: ${rnc.company}\nDescrição: ${rnc.description}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    setIsEditing(false);
+    await handleRefresh();
+    toast.success("RNC atualizada com sucesso");
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await onDelete();
+      toast.success("RNC excluída com sucesso");
+      navigate("/quality/rncs");
+    } catch (error) {
+      toast.error("Erro ao excluir RNC");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
   };
 
   if (isLoading || !rnc) {
@@ -76,7 +106,7 @@ export function RNCDetailContainer() {
               <>
                 <Button 
                   variant={isEditing ? "default" : "outline"}
-                  onClick={() => setIsEditing(!isEditing)}
+                  onClick={isEditing ? handleSave : handleEdit}
                 >
                   <PencilSimple className="w-4 h-4 mr-2" />
                   {isEditing ? "Salvar" : "Editar"}
@@ -96,67 +126,12 @@ export function RNCDetailContainer() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-lg border shadow-sm">
-              <Tabs defaultValue="empresa" className="w-full">
-                <TabsList className="w-full grid grid-cols-3">
-                  <TabsTrigger value="empresa">Empresa</TabsTrigger>
-                  <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
-                  <TabsTrigger value="contato">Contato</TabsTrigger>
-                </TabsList>
-                <TabsContent value="empresa" className="p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Razão Social</label>
-                      <p className="text-lg">{rnc.company}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">CNPJ</label>
-                      <p className="text-lg">{rnc.cnpj}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Nº do Pedido</label>
-                      <p className="text-lg">{rnc.order_number || "-"}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Nº da Devolução</label>
-                      <p className="text-lg">{rnc.return_number || "-"}</p>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="detalhes" className="p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Descrição</label>
-                      <p className="text-lg">{rnc.description}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Departamento</label>
-                      <p className="text-lg">{rnc.department}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Prioridade</label>
-                      <p className="text-lg capitalize">{rnc.priority}</p>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="contato" className="p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Nome</label>
-                      <p className="text-lg">{rnc.contact.name}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Telefone</label>
-                      <p className="text-lg">{rnc.contact.phone}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Email</label>
-                      <p className="text-lg">{rnc.contact.email}</p>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </div>
+            <RNCDetailForm
+              rnc={rnc}
+              isEditing={isEditing}
+              onFieldChange={handleFieldChange}
+              onSave={handleSave}
+            />
 
             <div className="bg-white rounded-lg border shadow-sm p-6">
               <h2 className="text-lg font-semibold mb-4">Histórico do Workflow</h2>
@@ -179,12 +154,19 @@ export function RNCDetailContainer() {
                   className="w-full"
                   onClick={() => handleStatusChange("analysis")}
                 >
-                  Em Análise
+                  Próxima Etapa
                 </Button>
               </div>
             </div>
           </div>
         </div>
+
+        {isGeneratingPDF && (
+          <RNCReportPreview
+            rnc={rnc}
+            onClose={() => setIsGeneratingPDF(false)}
+          />
+        )}
       </main>
     </div>
   );

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimelineList } from "./timeline/TimelineList";
 import { TimelineEventType } from "./timeline/TimelineEvent";
+import { getWorkflowStatusLabel } from "@/utils/workflow";
 
 interface RNCTimelineProps {
   rncId: string;
@@ -11,7 +12,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
   const { data: events, isLoading } = useQuery({
     queryKey: ['rnc-timeline', rncId],
     queryFn: async () => {
-      // Buscar eventos básicos
+      // Fetch basic events
       const { data: basicEvents, error: eventsError } = await supabase
         .from('rnc_events')
         .select(`
@@ -28,7 +29,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
 
       if (eventsError) throw eventsError;
 
-      // Buscar transições de workflow
+      // Fetch workflow transitions
       const { data: transitions, error: transitionsError } = await supabase
         .from('rnc_workflow_transitions')
         .select(`
@@ -45,7 +46,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
 
       if (transitionsError) throw transitionsError;
 
-      // Combinar eventos e transições
+      // Combine events and transitions
       const allEvents = [
         ...basicEvents.map(event => ({
           id: event.id,
@@ -60,7 +61,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
           id: transition.id,
           date: transition.created_at,
           title: "Alteração de Status",
-          description: `Status alterado de ${transition.from_status || 'Aberto'} para ${transition.to_status}`,
+          description: `Status alterado de ${getWorkflowStatusLabel(transition.from_status)} para ${getWorkflowStatusLabel(transition.to_status)}`,
           type: "status" as TimelineEventType,
           userId: transition.created_by,
           userName: transition.created_by_profile?.name,
