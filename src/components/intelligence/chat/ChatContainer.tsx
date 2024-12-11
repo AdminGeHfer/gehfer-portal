@@ -13,6 +13,7 @@ export const ChatContainer = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [model, setModel] = useState("gpt-4o-mini");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -90,7 +91,10 @@ export const ChatContainer = () => {
       if (saveError) throw saveError;
 
       const response = await supabase.functions.invoke('chat-completion', {
-        body: { messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })) },
+        body: { 
+          messages: [...messages, userMessage].map(m => ({ role: m.role, content: m.content })),
+          model 
+        },
       });
 
       if (response.error) throw response.error;
@@ -198,7 +202,13 @@ export const ChatContainer = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <ChatHeader onDelete={handleDeleteConversation} isDeleting={isDeleting} />
+      <ChatHeader 
+        onDelete={handleDeleteConversation} 
+        isDeleting={isDeleting}
+        model={model}
+        onModelChange={setModel}
+        isLoading={isLoading}
+      />
       
       <Card className="flex-1 overflow-hidden backdrop-blur-sm bg-card/30 border-0">
         <MessageList messages={messages} />

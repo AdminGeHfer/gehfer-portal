@@ -1,33 +1,35 @@
-import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Trash2 } from "lucide-react";
+import { ModelSelect } from "./ModelSelect";
 
 interface ChatHeaderProps {
   onDelete: () => void;
   isDeleting: boolean;
+  model: string;
+  onModelChange: (model: string) => void;
+  isLoading: boolean;
 }
 
-export const ChatHeader = ({ onDelete, isDeleting }: ChatHeaderProps) => {
-  const navigate = useNavigate();
-
+export const ChatHeader = ({ 
+  onDelete, 
+  isDeleting, 
+  model, 
+  onModelChange,
+  isLoading 
+}: ChatHeaderProps) => {
   return (
-    <div className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => navigate('/intelligence/chat')}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h2 className="text-xl font-semibold">Chat</h2>
-      </div>
-      
-      <Button 
-        variant="destructive" 
+    <div className="flex items-center justify-between p-4 border-b">
+      <ModelSelect 
+        value={model} 
+        onValueChange={onModelChange}
+        disabled={isLoading || isDeleting}
+      />
+      <Button
+        variant="ghost"
         size="icon"
-        onClick={onDelete}
         disabled={isDeleting}
+        onClick={onDelete}
+        className="text-destructive hover:text-destructive hover:bg-destructive/10"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
