@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { RNCTimeline } from "../RNCTimeline";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
-import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { FilePdf, WhatsappLogo } from "@phosphor-icons/react";
@@ -32,13 +31,13 @@ export function RNCDetailContainer() {
     handleSave,
   } = useRNCDetail(id!);
 
-  const { mutate: deleteRNC, isLoading: isDeleting } = useDeleteRNC(id!, () => {
+  const deleteMutation = useDeleteRNC(id!, () => {
     navigate("/quality/rnc");
   });
 
   const handleDelete = () => {
     console.log('Handling delete for RNC:', id);
-    deleteRNC();
+    deleteMutation.mutate();
   };
 
   const handleGeneratePDF = () => {
@@ -86,11 +85,11 @@ export function RNCDetailContainer() {
             isEditing={isEditing}
             onEdit={handleEdit}
             onSave={handleSave}
-            onDelete={handleDelete}
+            onDelete={() => setIsDeleteDialogOpen(true)}
             onPrint={handleGeneratePDF}
             onWhatsApp={handleWhatsApp}
             setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-            isDeleting={isDeleting}
+            isDeleting={deleteMutation.isPending}
           />
         </div>
 
@@ -129,7 +128,7 @@ export function RNCDetailContainer() {
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
           onConfirm={handleDelete}
-          isDeleting={isDeleting}
+          isDeleting={deleteMutation.isPending}
         />
 
         {isGeneratingPDF && (
