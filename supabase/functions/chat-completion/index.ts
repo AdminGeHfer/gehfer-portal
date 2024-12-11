@@ -1,5 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
+const huggingFaceApiKey = Deno.env.get('HUGGING_FACE_API_KEY')
+const groqApiKey = Deno.env.get('GROQ_API_KEY')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,7 +19,45 @@ serve(async (req) => {
     const { messages, model = 'gpt-4o-mini' } = await req.json()
     console.log('Processing chat completion request:', { messageCount: messages.length, model })
 
-    if (model === 'llama-70b') {
+    if (model.startsWith('groq-')) {
+      if (!groqApiKey) {
+        throw new Error('Groq API key not configured')
+      }
+
+      console.log('Using Groq model for chat completion')
+      
+      const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama2-70b-4096'
+      
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: groqModel,
+          messages: [
+            { 
+              role: 'system', 
+              content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
+            },
+            ...messages
+          ],
+          temperature: 0.7,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Groq API error:', error)
+        throw new Error(`Groq API error: ${JSON.stringify(error)}`)
+      }
+
+      const data = await response.json()
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    } else if (model === 'llama-70b') {
       const hfApiKey = Deno.env.get('HUGGING_FACE_API_KEY')
       if (!hfApiKey) {
         throw new Error('Hugging Face API key not configured')
