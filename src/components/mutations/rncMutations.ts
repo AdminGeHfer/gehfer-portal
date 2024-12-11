@@ -2,45 +2,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
+import { deleteRNCRecord } from "@/mutations/rnc/deleteRNCOperations";
 
 export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   return useMutation({
     mutationFn: async () => {
-      // First delete related records
-      const { error: contactsError } = await supabase
-        .from("rnc_contacts")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (contactsError) throw contactsError;
-
-      const { error: eventsError } = await supabase
-        .from("rnc_events")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (eventsError) throw eventsError;
-
-      const { error: attachmentsError } = await supabase
-        .from("rnc_attachments")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (attachmentsError) throw attachmentsError;
-
-      // Finally delete the RNC
-      const { error } = await supabase
-        .from("rncs")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      console.log('Starting RNC deletion process for ID:', id);
+      const success = await deleteRNCRecord(id);
+      if (!success) {
+        throw new Error('Failed to delete RNC');
+      }
     },
     onSuccess: () => {
       toast.success("RNC excluída com sucesso");
       onSuccess();
     },
     onError: (error: Error) => {
+      console.error('Error in useDeleteRNC:', error);
       toast.error("Erro ao excluir RNC: " + error.message);
     },
   });

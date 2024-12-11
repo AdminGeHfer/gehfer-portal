@@ -3,14 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { RNCTimeline } from "../RNCTimeline";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { FilePdf, WhatsappLogo, PencilSimple, Trash } from "@phosphor-icons/react";
+import { FilePdf, WhatsappLogo } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { RNCReportPreview } from "../report/RNCReportPreview";
 import { RNCDetailForm } from "./RNCDetailForm";
+import { RNCDetailActions } from "./RNCDetailActions";
+import { RNCDeleteDialog } from "./RNCDeleteDialog";
+import { useDeleteRNC } from "@/components/mutations/rncMutations";
 
 export function RNCDetailContainer() {
   const navigate = useNavigate();
@@ -18,17 +20,26 @@ export function RNCDetailContainer() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [transitionNotes, setTransitionNotes] = useState("");
 
   const {
     rnc,
     isLoading,
-    handleDelete: onDelete,
     handleStatusChange,
     handleFieldChange,
-    handleRefresh
+    handleRefresh,
+    handleEdit,
+    handleSave,
   } = useRNCDetail(id!);
+
+  const { mutate: deleteRNC, isLoading: isDeleting } = useDeleteRNC(id!, () => {
+    navigate("/quality/rnc");
+  });
+
+  const handleDelete = () => {
+    console.log('Handling delete for RNC:', id);
+    deleteRNC();
+  };
 
   const handleGeneratePDF = () => {
     if (!rnc) return;
@@ -40,30 +51,6 @@ export function RNCDetailContainer() {
     const text = `RNC #${rnc.rnc_number}\nEmpresa: ${rnc.company}\nDescrição: ${rnc.description}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
-  };
-
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-
-  const handleSave = async () => {
-    setIsEditing(false);
-    await handleRefresh();
-    toast.success("RNC atualizada com sucesso");
-  };
-
-  const handleDelete = async () => {
-    try {
-      setIsDeleting(true);
-      await onDelete();
-      toast.success("RNC excluída com sucesso");
-      navigate("/quality/rncs");
-    } catch (error) {
-      toast.error("Erro ao excluir RNC");
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteDialogOpen(false);
-    }
   };
 
   if (isLoading || !rnc) {
@@ -93,35 +80,18 @@ export function RNCDetailContainer() {
             </h1>
             <RNCStatusBadge status={rnc.workflow_status} />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleGeneratePDF}>
-              <FilePdf weight="fill" className="w-4 h-4 mr-2" />
-              PDF
-            </Button>
-            <Button variant="outline" onClick={handleWhatsApp}>
-              <WhatsappLogo weight="fill" className="w-4 h-4 mr-2" />
-              WhatsApp
-            </Button>
-            {rnc.canEdit && (
-              <>
-                <Button 
-                  variant={isEditing ? "default" : "outline"}
-                  onClick={isEditing ? handleSave : handleEdit}
-                >
-                  <PencilSimple className="w-4 h-4 mr-2" />
-                  {isEditing ? "Salvar" : "Editar"}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="text-destructive hover:text-destructive-foreground hover:bg-destructive/90"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                >
-                  <Trash className="w-4 h-4 mr-2" />
-                  Excluir
-                </Button>
-              </>
-            )}
-          </div>
+          <RNCDetailActions
+            rnc={rnc}
+            canEdit={rnc.canEdit}
+            isEditing={isEditing}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onPrint={handleGeneratePDF}
+            onWhatsApp={handleWhatsApp}
+            setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+            isDeleting={isDeleting}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -150,16 +120,17 @@ export function RNCDetailContainer() {
                   value={transitionNotes}
                   onChange={(e) => setTransitionNotes(e.target.value)}
                 />
-                <Button
-                  className="w-full"
-                  onClick={() => handleStatusChange("analysis")}
-                >
-                  Próxima Etapa
-                </Button>
               </div>
             </div>
           </div>
         </div>
+
+        <RNCDeleteDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+          onConfirm={handleDelete}
+          isDeleting={isDeleting}
+        />
 
         {isGeneratingPDF && (
           <RNCReportPreview
