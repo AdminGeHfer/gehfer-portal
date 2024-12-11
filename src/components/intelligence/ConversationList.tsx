@@ -1,19 +1,23 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, MessageSquare } from "lucide-react";
-import { motion } from "framer-motion";
-import { Conversation } from "@/types/ai";
+import { cn } from "@/lib/utils";
+import { MessageSquare, Plus } from "lucide-react";
+import { useSidebar } from "@/contexts/SidebarContext";
+
+interface Conversation {
+  id: string;
+  title: string;
+  created_at: string;
+}
 
 export const ConversationList = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { conversationId } = useParams();
-  const { toast } = useToast();
+  const { isCollapsed } = useSidebar();
 
   useEffect(() => {
     loadConversations();
@@ -31,15 +35,9 @@ export const ConversationList = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setConversations(data as Conversation[]);
-      
-    } catch (error: any) {
+      setConversations(data);
+    } catch (error) {
       console.error('Error loading conversations:', error);
-      toast({
-        title: "Erro ao carregar conversas",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   };
 
@@ -61,74 +59,60 @@ export const ConversationList = () => {
   };
 
   const createNewConversation = async () => {
-    if (isLoading) return;
-    setIsLoading(true);
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-
       const { data, error } = await supabase
         .from('ai_conversations')
         .insert({
           title: 'Nova Conversa',
-          user_id: user.id,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
         })
         .select()
         .single();
 
       if (error) throw error;
-
-      console.log('New conversation created:', data);
       navigate(`/intelligence/chat/${data.id}`);
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating conversation:', error);
-      toast({
-        title: "Erro ao criar conversa",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-64 border-r border-border h-full flex flex-col">
-      <div className="p-4">
-        <Button 
-          onClick={createNewConversation}
-          className="w-full"
-          variant="outline"
-          disabled={isLoading}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Conversa
-        </Button>
-      </div>
-      
-      <ScrollArea className="flex-1">
-        <div className="space-y-2 p-4">
-          {conversations.map((conversation) => (
-            <motion.div
-              key={conversation.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+    <aside className={cn(
+      "h-screen border-r bg-background transition-all duration-300",
+      isCollapsed ? "w-[60px]" : "w-[250px]"
+    )}>
+      <div className="flex flex-col h-full">
+        <div className="p-3">
+          <Button
+            onClick={createNewConversation}
+            className="w-full justify-start gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            {!isCollapsed && <span>Nova Conversa</span>}
+          </Button>
+        </div>
+
+        <ScrollArea className="flex-1 px-2">
+          <div className="space-y-2 py-2">
+            {conversations.map((conversation) => (
               <Button
-                variant={conversationId === conversation.id ? "secondary" : "ghost"}
-                className="w-full justify-start"
+                key={conversation.id}
+                variant={conversation.id === conversationId ? "secondary" : "ghost"}
+                className={cn(
+                  "w-full justify-start gap-2 truncate",
+                  conversation.id === conversationId && "bg-accent"
+                )}
                 onClick={() => navigate(`/intelligence/chat/${conversation.id}`)}
               >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                {conversation.title}
+                <MessageSquare className="h-4 w-4 shrink-0" />
+                {!isCollapsed && (
+                  <span className="truncate">{conversation.title}</span>
+                )}
               </Button>
-            </motion.div>
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
+    </aside>
   );
 };

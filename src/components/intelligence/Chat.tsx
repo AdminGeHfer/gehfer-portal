@@ -4,12 +4,9 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/ai";
-import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
-import { ArrowLeft, Trash2, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import { ChatInput } from "./chat/ChatInput";
+import { ChatHeader } from "./chat/ChatHeader";
 
 export const Chat = () => {
   const { conversationId } = useParams();
@@ -200,57 +197,16 @@ export const Chat = () => {
   }
 
   return (
-    <div className="flex flex-col h-full p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate('/intelligence/chat')}
-            className="hover:bg-accent"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h2 className="text-2xl font-semibold tracking-tight">Chat</h2>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Upload className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Enviar arquivo</DialogTitle>
-              </DialogHeader>
-              <Input
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFileUpload(file);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-
-          <Button 
-            variant="destructive" 
-            size="icon"
-            onClick={handleDeleteConversation}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+    <div className="flex flex-col h-full">
+      <ChatHeader onDelete={handleDeleteConversation} isDeleting={isDeleting} />
       
-      <Card className="flex flex-col flex-1 backdrop-blur-sm bg-card/30">
+      <Card className="flex-1 overflow-hidden backdrop-blur-sm bg-card/30 border-0">
         <MessageList messages={messages} />
-        <div className="p-4 border-t bg-background/50">
-          <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
-        </div>
+        <ChatInput 
+          onSubmit={handleSubmit} 
+          onFileUpload={handleFileUpload}
+          isLoading={isLoading} 
+        />
       </Card>
     </div>
   );
