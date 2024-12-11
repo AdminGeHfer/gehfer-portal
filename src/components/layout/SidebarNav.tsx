@@ -9,7 +9,11 @@ import {
   Users,
   Truck,
   Package,
-  ChevronDown
+  ChevronDown,
+  Brain,
+  MessageSquare,
+  Settings,
+  Building2
 } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useState } from "react";
@@ -44,6 +48,33 @@ export const SidebarNav = () => {
       title: "Home",
       href: "/apps",
       icon: <Home className="h-5 w-5" />,
+    },
+    {
+      title: "GeHfer Intelligence",
+      href: "/intelligence",
+      icon: <Brain className="h-5 w-5" />,
+      subModules: [
+        {
+          title: "Hub IA",
+          href: "/intelligence/hub",
+          icon: <Brain className="h-4 w-4" />,
+        },
+        {
+          title: "Setores",
+          href: "/intelligence/sectors",
+          icon: <Building2 className="h-4 w-4" />,
+        },
+        {
+          title: "Chat",
+          href: "/intelligence/chat",
+          icon: <MessageSquare className="h-4 w-4" />,
+        },
+        {
+          title: "Configurações",
+          href: "/intelligence/settings",
+          icon: <Settings className="h-4 w-4" />,
+        },
+      ],
     },
     {
       title: "Qualidade",
