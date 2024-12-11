@@ -22,7 +22,8 @@ export const RNCDetail = ({ id }: RNCDetailProps) => {
     handleDelete,
     handleStatusChange,
     handleFieldChange,
-    handleRefresh
+    handleRefresh,
+    refetch
   } = useRNCDetail(id);
 
   const handleGeneratePDF = () => {

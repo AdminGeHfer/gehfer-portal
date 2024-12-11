@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { RNCFormData } from "@/types/rnc";
+import { RNC, RNCFormData } from "@/types/rnc";
 import { RNCListHeader } from "@/components/quality/list/RNCListHeader";
 import { RNCListFilters } from "@/components/quality/list/RNCListFilters";
 import { RNCListTable } from "@/components/quality/list/RNCListTable";
@@ -16,7 +16,7 @@ const RNCList = () => {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
-  const handleSubmit = async (data: RNCFormData): Promise<string> => {
+  const handleSubmit = async (data: RNCFormData): Promise<void> => {
     try {
       // TODO: Implement API integration
       console.log('Creating RNC:', data);
@@ -24,7 +24,6 @@ const RNCList = () => {
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
-      return "temp-id";
     } catch (error) {
       toast({
         title: "Erro ao criar RNC",
@@ -35,26 +34,46 @@ const RNCList = () => {
     }
   };
 
-  const rncs = [
+  const mockRncs: RNC[] = [
     {
       id: "1",
       rnc_number: 67,
+      description: "Produto entregue com defeito",
       title: "Produto entregue com defeito",
       company: "PX COMERCIO DE FERRO E ACO PNTALENSE LTDA",
       department: "Qualidade",
       workflow_status: "resolution",
       priority: "medium",
-      date: "09/12/2024"
+      type: "client",
+      contact: {
+        name: "João Silva",
+        phone: "11999999999",
+        email: "joao@example.com"
+      },
+      cnpj: "12345678901234",
+      created_at: "2024-03-09T00:00:00.000Z",
+      updated_at: "2024-03-09T00:00:00.000Z",
+      timeline: []
     },
     {
       id: "2",
       rnc_number: 66,
+      description: "Material fora das especificações",
       title: "Material fora das especificações",
       company: "BORTOLON",
       department: "Qualidade",
       workflow_status: "solved",
       priority: "medium",
-      date: "05/12/2024"
+      type: "client",
+      contact: {
+        name: "Maria Santos",
+        phone: "11988888888",
+        email: "maria@example.com"
+      },
+      cnpj: "98765432109876",
+      created_at: "2024-03-05T00:00:00.000Z",
+      updated_at: "2024-03-05T00:00:00.000Z",
+      timeline: []
     }
   ];
 
@@ -105,7 +124,7 @@ const RNCList = () => {
           />
 
           <RNCListTable
-            rncs={rncs}
+            rncs={mockRncs}
             onRowClick={(id) => navigate(`/quality/rnc/${id}`)}
           />
         </main>
