@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { DocumentUpload } from "../DocumentUpload";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EMBEDDING_MODELS, SEARCH_TYPES } from "./constants";
 
 interface AIAgentKnowledgeBaseProps {
   chunkSize: number;
