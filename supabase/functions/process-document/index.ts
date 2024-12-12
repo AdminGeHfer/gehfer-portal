@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.1.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +21,7 @@ serve(async (req) => {
     // Get the form data
     const formData = await req.formData()
     const file = formData.get('file')
-    const moduleId = formData.get('moduleId')
+    const moduleId = formData.get('moduleId')?.toString()
 
     if (!file || !(file instanceof File)) {
       throw new Error('No file provided')
@@ -30,7 +29,7 @@ serve(async (req) => {
 
     console.log('Processing file:', file.name, 'size:', file.size)
 
-    // Read the file content
+    // Read the file content as text
     const content = await file.text()
 
     // Store the document in the documents table
@@ -48,14 +47,20 @@ serve(async (req) => {
       .select()
       .single()
 
-    if (documentError) throw documentError
+    if (documentError) {
+      console.error('Error storing document:', documentError)
+      throw documentError
+    }
 
     console.log('Document stored successfully:', document.id)
 
     return new Response(
       JSON.stringify({ success: true, documentId: document.id }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
         status: 200,
       }
     )
@@ -64,7 +69,10 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        },
         status: 400,
       }
     )

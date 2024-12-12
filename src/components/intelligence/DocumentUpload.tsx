@@ -19,23 +19,14 @@ export const DocumentUpload = ({ moduleId }: DocumentUploadProps) => {
     try {
       setIsLoading(true);
 
-      // 1. Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${crypto.randomUUID()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // 2. Process file with Edge Function
+      // Create FormData instance
       const formData = new FormData();
       formData.append('file', file);
       if (moduleId) {
         formData.append('moduleId', moduleId);
       }
 
+      // Call the Edge Function
       const { data, error } = await supabase.functions.invoke('process-document', {
         body: formData,
         headers: {
@@ -43,7 +34,10 @@ export const DocumentUpload = ({ moduleId }: DocumentUploadProps) => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Function error:', error);
+        throw error;
+      }
 
       toast.success('Document processed successfully!');
       
