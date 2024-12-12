@@ -17,6 +17,11 @@ export class SupabaseBufferMemory extends BaseMemory {
     this.returnMessages = returnMessages;
   }
 
+  // Implementing the abstract memoryKeys property
+  get memoryKeys() {
+    return ["history"];
+  }
+
   async loadMemoryVariables() {
     const { data: memories, error } = await supabase
       .from('ai_memory_buffers')
