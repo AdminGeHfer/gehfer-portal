@@ -14,12 +14,21 @@ interface AIAgentDocumentListProps {
   agentId: string;
 }
 
+interface DocumentResponse {
+  documents: {
+    id: string;
+    filename: string;
+    created_at: string;
+  };
+  document_id: string;
+}
+
 export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (agentId) { // Only load if agentId exists
+    if (agentId) {
       loadDocuments();
     }
   }, [agentId]);
@@ -40,7 +49,7 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
       if (error) throw error;
 
-      const formattedDocs = data.map(item => ({
+      const formattedDocs = (data as DocumentResponse[]).map(item => ({
         id: item.documents.id,
         filename: item.documents.filename,
         created_at: item.documents.created_at
@@ -56,10 +65,9 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
   };
 
   const deleteDocument = async (documentId: string) => {
-    if (!agentId) return; // Guard against undefined agentId
+    if (!agentId) return;
 
     try {
-      // First delete the association
       const { error: assocError } = await supabase
         .from('ai_agent_documents')
         .delete()
@@ -68,7 +76,6 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
       if (assocError) throw assocError;
 
-      // Then delete the document itself
       const { error: docError } = await supabase
         .from('documents')
         .delete()
@@ -76,7 +83,6 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
       if (docError) throw docError;
 
-      // Update the local state
       setDocuments(prev => prev.filter(doc => doc.id !== documentId));
       toast.success("Documento removido com sucesso");
     } catch (error) {
