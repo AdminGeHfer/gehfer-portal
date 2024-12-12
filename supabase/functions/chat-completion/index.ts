@@ -9,7 +9,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Map model IDs to their respective API versions
+// Map model IDs to their OpenAI equivalents
 const MODEL_MAPPING = {
   'gpt-4o-mini': 'gpt-4-turbo-preview',
   'gpt-4o': 'gpt-4-turbo-preview'
@@ -22,8 +22,8 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, agentId } = await req.json();
-    console.log('Processing chat completion request:', { messageCount: messages.length, agentId });
+    const { messages, model, agentId } = await req.json();
+    console.log('Processing chat completion request:', { messageCount: messages.length, model, agentId });
 
     if (!agentId) {
       throw new Error('Agent ID is required');
@@ -54,9 +54,9 @@ serve(async (req) => {
     console.log('Retrieved agent configuration:', agentConfig);
 
     // Get the correct model ID from the mapping
-    const modelId = MODEL_MAPPING[agentConfig.model_id];
+    const modelId = MODEL_MAPPING[model];
     if (!modelId) {
-      throw new Error(`Invalid model ID: ${agentConfig.model_id}`);
+      throw new Error(`Invalid model ID: ${model}`);
     }
 
     if (!openAIApiKey) {
@@ -82,7 +82,6 @@ serve(async (req) => {
         temperature: agentConfig.temperature,
         max_tokens: agentConfig.max_tokens,
         top_p: agentConfig.top_p,
-        stop: agentConfig.stop_sequences,
       }),
     });
 
