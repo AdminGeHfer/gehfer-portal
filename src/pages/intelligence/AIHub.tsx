@@ -109,11 +109,17 @@ const AIHub = () => {
     }
   };
 
-  const saveConfiguration = async (agentId: string, config: any) => {
+  const saveConfiguration = async (agentId: string, config: AIAgentConfig) => {
     try {
       const { error } = await supabase
         .from('ai_agents')
-        .update({ configuration: config })
+        .update({ 
+          configuration: config,
+          memory_type: config.memoryType,
+          chain_type: config.chainType,
+          search_type: config.searchType,
+          output_format: config.outputFormat
+        })
         .eq('id', agentId);
 
       if (error) throw error;
@@ -123,7 +129,6 @@ const AIHub = () => {
         description: "Configuration saved successfully",
       });
 
-      // Update local state
       setAgents(prev => prev.map(agent => 
         agent.id === agentId 
           ? { ...agent, configuration: config }

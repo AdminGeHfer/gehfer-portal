@@ -1,4 +1,5 @@
-import { AITablesSchema } from "./ai";
+import { AITablesSchema } from './ai';
+import { Json } from './json';
 
 export interface Database {
   public: {
@@ -1357,5 +1358,5 @@ export interface Database {
     CompositeTypes: {
       [_ in never]: never;
     };
-  }
+  };
 }
