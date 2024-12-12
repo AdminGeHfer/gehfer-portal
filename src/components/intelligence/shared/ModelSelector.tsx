@@ -23,20 +23,6 @@ export const AI_MODELS: AIModel[] = [
     description: 'Mais poderoso para tarefas complexas',
     maxTokens: 8192,
     contextWindow: 32768
-  },
-  {
-    id: 'mixtral-8x7b-32768',
-    name: 'Mixtral-8x7B',
-    description: 'Modelo open source com contexto extenso',
-    maxTokens: 32768,
-    contextWindow: 32768
-  },
-  {
-    id: 'llama2-70b-4096',
-    name: 'LLaMA-2 70B',
-    description: 'Modelo versátil de alta performance',
-    maxTokens: 4096,
-    contextWindow: 8192
   }
 ];
 

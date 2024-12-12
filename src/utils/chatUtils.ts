@@ -1,8 +1,6 @@
 export const MAX_MESSAGES = {
   'gpt-4o-mini': 8,
   'gpt-4o': 12,
-  'groq-mixtral': 10,
-  'groq-llama': 10,
 };
 
 export const truncateMessages = (messages: any[], model: string) => {
