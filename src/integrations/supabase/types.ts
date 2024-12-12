@@ -9,6 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_agents: {
+        Row: {
+          chain_type: Database["public"]["Enums"]["chain_type_enum"]
+          chunk_overlap: number
+          chunk_size: number
+          created_at: string
+          description: string | null
+          embedding_model: string
+          id: string
+          max_tokens: number
+          memory_type: Database["public"]["Enums"]["memory_type_enum"]
+          model_id: string
+          name: string
+          output_format: Database["public"]["Enums"]["output_format_enum"]
+          search_threshold: number
+          search_type: Database["public"]["Enums"]["search_type_enum"]
+          stop_sequences: string[] | null
+          system_prompt: string | null
+          temperature: number
+          tools: string[] | null
+          top_k: number
+          top_p: number
+          updated_at: string
+          use_knowledge_base: boolean
+          user_id: string
+        }
+        Insert: {
+          chain_type?: Database["public"]["Enums"]["chain_type_enum"]
+          chunk_overlap?: number
+          chunk_size?: number
+          created_at?: string
+          description?: string | null
+          embedding_model?: string
+          id?: string
+          max_tokens?: number
+          memory_type?: Database["public"]["Enums"]["memory_type_enum"]
+          model_id: string
+          name: string
+          output_format?: Database["public"]["Enums"]["output_format_enum"]
+          search_threshold?: number
+          search_type?: Database["public"]["Enums"]["search_type_enum"]
+          stop_sequences?: string[] | null
+          system_prompt?: string | null
+          temperature?: number
+          tools?: string[] | null
+          top_k?: number
+          top_p?: number
+          updated_at?: string
+          use_knowledge_base?: boolean
+          user_id: string
+        }
+        Update: {
+          chain_type?: Database["public"]["Enums"]["chain_type_enum"]
+          chunk_overlap?: number
+          chunk_size?: number
+          created_at?: string
+          description?: string | null
+          embedding_model?: string
+          id?: string
+          max_tokens?: number
+          memory_type?: Database["public"]["Enums"]["memory_type_enum"]
+          model_id?: string
+          name?: string
+          output_format?: Database["public"]["Enums"]["output_format_enum"]
+          search_threshold?: number
+          search_type?: Database["public"]["Enums"]["search_type_enum"]
+          stop_sequences?: string[] | null
+          system_prompt?: string | null
+          temperature?: number
+          tools?: string[] | null
+          top_k?: number
+          top_p?: number
+          updated_at?: string
+          use_knowledge_base?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_conversations: {
         Row: {
           created_at: string
@@ -1369,12 +1455,15 @@ export type Database = {
       }
     }
     Enums: {
+      chain_type_enum: "conversation" | "qa" | "conversational_qa"
       collection_status_enum:
         | "pending"
         | "in_progress"
         | "completed"
         | "cancelled"
+      memory_type_enum: "buffer" | "window" | "summary"
       message_role: "system" | "assistant" | "user"
+      output_format_enum: "text" | "structured" | "markdown"
       rnc_workflow_status_enum:
         | "open"
         | "analysis"
@@ -1382,6 +1471,7 @@ export type Database = {
         | "solved"
         | "closing"
         | "closed"
+      search_type_enum: "similarity" | "mmr"
       status_enum:
         | "open"
         | "in_progress"
