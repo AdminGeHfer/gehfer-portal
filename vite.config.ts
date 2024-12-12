@@ -17,8 +17,12 @@ export default defineConfig(({ mode }) => ({
       protocol: mode === 'development' ? 'ws' : 'wss',
       host: 'localhost',
       port: 8080,
-      clientPort: 8080
+      clientPort: 8080,
+      timeout: 120000 // Increase timeout
     },
+    watch: {
+      usePolling: true // Enable polling for file changes
+    }
   },
   plugins: [
     react(),
