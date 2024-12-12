@@ -13,14 +13,18 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !agentId) return; // Guard against undefined agentId
 
     setIsUploading(true);
     try {
+      // Generate a unique filename to prevent duplicates
+      const timestamp = new Date().toISOString().replace(/[^0-9]/g, "");
+      const uniqueFilename = `${timestamp}-${file.name}`;
+      
       // Upload file to storage
       const { data: storageData, error: storageError } = await supabase.storage
         .from('documents')
-        .upload(`${agentId}/${file.name}`, file);
+        .upload(`${agentId}/${uniqueFilename}`, file);
 
       if (storageError) throw storageError;
 
@@ -64,9 +68,9 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       toast.success("Documento enviado com sucesso");
       // Reset the input
       event.target.value = '';
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading document:', error);
-      toast.error("Erro ao enviar documento");
+      toast.error(error.message || "Erro ao enviar documento");
     } finally {
       setIsUploading(false);
     }
@@ -77,7 +81,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       <Button
         variant="outline"
         className="gap-2"
-        disabled={isUploading}
+        disabled={isUploading || !agentId}
         onClick={() => document.getElementById('file-upload')?.click()}
       >
         <Upload className="h-4 w-4" />

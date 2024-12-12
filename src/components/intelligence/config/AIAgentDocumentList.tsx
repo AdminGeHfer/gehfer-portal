@@ -19,7 +19,9 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadDocuments();
+    if (agentId) { // Only load if agentId exists
+      loadDocuments();
+    }
   }, [agentId]);
 
   const loadDocuments = async () => {
@@ -54,6 +56,8 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
   };
 
   const deleteDocument = async (documentId: string) => {
+    if (!agentId) return; // Guard against undefined agentId
+
     try {
       // First delete the association
       const { error: assocError } = await supabase

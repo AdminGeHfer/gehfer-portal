@@ -95,7 +95,7 @@ export const AIAgentSettings = ({ agent, onSave }: AIAgentSettingsProps) => {
         </TabsContent>
         <TabsContent value="knowledge">
           <AIAgentKnowledgeBase
-            agentId={agent.id}
+            agentId={agent.id} // Fix: Pass the agent ID
             chunkSize={config.chunkSize}
             chunkOverlap={config.chunkOverlap}
             embeddingModel={config.embeddingModel}
