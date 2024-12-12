@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AIAgent, AIAgentConfig } from "@/types/ai/agent";
+import { AIAgent, AIAgentConfig, MemoryType, ChainType, SearchType, OutputFormat } from "@/types/ai/agent";
 import { AIAgentBasicConfig } from "../config/AIAgentBasicConfig";
 import { AIAgentModelConfig } from "../config/AIAgentModelConfig";
 import { AIAgentAdvancedConfig } from "../config/AIAgentAdvancedConfig";
