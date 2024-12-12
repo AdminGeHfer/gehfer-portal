@@ -16,7 +16,7 @@ serve(async (req) => {
 
   try {
     const { messages, model = 'gpt-4o-mini', agentId } = await req.json();
-    console.log('Received request with model:', model);
+    console.log('Received request with model:', model, 'and agentId:', agentId);
 
     if (!VALID_MODELS.includes(model)) {
       return new Response(
@@ -37,6 +37,7 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
+    // Fetch agent configuration
     let agentConfig = null;
     if (agentId) {
       console.log('Fetching agent config for ID:', agentId);
@@ -53,7 +54,12 @@ serve(async (req) => {
 
       if (data) {
         agentConfig = data;
-        console.log('Found agent config:', agentConfig);
+        console.log('Found agent config:', {
+          name: agentConfig.name,
+          temperature: agentConfig.temperature,
+          max_tokens: agentConfig.max_tokens,
+          system_prompt: agentConfig.system_prompt
+        });
       }
     }
 
@@ -64,12 +70,21 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY is not set');
     }
 
-    console.log('Making request to OpenAI with model:', modelId);
-
+    // Prepare messages array with system prompt
     const systemMessage = {
       role: 'system',
       content: agentConfig?.system_prompt || 'Você é um assistente útil.'
     };
+
+    const finalMessages = [systemMessage, ...messages];
+    console.log('Prepared messages with system prompt:', systemMessage.content.substring(0, 50) + '...');
+
+    console.log('Making request to OpenAI with configuration:', {
+      model: modelId,
+      temperature: agentConfig?.temperature ?? 0.7,
+      max_tokens: agentConfig?.max_tokens ?? 1000,
+      top_p: agentConfig?.top_p ?? 1,
+    });
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -79,7 +94,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: modelId,
-        messages: [systemMessage, ...messages],
+        messages: finalMessages,
         temperature: agentConfig?.temperature ?? 0.7,
         max_tokens: agentConfig?.max_tokens ?? 1000,
         top_p: agentConfig?.top_p ?? 1,
