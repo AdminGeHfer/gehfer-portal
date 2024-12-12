@@ -13,7 +13,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !agentId) return; // Guard against undefined agentId
+    if (!file || !agentId) return;
 
     setIsUploading(true);
     try {
@@ -32,7 +32,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       const { data: documentData, error: documentError } = await supabase
         .from('documents')
         .insert({
-          content: null, // Will be populated by the process-document function
+          content: null,
           metadata: {
             filename: file.name,
             contentType: file.type,
@@ -55,11 +55,16 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
 
       if (assocError) throw assocError;
 
+      // Create form data for processing
+      const formData = new FormData();
+      formData.append('documentId', documentData.id);
+      formData.append('filePath', storageData.path);
+      
       // Process the document
       const { error: processError } = await supabase.functions.invoke('process-document', {
-        body: {
-          documentId: documentData.id,
-          filePath: storageData.path
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
       });
 

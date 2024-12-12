@@ -14,13 +14,17 @@ interface AIAgentDocumentListProps {
   agentId: string;
 }
 
-interface DocumentResponse {
-  documents: {
-    id: string;
+interface SupabaseDocument {
+  id: string;
+  metadata: {
     filename: string;
-    created_at: string;
   };
+  created_at: string;
+}
+
+interface DocumentResponse {
   document_id: string;
+  documents: SupabaseDocument;
 }
 
 export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
@@ -49,13 +53,15 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
       if (error) throw error;
 
-      const formattedDocs = (data as DocumentResponse[]).map(item => ({
-        id: item.documents.id,
-        filename: item.documents.filename,
-        created_at: item.documents.created_at
-      }));
+      if (data) {
+        const formattedDocs = (data as DocumentResponse[]).map(item => ({
+          id: item.documents.id,
+          filename: item.documents.metadata.filename,
+          created_at: item.documents.created_at
+        }));
 
-      setDocuments(formattedDocs);
+        setDocuments(formattedDocs);
+      }
     } catch (error) {
       console.error('Error loading documents:', error);
       toast.error("Erro ao carregar documentos");
