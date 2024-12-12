@@ -54,7 +54,9 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
       if (error) throw error;
 
       if (data) {
-        const formattedDocs = (data as DocumentResponse[]).map(item => ({
+        // First cast data to unknown, then to DocumentResponse[]
+        const typedData = data as unknown as DocumentResponse[];
+        const formattedDocs = typedData.map(item => ({
           id: item.documents.id,
           filename: item.documents.metadata.filename,
           created_at: item.documents.created_at
