@@ -13,13 +13,13 @@ const Chat = () => {
         subtitle="Interface unificada de conversação com IA" 
       />
       
-      <div className="flex">
+      <div className="flex h-[calc(100vh-4rem)]">
         <ConversationList />
         <div className="flex-1 p-4">
           {conversationId ? (
             <ChatComponent />
           ) : (
-            <div className="h-[calc(100vh-12rem)] flex items-center justify-center text-muted-foreground">
+            <div className="h-full flex items-center justify-center text-muted-foreground">
               Selecione ou crie uma nova conversa para começar
             </div>
           )}
