@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 const groqApiKey = Deno.env.get('GROQ_API_KEY');
@@ -66,8 +65,15 @@ serve(async (req) => {
       top_p: agentConfig.top_p,
     };
 
+    // Map model IDs for OpenAI
+    const openAIModelMap: Record<string, string> = {
+      'gpt-4o-mini': 'gpt-4-turbo-preview',
+      'gpt-4o': 'gpt-4-turbo-preview'
+    };
+
     // Check if it's a Groq model
-    const isGroqModel = agentConfig.model_id === 'mixtral-8x7b-32768' || agentConfig.model_id === 'llama2-70b-4096';
+    const groqModels = ['mixtral-8x7b-32768', 'llama2-70b-4096'];
+    const isGroqModel = groqModels.includes(agentConfig.model_id);
     
     let response;
     
@@ -93,21 +99,12 @@ serve(async (req) => {
         throw new Error('OpenAI API key not configured');
       }
 
-      // Map model IDs for OpenAI
-      const openAIModelMap: Record<string, string> = {
-        'gpt-4o-mini': 'gpt-4-turbo-preview',
-        'gpt-4o': 'gpt-4-turbo-preview'
-      };
+      const modelId = openAIModelMap[agentConfig.model_id];
+      if (!modelId) {
+        throw new Error(`Invalid OpenAI model ID: ${agentConfig.model_id}`);
+      }
 
-      const modelId = openAIModelMap[agentConfig.model_id] || agentConfig.model_id;
       console.log('Using OpenAI API with model:', modelId);
-
-      // Add OpenAI specific parameters
-      const openAIConfig = {
-        ...baseConfig,
-        model: modelId,
-        stop: agentConfig.stop_sequences,
-      };
 
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -115,7 +112,11 @@ serve(async (req) => {
           'Authorization': `Bearer ${openAIApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(openAIConfig),
+        body: JSON.stringify({
+          ...baseConfig,
+          model: modelId,
+          stop: agentConfig.stop_sequences,
+        }),
       });
     }
 
