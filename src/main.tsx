@@ -13,3 +13,11 @@ if (container) {
 } else {
   console.error('Root element not found!');
 }
+
+// Add error handling for script loading
+window.addEventListener('error', (event) => {
+  if (event.message === 'Failed to fetch') {
+    console.error('Failed to load required scripts. Please check your internet connection and try again.');
+  }
+  console.error('Script loading error:', event);
+});
