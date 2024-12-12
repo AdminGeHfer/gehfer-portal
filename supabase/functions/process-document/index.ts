@@ -18,12 +18,14 @@ serve(async (req) => {
     const formData = await req.formData()
     const file = formData.get('file')
     const moduleId = formData.get('moduleId')
+    const config = formData.get('config')
+    const parsedConfig = config ? JSON.parse(config as string) : null
 
     if (!file) {
       throw new Error('No file uploaded')
     }
 
-    console.log('Processing document for module:', moduleId)
+    console.log('Processing document for module:', moduleId, 'with config:', parsedConfig)
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -31,23 +33,23 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Load and split the document
+    // Load and split the document with configurable chunk size
     const loader = new PDFLoader(file)
     const docs = await loader.load()
     
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 1000,
-      chunkOverlap: 200,
+      chunkSize: parsedConfig?.chunkSize || 1000,
+      chunkOverlap: parsedConfig?.chunkOverlap || 200,
     })
     
     const chunks = await splitter.splitDocuments(docs)
 
-    // Create embeddings
+    // Create embeddings using configured model
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
     })
 
-    console.log(`Processing ${chunks.length} chunks`)
+    console.log(`Processing ${chunks.length} chunks with size ${parsedConfig?.chunkSize || 1000}`)
 
     // Process each chunk
     for (const chunk of chunks) {
@@ -59,7 +61,8 @@ serve(async (req) => {
           content: chunk.pageContent,
           metadata: { 
             ...chunk.metadata,
-            moduleId: moduleId || null
+            moduleId: moduleId || null,
+            config: parsedConfig
           },
           embedding,
           created_by: req.headers.get('x-user-id')
@@ -69,7 +72,11 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ message: 'Document processed successfully' }),
+      JSON.stringify({ 
+        message: 'Document processed successfully',
+        chunks: chunks.length,
+        config: parsedConfig
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
