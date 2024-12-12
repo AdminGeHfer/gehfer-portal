@@ -25,6 +25,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
     setIsLoading(true);
 
     try {
+      console.log('Processing message with agentId:', agentId);
       const memory = await initializeMemory();
       
       const userMessage: Message = {
@@ -51,6 +52,13 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         [...(messages || []), { role: userMessage.role, content: userMessage.content }],
         model
       );
+
+      console.log('Sending request to chat-completion with:', {
+        messages: truncatedMessages,
+        model,
+        agentId,
+        memory: await memory.loadMemoryVariables()
+      });
 
       const response = await supabase.functions.invoke('chat-completion', {
         body: {
