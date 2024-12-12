@@ -1,8 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { OpenAIEmbeddings } from 'https://esm.sh/@langchain/openai'
-import { RecursiveCharacterTextSplitter } from 'https://esm.sh/langchain/text_splitter'
-import { PDFLoader } from 'https://esm.sh/@langchain/community/document_loaders/fs/pdf'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.1.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,82 +9,57 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const formData = await req.formData()
-    const file = formData.get('file')
-    const moduleId = formData.get('moduleId')
-    const config = formData.get('config')
-    const parsedConfig = config ? JSON.parse(config as string) : null
-
-    if (!file) {
-      throw new Error('No file uploaded')
-    }
-
-    console.log('Processing document for module:', moduleId, 'with config:', parsedConfig)
-
-    // Initialize Supabase client
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Load and split the document with configurable chunk size
-    const loader = new PDFLoader(file)
-    const docs = await loader.load()
-    
-    const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: parsedConfig?.chunkSize || 1000,
-      chunkOverlap: parsedConfig?.chunkOverlap || 200,
+    const configuration = new Configuration({
+      apiKey: Deno.env.get('OPENAI_API_KEY'),
     })
-    
-    const chunks = await splitter.splitDocuments(docs)
+    const openai = new OpenAIApi(configuration)
 
-    // Create embeddings using configured model
-    const embeddings = new OpenAIEmbeddings({
-      openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
+    const { content, metadata } = await req.json()
+
+    // Generate embeddings
+    const embeddingResponse = await openai.createEmbedding({
+      model: 'text-embedding-ada-002',
+      input: content,
     })
 
-    console.log(`Processing ${chunks.length} chunks with size ${parsedConfig?.chunkSize || 1000}`)
+    const [{ embedding }] = embeddingResponse.data.data
 
-    // Process each chunk
-    for (const chunk of chunks) {
-      const embedding = await embeddings.embedQuery(chunk.pageContent)
-      
-      const { error } = await supabase
-        .from('documents')
-        .insert({
-          content: chunk.pageContent,
-          metadata: { 
-            ...chunk.metadata,
-            moduleId: moduleId || null,
-            config: parsedConfig
-          },
-          embedding,
-          created_by: req.headers.get('x-user-id')
-        })
+    // Store document and embedding
+    const { data, error } = await supabaseClient
+      .from('documents')
+      .insert({
+        content,
+        metadata,
+        embedding
+      })
+      .select()
+      .single()
 
-      if (error) throw error
-    }
+    if (error) throw error
 
     return new Response(
-      JSON.stringify({ 
-        message: 'Document processed successfully',
-        chunks: chunks.length,
-        config: parsedConfig
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ id: data.id }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
     )
-
   } catch (error) {
-    console.error('Error processing document:', error);
+    console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
+        status: 400,
       }
     )
   }

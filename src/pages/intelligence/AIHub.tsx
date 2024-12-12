@@ -1,25 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Brain, Database, Settings, MessageSquare } from "lucide-react";
+import { Plus, Brain, Database, Settings, MessageSquare, Save } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { DocumentUpload } from "@/components/intelligence/DocumentUpload";
-import { ModelSelector } from "@/components/intelligence/shared/ModelSelector";
+import { AIAgentBasicConfig } from "@/components/intelligence/config/AIAgentBasicConfig";
+import { AIAgentModelConfig } from "@/components/intelligence/config/AIAgentModelConfig";
+import { AIAgentAdvancedConfig } from "@/components/intelligence/config/AIAgentAdvancedConfig";
+import { AIAgentKnowledgeBase } from "@/components/intelligence/config/AIAgentKnowledgeBase";
+import { AIAgentToolsConfig } from "@/components/intelligence/config/AIAgentToolsConfig";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AIAgent {
   id: string;
@@ -31,11 +31,13 @@ interface AIAgent {
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
+  configuration?: any;
 }
 
 const AIHub = () => {
   const navigate = useNavigate();
-  const [agents] = useState<AIAgent[]>([
+  const { toast } = useToast();
+  const [agents, setAgents] = useState<AIAgent[]>([
     {
       id: "1",
       name: "Assistente de Qualidade",
@@ -48,10 +50,87 @@ const AIHub = () => {
   ]);
 
   const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+  const [currentConfig, setCurrentConfig] = useState({
+    name: "",
+    description: "",
+    modelId: "gpt-4o-mini",
+    memoryType: "buffer",
+    useKnowledgeBase: false,
+    temperature: 0.7,
+    maxTokens: 4000,
+    topP: 0.9,
+    topK: 50,
+    stopSequences: [],
+    chainType: "conversation",
+    chunkSize: 1000,
+    chunkOverlap: 200,
+    embeddingModel: "openai",
+    searchType: "similarity",
+    searchThreshold: 0.7,
+    outputFormat: "text",
+    tools: [],
+    systemPrompt: "",
+  });
 
-  const startChat = (agentId: string) => {
-    // Aqui você pode iniciar uma nova conversa com o agente selecionado
-    navigate(`/intelligence/chat/new?agent=${agentId}`);
+  const startChat = async (agentId: string) => {
+    try {
+      const agent = agents.find(a => a.id === agentId);
+      if (!agent) return;
+
+      // Create a new conversation
+      const { data: conversation, error: convError } = await supabase
+        .from('ai_conversations')
+        .insert([
+          { 
+            title: `Chat with ${agent.name}`,
+            configuration: agent.configuration
+          }
+        ])
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      // Navigate to chat with the new conversation
+      navigate(`/intelligence/chat/${conversation.id}`);
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start chat session",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveConfiguration = async (agentId: string, config: any) => {
+    try {
+      const { error } = await supabase
+        .from('ai_agents')
+        .update({ configuration: config })
+        .eq('id', agentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Configuration saved successfully",
+      });
+
+      // Update local state
+      setAgents(prev => prev.map(agent => 
+        agent.id === agentId 
+          ? { ...agent, configuration: config }
+          : agent
+      ));
+    } catch (error) {
+      console.error('Error saving configuration:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save configuration",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -71,78 +150,80 @@ const AIHub = () => {
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Criar Novo Agente IA</DialogTitle>
-                <DialogDescription>
-                  Configure um novo agente IA especializado para sua necessidade
-                </DialogDescription>
               </DialogHeader>
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="basic">Básico</TabsTrigger>
                   <TabsTrigger value="model">Modelo</TabsTrigger>
                   <TabsTrigger value="advanced">Avançado</TabsTrigger>
+                  <TabsTrigger value="knowledge">Base de Conhecimento</TabsTrigger>
+                  <TabsTrigger value="tools">Ferramentas</TabsTrigger>
                 </TabsList>
-                <TabsContent value="basic" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Agente</Label>
-                    <Input id="name" placeholder="Ex: Assistente de Qualidade" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Descrição</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Descreva as capacidades do agente..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Base de Conhecimento</Label>
-                    <DocumentUpload />
-                  </div>
+                <TabsContent value="basic">
+                  <AIAgentBasicConfig
+                    name={currentConfig.name}
+                    description={currentConfig.description}
+                    modelId={currentConfig.modelId}
+                    memoryType={currentConfig.memoryType}
+                    useKnowledgeBase={currentConfig.useKnowledgeBase}
+                    onNameChange={(value) => setCurrentConfig(prev => ({ ...prev, name: value }))}
+                    onDescriptionChange={(value) => setCurrentConfig(prev => ({ ...prev, description: value }))}
+                    onModelChange={(value) => setCurrentConfig(prev => ({ ...prev, modelId: value }))}
+                    onMemoryTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, memoryType: value }))}
+                    onKnowledgeBaseToggle={(value) => setCurrentConfig(prev => ({ ...prev, useKnowledgeBase: value }))}
+                  />
                 </TabsContent>
-                <TabsContent value="model" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Modelo de IA</Label>
-                    <ModelSelector
-                      value={selectedModel}
-                      onValueChange={setSelectedModel}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="systemPrompt">Prompt do Sistema</Label>
-                    <Textarea
-                      id="systemPrompt"
-                      placeholder="Defina o comportamento base do agente..."
-                      className="min-h-[150px]"
-                    />
-                  </div>
+                <TabsContent value="model">
+                  <AIAgentModelConfig
+                    temperature={currentConfig.temperature}
+                    maxTokens={currentConfig.maxTokens}
+                    topP={currentConfig.topP}
+                    topK={currentConfig.topK}
+                    stopSequences={currentConfig.stopSequences}
+                    onTemperatureChange={(value) => setCurrentConfig(prev => ({ ...prev, temperature: value }))}
+                    onMaxTokensChange={(value) => setCurrentConfig(prev => ({ ...prev, maxTokens: value }))}
+                    onTopPChange={(value) => setCurrentConfig(prev => ({ ...prev, topP: value }))}
+                    onTopKChange={(value) => setCurrentConfig(prev => ({ ...prev, topK: value }))}
+                    onStopSequencesChange={(value) => setCurrentConfig(prev => ({ ...prev, stopSequences: value }))}
+                  />
                 </TabsContent>
-                <TabsContent value="advanced" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="temperature">Temperatura</Label>
-                    <Input
-                      id="temperature"
-                      type="number"
-                      min="0"
-                      max="2"
-                      step="0.1"
-                      defaultValue="0.7"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="maxTokens">Máximo de Tokens</Label>
-                    <Input
-                      id="maxTokens"
-                      type="number"
-                      min="1"
-                      max="32000"
-                      defaultValue="4000"
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="useKnowledgeBase" />
-                    <Label htmlFor="useKnowledgeBase">
-                      Usar Base de Conhecimento
-                    </Label>
-                  </div>
+                <TabsContent value="advanced">
+                  <AIAgentAdvancedConfig
+                    chainType={currentConfig.chainType}
+                    chunkSize={currentConfig.chunkSize}
+                    chunkOverlap={currentConfig.chunkOverlap}
+                    embeddingModel={currentConfig.embeddingModel}
+                    searchType={currentConfig.searchType}
+                    searchThreshold={currentConfig.searchThreshold}
+                    outputFormat={currentConfig.outputFormat}
+                    onChainTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, chainType: value }))}
+                    onChunkSizeChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkSize: value }))}
+                    onChunkOverlapChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkOverlap: value }))}
+                    onEmbeddingModelChange={(value) => setCurrentConfig(prev => ({ ...prev, embeddingModel: value }))}
+                    onSearchTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, searchType: value }))}
+                    onSearchThresholdChange={(value) => setCurrentConfig(prev => ({ ...prev, searchThreshold: value }))}
+                    onOutputFormatChange={(value) => setCurrentConfig(prev => ({ ...prev, outputFormat: value }))}
+                  />
+                </TabsContent>
+                <TabsContent value="knowledge">
+                  <AIAgentKnowledgeBase
+                    chunkSize={currentConfig.chunkSize}
+                    chunkOverlap={currentConfig.chunkOverlap}
+                    embeddingModel={currentConfig.embeddingModel}
+                    searchType={currentConfig.searchType}
+                    onChunkSizeChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkSize: value }))}
+                    onChunkOverlapChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkOverlap: value }))}
+                    onEmbeddingModelChange={(value) => setCurrentConfig(prev => ({ ...prev, embeddingModel: value }))}
+                    onSearchTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, searchType: value }))}
+                  />
+                </TabsContent>
+                <TabsContent value="tools">
+                  <AIAgentToolsConfig
+                    tools={currentConfig.tools}
+                    systemPrompt={currentConfig.systemPrompt}
+                    onToolsChange={(value) => setCurrentConfig(prev => ({ ...prev, tools: value }))}
+                    onSystemPromptChange={(value) => setCurrentConfig(prev => ({ ...prev, systemPrompt: value }))}
+                  />
                 </TabsContent>
               </Tabs>
             </DialogContent>
@@ -157,7 +238,7 @@ const AIHub = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="p-6 space-y-4 hover:shadow-lg transition-shadow">
+              <Card className="p-6 space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
@@ -172,36 +253,26 @@ const AIHub = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button 
                     variant="default" 
                     size="sm" 
-                    className="gap-2"
+                    className="flex-shrink-0"
                     onClick={() => startChat(agent.id)}
                   >
-                    <MessageSquare className="h-4 w-4" />
+                    <MessageSquare className="h-4 w-4 mr-2" />
                     Iniciar Chat
                   </Button>
                   {agent.hasKnowledgeBase && (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-2">
-                          <Database className="h-4 w-4" />
-                          Base de Conhecimento
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Base de Conhecimento - {agent.name}</DialogTitle>
-                        </DialogHeader>
-                        <DocumentUpload moduleId={agent.id} />
-                      </DialogContent>
-                    </Dialog>
+                    <Button variant="outline" size="sm" className="flex-shrink-0">
+                      <Database className="h-4 w-4 mr-2" />
+                      Base de Conhecimento
+                    </Button>
                   )}
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="ghost" size="sm" className="gap-2">
-                        <Settings className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="flex-shrink-0">
+                        <Settings className="h-4 w-4 mr-2" />
                         Configurar
                       </Button>
                     </DialogTrigger>
@@ -209,10 +280,13 @@ const AIHub = () => {
                       <DialogHeader>
                         <DialogTitle>Configurações - {agent.name}</DialogTitle>
                       </DialogHeader>
-                      <Tabs defaultValue="model" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
+                      <Tabs defaultValue="basic" className="w-full">
+                        <TabsList className="grid w-full grid-cols-5">
+                          <TabsTrigger value="basic">Básico</TabsTrigger>
                           <TabsTrigger value="model">Modelo</TabsTrigger>
                           <TabsTrigger value="advanced">Avançado</TabsTrigger>
+                          <TabsTrigger value="knowledge">Base de Conhecimento</TabsTrigger>
+                          <TabsTrigger value="tools">Ferramentas</TabsTrigger>
                         </TabsList>
                         <TabsContent value="model" className="space-y-4">
                           <div className="space-y-2">
@@ -265,6 +339,15 @@ const AIHub = () => {
                           </div>
                         </TabsContent>
                       </Tabs>
+                      <div className="flex justify-end mt-4">
+                        <Button
+                          onClick={() => saveConfiguration(agent.id, currentConfig)}
+                          className="gap-2"
+                        >
+                          <Save className="h-4 w-4" />
+                          Salvar Configurações
+                        </Button>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </div>
