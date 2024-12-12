@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Brain, Database, Settings, MessageSquare, Save } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/atoms/Button";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Label } from "@/components/ui/label";
@@ -25,7 +25,7 @@ import { AIAgentKnowledgeBase } from "@/components/intelligence/config/AIAgentKn
 import { AIAgentToolsConfig } from "@/components/intelligence/config/AIAgentToolsConfig";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import { AIAgent, AIAgentConfig } from "@/types/ai/agent";
+import { AIAgent, AIAgentConfig, MemoryType, ChainType, SearchType, OutputFormat } from "@/types/ai/agent";
 
 const AIHub = () => {
   const navigate = useNavigate();
@@ -144,6 +144,22 @@ const AIHub = () => {
     }
   };
 
+  const handleMemoryTypeChange = (value: string) => {
+    setCurrentConfig(prev => ({ ...prev, memoryType: value as MemoryType }));
+  };
+
+  const handleChainTypeChange = (value: string) => {
+    setCurrentConfig(prev => ({ ...prev, chainType: value as ChainType }));
+  };
+
+  const handleSearchTypeChange = (value: string) => {
+    setCurrentConfig(prev => ({ ...prev, searchType: value as SearchType }));
+  };
+
+  const handleOutputFormatChange = (value: string) => {
+    setCurrentConfig(prev => ({ ...prev, outputFormat: value as OutputFormat }));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header title="Hub IA" subtitle="Gestão de Agentes IA Especializados" />
@@ -180,7 +196,7 @@ const AIHub = () => {
                     onNameChange={(value) => setCurrentConfig(prev => ({ ...prev, name: value }))}
                     onDescriptionChange={(value) => setCurrentConfig(prev => ({ ...prev, description: value }))}
                     onModelChange={(value) => setCurrentConfig(prev => ({ ...prev, modelId: value }))}
-                    onMemoryTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, memoryType: value }))}
+                    onMemoryTypeChange={handleMemoryTypeChange}
                     onKnowledgeBaseToggle={(value) => setCurrentConfig(prev => ({ ...prev, useKnowledgeBase: value }))}
                   />
                 </TabsContent>
@@ -207,13 +223,13 @@ const AIHub = () => {
                     searchType={currentConfig.searchType}
                     searchThreshold={currentConfig.searchThreshold}
                     outputFormat={currentConfig.outputFormat}
-                    onChainTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, chainType: value }))}
+                    onChainTypeChange={handleChainTypeChange}
                     onChunkSizeChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkSize: value }))}
                     onChunkOverlapChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkOverlap: value }))}
                     onEmbeddingModelChange={(value) => setCurrentConfig(prev => ({ ...prev, embeddingModel: value }))}
-                    onSearchTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, searchType: value }))}
+                    onSearchTypeChange={handleSearchTypeChange}
                     onSearchThresholdChange={(value) => setCurrentConfig(prev => ({ ...prev, searchThreshold: value }))}
-                    onOutputFormatChange={(value) => setCurrentConfig(prev => ({ ...prev, outputFormat: value }))}
+                    onOutputFormatChange={handleOutputFormatChange}
                   />
                 </TabsContent>
                 <TabsContent value="knowledge">
@@ -225,7 +241,7 @@ const AIHub = () => {
                     onChunkSizeChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkSize: value }))}
                     onChunkOverlapChange={(value) => setCurrentConfig(prev => ({ ...prev, chunkOverlap: value }))}
                     onEmbeddingModelChange={(value) => setCurrentConfig(prev => ({ ...prev, embeddingModel: value }))}
-                    onSearchTypeChange={(value) => setCurrentConfig(prev => ({ ...prev, searchType: value }))}
+                    onSearchTypeChange={handleSearchTypeChange}
                   />
                 </TabsContent>
                 <TabsContent value="tools">
