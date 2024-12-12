@@ -53,7 +53,7 @@ serve(async (req) => {
 
     console.log('Retrieved agent configuration:', agentConfig);
 
-    // Use the agent's model_id instead of the passed model parameter
+    // Map the agent's model_id to OpenAI model
     const modelId = MODEL_MAPPING[agentConfig.model_id];
     if (!modelId) {
       throw new Error(`Invalid model ID: ${agentConfig.model_id}`);
