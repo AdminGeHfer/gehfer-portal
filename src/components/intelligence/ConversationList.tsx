@@ -27,17 +27,19 @@ export const ConversationList = () => {
 
     const initializeConversations = async () => {
       try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        // First check if we have a valid user session
+        const { data: session } = await supabase.auth.getSession();
         
-        if (authError) throw authError;
-        
-        if (!user) {
-          setIsLoading(false);
+        if (!session?.session?.user) {
+          console.log('No valid session found, redirecting to login');
           navigate("/login");
           return;
         }
 
-        await loadConversations(user.id);
+        const userId = session.session.user.id;
+        console.log('Loading conversations for user:', userId);
+
+        await loadConversations(userId);
         
         // Set up subscription with user context
         subscription = supabase
@@ -48,10 +50,10 @@ export const ConversationList = () => {
               event: '*',
               schema: 'public',
               table: 'ai_conversations',
-              filter: `user_id=eq.${user.id}`,
+              filter: `user_id=eq.${userId}`,
             },
             async () => {
-              await loadConversations(user.id);
+              await loadConversations(userId);
             }
           )
           .subscribe();
@@ -84,14 +86,19 @@ export const ConversationList = () => {
     }
 
     try {
+      console.log('Fetching conversations for user:', userId);
       const { data, error } = await supabase
         .from('ai_conversations')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading conversations:', error);
+        throw error;
+      }
       
+      console.log('Loaded conversations:', data);
       setConversations(data || []);
     } catch (error) {
       console.error('Error loading conversations:', error);
@@ -105,11 +112,9 @@ export const ConversationList = () => {
 
   const createNewConversation = async () => {
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const { data: session } = await supabase.auth.getSession();
       
-      if (authError) throw authError;
-      
-      if (!user) {
+      if (!session?.session?.user) {
         toast({
           title: "Error",
           description: "You must be logged in to create a conversation",
@@ -123,7 +128,7 @@ export const ConversationList = () => {
         .from('ai_conversations')
         .insert({
           title: 'Nova Conversa',
-          user_id: user.id,
+          user_id: session.session.user.id,
         })
         .select()
         .single();
