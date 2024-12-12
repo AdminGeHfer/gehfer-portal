@@ -9,7 +9,16 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
   const { toast } = useToast();
 
   const handleSubmit = async (content: string) => {
-    if (!conversationId || isLoading || !content.trim()) return;
+    if (!conversationId || isLoading || !content.trim()) {
+      if (!content.trim()) {
+        toast({
+          title: "Mensagem vazia",
+          description: "Por favor, digite uma mensagem antes de enviar.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
 
     setIsLoading(true);
 
@@ -28,38 +37,28 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
 
       if (saveError) throw saveError;
 
-      // Get all previous messages for context
       const { data: messages } = await supabase
         .from('ai_messages')
         .select('role, content')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      // Get truncated messages for the API call
       const truncatedMessages = truncateMessages(
         [...(messages || []), { role: userMessage.role, content: userMessage.content }],
         model
       );
 
       const response = await supabase.functions.invoke('chat-completion', {
-        body: { 
+        body: {
           messages: truncatedMessages,
           model,
-          agentId // Pass the agent ID to use its configuration
+          agentId
         },
       });
 
       if (response.error) {
-        if (response.error.message?.includes('Limite de tokens excedido') ||
-            response.error.message?.includes('conversa ficou muito longa')) {
-          toast({
-            title: "Limite de mensagens atingido",
-            description: "A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.",
-            variant: "destructive",
-          });
-          return;
-        }
-        throw response.error;
+        handleErrorResponse(response.error);
+        return;
       }
 
       const assistantMessage: Message = {
@@ -86,6 +85,19 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleErrorResponse = (error: any) => {
+    if (error.message?.includes('Limite de tokens excedido') ||
+        error.message?.includes('conversa ficou muito longa')) {
+      toast({
+        title: "Limite de mensagens atingido",
+        description: "A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.",
+        variant: "destructive"
+      });
+      return;
+    }
+    throw error;
   };
 
   return {

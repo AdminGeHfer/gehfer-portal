@@ -10,7 +10,6 @@ const corsHeaders = {
 const VALID_MODELS = ['gpt-4o-mini', 'gpt-4o'];
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -19,7 +18,6 @@ serve(async (req) => {
     const { messages, model = 'gpt-4o-mini', agentId } = await req.json();
     console.log('Received request with model:', model);
 
-    // Validate model
     if (!VALID_MODELS.includes(model)) {
       return new Response(
         JSON.stringify({
@@ -33,14 +31,12 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
     );
 
-    // Get agent configuration if agentId is provided
     let agentConfig = null;
     if (agentId) {
       console.log('Fetching agent config for ID:', agentId);
@@ -61,7 +57,6 @@ serve(async (req) => {
       }
     }
 
-    // Map model IDs
     const modelId = model === 'gpt-4o-mini' ? 'gpt-3.5-turbo' : 'gpt-4';
     console.log('Mapped model ID:', modelId);
 
@@ -71,10 +66,9 @@ serve(async (req) => {
 
     console.log('Making request to OpenAI with model:', modelId);
 
-    // Prepare system message
     const systemMessage = {
       role: 'system',
-      content: agentConfig?.system_prompt || 'You are a helpful assistant.'
+      content: agentConfig?.system_prompt || 'Você é um assistente útil.'
     };
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
