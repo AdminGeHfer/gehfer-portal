@@ -14,6 +14,7 @@ interface AIModule {
   route: string;
   isHighlighted?: boolean;
   category: 'core' | 'department' | 'tool';
+  hasKnowledgeBase?: boolean;
 }
 
 const aiModules: AIModule[] = [
@@ -23,14 +24,16 @@ const aiModules: AIModule[] = [
     icon: <Brain className="h-12 w-12 text-primary" />,
     route: "/intelligence/hub",
     category: 'core',
-    isHighlighted: true
+    isHighlighted: true,
+    hasKnowledgeBase: true
   },
   {
     title: "Setores",
     description: "Assistentes especializados por departamento",
     icon: <Building2 className="h-12 w-12 text-primary" />,
     route: "/intelligence/sectors",
-    category: 'department'
+    category: 'department',
+    hasKnowledgeBase: true
   },
   {
     title: "Chat",
@@ -68,8 +71,8 @@ const Hub = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        title="GeHfer Intelligence" 
-        subtitle="Central de Inteligência Artificial" 
+        title="Hub de Inteligência Artificial" 
+        subtitle="Central de IAs Especializadas" 
       />
       
       <main className="container mx-auto px-4 py-8">
@@ -83,27 +86,12 @@ const Hub = () => {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                  Bem-vindo ao GeHfer Intelligence
+                  Bem-vindo ao Hub de IA
                 </h2>
                 <p className="text-muted-foreground">
-                  Acesse nossos assistentes virtuais especializados e otimize seus processos
+                  Acesse e gerencie nossas IAs especializadas e suas bases de conhecimento
                 </p>
               </div>
-
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="gap-2">
-                    <Upload className="h-4 w-4" />
-                    Base de Conhecimento
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Upload de Documentos</DialogTitle>
-                  </DialogHeader>
-                  <DocumentUpload />
-                </DialogContent>
-              </Dialog>
             </div>
 
             {Object.entries(groupedModules).map(([category, modules]) => (
@@ -138,19 +126,37 @@ const Hub = () => {
                             {module.title}
                           </h3>
                           <p className="text-muted-foreground mb-4">{module.description}</p>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start group-hover:text-primary transition-colors"
-                          >
-                            Acessar módulo
-                            <motion.span
-                              className="ml-2"
-                              initial={{ x: 0 }}
-                              whileHover={{ x: 5 }}
+                          <div className="flex justify-between items-center">
+                            <Button
+                              variant="ghost"
+                              className="justify-start group-hover:text-primary transition-colors"
                             >
-                              →
-                            </motion.span>
-                          </Button>
+                              Acessar módulo
+                              <motion.span
+                                className="ml-2"
+                                initial={{ x: 0 }}
+                                whileHover={{ x: 5 }}
+                              >
+                                →
+                              </motion.span>
+                            </Button>
+                            {module.hasKnowledgeBase && (
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-2">
+                                    <Upload className="h-4 w-4" />
+                                    Base de Conhecimento
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Base de Conhecimento - {module.title}</DialogTitle>
+                                  </DialogHeader>
+                                  <DocumentUpload />
+                                </DialogContent>
+                              </Dialog>
+                            )}
+                          </div>
                         </div>
                       </Card>
                     </motion.div>

@@ -5,7 +5,11 @@ import { Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export const DocumentUpload = () => {
+interface DocumentUploadProps {
+  moduleId?: string;
+}
+
+export const DocumentUpload = ({ moduleId }: DocumentUploadProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,6 +32,9 @@ export const DocumentUpload = () => {
       // 2. Process file with Edge Function
       const formData = new FormData();
       formData.append('file', file);
+      if (moduleId) {
+        formData.append('moduleId', moduleId);
+      }
       
       const { data, error } = await supabase.functions.invoke('process-document', {
         body: formData,

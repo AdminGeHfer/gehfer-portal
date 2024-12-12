@@ -16,10 +16,13 @@ serve(async (req) => {
   try {
     const formData = await req.formData()
     const file = formData.get('file')
+    const moduleId = formData.get('moduleId')
 
     if (!file) {
       throw new Error('No file uploaded')
     }
+
+    console.log('Processing document for module:', moduleId)
 
     // Initialize Supabase client
     const supabase = createClient(
@@ -43,6 +46,8 @@ serve(async (req) => {
       openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
     })
 
+    console.log(`Processing ${chunks.length} chunks`)
+
     // Process each chunk
     for (const chunk of chunks) {
       const embedding = await embeddings.embedQuery(chunk.pageContent)
@@ -51,8 +56,12 @@ serve(async (req) => {
         .from('documents')
         .insert({
           content: chunk.pageContent,
-          metadata: chunk.metadata,
-          embedding
+          metadata: { 
+            ...chunk.metadata,
+            moduleId: moduleId || null
+          },
+          embedding,
+          created_by: req.headers.get('x-user-id')
         })
 
       if (error) throw error
