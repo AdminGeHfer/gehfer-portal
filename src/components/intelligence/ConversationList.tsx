@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { MessageSquare, Plus } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Conversation {
   id: string;
@@ -15,29 +16,53 @@ interface Conversation {
 
 export const ConversationList = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { conversationId } = useParams();
   const { isCollapsed } = useSidebar();
+  const { toast } = useToast();
 
   useEffect(() => {
-    loadConversations();
-    const subscription = subscribeToConversations();
-    return () => {
-      subscription?.unsubscribe();
+    const initializeConversations = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
+      await loadConversations();
+      const subscription = subscribeToConversations();
+      return () => {
+        subscription?.unsubscribe();
+      };
     };
+
+    initializeConversations();
   }, []);
 
   const loadConversations = async () => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('ai_conversations')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setConversations(data);
+      if (error) {
+        throw error;
+      }
+      
+      setConversations(data || []);
     } catch (error) {
       console.error('Error loading conversations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load conversations",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,21 +85,51 @@ export const ConversationList = () => {
 
   const createNewConversation = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to create a conversation",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('ai_conversations')
         .insert({
           title: 'Nova Conversa',
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
         })
         .select()
         .single();
 
       if (error) throw error;
+      
       navigate(`/intelligence/chat/${data.id}`);
     } catch (error) {
       console.error('Error creating conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create new conversation",
+        variant: "destructive",
+      });
     }
   };
+
+  if (isLoading) {
+    return (
+      <aside className={cn(
+        "h-screen border-r bg-background transition-all duration-300",
+        isCollapsed ? "w-[60px]" : "w-[250px]"
+      )}>
+        <div className="flex items-center justify-center h-full">
+          <span className="loading loading-spinner loading-md"></span>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside className={cn(
