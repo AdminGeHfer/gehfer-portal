@@ -182,6 +182,47 @@ export type Database = {
           },
         ]
       }
+      ai_memory_buffers: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          token_count: number | null
+          type: Database["public"]["Enums"]["memory_type"]
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          token_count?: number | null
+          type: Database["public"]["Enums"]["memory_type"]
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          token_count?: number | null
+          type?: Database["public"]["Enums"]["memory_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_memory_buffers_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_messages: {
         Row: {
           content: string
@@ -1526,6 +1567,7 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+      memory_type: "message" | "summary" | "system"
       memory_type_enum: "buffer" | "window" | "summary"
       message_role: "system" | "assistant" | "user"
       output_format_enum: "text" | "structured" | "markdown"

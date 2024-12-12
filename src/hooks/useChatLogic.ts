@@ -3,10 +3,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/ai";
 import { truncateMessages } from "@/utils/chatUtils";
+import { useMemory } from "@/hooks/useMemory";
 
 export const useChatLogic = (conversationId: string, model: string, agentId: string | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { initializeMemory } = useMemory(conversationId);
 
   const handleSubmit = async (content: string) => {
     if (!conversationId || isLoading || !content.trim()) {
@@ -23,6 +25,8 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
     setIsLoading(true);
 
     try {
+      const memory = await initializeMemory();
+      
       const userMessage: Message = {
         id: crypto.randomUUID(),
         conversation_id: conversationId,
@@ -52,7 +56,8 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         body: {
           messages: truncatedMessages,
           model,
-          agentId
+          agentId,
+          memory: await memory.loadMemoryVariables()
         },
       });
 
@@ -68,6 +73,11 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         content: response.data.choices[0].message.content,
         created_at: new Date().toISOString(),
       };
+
+      await memory.saveContext(
+        { input: userMessage.content },
+        { response: assistantMessage.content }
+      );
 
       const { error: saveAiError } = await supabase
         .from('ai_messages')
