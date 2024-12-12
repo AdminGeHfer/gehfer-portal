@@ -33,7 +33,7 @@ export const ConversationList = () => {
         }
         
         await loadConversations();
-        const subscription = subscribeToConversations();
+        const subscription = await subscribeToConversations(user.id);
         
         return () => {
           subscription?.unsubscribe();
@@ -79,13 +79,7 @@ export const ConversationList = () => {
     }
   };
 
-  const subscribeToConversations = () => {
-    const { data: { user } } = supabase.auth.getUser();
-    
-    if (!user) {
-      return;
-    }
-
+  const subscribeToConversations = async (userId: string) => {
     return supabase
       .channel('ai_conversations')
       .on(
@@ -94,7 +88,7 @@ export const ConversationList = () => {
           event: '*',
           schema: 'public',
           table: 'ai_conversations',
-          filter: `user_id=eq.${user.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           loadConversations();
