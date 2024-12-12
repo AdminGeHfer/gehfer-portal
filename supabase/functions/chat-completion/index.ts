@@ -53,17 +53,17 @@ serve(async (req) => {
 
     console.log('Retrieved agent configuration:', agentConfig);
 
-    // Get the correct model ID from the mapping
-    const modelId = MODEL_MAPPING[model];
+    // Use the agent's model_id instead of the passed model parameter
+    const modelId = MODEL_MAPPING[agentConfig.model_id];
     if (!modelId) {
-      throw new Error(`Invalid model ID: ${model}`);
+      throw new Error(`Invalid model ID: ${agentConfig.model_id}`);
     }
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Prepare system message
+    // Prepare system message from agent configuration
     const systemMessage = {
       role: 'system',
       content: agentConfig.system_prompt || 'You are a helpful assistant.'
@@ -82,6 +82,7 @@ serve(async (req) => {
         temperature: agentConfig.temperature,
         max_tokens: agentConfig.max_tokens,
         top_p: agentConfig.top_p,
+        stop: agentConfig.stop_sequences,
       }),
     });
 
