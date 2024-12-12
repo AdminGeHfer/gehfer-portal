@@ -58,17 +58,19 @@ serve(async (req) => {
       content: agentConfig.system_prompt || 'You are a helpful assistant.'
     };
 
+    // Check if it's a Groq model and map to correct model ID
+    const isGroqModel = agentConfig.model_id === 'mixtral-8x7b-32768' || agentConfig.model_id === 'llama2-70b-4096';
+    
     // Prepare API configuration based on the model
-    const isGroqModel = agentConfig.model_id.startsWith('groq-');
     const apiConfig = {
       model: agentConfig.model_id,
       messages: [systemMessage, ...messages],
       temperature: agentConfig.temperature,
       max_tokens: agentConfig.max_tokens,
       top_p: agentConfig.top_p,
-      // Only include top_k for non-Groq models
+      // Only include top_k for OpenAI models
       ...(isGroqModel ? {} : { top_k: agentConfig.top_k }),
-      stop: agentConfig.stop_sequences,
+      ...(agentConfig.stop_sequences?.length ? { stop: agentConfig.stop_sequences } : {}),
     };
 
     console.log('Sending request with config:', apiConfig);
