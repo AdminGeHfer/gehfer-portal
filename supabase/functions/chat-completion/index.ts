@@ -11,7 +11,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mapeamento de IDs de modelo para modelos OpenAI
+// Only allow valid OpenAI models
 const MODEL_MAPPING: Record<string, string> = {
     'gpt-4o-mini': 'gpt-4o-mini',
     'gpt-4o': 'gpt-4o'
@@ -28,7 +28,7 @@ serve(async (req) => {
     try {
         const { messages, agentId } = await req.json();
 
-        // Validação de entrada
+        // Input validation
         if (!Array.isArray(messages) || messages.length === 0 || !agentId) {
             return new Response(
                 JSON.stringify({ error: 'Invalid input data' }),
@@ -36,7 +36,7 @@ serve(async (req) => {
             );
         }
 
-        // Obter configuração do agente
+        // Get agent configuration
         const { data: agentConfig, error: agentError } = await supabase
             .from('ai_agents')
             .select('*')
@@ -51,14 +51,20 @@ serve(async (req) => {
             );
         }
 
-        // Mapeamento do modelo
+        // Model validation
         const modelId = MODEL_MAPPING[agentConfig.model_id];
         if (!modelId) {
             console.error(`Invalid model ID: ${agentConfig.model_id}`);
-            throw new Error(`Invalid model ID: ${agentConfig.model_id}`);
+            return new Response(
+                JSON.stringify({ 
+                    error: `Invalid model ID: ${agentConfig.model_id}`,
+                    validModels: Object.keys(MODEL_MAPPING)
+                }),
+                { status: 400, headers: corsHeaders }
+            );
         }
 
-        // Preparar mensagem do sistema
+        // Prepare system message
         const systemMessage = {
             role: 'system',
             content: agentConfig.system_prompt || 'You are a helpful assistant.'
