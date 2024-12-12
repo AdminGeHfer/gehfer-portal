@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -11,43 +9,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { AIAgent, AIAgentConfig } from "@/types/ai/agent";
-import { AIAgentCard } from "@/components/intelligence/agents/AIAgentCard";
 import { AIAgentSettings } from "@/components/intelligence/agents/AIAgentSettings";
+import { AIAgentList } from "@/components/intelligence/agents/AIAgentList";
+import { useAIAgents } from "@/hooks/useAIAgents";
+import { AIAgentConfig } from "@/types/ai/agent";
 
 const AIHub = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [agents, setAgents] = useState<AIAgent[]>([
-    {
-      id: "1",
-      name: "Assistente de Qualidade",
-      description: "Especializado em análise de RNCs e processos de qualidade",
-      model_id: "gpt-4o-mini",
-      memory_type: "buffer",
-      use_knowledge_base: true,
-      temperature: 0.7,
-      max_tokens: 4000,
-      top_p: 0.9,
-      top_k: 50,
-      stop_sequences: [],
-      chain_type: "conversation",
-      chunk_size: 1000,
-      chunk_overlap: 200,
-      embedding_model: "openai",
-      search_type: "similarity",
-      search_threshold: 0.7,
-      output_format: "text",
-      tools: [],
-      system_prompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
-      user_id: "",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-  ]);
-
-  const [currentConfig, setCurrentConfig] = useState<AIAgentConfig>({
+  const { agents, startChat } = useAIAgents();
+  const [currentConfig] = useState<AIAgentConfig>({
     name: "",
     description: "",
     modelId: "gpt-4o-mini",
@@ -68,33 +37,6 @@ const AIHub = () => {
     tools: [],
     systemPrompt: "",
   });
-
-  const startChat = async (agentId: string) => {
-    try {
-      const agent = agents.find(a => a.id === agentId);
-      if (!agent) return;
-
-      const { data: conversation, error: convError } = await supabase
-        .from('ai_conversations')
-        .insert({
-          title: `Chat with ${agent.name}`,
-          user_id: agent.user_id
-        })
-        .select()
-        .single();
-
-      if (convError) throw convError;
-
-      navigate(`/intelligence/chat/${conversation.id}`);
-    } catch (error) {
-      console.error('Error starting chat:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start chat session",
-        variant: "destructive",
-      });
-    }
-  };
 
   const saveConfiguration = async (agentId: string, config: AIAgentConfig) => {
     try {
@@ -216,16 +158,11 @@ const AIHub = () => {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {agents.map((agent) => (
-            <AIAgentCard
-              key={agent.id}
-              agent={agent}
-              onStartChat={startChat}
-              onSaveConfiguration={saveConfiguration}
-            />
-          ))}
-        </div>
+        <AIAgentList
+          agents={agents}
+          onStartChat={startChat}
+          onSaveConfiguration={saveConfiguration}
+        />
       </main>
     </div>
   );
