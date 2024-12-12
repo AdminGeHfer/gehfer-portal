@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_agent_logs: {
+        Row: {
+          agent_id: string | null
+          configuration: Json | null
+          conversation_id: string | null
+          created_at: string
+          details: string | null
+          event_type: string
+          id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          configuration?: Json | null
+          conversation_id?: string | null
+          created_at?: string
+          details?: string | null
+          event_type: string
+          id?: string
+        }
+        Update: {
+          agent_id?: string | null
+          configuration?: Json | null
+          conversation_id?: string | null
+          created_at?: string
+          details?: string | null
+          event_type?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agent_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_agent_logs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_agents: {
         Row: {
           chain_type: Database["public"]["Enums"]["chain_type_enum"]
@@ -1376,6 +1421,16 @@ export type Database = {
             }
             Returns: unknown
           }
+      log_agent_event: {
+        Args: {
+          p_agent_id: string
+          p_conversation_id: string
+          p_event_type: string
+          p_configuration?: Json
+          p_details?: string
+        }
+        Returns: string
+      }
       match_documents:
         | {
             Args: {
