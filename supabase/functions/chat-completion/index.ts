@@ -7,14 +7,14 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': 'https://seu-dominio.com', // Restrição de origem
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Mapeamento de IDs de modelo para modelos OpenAI conforme especificado
+// Mapeamento de IDs de modelo para modelos OpenAI
 const MODEL_MAPPING: Record<string, string> = {
-    'gpt-4o-mini': 'gpt-4o-mini', // Usando o nome correto do modelo
-    'gpt-4o': 'gpt-4o'             // Usando o nome correto do modelo
+    'gpt-4o-mini': 'gpt-4o-mini',
+    'gpt-4o': 'gpt-4o'
 };
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -44,6 +44,7 @@ serve(async (req) => {
             .single();
 
         if (agentError || !agentConfig) {
+            console.error('Error fetching agent config:', agentError);
             return new Response(
                 JSON.stringify({ error: 'Agent not found' }),
                 { status: 404, headers: corsHeaders }
@@ -53,6 +54,7 @@ serve(async (req) => {
         // Mapeamento do modelo
         const modelId = MODEL_MAPPING[agentConfig.model_id];
         if (!modelId) {
+            console.error(`Invalid model ID: ${agentConfig.model_id}`);
             throw new Error(`Invalid model ID: ${agentConfig.model_id}`);
         }
 
@@ -62,6 +64,8 @@ serve(async (req) => {
             content: agentConfig.system_prompt || 'You are a helpful assistant.'
         };
 
+        console.log('Making request to OpenAI with model:', modelId);
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -69,7 +73,7 @@ serve(async (req) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: modelId,  // Usar o modelId correto mapeado para o modelo
+                model: modelId,
                 messages: [systemMessage, ...messages],
                 temperature: agentConfig.temperature,
                 max_tokens: agentConfig.max_tokens,
@@ -80,14 +84,18 @@ serve(async (req) => {
 
         if (!response.ok) {
             const error = await response.json();
+            console.error('OpenAI API error:', error);
             throw new Error('OpenAI API error');
         }
 
         const data = await response.json();
-        return new Response(JSON.stringify(data), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        return new Response(JSON.stringify(data), { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
     } catch (error) {
+        console.error('Error in chat-completion function:', error);
         return new Response(
-            JSON.stringify({ error: 'Internal Server Error' }),
+            JSON.stringify({ error: error.message, details: error.toString() }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
     }
