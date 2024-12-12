@@ -54,6 +54,18 @@ const AIHub = () => {
 
   const deleteAgent = async (agentId: string) => {
     try {
+      // First, delete all conversations associated with this agent
+      const { error: conversationsError } = await supabase
+        .from('ai_conversations')
+        .delete()
+        .eq('agent_id', agentId);
+
+      if (conversationsError) {
+        console.error('Error deleting conversations:', conversationsError);
+        throw conversationsError;
+      }
+
+      // Then delete the agent
       const { error } = await supabase
         .from('ai_agents')
         .delete()
