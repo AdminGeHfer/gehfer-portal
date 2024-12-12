@@ -1,8 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { OpenAIEmbeddings } from 'https://esm.sh/@langchain/openai'
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
 const groqApiKey = Deno.env.get('GROQ_API_KEY')
+const supabaseUrl = Deno.env.get('SUPABASE_URL')
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,14 +20,62 @@ const MAX_MESSAGES = {
   'groq-llama': 10,
 };
 
+async function searchKnowledgeBase(query: string, moduleId: string | null = null) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase configuration missing');
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const embeddings = new OpenAIEmbeddings({
+    openAIApiKey: openAIApiKey,
+  });
+
+  const queryEmbedding = await embeddings.embedQuery(query);
+
+  let matchDocumentsQuery = supabase
+    .rpc('match_documents', {
+      query_embedding: queryEmbedding,
+      match_count: 5,
+    });
+
+  if (moduleId) {
+    matchDocumentsQuery = matchDocumentsQuery.filter('metadata->moduleId', 'eq', moduleId);
+  }
+
+  const { data: documents, error } = await matchDocumentsQuery;
+
+  if (error) {
+    throw error;
+  }
+
+  return documents;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, model = 'gpt-4o-mini' } = await req.json();
-    console.log('Processing chat completion request:', { messageCount: messages.length, model });
+    const { messages, model = 'gpt-4o-mini', moduleId = null } = await req.json();
+    console.log('Processing chat completion request:', { messageCount: messages.length, model, moduleId });
+
+    // Get relevant context from knowledge base
+    const lastMessage = messages[messages.length - 1];
+    let contextualPrompt = '';
+    
+    if (moduleId) {
+      try {
+        const relevantDocs = await searchKnowledgeBase(lastMessage.content, moduleId);
+        if (relevantDocs && relevantDocs.length > 0) {
+          contextualPrompt = `Relevant information from knowledge base:\n${
+            relevantDocs.map(doc => doc.content).join('\n\n')
+          }\n\nPlease use this information to help answer the question if relevant.`;
+        }
+      } catch (error) {
+        console.error('Error searching knowledge base:', error);
+      }
+    }
 
     // Truncate messages based on model
     const limit = MAX_MESSAGES[model as keyof typeof MAX_MESSAGES] || 8;
@@ -37,7 +89,6 @@ serve(async (req) => {
 
       console.log('Using Groq model for chat completion');
       
-      // Map frontend model names to Groq API model names
       const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama-3.3-70b-versatile';
       
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -53,6 +104,7 @@ serve(async (req) => {
               role: 'system', 
               content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
             },
+            ...(contextualPrompt ? [{ role: 'system', content: contextualPrompt }] : []),
             ...truncatedMessages
           ],
           temperature: 0.7,
@@ -63,11 +115,6 @@ serve(async (req) => {
       if (!response.ok) {
         const error = await response.json();
         console.error('Groq API error:', error);
-        
-        if (error.error?.code === 'rate_limit_exceeded') {
-          throw new Error('Limite de tokens excedido. Por favor, aguarde um momento antes de tentar novamente ou use um modelo diferente.');
-        }
-        
         throw new Error(`Groq API error: ${JSON.stringify(error)}`);
       }
 
@@ -97,6 +144,7 @@ serve(async (req) => {
               role: 'system', 
               content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
             },
+            ...(contextualPrompt ? [{ role: 'system', content: contextualPrompt }] : []),
             ...truncatedMessages
           ],
           temperature: 0.7,
@@ -107,11 +155,6 @@ serve(async (req) => {
       if (!response.ok) {
         const error = await response.json();
         console.error('OpenAI API error:', error);
-        
-        if (error.error?.code === 'context_length_exceeded') {
-          throw new Error('A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.');
-        }
-        
         throw new Error(`OpenAI API error: ${JSON.stringify(error)}`);
       }
 
