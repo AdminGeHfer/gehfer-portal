@@ -5,9 +5,15 @@ interface AIAgentListProps {
   agents: AIAgent[];
   onStartChat: (agentId: string) => void;
   onSaveConfiguration: (agentId: string, config: any) => void;
+  onDelete: (agentId: string) => Promise<void>;
 }
 
-export const AIAgentList = ({ agents, onStartChat, onSaveConfiguration }: AIAgentListProps) => {
+export const AIAgentList = ({ 
+  agents, 
+  onStartChat, 
+  onSaveConfiguration,
+  onDelete 
+}: AIAgentListProps) => {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {agents.map((agent) => (
@@ -16,6 +22,7 @@ export const AIAgentList = ({ agents, onStartChat, onSaveConfiguration }: AIAgen
           agent={agent}
           onStartChat={onStartChat}
           onSaveConfiguration={onSaveConfiguration}
+          onDelete={onDelete}
         />
       ))}
     </div>

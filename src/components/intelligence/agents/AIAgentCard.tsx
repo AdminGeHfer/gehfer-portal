@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Brain, Database, MessageSquare, Settings } from "lucide-react";
+import { Brain, Database, MessageSquare, Settings, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AIAgent } from "@/types/ai/agent";
@@ -9,16 +9,43 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { AIAgentSettings } from "./AIAgentSettings";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AIAgentCardProps {
   agent: AIAgent;
   onStartChat: (agentId: string) => void;
   onSaveConfiguration: (agentId: string, config: any) => void;
+  onDelete: (agentId: string) => Promise<void>;
 }
 
-export const AIAgentCard = ({ agent, onStartChat, onSaveConfiguration }: AIAgentCardProps) => {
+export const AIAgentCard = ({ 
+  agent, 
+  onStartChat, 
+  onSaveConfiguration,
+  onDelete 
+}: AIAgentCardProps) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await onDelete(agent.id);
+      toast.success("Agente excluído com sucesso");
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      toast.error("Erro ao excluir agente");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -68,6 +95,43 @@ export const AIAgentCard = ({ agent, onStartChat, onSaveConfiguration }: AIAgent
                 <DialogTitle>Configurações - {agent.name}</DialogTitle>
               </DialogHeader>
               <AIAgentSettings agent={agent} onSave={onSaveConfiguration} />
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-shrink-0 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Excluir
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Excluir Agente</DialogTitle>
+                <DialogDescription>
+                  Tem certeza que deseja excluir o agente {agent.name}? Esta ação não pode ser desfeita.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsDeleteDialogOpen(false)}
+                  disabled={isDeleting}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Excluindo..." : "Excluir"}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>

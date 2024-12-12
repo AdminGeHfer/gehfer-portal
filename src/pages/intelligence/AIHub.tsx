@@ -13,12 +13,12 @@ import { useAIAgents } from "@/hooks/useAIAgents";
 import { Plus } from "lucide-react";
 import { AIAgentConfig } from "@/types/ai/agent";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const AIHub = () => {
   const { agents, startChat, updateAgent } = useAIAgents();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
 
   const saveConfiguration = async (agentId: string, config: AIAgentConfig) => {
     console.log('Saving agent configuration:', config);
@@ -56,6 +56,23 @@ const AIHub = () => {
         description: "Erro ao salvar configurações do agente",
         variant: "destructive"
       });
+    }
+  };
+
+  const deleteAgent = async (agentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('ai_agents')
+        .delete()
+        .eq('id', agentId);
+
+      if (error) throw error;
+
+      // Refresh the agents list
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting agent:', error);
+      throw error;
     }
   };
 
@@ -113,6 +130,7 @@ const AIHub = () => {
           agents={agents}
           onStartChat={startChat}
           onSaveConfiguration={saveConfiguration}
+          onDelete={deleteAgent}
         />
       </main>
     </div>
