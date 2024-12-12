@@ -18,7 +18,7 @@ const aiModules: AIModule[] = [
     title: "Hub IA",
     description: "Gestão de agentes IA especializados",
     icon: <Brain className="h-12 w-12 text-primary" />,
-    route: "/intelligence/ai-hub",
+    route: "/intelligence/hub",
     category: 'core'
   },
   {
@@ -101,7 +101,7 @@ const Hub = () => {
                       <p className="text-muted-foreground mb-4">{module.description}</p>
                       <Button
                         variant="ghost"
-                        className="justify-start group-hover:text-primary transition-colors"
+                        className="w-full justify-start group-hover:text-primary transition-colors"
                       >
                         Acessar módulo
                         <motion.span

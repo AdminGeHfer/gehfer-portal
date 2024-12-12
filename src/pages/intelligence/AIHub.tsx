@@ -25,7 +25,7 @@ interface AIAgent {
 }
 
 const AIHub = () => {
-  const [agents, setAgents] = useState<AIAgent[]>([
+  const [agents] = useState<AIAgent[]>([
     {
       id: "1",
       name: "Assistente de Qualidade",
@@ -33,7 +33,6 @@ const AIHub = () => {
       type: "quality",
       hasKnowledgeBase: true,
     },
-    // Add more pre-configured agents as needed
   ]);
 
   return (
