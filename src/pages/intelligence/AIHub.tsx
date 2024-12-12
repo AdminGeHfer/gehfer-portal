@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { Plus } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,77 +10,34 @@ import {
 import { AIAgentSettings } from "@/components/intelligence/agents/AIAgentSettings";
 import { AIAgentList } from "@/components/intelligence/agents/AIAgentList";
 import { useAIAgents } from "@/hooks/useAIAgents";
+import { Plus } from "lucide-react";
 import { AIAgentConfig } from "@/types/ai/agent";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
 
 const AIHub = () => {
-  const { agents, startChat } = useAIAgents();
-  const [currentConfig] = useState<AIAgentConfig>({
-    name: "",
-    description: "",
-    modelId: "gpt-4o-mini",
-    memoryType: "buffer",
-    useKnowledgeBase: false,
-    temperature: 0.7,
-    maxTokens: 4000,
-    topP: 0.9,
-    topK: 50,
-    stopSequences: [],
-    chainType: "conversation",
-    chunkSize: 1000,
-    chunkOverlap: 200,
-    embeddingModel: "openai",
-    searchType: "similarity",
-    searchThreshold: 0.7,
-    outputFormat: "text",
-    tools: [],
-    systemPrompt: "",
-  });
-  const { toast } = useToast();
+  const { agents, startChat, updateAgent } = useAIAgents();
 
   const saveConfiguration = async (agentId: string, config: AIAgentConfig) => {
-    try {
-      const { error } = await supabase
-        .from('ai_agents')
-        .update({
-          name: config.name,
-          description: config.description,
-          model_id: config.modelId,
-          memory_type: config.memoryType,
-          use_knowledge_base: config.useKnowledgeBase,
-          temperature: config.temperature,
-          max_tokens: config.maxTokens,
-          top_p: config.topP,
-          top_k: config.topK,
-          stop_sequences: config.stopSequences,
-          chain_type: config.chainType,
-          chunk_size: config.chunkSize,
-          chunk_overlap: config.chunkOverlap,
-          embedding_model: config.embeddingModel,
-          search_type: config.searchType,
-          search_threshold: config.searchThreshold,
-          output_format: config.outputFormat,
-          tools: config.tools,
-          system_prompt: config.systemPrompt
-        })
-        .eq('id', agentId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Configuration saved successfully",
-      });
-
-    } catch (error) {
-      console.error('Error saving configuration:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save configuration",
-        variant: "destructive",
-      });
-    }
+    await updateAgent(agentId, {
+      name: config.name,
+      description: config.description,
+      model_id: config.modelId,
+      memory_type: config.memoryType,
+      use_knowledge_base: config.useKnowledgeBase,
+      temperature: config.temperature,
+      max_tokens: config.maxTokens,
+      top_p: config.topP,
+      top_k: config.topK,
+      stop_sequences: config.stopSequences,
+      chain_type: config.chainType,
+      chunk_size: config.chunkSize,
+      chunk_overlap: config.chunkOverlap,
+      embedding_model: config.embeddingModel,
+      search_type: config.searchType,
+      search_threshold: config.searchThreshold,
+      output_format: config.outputFormat,
+      tools: config.tools,
+      system_prompt: config.systemPrompt
+    });
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -77,9 +77,17 @@ export function useAIAgents() {
         return { success: false };
       }
 
+      // Ensure required fields are present
+      const agentUpdate = {
+        ...updatedAgent,
+        model_id: updatedAgent.model_id || 'gpt-4o-mini',
+        user_id: session.session.user.id,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('ai_agents')
-        .update(updatedAgent)
+        .update(agentUpdate)
         .eq('id', agentId)
         .eq('user_id', session.session.user.id);
 
@@ -92,9 +100,19 @@ export function useAIAgents() {
           : agent
       ));
 
+      toast({
+        title: "Success",
+        description: "Agent configuration saved successfully",
+      });
+
       return { success: true };
     } catch (error) {
       console.error('Error updating agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save agent configuration",
+        variant: "destructive",
+      });
       return { success: false, error };
     }
   };
@@ -118,10 +136,10 @@ export function useAIAgents() {
 
       // If user has no agents, create default one
       if (!userAgents || userAgents.length === 0) {
-        const defaultAgent: Partial<AIAgent> = {
+        const defaultAgent = {
           name: "Assistente de Qualidade",
           description: "Especializado em análise de RNCs e processos de qualidade",
-          model_id: "gpt-4",
+          model_id: "gpt-4o-mini",
           memory_type: "buffer",
           use_knowledge_base: true,
           temperature: 0.7,
@@ -139,7 +157,7 @@ export function useAIAgents() {
           tools: [],
           system_prompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
           user_id: session.session.user.id
-        };
+        } as const;
 
         const { data: newAgent, error: createError } = await supabase
           .from('ai_agents')
@@ -164,7 +182,7 @@ export function useAIAgents() {
   };
 
   // Load agents on mount
-  useState(() => {
+  useEffect(() => {
     loadAgents();
   }, []);
 
