@@ -38,10 +38,24 @@ const AIHub = () => {
       model_id: "gpt-4o-mini",
       memory_type: "buffer",
       use_knowledge_base: true,
+      temperature: 0.7,
+      max_tokens: 4000,
+      top_p: 0.9,
+      top_k: 50,
+      stop_sequences: [],
+      chain_type: "conversation",
+      chunk_size: 1000,
+      chunk_overlap: 200,
+      embedding_model: "openai",
+      search_type: "similarity",
+      search_threshold: 0.7,
+      output_format: "text",
+      tools: [],
       system_prompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
-      user_id: "", // This will be set when creating actual agents
+      user_id: "",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      configuration: {}
     },
   ]);
 

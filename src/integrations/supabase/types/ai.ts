@@ -1,3 +1,5 @@
+import { Json } from './json';
+
 export interface AITablesSchema {
   ai_agents: {
     Row: {
@@ -16,14 +18,15 @@ export interface AITablesSchema {
       chunk_size: number;
       chunk_overlap: number;
       embedding_model: string;
-      search_type: string;
+      search_type: 'similarity' | 'mmr';
       search_threshold: number;
-      output_format: string;
-      tools: any[];
+      output_format: 'text' | 'structured' | 'markdown';
+      tools: Json[];
       system_prompt: string | null;
       created_at: string;
       updated_at: string;
       user_id: string;
+      configuration: Json;
     };
     Insert: {
       id?: string;
@@ -41,14 +44,15 @@ export interface AITablesSchema {
       chunk_size?: number;
       chunk_overlap?: number;
       embedding_model?: string;
-      search_type?: string;
+      search_type?: 'similarity' | 'mmr';
       search_threshold?: number;
-      output_format?: string;
-      tools?: any[];
+      output_format?: 'text' | 'structured' | 'markdown';
+      tools?: Json[];
       system_prompt?: string | null;
       created_at?: string;
       updated_at?: string;
       user_id: string;
+      configuration?: Json;
     };
     Update: {
       id?: string;
@@ -66,14 +70,15 @@ export interface AITablesSchema {
       chunk_size?: number;
       chunk_overlap?: number;
       embedding_model?: string;
-      search_type?: string;
+      search_type?: 'similarity' | 'mmr';
       search_threshold?: number;
-      output_format?: string;
-      tools?: any[];
+      output_format?: 'text' | 'structured' | 'markdown';
+      tools?: Json[];
       system_prompt?: string | null;
       created_at?: string;
       updated_at?: string;
       user_id?: string;
+      configuration?: Json;
     };
   };
 }
