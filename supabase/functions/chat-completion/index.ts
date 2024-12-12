@@ -1,11 +1,11 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
-const groqApiKey = Deno.env.get('GROQ_API_KEY')
-const supabaseUrl = Deno.env.get('SUPABASE_URL')
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const groqApiKey = Deno.env.get('GROQ_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,7 +52,7 @@ serve(async (req) => {
     const agentConfig = await getAgentConfig(agentId);
     console.log('Using agent configuration:', agentConfig);
 
-    // Prepare messages array with system prompt from agent config
+    // Prepare system message
     const systemMessage = {
       role: 'system',
       content: agentConfig.system_prompt || 'You are a helpful assistant.'
@@ -61,79 +61,71 @@ serve(async (req) => {
     // Check if it's a Groq model
     const isGroqModel = ['mixtral-8x7b-32768', 'llama2-70b-4096'].includes(agentConfig.model_id);
     
-    // Prepare API configuration based on the model
-    const apiConfig = {
+    // Prepare base API configuration
+    const baseConfig = {
       model: agentConfig.model_id,
       messages: [systemMessage, ...messages],
       temperature: agentConfig.temperature,
       max_tokens: agentConfig.max_tokens,
       top_p: agentConfig.top_p,
-      // Only include top_k for OpenAI models
-      ...(isGroqModel ? {} : { top_k: agentConfig.top_k }),
-      ...(agentConfig.stop_sequences?.length ? { stop: agentConfig.stop_sequences } : {}),
     };
 
-    console.log('Sending request with config:', apiConfig);
-
+    let response;
+    
     if (isGroqModel) {
       if (!groqApiKey) {
         throw new Error('Groq API key not configured');
       }
 
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      console.log('Using Groq API with model:', agentConfig.model_id);
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${groqApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(apiConfig),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('Groq API error:', error);
-        throw new Error(`Groq API error: ${JSON.stringify(error)}`);
-      }
-
-      const data = await response.json();
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        body: JSON.stringify(baseConfig),
       });
     } else {
       if (!openAIApiKey) {
         throw new Error('OpenAI API key not configured');
       }
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Add OpenAI specific parameters
+      const openAIConfig = {
+        ...baseConfig,
+        top_k: agentConfig.top_k,
+        stop: agentConfig.stop_sequences,
+      };
+
+      console.log('Using OpenAI API with model:', agentConfig.model_id);
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${openAIApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(apiConfig),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('OpenAI API error:', error);
-        throw new Error(`OpenAI API error: ${JSON.stringify(error)}`);
-      }
-
-      const data = await response.json();
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        body: JSON.stringify(openAIConfig),
       });
     }
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error(`${isGroqModel ? 'Groq' : 'OpenAI'} API error:`, error);
+      throw new Error(`${isGroqModel ? 'Groq' : 'OpenAI'} API error: ${JSON.stringify(error)}`);
+    }
+
+    const data = await response.json();
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('Error in chat-completion function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error.stack
-      }),
+      JSON.stringify({ error: error.message, details: error.stack }),
       { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }
