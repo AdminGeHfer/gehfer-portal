@@ -13,6 +13,8 @@ import { AIAgentSettings } from "@/components/intelligence/agents/AIAgentSetting
 import { AIAgentList } from "@/components/intelligence/agents/AIAgentList";
 import { useAIAgents } from "@/hooks/useAIAgents";
 import { AIAgentConfig } from "@/types/ai/agent";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const AIHub = () => {
   const { agents, startChat } = useAIAgents();
@@ -37,6 +39,7 @@ const AIHub = () => {
     tools: [],
     systemPrompt: "",
   });
+  const { toast } = useToast();
 
   const saveConfiguration = async (agentId: string, config: AIAgentConfig) => {
     try {
@@ -72,32 +75,6 @@ const AIHub = () => {
         description: "Configuration saved successfully",
       });
 
-      setAgents(prev => prev.map(agent => 
-        agent.id === agentId 
-          ? {
-              ...agent,
-              name: config.name,
-              description: config.description,
-              model_id: config.modelId,
-              memory_type: config.memoryType,
-              use_knowledge_base: config.useKnowledgeBase,
-              temperature: config.temperature,
-              max_tokens: config.maxTokens,
-              top_p: config.topP,
-              top_k: config.topK,
-              stop_sequences: config.stopSequences,
-              chain_type: config.chainType,
-              chunk_size: config.chunkSize,
-              chunk_overlap: config.chunkOverlap,
-              embedding_model: config.embeddingModel,
-              search_type: config.searchType,
-              search_threshold: config.searchThreshold,
-              output_format: config.outputFormat,
-              tools: config.tools,
-              system_prompt: config.systemPrompt
-            }
-          : agent
-      ));
     } catch (error) {
       console.error('Error saving configuration:', error);
       toast({
