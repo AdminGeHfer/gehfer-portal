@@ -10,10 +10,17 @@ import { RoleGuard } from "./components/auth/RoleGuard";
 import { SidebarProvider } from "./contexts/SidebarContext";
 import { CollapsibleSidebar } from "./components/layout/CollapsibleSidebar";
 import { SidebarNav } from "./components/layout/SidebarNav";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
+// Lazy load components
 const Login = lazy(() => import("./features/auth/pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
-const Intelligence = lazy(() => import("./pages/intelligence/Intelligence"));
+const Intelligence = lazy(() => 
+  import("./pages/intelligence/Intelligence").catch(error => {
+    console.error("Error loading Intelligence module:", error);
+    return import("./pages/Apps"); // Fallback to Apps page if Intelligence fails to load
+  })
+);
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
@@ -33,7 +40,7 @@ const queryClient = new QueryClient({
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
+    <LoadingSpinner size="lg" />
   </div>
 );
 
