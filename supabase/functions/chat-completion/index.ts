@@ -58,18 +58,17 @@ serve(async (req) => {
       content: agentConfig.system_prompt || 'You are a helpful assistant.'
     };
 
-    // Check if it's a Groq model
-    const isGroqModel = ['mixtral-8x7b-32768', 'llama2-70b-4096'].includes(agentConfig.model_id);
-    
     // Prepare base API configuration
     const baseConfig = {
-      model: agentConfig.model_id,
       messages: [systemMessage, ...messages],
       temperature: agentConfig.temperature,
       max_tokens: agentConfig.max_tokens,
       top_p: agentConfig.top_p,
     };
 
+    // Check if it's a Groq model
+    const isGroqModel = agentConfig.model_id === 'mixtral-8x7b-32768' || agentConfig.model_id === 'llama2-70b-4096';
+    
     let response;
     
     if (isGroqModel) {
@@ -84,21 +83,32 @@ serve(async (req) => {
           'Authorization': `Bearer ${groqApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(baseConfig),
+        body: JSON.stringify({
+          ...baseConfig,
+          model: agentConfig.model_id,
+        }),
       });
     } else {
       if (!openAIApiKey) {
         throw new Error('OpenAI API key not configured');
       }
 
+      // Map model IDs for OpenAI
+      const openAIModelMap: Record<string, string> = {
+        'gpt-4o-mini': 'gpt-4-turbo-preview',
+        'gpt-4o': 'gpt-4-turbo-preview'
+      };
+
+      const modelId = openAIModelMap[agentConfig.model_id] || agentConfig.model_id;
+      console.log('Using OpenAI API with model:', modelId);
+
       // Add OpenAI specific parameters
       const openAIConfig = {
         ...baseConfig,
-        top_k: agentConfig.top_k,
+        model: modelId,
         stop: agentConfig.stop_sequences,
       };
 
-      console.log('Using OpenAI API with model:', agentConfig.model_id);
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
