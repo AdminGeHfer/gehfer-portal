@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { ChatOpenAI } from "https://esm.sh/langchain/chat_models/openai";
-import { HumanMessage, SystemMessage, AIMessage } from "https://esm.sh/langchain/schema";
+import { ChatOpenAI } from "https://esm.sh/@langchain/openai@0.0.14";
+import { HumanMessage, SystemMessage, AIMessage } from "https://esm.sh/@langchain/core@0.1.25/messages";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
