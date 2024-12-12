@@ -60,17 +60,17 @@ serve(async (req) => {
     const agentConfig = await getAgentConfig(agentId);
     console.log('Using agent configuration:', agentConfig);
 
-    // Prepare system message
-    const systemMessage = {
-      role: 'system',
-      content: agentConfig.system_prompt || 'You are a helpful assistant.'
-    };
-
     // Get the correct model ID from the mapping
     const modelId = MODEL_MAPPING[agentConfig.model_id];
     if (!modelId) {
       throw new Error(`Invalid model ID: ${agentConfig.model_id}`);
     }
+
+    // Prepare system message
+    const systemMessage = {
+      role: 'system',
+      content: agentConfig.system_prompt || 'You are a helpful assistant.'
+    };
 
     // Determine if it's a Groq model
     const isGroqModel = ['mixtral-8x7b-32768', 'llama2-70b-4096'].includes(modelId);
