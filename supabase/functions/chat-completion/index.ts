@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { OpenAIEmbeddings } from 'https://esm.sh/@langchain/openai'
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
 const groqApiKey = Deno.env.get('GROQ_API_KEY')
@@ -13,18 +12,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MAX_MESSAGES = {
-  'gpt-4o-mini': 8,
-  'gpt-4o': 12,
-  'groq-mixtral': 10,
-  'groq-llama': 10,
-};
-
 async function getAgentConfig(agentId: string) {
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Supabase configuration missing');
   }
 
+  console.log('Fetching agent configuration for ID:', agentId);
+  
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
   const { data, error } = await supabase
     .from('ai_agents')
@@ -32,39 +26,13 @@ async function getAgentConfig(agentId: string) {
     .eq('id', agentId)
     .single();
 
-  if (error) throw error;
-  return data;
-}
-
-async function searchKnowledgeBase(query: string, moduleId: string | null = null) {
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase configuration missing');
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-  const embeddings = new OpenAIEmbeddings({
-    openAIApiKey: openAIApiKey,
-  });
-
-  const queryEmbedding = await embeddings.embedQuery(query);
-
-  let matchDocumentsQuery = supabase
-    .rpc('match_documents', {
-      query_embedding: queryEmbedding,
-      match_count: 5,
-    });
-
-  if (moduleId) {
-    matchDocumentsQuery = matchDocumentsQuery.filter('metadata->moduleId', 'eq', moduleId);
-  }
-
-  const { data: documents, error } = await matchDocumentsQuery;
-
   if (error) {
+    console.error('Error fetching agent config:', error);
     throw error;
   }
 
-  return documents;
+  console.log('Retrieved agent configuration:', data);
+  return data;
 }
 
 serve(async (req) => {
@@ -73,65 +41,48 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model = 'gpt-4o-mini', moduleId = null, agentId } = await req.json();
-    console.log('Processing chat completion request:', { messageCount: messages.length, model, moduleId, agentId });
+    const { messages, model = 'gpt-4o-mini', agentId } = await req.json();
+    console.log('Processing chat completion request:', { messageCount: messages.length, model, agentId });
+
+    if (!agentId) {
+      throw new Error('Agent ID is required');
+    }
 
     // Get agent configuration
     const agentConfig = await getAgentConfig(agentId);
-    console.log('Agent configuration:', agentConfig);
+    console.log('Using agent configuration:', agentConfig);
 
-    // Get relevant context from knowledge base if enabled
-    const lastMessage = messages[messages.length - 1];
-    let contextualPrompt = '';
-    
-    if (agentConfig.use_knowledge_base) {
-      try {
-        const relevantDocs = await searchKnowledgeBase(lastMessage.content, moduleId);
-        if (relevantDocs && relevantDocs.length > 0) {
-          contextualPrompt = `Relevant information from knowledge base:\n${
-            relevantDocs.map(doc => doc.content).join('\n\n')
-          }\n\nPlease use this information to help answer the question if relevant.`;
-        }
-      } catch (error) {
-        console.error('Error searching knowledge base:', error);
-      }
-    }
+    // Prepare messages array with system prompt from agent config
+    const systemMessage = {
+      role: 'system',
+      content: agentConfig.system_prompt || 'You are a helpful assistant.'
+    };
 
-    // Truncate messages based on model
-    const limit = MAX_MESSAGES[model as keyof typeof MAX_MESSAGES] || 8;
-    const truncatedMessages = messages.slice(-limit);
-    console.log(`Truncated messages from ${messages.length} to ${truncatedMessages.length}`);
+    // Use agent's configuration for the API call
+    const apiConfig = {
+      model: agentConfig.model_id || model,
+      messages: [systemMessage, ...messages],
+      temperature: agentConfig.temperature,
+      max_tokens: agentConfig.max_tokens,
+      top_p: agentConfig.top_p,
+      top_k: agentConfig.top_k,
+      stop: agentConfig.stop_sequences,
+    };
 
-    if (model.startsWith('groq-')) {
+    console.log('Sending request with config:', apiConfig);
+
+    if (apiConfig.model.startsWith('groq-')) {
       if (!groqApiKey) {
         throw new Error('Groq API key not configured');
       }
 
-      console.log('Using Groq model for chat completion');
-      
-      const groqModel = model === 'groq-mixtral' ? 'mixtral-8x7b-32768' : 'llama-3.3-70b-versatile';
-      
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${groqApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: groqModel,
-          messages: [
-            { 
-              role: 'system', 
-              content: agentConfig.system_prompt || 'You are a helpful assistant.' 
-            },
-            ...(contextualPrompt ? [{ role: 'system', content: contextualPrompt }] : []),
-            ...truncatedMessages
-          ],
-          temperature: agentConfig.temperature,
-          max_tokens: agentConfig.max_tokens,
-          top_p: agentConfig.top_p,
-          top_k: agentConfig.top_k,
-        }),
+        body: JSON.stringify(apiConfig),
       });
 
       if (!response.ok) {
@@ -149,32 +100,13 @@ serve(async (req) => {
         throw new Error('OpenAI API key not configured');
       }
 
-      console.log('Using OpenAI model for chat completion');
-      
-      const openAIModel = model === 'gpt-4o-mini' ? 'gpt-3.5-turbo' : 'gpt-4';
-      
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${openAIApiKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          model: openAIModel,
-          messages: [
-            { 
-              role: 'system', 
-              content: agentConfig.system_prompt || 'You are a helpful assistant.' 
-            },
-            ...(contextualPrompt ? [{ role: 'system', content: contextualPrompt }] : []),
-            ...truncatedMessages
-          ],
-          temperature: agentConfig.temperature,
-          max_tokens: agentConfig.max_tokens,
-          top_p: agentConfig.top_p,
-          presence_penalty: 0,
-          frequency_penalty: 0,
-        }),
+        body: JSON.stringify(apiConfig),
       });
 
       if (!response.ok) {
