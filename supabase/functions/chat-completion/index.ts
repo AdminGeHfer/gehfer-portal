@@ -64,13 +64,13 @@ serve(async (req) => {
             );
         }
 
+        console.log('Making request to OpenAI with model:', modelId);
+
         // Prepare system message
         const systemMessage = {
             role: 'system',
             content: agentConfig.system_prompt || 'You are a helpful assistant.'
         };
-
-        console.log('Making request to OpenAI with model:', modelId);
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
