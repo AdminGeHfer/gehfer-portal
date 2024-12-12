@@ -3,9 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Brain, Database, Settings, MessageSquare, Save } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/atoms/Button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { ModelSelector } from "@/components/intelligence/shared/ModelSelector";
 import {
   Dialog,
   DialogContent,
@@ -20,19 +25,7 @@ import { AIAgentKnowledgeBase } from "@/components/intelligence/config/AIAgentKn
 import { AIAgentToolsConfig } from "@/components/intelligence/config/AIAgentToolsConfig";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-
-interface AIAgent {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
-  hasKnowledgeBase: boolean;
-  model?: string;
-  systemPrompt?: string;
-  temperature?: number;
-  maxTokens?: number;
-  configuration?: any;
-}
+import { AIAgent, AIAgentConfig } from "@/types/ai/agent";
 
 const AIHub = () => {
   const navigate = useNavigate();
@@ -42,15 +35,18 @@ const AIHub = () => {
       id: "1",
       name: "Assistente de Qualidade",
       description: "Especializado em análise de RNCs e processos de qualidade",
-      type: "quality",
-      hasKnowledgeBase: true,
-      model: "gpt-4o-mini",
-      systemPrompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
+      model_id: "gpt-4o-mini",
+      memory_type: "buffer",
+      use_knowledge_base: true,
+      system_prompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
+      user_id: "", // This will be set when creating actual agents
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     },
   ]);
 
   const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
-  const [currentConfig, setCurrentConfig] = useState({
+  const [currentConfig, setCurrentConfig] = useState<AIAgentConfig>({
     name: "",
     description: "",
     modelId: "gpt-4o-mini",
@@ -77,21 +73,17 @@ const AIHub = () => {
       const agent = agents.find(a => a.id === agentId);
       if (!agent) return;
 
-      // Create a new conversation
       const { data: conversation, error: convError } = await supabase
         .from('ai_conversations')
-        .insert([
-          { 
-            title: `Chat with ${agent.name}`,
-            configuration: agent.configuration
-          }
-        ])
+        .insert({
+          title: `Chat with ${agent.name}`,
+          user_id: agent.user_id
+        })
         .select()
         .single();
 
       if (convError) throw convError;
 
-      // Navigate to chat with the new conversation
       navigate(`/intelligence/chat/${conversation.id}`);
     } catch (error) {
       console.error('Error starting chat:', error);
