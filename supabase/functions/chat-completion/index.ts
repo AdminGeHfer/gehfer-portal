@@ -76,10 +76,18 @@ serve(async (req) => {
     // Add memory context if available
     if (memory?.history) {
       console.log('Adding memory context');
-      formattedMessages.push(new SystemMessage(`Previous conversation context:\n${memory.history}`));
+      const memoryMessages = memory.history.map((msg: any) => {
+        if (msg.type === 'message') {
+          return msg.metadata.role === 'user' 
+            ? new HumanMessage(msg.content)
+            : new AIMessage(msg.content);
+        }
+        return null;
+      }).filter(Boolean);
+      formattedMessages.push(...memoryMessages);
     }
 
-    // Add user messages
+    // Add current messages
     messages.forEach((msg: { role: string; content: string; }) => {
       switch (msg.role) {
         case 'system':
@@ -97,6 +105,7 @@ serve(async (req) => {
     });
 
     console.log('Final message count:', formattedMessages.length);
+    console.log('Messages being sent to OpenAI:', formattedMessages);
 
     const response = await chat.call(formattedMessages);
 
