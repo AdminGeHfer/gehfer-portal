@@ -25,9 +25,9 @@ export function RNCCommentSection({ rncId, onCommentAdded }: RNCCommentSectionPr
       const { error } = await supabase.from("rnc_events").insert({
         rnc_id: rncId,
         title: "Novo comentário",
-        description: "Comentário adicionado",
+        description: comment.trim(), // Using description field instead of comment
         type: "comment",
-        comment: comment.trim(),
+        created_by: (await supabase.auth.getUser()).data.user?.id as string,
       });
 
       if (error) throw error;
