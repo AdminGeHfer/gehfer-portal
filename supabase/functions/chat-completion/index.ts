@@ -6,73 +6,10 @@ import { BufferMemory, ConversationSummaryMemory } from "npm:langchain/memory";
 import { ChatMessageHistory } from "npm:langchain/memory";
 import { PromptTemplate } from "npm:@langchain/core/prompts";
 import { HumanMessage, AIMessage, SystemMessage } from "npm:@langchain/core/messages";
-import { DynamicTool, Tool } from "npm:@langchain/core/tools";
-import { Calculator } from "npm:langchain/tools/calculator";
-import { WebBrowser } from "npm:langchain/tools/webbrowser";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
-
-// Tool definitions
-const getToolsForAgent = (toolIds: string[]) => {
-  const availableTools: { [key: string]: Tool } = {
-    'calculator': new Calculator(),
-    'web_search': new WebBrowser(),
-    'rnc_search': new DynamicTool({
-      name: "rnc_search",
-      description: "Search for RNC information",
-      func: async (query: string) => {
-        console.log('RNC search query:', query);
-        return "RNC search functionality will be implemented here";
-      },
-    }),
-    'quality_analysis': new DynamicTool({
-      name: "quality_analysis",
-      description: "Analyze quality metrics",
-      func: async (input: string) => {
-        console.log('Quality analysis input:', input);
-        return "Quality analysis functionality will be implemented here";
-      },
-    }),
-  };
-
-  return toolIds.map(id => availableTools[id]).filter(Boolean);
-};
-
-// Memory factory
-const createMemory = async (type: string, history: any[], llm: ChatOpenAI) => {
-  const messageHistory = new ChatMessageHistory();
-  
-  for (const msg of history) {
-    if (msg.role === 'user') {
-      await messageHistory.addMessage(new HumanMessage(msg.content));
-    } else if (msg.role === 'assistant') {
-      await messageHistory.addMessage(new AIMessage(msg.content));
-    } else if (msg.role === 'system') {
-      await messageHistory.addMessage(new SystemMessage(msg.content));
-    }
-  }
-
-  console.log(`Creating ${type} memory with ${history.length} messages`);
-
-  switch (type) {
-    case 'summary':
-      return new ConversationSummaryMemory({
-        llm,
-        chatHistory: messageHistory,
-        returnMessages: true,
-        memoryKey: "chat_history",
-      });
-    default:
-      return new BufferMemory({
-        chatHistory: messageHistory,
-        returnMessages: true,
-        memoryKey: "chat_history",
-      });
-  }
 };
 
 serve(async (req) => {
@@ -108,12 +45,48 @@ serve(async (req) => {
         console.log('Agent config found:', {
           name: agentConfig.name,
           memoryType: agentConfig.memory_type,
-          tools: agentConfig.tools,
+          temperature: agentConfig.temperature,
+          systemPrompt: agentConfig.system_prompt,
         });
       }
     }
 
-    // Initialize LLM
+    // Initialize message history
+    const history = new ChatMessageHistory();
+    for (const msg of messages) {
+      if (msg.role === 'system') {
+        await history.addMessage(new SystemMessage(msg.content));
+      } else if (msg.role === 'user') {
+        await history.addMessage(new HumanMessage(msg.content));
+      } else if (msg.role === 'assistant') {
+        await history.addMessage(new AIMessage(msg.content));
+      }
+    }
+
+    // Create memory system based on agent config
+    let memory;
+    if (agentConfig?.memory_type === 'summary') {
+      console.log('Using ConversationSummaryMemory');
+      memory = new ConversationSummaryMemory({
+        llm: new ChatOpenAI({ 
+          modelName: "gpt-3.5-turbo",
+          temperature: 0,
+          openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
+        }),
+        chatHistory: history,
+        returnMessages: true,
+        memoryKey: "chat_history",
+      });
+    } else {
+      console.log('Using BufferMemory');
+      memory = new BufferMemory({
+        chatHistory: history,
+        returnMessages: true,
+        memoryKey: "chat_history",
+      });
+    }
+
+    // Initialize LLM with agent config
     const llm = new ChatOpenAI({
       modelName: model === 'gpt-4o-mini' ? 'gpt-3.5-turbo' : 'gpt-4',
       temperature: agentConfig?.temperature ?? 0.7,
@@ -122,14 +95,7 @@ serve(async (req) => {
       openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
     });
 
-    // Create memory system
-    const memory = await createMemory(
-      agentConfig?.memory_type || 'buffer',
-      messages,
-      llm
-    );
-
-    // Create prompt template
+    // Create prompt template with agent config
     const promptTemplate = PromptTemplate.fromTemplate(`
       ${agentConfig?.system_prompt || 'You are a helpful assistant.'}
       
@@ -139,10 +105,6 @@ serve(async (req) => {
       Human: {input}
       Assistant: Let me help you with that.
     `);
-
-    // Initialize tools if specified
-    const tools = agentConfig?.tools ? getToolsForAgent(agentConfig.tools) : [];
-    console.log('Initialized tools:', tools.map(t => t.name));
 
     // Create conversation chain
     const chain = new ConversationChain({
