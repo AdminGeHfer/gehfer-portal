@@ -44,18 +44,11 @@ const AIHub = () => {
         tools: config.tools,
         system_prompt: config.systemPrompt
       });
-      toast({
-        title: "Sucesso",
-        description: "Configurações do agente salvas com sucesso",
-      });
+      toast.success("Configurações do agente salvas com sucesso");
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error saving agent configuration:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar configurações do agente",
-        variant: "destructive"
-      });
+      toast.error("Erro ao salvar configurações do agente");
     }
   };
 
@@ -68,11 +61,12 @@ const AIHub = () => {
 
       if (error) throw error;
 
+      toast.success("Agente excluído com sucesso");
       // Refresh the agents list
       window.location.reload();
     } catch (error) {
       console.error('Error deleting agent:', error);
-      throw error;
+      toast.error("Erro ao excluir agente");
     }
   };
 
