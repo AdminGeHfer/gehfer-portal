@@ -58,8 +58,8 @@ serve(async (req) => {
       content: agentConfig.system_prompt || 'You are a helpful assistant.'
     };
 
-    // Check if it's a Groq model and map to correct model ID
-    const isGroqModel = agentConfig.model_id === 'mixtral-8x7b-32768' || agentConfig.model_id === 'llama2-70b-4096';
+    // Check if it's a Groq model
+    const isGroqModel = ['mixtral-8x7b-32768', 'llama2-70b-4096'].includes(agentConfig.model_id);
     
     // Prepare API configuration based on the model
     const apiConfig = {
