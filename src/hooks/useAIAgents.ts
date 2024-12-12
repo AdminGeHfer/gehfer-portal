@@ -7,7 +7,7 @@ import { AIAgent } from "@/types/ai/agent";
 export function useAIAgents() {
   const [agents, setAgents] = useState<AIAgent[]>([
     {
-      id: "1",
+      id: "123e4567-e89b-12d3-a456-426614174000", // Using proper UUID format
       name: "Assistente de Qualidade",
       description: "Especializado em análise de RNCs e processos de qualidade",
       model_id: "gpt-4o-mini",
@@ -72,8 +72,31 @@ export function useAIAgents() {
     }
   };
 
+  const updateAgent = async (agentId: string, updatedAgent: Partial<AIAgent>) => {
+    try {
+      const { error } = await supabase
+        .from('ai_agents')
+        .update(updatedAgent)
+        .eq('id', agentId);
+
+      if (error) throw error;
+
+      setAgents(prev => prev.map(agent => 
+        agent.id === agentId 
+          ? { ...agent, ...updatedAgent }
+          : agent
+      ));
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating agent:', error);
+      return { success: false, error };
+    }
+  };
+
   return {
     agents,
-    startChat
+    startChat,
+    updateAgent
   };
 }
