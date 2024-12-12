@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { OpenAIEmbeddings } from 'https://esm.sh/langchain/embeddings/openai'
+import { OpenAIEmbeddings } from 'https://esm.sh/@langchain/openai'
 import { RecursiveCharacterTextSplitter } from 'https://esm.sh/langchain/text_splitter'
 import { PDFLoader } from 'https://esm.sh/langchain/document_loaders/fs/pdf'
 
@@ -64,6 +64,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    console.error('Error processing document:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
