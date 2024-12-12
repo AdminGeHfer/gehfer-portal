@@ -3,8 +3,10 @@ import { DocumentUpload } from "../DocumentUpload";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EMBEDDING_MODELS, SEARCH_TYPES } from "./constants";
+import { AIAgentDocumentList } from "./AIAgentDocumentList";
 
 interface AIAgentKnowledgeBaseProps {
+  agentId: string;
   chunkSize: number;
   chunkOverlap: number;
   embeddingModel: string;
@@ -16,6 +18,7 @@ interface AIAgentKnowledgeBaseProps {
 }
 
 export const AIAgentKnowledgeBase = ({
+  agentId,
   chunkSize,
   chunkOverlap,
   embeddingModel,
@@ -29,8 +32,10 @@ export const AIAgentKnowledgeBase = ({
     <div className="space-y-6">
       <div className="space-y-2">
         <Label>Upload de Documentos</Label>
-        <DocumentUpload />
+        <DocumentUpload agentId={agentId} />
       </div>
+
+      <AIAgentDocumentList agentId={agentId} />
 
       <div className="space-y-2">
         <Label>Tamanho do Chunk</Label>

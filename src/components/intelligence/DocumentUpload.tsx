@@ -1,74 +1,96 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DocumentUploadProps {
-  moduleId?: string;
+  agentId: string;
 }
 
-export const DocumentUpload = ({ moduleId }: DocumentUploadProps) => {
-  const [isLoading, setIsLoading] = useState(false);
+export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
+    setIsUploading(true);
     try {
-      setIsLoading(true);
+      // Upload file to storage
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('documents')
+        .upload(`${agentId}/${file.name}`, file);
 
-      // Create FormData instance
-      const formData = new FormData();
-      formData.append('file', file);
-      if (moduleId) {
-        formData.append('moduleId', moduleId);
-      }
+      if (storageError) throw storageError;
 
-      // Call the Edge Function
-      const { data, error } = await supabase.functions.invoke('process-document', {
-        body: formData,
+      // Create document record
+      const { data: documentData, error: documentError } = await supabase
+        .from('documents')
+        .insert({
+          content: null, // Will be populated by the process-document function
+          metadata: {
+            filename: file.name,
+            contentType: file.type,
+            size: file.size,
+            path: storageData.path
+          }
+        })
+        .select()
+        .single();
+
+      if (documentError) throw documentError;
+
+      // Associate document with agent
+      const { error: assocError } = await supabase
+        .from('ai_agent_documents')
+        .insert({
+          agent_id: agentId,
+          document_id: documentData.id
+        });
+
+      if (assocError) throw assocError;
+
+      // Process the document
+      const { error: processError } = await supabase.functions.invoke('process-document', {
+        body: {
+          documentId: documentData.id,
+          filePath: storageData.path
+        }
       });
 
-      if (error) {
-        console.error('Function error:', error);
-        throw error;
-      }
+      if (processError) throw processError;
 
-      toast.success('Document processed successfully!');
-      
-    } catch (error: any) {
-      console.error('Error processing document:', error);
-      toast.error('Error processing document: ' + error.message);
+      toast.success("Documento enviado com sucesso");
+      // Reset the input
+      event.target.value = '';
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast.error("Erro ao enviar documento");
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Input
-          type="file"
-          onChange={handleFileUpload}
-          accept=".pdf,.doc,.docx,.txt"
-          disabled={isLoading}
-          className="hidden"
-          id="document-upload"
-        />
-        <label
-          htmlFor="document-upload"
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Upload className="h-4 w-4" />
-          )}
-          Upload Document
-        </label>
-      </div>
+    <div className="flex items-center gap-4">
+      <Button
+        variant="outline"
+        className="gap-2"
+        disabled={isUploading}
+        onClick={() => document.getElementById('file-upload')?.click()}
+      >
+        <Upload className="h-4 w-4" />
+        {isUploading ? "Enviando..." : "Upload de Documento"}
+      </Button>
+      <input
+        id="file-upload"
+        type="file"
+        className="hidden"
+        accept=".pdf,.doc,.docx,.txt"
+        onChange={handleFileUpload}
+        disabled={isUploading}
+      />
     </div>
   );
 };
