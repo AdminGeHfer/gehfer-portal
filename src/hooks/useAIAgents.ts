@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { AIAgent } from "@/types/ai/agent";
+import { AIAgent, AIAgentConfig } from "@/types/ai/agent";
 
 export function useAIAgents() {
   const [agents, setAgents] = useState<AIAgent[]>([]);
@@ -77,11 +77,11 @@ export function useAIAgents() {
         return { success: false };
       }
 
-      // Ensure required fields are present
+      // Convert readonly arrays to mutable arrays
       const agentUpdate = {
         ...updatedAgent,
-        model_id: updatedAgent.model_id || 'gpt-4o-mini',
-        user_id: session.session.user.id,
+        stop_sequences: [...(updatedAgent.stop_sequences || [])],
+        tools: [...(updatedAgent.tools || [])],
         updated_at: new Date().toISOString()
       };
 
@@ -146,7 +146,7 @@ export function useAIAgents() {
           max_tokens: 4000,
           top_p: 0.9,
           top_k: 50,
-          stop_sequences: [],
+          stop_sequences: [] as string[],
           chain_type: "conversation",
           chunk_size: 1000,
           chunk_overlap: 200,
@@ -154,14 +154,14 @@ export function useAIAgents() {
           search_type: "similarity",
           search_threshold: 0.7,
           output_format: "text",
-          tools: [],
+          tools: [] as string[],
           system_prompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
           user_id: session.session.user.id
         } as const;
 
         const { data: newAgent, error: createError } = await supabase
           .from('ai_agents')
-          .insert(defaultAgent)
+          .insert({...defaultAgent})
           .select()
           .single();
 
