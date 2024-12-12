@@ -12,7 +12,6 @@ import { CollapsibleSidebar } from "./components/layout/CollapsibleSidebar";
 import { SidebarNav } from "./components/layout/SidebarNav";
 
 const Login = lazy(() => import("./features/auth/pages/Login"));
-const ResetPassword = lazy(() => import("./features/auth/pages/ResetPassword"));
 const Apps = lazy(() => import("./pages/Apps"));
 const Intelligence = lazy(() => import("./pages/intelligence/Intelligence"));
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
@@ -65,7 +64,6 @@ const App = () => (
                 <div className="flex min-h-screen">
                   <Routes>
                     <Route path="/login" element={<Login />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route
                       path="/*"
                       element={

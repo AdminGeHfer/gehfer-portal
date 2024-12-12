@@ -97,6 +97,7 @@ export type Database = {
       }
       ai_conversations: {
         Row: {
+          agent_id: string
           created_at: string
           id: string
           title: string
@@ -104,6 +105,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agent_id: string
           created_at?: string
           id?: string
           title: string
@@ -111,6 +113,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agent_id?: string
           created_at?: string
           id?: string
           title?: string
@@ -118,6 +121,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_conversations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ai_conversations_user_id_fkey"
             columns: ["user_id"]

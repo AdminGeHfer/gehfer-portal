@@ -12,32 +12,51 @@ import { AIAgentList } from "@/components/intelligence/agents/AIAgentList";
 import { useAIAgents } from "@/hooks/useAIAgents";
 import { Plus } from "lucide-react";
 import { AIAgentConfig } from "@/types/ai/agent";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const AIHub = () => {
   const { agents, startChat, updateAgent } = useAIAgents();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const saveConfiguration = async (agentId: string, config: AIAgentConfig) => {
-    await updateAgent(agentId, {
-      name: config.name,
-      description: config.description,
-      model_id: config.modelId,
-      memory_type: config.memoryType,
-      use_knowledge_base: config.useKnowledgeBase,
-      temperature: config.temperature,
-      max_tokens: config.maxTokens,
-      top_p: config.topP,
-      top_k: config.topK,
-      stop_sequences: config.stopSequences,
-      chain_type: config.chainType,
-      chunk_size: config.chunkSize,
-      chunk_overlap: config.chunkOverlap,
-      embedding_model: config.embeddingModel,
-      search_type: config.searchType,
-      search_threshold: config.searchThreshold,
-      output_format: config.outputFormat,
-      tools: config.tools,
-      system_prompt: config.systemPrompt
-    });
+    console.log('Saving agent configuration:', config);
+    try {
+      await updateAgent(agentId, {
+        name: config.name,
+        description: config.description,
+        model_id: config.modelId,
+        memory_type: config.memoryType,
+        use_knowledge_base: config.useKnowledgeBase,
+        temperature: config.temperature,
+        max_tokens: config.maxTokens,
+        top_p: config.topP,
+        top_k: config.topK,
+        stop_sequences: config.stopSequences,
+        chain_type: config.chainType,
+        chunk_size: config.chunkSize,
+        chunk_overlap: config.chunkOverlap,
+        embedding_model: config.embeddingModel,
+        search_type: config.searchType,
+        search_threshold: config.searchThreshold,
+        output_format: config.outputFormat,
+        tools: config.tools,
+        system_prompt: config.systemPrompt
+      });
+      toast({
+        title: "Sucesso",
+        description: "Configurações do agente salvas com sucesso",
+      });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving agent configuration:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar configurações do agente",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -47,7 +66,7 @@ const AIHub = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Agentes IA</h2>
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />

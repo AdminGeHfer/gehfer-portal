@@ -115,11 +115,30 @@ export function useConversations() {
         return;
       }
 
+      // Get the default agent
+      const { data: defaultAgent, error: agentError } = await supabase
+        .from('ai_agents')
+        .select('id')
+        .eq('user_id', session.session.user.id)
+        .limit(1)
+        .single();
+
+      if (agentError) {
+        console.error('Error getting default agent:', agentError);
+        toast({
+          title: "Error",
+          description: "Failed to get default agent",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('ai_conversations')
         .insert({
           title: 'Nova Conversa',
           user_id: session.session.user.id,
+          agent_id: defaultAgent.id // Add the agent_id from the default agent
         })
         .select()
         .single();

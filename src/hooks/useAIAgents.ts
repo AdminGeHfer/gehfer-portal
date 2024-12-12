@@ -43,7 +43,8 @@ export function useAIAgents() {
         .from('ai_conversations')
         .insert({
           title: `Chat with ${agents.find(a => a.id === agentId)?.name}`,
-          user_id: session.session.user.id
+          user_id: session.session.user.id,
+          agent_id: agentId
         })
         .select()
         .single();
@@ -77,35 +78,80 @@ export function useAIAgents() {
         return { success: false };
       }
 
-      // Convert readonly arrays to mutable arrays
-      const agentUpdate = {
-        ...updatedAgent,
+      // Ensure all required fields are present for new agents
+      const agentData = {
+        name: updatedAgent.name || 'New Agent',
+        model_id: updatedAgent.model_id || 'gpt-4o-mini',
+        memory_type: updatedAgent.memory_type || 'buffer',
+        use_knowledge_base: updatedAgent.use_knowledge_base ?? false,
+        temperature: updatedAgent.temperature || 0.7,
+        max_tokens: updatedAgent.max_tokens || 4000,
+        top_p: updatedAgent.top_p || 0.9,
+        top_k: updatedAgent.top_k || 50,
+        chain_type: updatedAgent.chain_type || 'conversation',
+        chunk_size: updatedAgent.chunk_size || 1000,
+        chunk_overlap: updatedAgent.chunk_overlap || 200,
+        embedding_model: updatedAgent.embedding_model || 'openai',
+        search_type: updatedAgent.search_type || 'similarity',
+        search_threshold: updatedAgent.search_threshold || 0.7,
+        output_format: updatedAgent.output_format || 'text',
+        description: updatedAgent.description || '',
         stop_sequences: [...(updatedAgent.stop_sequences || [])],
         tools: [...(updatedAgent.tools || [])],
+        system_prompt: updatedAgent.system_prompt || '',
+        user_id: session.session.user.id,
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('ai_agents')
-        .update(agentUpdate)
-        .eq('id', agentId)
-        .eq('user_id', session.session.user.id);
+      let result;
+      
+      if (agentId === "") {
+        // This is a new agent
+        console.log('Creating new agent:', agentData);
+        result = await supabase
+          .from('ai_agents')
+          .insert({
+            ...agentData,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+      } else {
+        // This is an update to an existing agent
+        console.log('Updating existing agent:', agentId, agentData);
+        result = await supabase
+          .from('ai_agents')
+          .update(agentData)
+          .eq('id', agentId)
+          .eq('user_id', session.session.user.id)
+          .select()
+          .single();
+      }
 
+      const { error, data: updatedData } = result;
       if (error) throw error;
 
       // Update local state
-      setAgents(prev => prev.map(agent => 
-        agent.id === agentId 
-          ? { ...agent, ...updatedAgent }
-          : agent
-      ));
+      setAgents(prev => {
+        if (agentId === "") {
+          // Add new agent
+          return [...prev, updatedData];
+        } else {
+          // Update existing agent
+          return prev.map(agent => 
+            agent.id === agentId 
+              ? { ...agent, ...updatedAgent }
+              : agent
+          );
+        }
+      });
 
       toast({
         title: "Success",
         description: "Agent configuration saved successfully",
       });
 
-      return { success: true };
+      return { success: true, data: updatedData };
     } catch (error) {
       console.error('Error updating agent:', error);
       toast({
