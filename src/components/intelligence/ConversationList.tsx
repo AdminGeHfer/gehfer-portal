@@ -24,18 +24,24 @@ export const ConversationList = () => {
 
   useEffect(() => {
     const initializeConversations = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          setIsLoading(false);
+          return;
+        }
+        
+        await loadConversations();
+        const subscription = subscribeToConversations();
+        
+        return () => {
+          subscription?.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error initializing conversations:', error);
         setIsLoading(false);
-        return;
       }
-      
-      await loadConversations();
-      const subscription = subscribeToConversations();
-      return () => {
-        subscription?.unsubscribe();
-      };
     };
 
     initializeConversations();
@@ -44,9 +50,16 @@ export const ConversationList = () => {
   const loadConversations = async () => {
     try {
       setIsLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        return;
+      }
+
       const { data, error } = await supabase
         .from('ai_conversations')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -67,6 +80,12 @@ export const ConversationList = () => {
   };
 
   const subscribeToConversations = () => {
+    const { data: { user } } = supabase.auth.getUser();
+    
+    if (!user) {
+      return;
+    }
+
     return supabase
       .channel('ai_conversations')
       .on(
@@ -75,6 +94,7 @@ export const ConversationList = () => {
           event: '*',
           schema: 'public',
           table: 'ai_conversations',
+          filter: `user_id=eq.${user.id}`,
         },
         () => {
           loadConversations();
