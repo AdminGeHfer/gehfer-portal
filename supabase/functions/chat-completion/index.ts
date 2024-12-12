@@ -22,8 +22,8 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model, agentId } = await req.json();
-    console.log('Processing chat completion request:', { messageCount: messages.length, model, agentId });
+    const { messages, agentId } = await req.json();
+    console.log('Processing chat completion request:', { messageCount: messages.length, agentId });
 
     if (!agentId) {
       throw new Error('Agent ID is required');
