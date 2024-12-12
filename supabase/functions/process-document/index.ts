@@ -54,8 +54,12 @@ serve(async (req) => {
 
     console.log('Document stored successfully:', document.id)
 
+    // Return a simple success response without any special characters
     return new Response(
-      JSON.stringify({ success: true, documentId: document.id }),
+      JSON.stringify({ 
+        success: true, 
+        documentId: document.id 
+      }, null, 2),
       {
         headers: { 
           ...corsHeaders, 
@@ -66,8 +70,11 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('Error processing document:', error)
+    // Return a simple error response without any special characters
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message 
+      }, null, 2),
       {
         headers: { 
           ...corsHeaders, 

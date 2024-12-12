@@ -29,9 +29,6 @@ export const DocumentUpload = ({ moduleId }: DocumentUploadProps) => {
       // Call the Edge Function
       const { data, error } = await supabase.functions.invoke('process-document', {
         body: formData,
-        headers: {
-          'Accept': 'application/json',
-        },
       });
 
       if (error) {
