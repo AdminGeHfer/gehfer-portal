@@ -1,19 +1,23 @@
-import { useQuery, useQueryClient, RefetchOptions } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { transformRNCData } from "@/utils/rncTransform";
-import { useDeleteRNC, useUpdateRNC } from "@/mutations/rncMutations";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useRBAC } from "./useRBAC";
 
 export const useRNCDetail = (id: string) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const { isAdmin, isManager } = useRBAC();
 
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("rncs")
         .select(`
@@ -22,64 +26,116 @@ export const useRNCDetail = (id: string) => {
           events:rnc_events(*)
         `)
         .eq("id", id)
-        .maybeSingle(); // Changed from single() to maybeSingle()
+        .single();
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // Record not found
-          navigate("/quality/rnc");
-          return null;
-        }
-        throw error;
-      }
+      if (error) throw error;
 
-      if (!data) {
-        navigate("/quality/rnc");
-        return null;
-      }
+      // Check if user can edit this RNC
+      const canEdit = isAdmin || isManager || (userData.user && data.created_by === userData.user.id);
+      console.log("User permissions:", { isAdmin, isManager, userId: userData.user?.id, createdBy: data.created_by, canEdit });
 
-      if (data.created_by !== user.user?.id) {
-        toast.error("Você não tem permissão para editar esta RNC");
-        return { ...transformRNCData(data), canEdit: false };
-      }
-
-      return { ...transformRNCData(data), canEdit: true };
-    },
-    retry: false // Don't retry if the record is not found
-  });
-
-  const deleteRNC = useDeleteRNC(id, () => {
-    queryClient.invalidateQueries({ queryKey: ["rncs"] });
-    queryClient.removeQueries({ queryKey: ["rnc", id] });
-    navigate("/quality/rnc");
-    toast.success("RNC excluída com sucesso");
-  });
-
-  const updateRNC = useUpdateRNC(id, {
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rnc", id] });
+      return { ...transformRNCData(data), canEdit };
     },
   });
 
-  const handleRefresh = async (options?: RefetchOptions): Promise<void> => {
-    await refetch(options);
+  const handleEdit = () => {
+    if (!rnc) return;
+    
+    if (isAdmin || isManager || rnc.canEdit) {
+      setIsEditing(true);
+    } else {
+      toast.error("Você não tem permissão para editar esta RNC");
+    }
   };
 
-  const handleStatusChange = async (newStatus: WorkflowStatusEnum): Promise<void> => {
+  const handleSave = async () => {
+    if (!rnc || isSaving) return;
+    
+    try {
+      setIsSaving(true);
+      await queryClient.invalidateQueries({ queryKey: ["rnc", id] });
+      setIsEditing(false);
+      toast.success("RNC atualizada com sucesso");
+    } catch (error) {
+      toast.error("Erro ao atualizar RNC");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if ((!isAdmin && !isManager && !rnc?.canEdit) || isDeleting) return;
+    
+    try {
+      setIsDeleting(true);
+      const { error } = await supabase
+        .from("rncs")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast.success("RNC excluída com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["rncs"] });
+    } catch (error) {
+      toast.error("Erro ao excluir RNC");
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: WorkflowStatusEnum) => {
     if (!rnc) return;
-    const updatedRnc = {
-      ...rnc,
-      workflow_status: newStatus
-    };
-    await updateRNC.mutateAsync(updatedRnc);
+    
+    try {
+      const { error } = await supabase
+        .from("rncs")
+        .update({ workflow_status: newStatus })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["rnc", id] });
+      toast.success("Status atualizado com sucesso");
+    } catch (error) {
+      toast.error("Erro ao atualizar status");
+    }
+  };
+
+  const handleFieldChange = async (field: keyof RNC, value: any) => {
+    if (!rnc) return;
+
+    try {
+      const { error } = await supabase
+        .from("rncs")
+        .update({ [field]: value })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["rnc", id] });
+    } catch (error) {
+      toast.error(`Erro ao atualizar ${field}`);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await refetch();
   };
 
   return {
     rnc,
     isLoading,
-    deleteRNC,
-    updateRNC,
-    handleRefresh,
-    handleStatusChange
+    isEditing,
+    isDeleting,
+    isDeleteDialogOpen,
+    setIsDeleteDialogOpen,
+    handleEdit,
+    handleSave,
+    handleDelete,
+    handleStatusChange,
+    handleFieldChange,
+    handleRefresh
   };
 };

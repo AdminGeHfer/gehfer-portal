@@ -9,6 +9,194 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_agents: {
+        Row: {
+          chain_type: Database["public"]["Enums"]["chain_type_enum"]
+          chunk_overlap: number
+          chunk_size: number
+          created_at: string
+          description: string | null
+          embedding_model: string
+          id: string
+          max_tokens: number
+          memory_type: Database["public"]["Enums"]["memory_type_enum"]
+          model_id: string
+          name: string
+          output_format: Database["public"]["Enums"]["output_format_enum"]
+          search_threshold: number
+          search_type: Database["public"]["Enums"]["search_type_enum"]
+          stop_sequences: string[] | null
+          system_prompt: string | null
+          temperature: number
+          tools: string[] | null
+          top_k: number
+          top_p: number
+          updated_at: string
+          use_knowledge_base: boolean
+          user_id: string
+        }
+        Insert: {
+          chain_type?: Database["public"]["Enums"]["chain_type_enum"]
+          chunk_overlap?: number
+          chunk_size?: number
+          created_at?: string
+          description?: string | null
+          embedding_model?: string
+          id?: string
+          max_tokens?: number
+          memory_type?: Database["public"]["Enums"]["memory_type_enum"]
+          model_id: string
+          name: string
+          output_format?: Database["public"]["Enums"]["output_format_enum"]
+          search_threshold?: number
+          search_type?: Database["public"]["Enums"]["search_type_enum"]
+          stop_sequences?: string[] | null
+          system_prompt?: string | null
+          temperature?: number
+          tools?: string[] | null
+          top_k?: number
+          top_p?: number
+          updated_at?: string
+          use_knowledge_base?: boolean
+          user_id: string
+        }
+        Update: {
+          chain_type?: Database["public"]["Enums"]["chain_type_enum"]
+          chunk_overlap?: number
+          chunk_size?: number
+          created_at?: string
+          description?: string | null
+          embedding_model?: string
+          id?: string
+          max_tokens?: number
+          memory_type?: Database["public"]["Enums"]["memory_type_enum"]
+          model_id?: string
+          name?: string
+          output_format?: Database["public"]["Enums"]["output_format_enum"]
+          search_threshold?: number
+          search_type?: Database["public"]["Enums"]["search_type_enum"]
+          stop_sequences?: string[] | null
+          system_prompt?: string | null
+          temperature?: number
+          tools?: string[] | null
+          top_k?: number
+          top_p?: number
+          updated_at?: string
+          use_knowledge_base?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["message_role"]
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["message_role"]
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["message_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          resource_id?: string
+          resource_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_evidence: {
         Row: {
           collection_id: string
@@ -123,6 +311,41 @@ export type Database = {
             columns: ["rnc_id"]
             isOneToOne: false
             referencedRelation: "rncs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          embedding: string | null
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -360,7 +583,6 @@ export type Database = {
           active: boolean | null
           avatar_url: string | null
           created_at: string
-          department: string | null
           email: string | null
           id: string
           modules: string[] | null
@@ -372,7 +594,6 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           created_at?: string
-          department?: string | null
           email?: string | null
           id: string
           modules?: string[] | null
@@ -384,7 +605,6 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           created_at?: string
-          department?: string | null
           email?: string | null
           id?: string
           modules?: string[] | null
@@ -629,7 +849,7 @@ export type Database = {
           company: string
           created_at: string
           created_by: string
-          department: Database["public"]["Enums"]["department_enum"]
+          department: string
           description: string
           id: string
           order_number: string | null
@@ -649,7 +869,7 @@ export type Database = {
           company: string
           created_at?: string
           created_by: string
-          department: Database["public"]["Enums"]["department_enum"]
+          department?: string
           description: string
           id?: string
           order_number?: string | null
@@ -669,7 +889,7 @@ export type Database = {
           company?: string
           created_at?: string
           created_by?: string
-          department?: Database["public"]["Enums"]["department_enum"]
+          department?: string
           description?: string
           id?: string
           order_number?: string | null
@@ -1031,23 +1251,219 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      binary_quantize:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: unknown
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]
       }
+      halfvec_avg: {
+        Args: {
+          "": number[]
+        }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
+      hnsw_bit_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflat_bit_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      l2_norm:
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+      l2_normalize:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: unknown
+          }
+      match_documents:
+        | {
+            Args: {
+              query_embedding: string
+              match_count?: number
+            }
+            Returns: {
+              id: string
+              content: string
+              metadata: Json
+              similarity: number
+            }[]
+          }
+        | {
+            Args: {
+              query_embedding: string
+              match_threshold: number
+              match_count: number
+            }
+            Returns: {
+              id: string
+              content: string
+              metadata: Json
+              similarity: number
+            }[]
+          }
+      sparsevec_out: {
+        Args: {
+          "": unknown
+        }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
+      vector_avg: {
+        Args: {
+          "": number[]
+        }
+        Returns: string
+      }
+      vector_dims:
+        | {
+            Args: {
+              "": string
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              "": unknown
+            }
+            Returns: number
+          }
+      vector_norm: {
+        Args: {
+          "": string
+        }
+        Returns: number
+      }
+      vector_out: {
+        Args: {
+          "": string
+        }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: {
+          "": string
+        }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: {
+          "": unknown[]
+        }
+        Returns: number
+      }
     }
     Enums: {
+      chain_type_enum: "conversation" | "qa" | "conversational_qa"
       collection_status_enum:
         | "pending"
         | "in_progress"
         | "completed"
         | "cancelled"
-      department_enum:
-        | "Expedição"
-        | "Logistica"
-        | "Comercial"
-        | "Qualidade"
-        | "Produção"
+      memory_type_enum: "buffer" | "window" | "summary"
+      message_role: "system" | "assistant" | "user"
+      output_format_enum: "text" | "structured" | "markdown"
       rnc_workflow_status_enum:
         | "open"
         | "analysis"
@@ -1055,6 +1471,7 @@ export type Database = {
         | "solved"
         | "closing"
         | "closed"
+      search_type_enum: "similarity" | "mmr"
       status_enum:
         | "open"
         | "in_progress"

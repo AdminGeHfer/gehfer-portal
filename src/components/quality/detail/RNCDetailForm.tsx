@@ -9,6 +9,7 @@ import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
+import { RNCAttachments } from "./RNCAttachments";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,8 +24,8 @@ const formSchema = z.object({
     phone: z.string().min(1, "O telefone é obrigatório"),
     email: z.string().email("Email inválido"),
   }),
-  orderNumber: z.string().optional(),
-  returnNumber: z.string().optional(),
+  order_number: z.string().optional(),
+  return_number: z.string().optional(),
   company: z.string().min(1, "A empresa é obrigatória"),
   cnpj: z.string().min(14, "CNPJ inválido").max(14),
   workflow_status: z.enum(["open", "in_progress", "closed"]).default("open"),
@@ -33,33 +34,14 @@ const formSchema = z.object({
   resolution: z.string().optional(),
 });
 
-const defaultValues: RNCFormData = {
-  description: "",
-  priority: "medium",
-  type: "client",
-  department: "Expedição", // Set a valid default department
-  contact: {
-    name: "",
-    phone: "",
-    email: "",
-  },
-  company: "",
-  cnpj: "",
-  orderNumber: "",
-  returnNumber: "",
-  workflow_status: "open",
-  assignedTo: "",
-  attachments: [],
-  resolution: "",
-};
-
 interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
   onFieldChange: (field: keyof RNC, value: any) => void;
+  onSave?: () => Promise<void>;
 }
 
-export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormProps) {
+export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDetailFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,8 +56,8 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
       contact: rnc.contact,
       company: rnc.company,
       cnpj: rnc.cnpj,
-      orderNumber: rnc.orderNumber,
-      returnNumber: rnc.returnNumber,
+      order_number: rnc.order_number,
+      return_number: rnc.return_number,
       workflow_status: rnc.workflow_status,
       assignedTo: rnc.assignedTo,
       resolution: rnc.resolution,
@@ -87,14 +69,23 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
     
     try {
       setIsSubmitting(true);
+      
+      // Update all form fields
       Object.keys(data).forEach((key) => {
         onFieldChange(key as keyof RNC, data[key as keyof RNCFormData]);
       });
+
+      // Call parent save handler if provided
+      if (onSave) {
+        await onSave();
+      }
+
       toast({
         title: "RNC atualizada com sucesso",
         description: "As alterações foram salvas.",
       });
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Erro ao atualizar RNC",
         description: "Ocorreu um erro ao tentar atualizar a RNC.",
@@ -118,20 +109,21 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <TabsContent value="company" className="space-y-6">
               <div className="grid gap-6">
-                <RNCCompanyInfo form={form} />
+                <RNCCompanyInfo form={form} isEditing={isEditing} />
               </div>
             </TabsContent>
 
             <TabsContent value="details" className="space-y-6">
               <div className="grid gap-6">
-                <RNCBasicInfo form={form} />
-                <RNCFileUpload form={form} />
+                <RNCBasicInfo form={form} isEditing={isEditing} />
+                {isEditing && <RNCFileUpload form={form} />}
+                <RNCAttachments rncId={rnc.id} canEdit={isEditing} />
               </div>
             </TabsContent>
 
             <TabsContent value="contact" className="space-y-6">
               <div className="grid gap-6">
-                <RNCContactInfo form={form} />
+                <RNCContactInfo form={form} isEditing={isEditing} />
               </div>
             </TabsContent>
 
@@ -145,7 +137,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
                     if (activeTab === "contact") setActiveTab("details");
                   }}
                   className="w-32"
-                  disabled={activeTab === "company"}
+                  disabled={activeTab === "company" || isSubmitting}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Voltar
@@ -158,6 +150,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange }: RNCDetailFormPr
                       if (activeTab === "details") setActiveTab("contact");
                     }}
                     className="w-32"
+                    disabled={isSubmitting}
                   >
                     Próximo
                     <ArrowRight className="ml-2 h-4 w-4" />

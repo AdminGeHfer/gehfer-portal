@@ -1,20 +1,39 @@
 import { Card } from "@/components/ui/card";
-import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck, Package, GitBranch, LogOut } from "lucide-react";
+import { ClipboardCheck, Users, Truck, Package, Brain, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+
+interface ModuleCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactElement;
+  route: string;
+  submodules?: {
+    title: string;
+    route: string;
+    icon: React.ReactElement;
+  }[];
+  isHighlighted?: boolean;
+}
 
 const modules = [
+  {
+    title: "GeHfer Intelligence",
+    description: "Central de Inteligência Artificial e Assistentes Virtuais",
+    icon: <Brain className="h-12 w-12 text-primary" />,
+    route: "/intelligence",
+    isHighlighted: true
+  },
   {
     title: "Qualidade",
     description: "Gestão de qualidade e controle de processos",
     icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
     route: "/quality/rnc",
     submodules: [
-      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> },
-      { title: "Workflow", route: "/quality/workflow", icon: <GitBranch className="h-4 w-4" /> }
+      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> }
     ]
   },
   {
@@ -37,47 +56,6 @@ const modules = [
   }
 ];
 
-const ModuleCard = ({ title, description, icon, route, submodules }) => {
-  const navigate = useNavigate();
-
-  return (
-    <Card 
-      className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg animate-scale-in glass-morphism"
-      onClick={() => navigate(route)}
-    >
-      <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
-        {icon}
-      </div>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{title}</h3>
-        <p className="text-muted-foreground mb-4">{description}</p>
-        <div className="flex flex-col gap-2">
-          {submodules ? (
-            submodules.map((submodule, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className="justify-start"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(submodule.route);
-                }}
-              >
-                {submodule.icon}
-                <span className="ml-2">{submodule.title}</span>
-              </Button>
-            ))
-          ) : (
-            <div className="flex items-center text-primary hover:underline">
-              Acessar módulo
-            </div>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
-};
-
 const Apps = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -94,9 +72,9 @@ const Apps = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-16 items-center justify-between px-6">
-          <h1 className="text-2xl font-semibold">Portal GeHfer</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Portal GeHfer</h1>
           <Button 
             variant="ghost" 
             size="icon"
@@ -109,22 +87,63 @@ const Apps = () => {
       </header>
       
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-fade-in">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
             <h2 className="text-2xl font-semibold mb-2">Selecione um módulo para começar</h2>
-            <p className="text-muted-foreground mb-8">Acesse as ferramentas e recursos disponíveis</p>
-          </div>
+            <p className="text-muted-foreground">
+              Acesse as ferramentas e recursos disponíveis
+            </p>
+          </motion.div>
         
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {modules.map((module, index) => (
-              <ModuleCard 
+              <motion.div
                 key={index}
-                title={module.title}
-                description={module.description}
-                icon={module.icon}
-                route={module.route}
-                submodules={module.submodules}
-              />
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className={module.isHighlighted ? 'md:col-span-2' : ''}
+              >
+                <Card 
+                  className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20 ${
+                    module.isHighlighted ? 'ring-2 ring-primary/50' : ''
+                  }`}
+                  onClick={() => navigate(module.route)}
+                >
+                  <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      {module.icon}
+                    </motion.div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-semibold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                      {module.title}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">{module.description}</p>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start group-hover:text-primary transition-colors"
+                    >
+                      Acessar módulo
+                      <motion.span
+                        className="ml-2"
+                        initial={{ x: 0 }}
+                        whileHover={{ x: 5 }}
+                      >
+                        →
+                      </motion.span>
+                    </Button>
+                  </div>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>

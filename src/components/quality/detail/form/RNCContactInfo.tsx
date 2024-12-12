@@ -11,9 +11,10 @@ import { RNCFormData } from "@/types/rnc";
 
 interface RNCContactInfoProps {
   form: UseFormReturn<RNCFormData>;
+  isEditing?: boolean;
 }
 
-export const RNCContactInfo = ({ form }: RNCContactInfoProps) => {
+export const RNCContactInfo = ({ form, isEditing = false }: RNCContactInfoProps) => {
   return (
     <div className="space-y-4">
       <FormField
@@ -21,14 +22,15 @@ export const RNCContactInfo = ({ form }: RNCContactInfoProps) => {
         name="contact.name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nome do Contato</FormLabel>
+            <FormLabel className="required-field">Nome do Contato</FormLabel>
             <FormControl>
               <Input 
                 placeholder="Digite o nome do contato" 
                 {...field} 
+                disabled={!isEditing}
               />
             </FormControl>
-            <FormMessage />
+            <FormMessage className="form-message" />
           </FormItem>
         )}
       />
@@ -37,14 +39,15 @@ export const RNCContactInfo = ({ form }: RNCContactInfoProps) => {
         name="contact.phone"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Telefone</FormLabel>
+            <FormLabel className="required-field">Telefone</FormLabel>
             <FormControl>
               <Input 
                 placeholder="Digite o telefone" 
                 {...field} 
+                disabled={!isEditing}
               />
             </FormControl>
-            <FormMessage />
+            <FormMessage className="form-message" />
           </FormItem>
         )}
       />
@@ -53,15 +56,16 @@ export const RNCContactInfo = ({ form }: RNCContactInfoProps) => {
         name="contact.email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel className="required-field">Email</FormLabel>
             <FormControl>
               <Input 
                 type="email" 
                 placeholder="Digite o email" 
                 {...field} 
+                disabled={!isEditing}
               />
             </FormControl>
-            <FormMessage />
+            <FormMessage className="form-message" />
           </FormItem>
         )}
       />

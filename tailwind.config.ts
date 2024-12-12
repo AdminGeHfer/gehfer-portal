@@ -110,6 +110,14 @@ export default {
             backgroundPosition: "100% 50%",
           },
         },
+        glow: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.5' },
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.8' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -118,6 +126,8 @@ export default {
         "scale-in": "scaleIn 0.2s ease-out",
         "blob": "blob 7s infinite",
         "gradient": "gradient 15s ease infinite",
+        glow: 'glow 2s ease-in-out infinite',
+        'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
       },
       spacing: {
         '18': '4.5rem',
@@ -131,6 +141,11 @@ export default {
       minHeight: {
         '11': '2.75rem',
         '18': '4.5rem',
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'grid-pattern': 'linear-gradient(to right, rgba(var(--primary), 0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--primary), 0.1) 1px, transparent 1px)',
       },
     },
   },

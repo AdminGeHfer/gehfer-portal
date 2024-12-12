@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TimelineList } from "./timeline/TimelineList";
 import { TimelineEventType } from "./timeline/TimelineEvent";
+import { getWorkflowStatusLabel } from "@/utils/workflow";
 
 interface RNCTimelineProps {
   rncId: string;
@@ -11,65 +12,77 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
   const { data: events, isLoading } = useQuery({
     queryKey: ['rnc-timeline', rncId],
     queryFn: async () => {
-      // Buscar eventos básicos
-      const { data: basicEvents, error: eventsError } = await supabase
-        .from('rnc_events')
-        .select(`
-          id,
-          created_at,
-          title,
-          description,
-          type,
-          created_by,
-          created_by_profile:profiles(name)
-        `)
-        .eq('rnc_id', rncId)
-        .order('created_at', { ascending: false });
+      try {
+        // Fetch basic events
+        const { data: basicEvents, error: eventsError } = await supabase
+          .from('rnc_events')
+          .select(`
+            id,
+            created_at,
+            title,
+            description,
+            type,
+            created_by,
+            created_by_profile:profiles(name)
+          `)
+          .eq('rnc_id', rncId)
+          .order('created_at', { ascending: false });
 
-      if (eventsError) throw eventsError;
+        if (eventsError) {
+          console.error('Error fetching events:', eventsError);
+          throw eventsError;
+        }
 
-      // Buscar transições de workflow
-      const { data: transitions, error: transitionsError } = await supabase
-        .from('rnc_workflow_transitions')
-        .select(`
-          id,
-          created_at,
-          from_status,
-          to_status,
-          notes,
-          created_by,
-          created_by_profile:profiles(name)
-        `)
-        .eq('rnc_id', rncId)
-        .order('created_at', { ascending: false });
+        // Fetch workflow transitions
+        const { data: transitions, error: transitionsError } = await supabase
+          .from('rnc_workflow_transitions')
+          .select(`
+            id,
+            created_at,
+            from_status,
+            to_status,
+            notes,
+            created_by,
+            created_by_profile:profiles(name)
+          `)
+          .eq('rnc_id', rncId)
+          .order('created_at', { ascending: false });
 
-      if (transitionsError) throw transitionsError;
+        if (transitionsError) {
+          console.error('Error fetching transitions:', transitionsError);
+          throw transitionsError;
+        }
 
-      // Combinar eventos e transições
-      const allEvents = [
-        ...basicEvents.map(event => ({
-          id: event.id,
-          date: event.created_at,
-          title: event.title,
-          description: event.description,
-          type: event.type as TimelineEventType,
-          userId: event.created_by,
-          userName: event.created_by_profile?.name
-        })),
-        ...transitions.map(transition => ({
-          id: transition.id,
-          date: transition.created_at,
-          title: "Alteração de Status",
-          description: `Status alterado de ${transition.from_status || 'Aberto'} para ${transition.to_status}`,
-          type: "status" as TimelineEventType,
-          userId: transition.created_by,
-          userName: transition.created_by_profile?.name,
-          notes: transition.notes
-        }))
-      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        // Combine events and transitions
+        const allEvents = [
+          ...basicEvents.map(event => ({
+            id: event.id,
+            date: event.created_at,
+            title: event.title,
+            description: event.description,
+            type: event.type as TimelineEventType,
+            userId: event.created_by,
+            userName: event.created_by_profile?.name
+          })),
+          ...transitions.map(transition => ({
+            id: transition.id,
+            date: transition.created_at,
+            title: "Alteração de Status",
+            description: `Status alterado de ${getWorkflowStatusLabel(transition.from_status)} para ${getWorkflowStatusLabel(transition.to_status)}`,
+            type: "status" as TimelineEventType,
+            userId: transition.created_by,
+            userName: transition.created_by_profile?.name,
+            notes: transition.notes
+          }))
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-      return allEvents;
-    }
+        return allEvents;
+      } catch (error) {
+        console.error('Error in timeline query:', error);
+        throw error;
+      }
+    },
+    retry: 1
   });
 
   const { data: users } = useQuery({

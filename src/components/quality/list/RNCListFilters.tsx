@@ -1,7 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { WorkflowStatusEnum } from "@/types/rnc";
 
 interface RNCListFiltersProps {
   searchTerm: string;
@@ -30,14 +29,14 @@ export const RNCListFilters = ({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Buscar RNCs..." 
-          className="pl-10" 
+          className="pl-10 bg-white dark:bg-gray-800" 
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
       <Select value={statusFilter} onValueChange={onStatusChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Status" />
+        <SelectTrigger className="bg-white dark:bg-gray-800">
+          <SelectValue placeholder="Todos os Status" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos os Status</SelectItem>
@@ -50,8 +49,8 @@ export const RNCListFilters = ({
         </SelectContent>
       </Select>
       <Select value={departmentFilter} onValueChange={onDepartmentChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Departamento" />
+        <SelectTrigger className="bg-white dark:bg-gray-800">
+          <SelectValue placeholder="Todos os Departamentos" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos os Departamentos</SelectItem>
@@ -62,8 +61,8 @@ export const RNCListFilters = ({
         </SelectContent>
       </Select>
       <Select value={priorityFilter} onValueChange={onPriorityChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Prioridade" />
+        <SelectTrigger className="bg-white dark:bg-gray-800">
+          <SelectValue placeholder="Todas as Prioridades" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todas as Prioridades</SelectItem>

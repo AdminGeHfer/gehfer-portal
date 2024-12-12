@@ -1,100 +1,183 @@
+import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/contexts/SidebarContext";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { 
-  ClipboardCheck, 
-  Users, 
-  Truck, 
-  Package, 
-  GitBranch,
   Home,
-  LayoutDashboard
+  ClipboardCheck,
+  LayoutDashboard,
+  FileText,
+  Network,
+  Users,
+  Truck,
+  Package,
+  ChevronDown,
+  Brain,
+  MessageSquare,
+  Settings,
+  Building2
 } from "lucide-react";
+import { useSidebar } from "@/contexts/SidebarContext";
+import { useState } from "react";
 
-interface Module {
+interface SubModule {
   title: string;
-  icon: React.ElementType;
-  path: string;
-  submodules?: {
-    title: string;
-    path: string;
-    icon: React.ElementType;
-  }[];
+  href: string;
+  icon: React.ReactNode;
 }
 
-const modules: Module[] = [
-  {
-    title: "Home",
-    icon: Home,
-    path: "/apps",
-  },
-  {
-    title: "Qualidade",
-    icon: ClipboardCheck,
-    path: "/quality/rnc",
-    submodules: [
-      { title: "Dashboard", path: "/quality/dashboard", icon: LayoutDashboard },
-      { title: "RNCs", path: "/quality/rnc", icon: ClipboardCheck },
-      { title: "Workflow", path: "/quality/workflow", icon: GitBranch }
-    ]
-  },
-  {
-    title: "Administração",
-    icon: Users,
-    path: "/admin/users"
-  },
-  {
-    title: "Portaria",
-    icon: Truck,
-    path: "/portaria/acesso"
-  },
-  {
-    title: "Cadastros",
-    icon: Package,
-    path: "/admin/products"
-  }
-];
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+  subModules?: SubModule[];
+}
 
-export function SidebarNav() {
+export const SidebarNav = () => {
   const { isCollapsed } = useSidebar();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [expandedModules, setExpandedModules] = useState<string[]>([]);
 
-  const isActive = (path: string) => location.pathname.startsWith(path);
+  const toggleModule = (moduleTitle: string) => {
+    setExpandedModules(prev => 
+      prev.includes(moduleTitle) 
+        ? prev.filter(title => title !== moduleTitle)
+        : [...prev, moduleTitle]
+    );
+  };
+
+  const navItems: NavItem[] = [
+    {
+      title: "Home",
+      href: "/apps",
+      icon: <Home className="h-5 w-5" />,
+    },
+    {
+      title: "GeHfer Intelligence",
+      href: "/intelligence",
+      icon: <Brain className="h-5 w-5" />,
+      subModules: [
+        {
+          title: "Hub IA",
+          href: "/intelligence/hub",
+          icon: <Brain className="h-4 w-4" />,
+        },
+        {
+          title: "Setores",
+          href: "/intelligence/sectors",
+          icon: <Building2 className="h-4 w-4" />,
+        },
+        {
+          title: "Chat",
+          href: "/intelligence/chat",
+          icon: <MessageSquare className="h-4 w-4" />,
+        },
+        {
+          title: "Configurações",
+          href: "/intelligence/settings",
+          icon: <Settings className="h-4 w-4" />,
+        },
+      ],
+    },
+    {
+      title: "Qualidade",
+      href: "/quality",
+      icon: <ClipboardCheck className="h-5 w-5" />,
+      subModules: [
+        {
+          title: "Dashboard",
+          href: "/quality/dashboard",
+          icon: <LayoutDashboard className="h-4 w-4" />,
+        },
+        {
+          title: "RNCs",
+          href: "/quality/rnc",
+          icon: <FileText className="h-4 w-4" />,
+        },
+        {
+          title: "Workflow",
+          href: "/quality/workflow",
+          icon: <Network className="h-4 w-4" />,
+        },
+      ],
+    },
+    {
+      title: "Administração",
+      href: "/admin",
+      icon: <Users className="h-5 w-5" />,
+    },
+    {
+      title: "Portaria",
+      href: "/portaria",
+      icon: <Truck className="h-5 w-5" />,
+    },
+    {
+      title: "Cadastros",
+      href: "/cadastros",
+      icon: <Package className="h-5 w-5" />,
+    },
+  ];
 
   return (
-    <nav className="space-y-2 p-4">
-      {modules.map((module) => (
-        <div key={module.path} className="space-y-2">
-          <Button
-            variant={isActive(module.path) ? "secondary" : "ghost"}
-            className={cn(
-              "w-full justify-start",
-              isCollapsed && "justify-center px-2"
-            )}
-            onClick={() => navigate(module.path)}
-          >
-            <module.icon className={cn(
-              "h-5 w-5",
-              !isCollapsed && "mr-2"
-            )} />
-            {!isCollapsed && <span>{module.title}</span>}
-          </Button>
+    <nav className="space-y-1 px-2">
+      {navItems.map((item) => {
+        const isExpanded = expandedModules.includes(item.title);
+        const hasSubModules = item.subModules && item.subModules.length > 0;
 
-          {!isCollapsed && module.submodules?.map((sub) => (
-            <Button
-              key={sub.path}
-              variant={isActive(sub.path) ? "secondary" : "ghost"}
-              className="w-full justify-start pl-8"
-              onClick={() => navigate(sub.path)}
+        return (
+          <div key={item.href} className="space-y-1">
+            <NavLink
+              to={hasSubModules ? "#" : item.href}
+              onClick={hasSubModules ? () => toggleModule(item.title) : undefined}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-x-3 rounded-md px-3 py-2 text-sm font-medium transition-colors relative",
+                  "hover:bg-accent hover:text-accent-foreground",
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground",
+                  isCollapsed && "justify-center"
+                )
+              }
             >
-              <sub.icon className="mr-2 h-4 w-4" />
-              <span>{sub.title}</span>
-            </Button>
-          ))}
-        </div>
-      ))}
+              {item.icon}
+              {!isCollapsed && (
+                <>
+                  <span className="flex-1">{item.title}</span>
+                  {hasSubModules && (
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        isExpanded && "transform rotate-180"
+                      )}
+                    />
+                  )}
+                </>
+              )}
+            </NavLink>
+
+            {hasSubModules && isExpanded && !isCollapsed && (
+              <div className="ml-4 space-y-1">
+                {item.subModules.map((subModule) => (
+                  <NavLink
+                    key={subModule.href}
+                    to={subModule.href}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-x-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        "hover:bg-accent hover:text-accent-foreground",
+                        isActive
+                          ? "bg-accent text-accent-foreground"
+                          : "text-muted-foreground"
+                      )
+                    }
+                  >
+                    {subModule.icon}
+                    <span>{subModule.title}</span>
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
     </nav>
   );
-}
+};

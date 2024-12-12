@@ -73,8 +73,8 @@ export const useRNCs = () => {
           department: data.department,
           company: data.company,
           cnpj: data.cnpj,
-          order_number: data.orderNumber,
-          return_number: data.returnNumber,
+          order_number: data.order_number,
+          return_number: data.return_number,
           created_by: user.user.id,
         })
         .select()

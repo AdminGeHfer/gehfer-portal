@@ -1,0 +1,84 @@
+import { Json } from './json';
+
+export interface AITablesSchema {
+  ai_agents: {
+    Row: {
+      id: string;
+      name: string;
+      description: string | null;
+      model_id: string;
+      memory_type: 'buffer' | 'window' | 'summary';
+      use_knowledge_base: boolean;
+      temperature: number;
+      max_tokens: number;
+      top_p: number;
+      top_k: number;
+      stop_sequences: string[];
+      chain_type: 'conversation' | 'qa' | 'conversational_qa';
+      chunk_size: number;
+      chunk_overlap: number;
+      embedding_model: string;
+      search_type: 'similarity' | 'mmr';
+      search_threshold: number;
+      output_format: 'text' | 'structured' | 'markdown';
+      tools: Json[];
+      system_prompt: string | null;
+      created_at: string;
+      updated_at: string;
+      user_id: string;
+      configuration: Json;
+    };
+    Insert: {
+      id?: string;
+      name: string;
+      description?: string | null;
+      model_id: string;
+      memory_type?: 'buffer' | 'window' | 'summary';
+      use_knowledge_base?: boolean;
+      temperature?: number;
+      max_tokens?: number;
+      top_p?: number;
+      top_k?: number;
+      stop_sequences?: string[];
+      chain_type?: 'conversation' | 'qa' | 'conversational_qa';
+      chunk_size?: number;
+      chunk_overlap?: number;
+      embedding_model?: string;
+      search_type?: 'similarity' | 'mmr';
+      search_threshold?: number;
+      output_format?: 'text' | 'structured' | 'markdown';
+      tools?: Json[];
+      system_prompt?: string | null;
+      created_at?: string;
+      updated_at?: string;
+      user_id: string;
+      configuration?: Json;
+    };
+    Update: {
+      id?: string;
+      name?: string;
+      description?: string | null;
+      model_id?: string;
+      memory_type?: 'buffer' | 'window' | 'summary';
+      use_knowledge_base?: boolean;
+      temperature?: number;
+      max_tokens?: number;
+      top_p?: number;
+      top_k?: number;
+      stop_sequences?: string[];
+      chain_type?: 'conversation' | 'qa' | 'conversational_qa';
+      chunk_size?: number;
+      chunk_overlap?: number;
+      embedding_model?: string;
+      search_type?: 'similarity' | 'mmr';
+      search_threshold?: number;
+      output_format?: 'text' | 'structured' | 'markdown';
+      tools?: Json[];
+      system_prompt?: string | null;
+      created_at?: string;
+      updated_at?: string;
+      user_id?: string;
+      configuration?: Json;
+    };
+  };
+}
