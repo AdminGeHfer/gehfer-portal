@@ -23,6 +23,8 @@ export const ConversationList = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    let subscription: { unsubscribe: () => void } | null = null;
+
     const initializeConversations = async () => {
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -36,11 +38,24 @@ export const ConversationList = () => {
         }
 
         await loadConversations(user.id);
-        const subscription = await subscribeToConversations(user.id);
         
-        return () => {
-          subscription?.unsubscribe();
-        };
+        // Set up subscription with user context
+        subscription = supabase
+          .channel('ai_conversations')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'ai_conversations',
+              filter: `user_id=eq.${user.id}`,
+            },
+            async () => {
+              await loadConversations(user.id);
+            }
+          )
+          .subscribe();
+        
       } catch (error) {
         console.error('Error initializing conversations:', error);
         toast({
@@ -48,14 +63,26 @@ export const ConversationList = () => {
           description: "Failed to initialize conversations",
           variant: "destructive",
         });
+      } finally {
         setIsLoading(false);
       }
     };
 
     initializeConversations();
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, [navigate, toast]);
 
   const loadConversations = async (userId: string) => {
+    if (!userId) {
+      console.error('No user ID provided to loadConversations');
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('ai_conversations')
@@ -73,27 +100,7 @@ export const ConversationList = () => {
         description: "Failed to load conversations",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const subscribeToConversations = async (userId: string) => {
-    return supabase
-      .channel('ai_conversations')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'ai_conversations',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          loadConversations(userId);
-        }
-      )
-      .subscribe();
   };
 
   const createNewConversation = async () => {
@@ -141,7 +148,7 @@ export const ConversationList = () => {
         isCollapsed ? "w-[60px]" : "w-[250px]"
       )}>
         <div className="flex items-center justify-center h-full">
-          <span className="loading loading-spinner loading-md"></span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       </aside>
     );
