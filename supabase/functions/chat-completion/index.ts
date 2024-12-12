@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 // Map model IDs to their OpenAI equivalents
-const MODEL_MAPPING = {
+const MODEL_MAPPING: Record<string, string> = {
   'gpt-4o-mini': 'gpt-4-turbo-preview',
   'gpt-4o': 'gpt-4-turbo-preview'
 };
