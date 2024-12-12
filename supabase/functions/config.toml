@@ -1,0 +1,5 @@
+project_id = "ccrrssmexnbwmrudhggz"
+[functions.chat-completion]
+verify_jwt = true
+[functions.cleanup-memory]
+verify_jwt = true
