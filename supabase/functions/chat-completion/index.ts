@@ -12,6 +12,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Map model IDs to their respective API versions
+const MODEL_MAPPING = {
+  'gpt-4o-mini': 'gpt-4-turbo-preview',
+  'gpt-4o': 'gpt-4-turbo-preview',
+  'mixtral-8x7b-32768': 'mixtral-8x7b-32768',
+  'llama2-70b-4096': 'llama2-70b-4096'
+};
+
 async function getAgentConfig(agentId: string) {
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Supabase configuration missing');
@@ -58,23 +66,22 @@ serve(async (req) => {
       content: agentConfig.system_prompt || 'You are a helpful assistant.'
     };
 
-    // Prepare base API configuration
+    // Determine if it's a Groq model
+    const isGroqModel = ['mixtral-8x7b-32768', 'llama2-70b-4096'].includes(agentConfig.model_id);
+    
+    // Get the correct model ID from the mapping
+    const modelId = MODEL_MAPPING[agentConfig.model_id];
+    if (!modelId) {
+      throw new Error(`Invalid model ID: ${agentConfig.model_id}`);
+    }
+
+    // Prepare base request configuration
     const baseConfig = {
       messages: [systemMessage, ...messages],
       temperature: agentConfig.temperature,
       max_tokens: agentConfig.max_tokens,
       top_p: agentConfig.top_p,
     };
-
-    // Map model IDs for OpenAI
-    const openAIModelMap: Record<string, string> = {
-      'gpt-4o-mini': 'gpt-4-turbo-preview',
-      'gpt-4o': 'gpt-4-turbo-preview'
-    };
-
-    // Check if it's a Groq model
-    const groqModels = ['mixtral-8x7b-32768', 'llama2-70b-4096'];
-    const isGroqModel = groqModels.includes(agentConfig.model_id);
     
     let response;
     
@@ -83,7 +90,7 @@ serve(async (req) => {
         throw new Error('Groq API key not configured');
       }
 
-      console.log('Using Groq API with model:', agentConfig.model_id);
+      console.log('Using Groq API with model:', modelId);
       response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -92,7 +99,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           ...baseConfig,
-          model: agentConfig.model_id,
+          model: modelId,
         }),
       });
     } else {
@@ -100,13 +107,7 @@ serve(async (req) => {
         throw new Error('OpenAI API key not configured');
       }
 
-      const modelId = openAIModelMap[agentConfig.model_id];
-      if (!modelId) {
-        throw new Error(`Invalid OpenAI model ID: ${agentConfig.model_id}`);
-      }
-
       console.log('Using OpenAI API with model:', modelId);
-
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
