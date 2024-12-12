@@ -8,6 +8,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -18,43 +19,48 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const configuration = new Configuration({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    })
-    const openai = new OpenAIApi(configuration)
+    // Get the form data
+    const formData = await req.formData()
+    const file = formData.get('file')
+    const moduleId = formData.get('moduleId')
 
-    const { content, metadata } = await req.json()
+    if (!file || !(file instanceof File)) {
+      throw new Error('No file provided')
+    }
 
-    // Generate embeddings
-    const embeddingResponse = await openai.createEmbedding({
-      model: 'text-embedding-ada-002',
-      input: content,
-    })
+    console.log('Processing file:', file.name, 'size:', file.size)
 
-    const [{ embedding }] = embeddingResponse.data.data
+    // Read the file content
+    const content = await file.text()
 
-    // Store document and embedding
-    const { data, error } = await supabaseClient
+    // Store the document in the documents table
+    const { data: document, error: documentError } = await supabaseClient
       .from('documents')
       .insert({
         content,
-        metadata,
-        embedding
+        metadata: {
+          filename: file.name,
+          size: file.size,
+          type: file.type,
+          moduleId: moduleId || null
+        }
       })
       .select()
       .single()
 
-    if (error) throw error
+    if (documentError) throw documentError
+
+    console.log('Document stored successfully:', document.id)
 
     return new Response(
-      JSON.stringify({ id: data.id }),
+      JSON.stringify({ success: true, documentId: document.id }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
     )
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error processing document:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {

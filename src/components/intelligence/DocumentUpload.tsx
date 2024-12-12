@@ -35,18 +35,21 @@ export const DocumentUpload = ({ moduleId }: DocumentUploadProps) => {
       if (moduleId) {
         formData.append('moduleId', moduleId);
       }
-      
+
       const { data, error } = await supabase.functions.invoke('process-document', {
         body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
       });
 
       if (error) throw error;
 
-      toast.success('Documento processado com sucesso!');
+      toast.success('Document processed successfully!');
       
     } catch (error: any) {
       console.error('Error processing document:', error);
-      toast.error('Erro ao processar documento: ' + error.message);
+      toast.error('Error processing document: ' + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +75,7 @@ export const DocumentUpload = ({ moduleId }: DocumentUploadProps) => {
           ) : (
             <Upload className="h-4 w-4" />
           )}
-          Upload Documento
+          Upload Document
         </label>
       </div>
     </div>

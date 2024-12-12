@@ -411,6 +411,51 @@ export type Database = {
           },
         ]
       }
+      document_chunks: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          document_id: string | null
+          embedding: string | null
+          id: string
+          metadata: Json
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_chunks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           content: string | null
