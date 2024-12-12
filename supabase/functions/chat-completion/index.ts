@@ -20,6 +20,22 @@ const MAX_MESSAGES = {
   'groq-llama': 10,
 };
 
+async function getAgentConfig(agentId: string) {
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase configuration missing');
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const { data, error } = await supabase
+    .from('ai_agents')
+    .select('*')
+    .eq('id', agentId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 async function searchKnowledgeBase(query: string, moduleId: string | null = null) {
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Supabase configuration missing');
@@ -57,14 +73,18 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model = 'gpt-4o-mini', moduleId = null } = await req.json();
-    console.log('Processing chat completion request:', { messageCount: messages.length, model, moduleId });
+    const { messages, model = 'gpt-4o-mini', moduleId = null, agentId } = await req.json();
+    console.log('Processing chat completion request:', { messageCount: messages.length, model, moduleId, agentId });
 
-    // Get relevant context from knowledge base
+    // Get agent configuration
+    const agentConfig = await getAgentConfig(agentId);
+    console.log('Agent configuration:', agentConfig);
+
+    // Get relevant context from knowledge base if enabled
     const lastMessage = messages[messages.length - 1];
     let contextualPrompt = '';
     
-    if (moduleId) {
+    if (agentConfig.use_knowledge_base) {
       try {
         const relevantDocs = await searchKnowledgeBase(lastMessage.content, moduleId);
         if (relevantDocs && relevantDocs.length > 0) {
@@ -102,13 +122,15 @@ serve(async (req) => {
           messages: [
             { 
               role: 'system', 
-              content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
+              content: agentConfig.system_prompt || 'You are a helpful assistant.' 
             },
             ...(contextualPrompt ? [{ role: 'system', content: contextualPrompt }] : []),
             ...truncatedMessages
           ],
-          temperature: 0.7,
-          max_tokens: model === 'groq-mixtral' ? 32768 : 8192,
+          temperature: agentConfig.temperature,
+          max_tokens: agentConfig.max_tokens,
+          top_p: agentConfig.top_p,
+          top_k: agentConfig.top_k,
         }),
       });
 
@@ -142,13 +164,16 @@ serve(async (req) => {
           messages: [
             { 
               role: 'system', 
-              content: 'Você é um assistente da GeHfer, seu objetivo é ajudar todos os colaboradores a ser mais eficientes e resolver seus problemas. Seja sempre prestativo e profissional.' 
+              content: agentConfig.system_prompt || 'You are a helpful assistant.' 
             },
             ...(contextualPrompt ? [{ role: 'system', content: contextualPrompt }] : []),
             ...truncatedMessages
           ],
-          temperature: 0.7,
-          max_tokens: 1000,
+          temperature: agentConfig.temperature,
+          max_tokens: agentConfig.max_tokens,
+          top_p: agentConfig.top_p,
+          presence_penalty: 0,
+          frequency_penalty: 0,
         }),
       });
 

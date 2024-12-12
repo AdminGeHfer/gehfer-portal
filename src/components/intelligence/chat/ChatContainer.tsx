@@ -15,18 +15,49 @@ export const ChatContainer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [model, setModel] = useState("gpt-4o-mini");
+  const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (conversationId) {
       loadMessages();
+      loadConversationDetails();
       const subscription = subscribeToMessages();
       return () => {
         subscription?.unsubscribe();
       };
     }
   }, [conversationId]);
+
+  const loadConversationDetails = async () => {
+    if (!conversationId) return;
+    
+    try {
+      const { data: conversation, error } = await supabase
+        .from('ai_conversations')
+        .select('title')
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+
+      // Extract agent ID from title if it's a chat with an agent
+      if (conversation.title.startsWith('Chat with ')) {
+        const { data: agent, error: agentError } = await supabase
+          .from('ai_agents')
+          .select('id')
+          .eq('name', conversation.title.replace('Chat with ', ''))
+          .single();
+
+        if (!agentError && agent) {
+          setAgentId(agent.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading conversation details:', error);
+    }
+  };
 
   const loadMessages = async () => {
     if (!conversationId) return;
@@ -100,7 +131,8 @@ export const ChatContainer = () => {
       const response = await supabase.functions.invoke('chat-completion', {
         body: { 
           messages: truncatedMessages,
-          model 
+          model,
+          agentId // Pass the agent ID to use its configuration
         },
       });
 
