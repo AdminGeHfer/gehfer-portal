@@ -25,14 +25,17 @@ export const ConversationList = () => {
   useEffect(() => {
     const initializeConversations = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) throw authError;
         
         if (!user) {
           setIsLoading(false);
+          navigate("/login");
           return;
         }
-        
-        await loadConversations();
+
+        await loadConversations(user.id);
         const subscription = await subscribeToConversations(user.id);
         
         return () => {
@@ -40,31 +43,27 @@ export const ConversationList = () => {
         };
       } catch (error) {
         console.error('Error initializing conversations:', error);
+        toast({
+          title: "Error",
+          description: "Failed to initialize conversations",
+          variant: "destructive",
+        });
         setIsLoading(false);
       }
     };
 
     initializeConversations();
-  }, []);
+  }, [navigate, toast]);
 
-  const loadConversations = async () => {
+  const loadConversations = async (userId: string) => {
     try {
-      setIsLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        return;
-      }
-
       const { data, error } = await supabase
         .from('ai_conversations')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       setConversations(data || []);
     } catch (error) {
@@ -91,7 +90,7 @@ export const ConversationList = () => {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          loadConversations();
+          loadConversations(userId);
         }
       )
       .subscribe();
@@ -99,7 +98,9 @@ export const ConversationList = () => {
 
   const createNewConversation = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) throw authError;
       
       if (!user) {
         toast({
@@ -107,6 +108,7 @@ export const ConversationList = () => {
           description: "You must be logged in to create a conversation",
           variant: "destructive",
         });
+        navigate("/login");
         return;
       }
 
