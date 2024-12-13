@@ -1,140 +1,113 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages, model, agentId, memory } = await req.json()
-    const openAiKey = Deno.env.get('OPENAI_API_KEY')
-    
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const { messages, model, agentId, memory } = await req.json();
 
-    // Get the last user message for similarity search
-    const lastUserMessage = messages[messages.length - 1].content
-    console.log('Processing query:', lastUserMessage)
+    // Initialize clients
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const openai = new OpenAIApi(new Configuration({
+      apiKey: Deno.env.get('OPENAI_API_KEY'),
+    }));
 
     // Get agent configuration
-    const { data: agent } = await supabase
+    const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
       .select('*')
       .eq('id', agentId)
-      .single()
+      .single();
 
-    console.log('Agent config:', agent)
+    if (agentError) throw agentError;
 
-    let relevantDocs = []
-    if (agent?.use_knowledge_base) {
-      console.log('Knowledge base enabled, searching for relevant documents...')
-      
-      // Generate embedding for the query
-      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          input: lastUserMessage,
-          model: "text-embedding-ada-002"
-        })
-      })
+    console.log('Agent configuration:', agent);
 
-      const embeddingData = await embeddingResponse.json()
-      const queryEmbedding = embeddingData.data[0].embedding
+    // Generate embedding for the last user message
+    const lastUserMessage = messages[messages.length - 1].content;
+    const embeddingResponse = await openai.createEmbedding({
+      model: "text-embedding-3-small",
+      input: lastUserMessage,
+    });
 
-      // Search for similar documents using match_documents function
-      const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
+    const queryEmbedding = embeddingResponse.data.data[0].embedding;
+
+    // Search for relevant chunks
+    const { data: relevantChunks, error: searchError } = await supabase
+      .rpc('match_document_chunks', {
         query_embedding: queryEmbedding,
         match_threshold: agent.search_threshold || 0.7,
         match_count: 5
-      })
+      });
 
-      if (searchError) {
-        console.error('Error searching documents:', searchError)
-      }
+    if (searchError) throw searchError;
 
-      console.log('Found relevant documents:', documents?.length || 0)
-      
-      if (documents && documents.length > 0) {
-        relevantDocs = documents.map(doc => ({
-          content: doc.content,
-          similarity: doc.similarity
-        }))
-        console.log('Relevant docs:', relevantDocs)
-      }
+    console.log(`Found ${relevantChunks?.length || 0} relevant chunks`);
+
+    // Prepare context from chunks
+    let contextText = '';
+    if (relevantChunks && relevantChunks.length > 0) {
+      contextText = 'Relevant context:\n' + relevantChunks
+        .map(chunk => chunk.content)
+        .join('\n---\n');
     }
 
-    // Construct system message with context and memory
+    // Prepare system message
     const systemMessage = {
       role: 'system',
-      content: `${agent?.system_prompt || 'You are a helpful assistant.'}\n\n${
-        relevantDocs.length > 0 
-          ? 'Here are some relevant documents that may help with the query:\n\n' + 
-            relevantDocs.map(doc => `[Similarity: ${doc.similarity.toFixed(2)}]\n${doc.content}`).join('\n\n') +
-            '\n\nPlease use this information to help answer the query. If the information is relevant, incorporate it into your response.'
-          : ''
-      }`
-    }
+      content: `${agent.system_prompt || 'You are a helpful assistant.'}\n\n${contextText}`
+    };
 
-    // Add memory context if available
-    const memoryContext = memory?.history?.length > 0
-      ? '\n\nConversation history:\n' + 
-        memory.history.map(item => `${item.metadata.role}: ${item.content}`).join('\n')
-      : ''
+    // Combine messages
+    const fullMessages = [systemMessage, ...messages];
 
-    if (memoryContext) {
-      systemMessage.content += memoryContext
-    }
+    // Get completion from OpenAI
+    const completion = await openai.createChatCompletion({
+      model: model || 'gpt-4o-mini',
+      messages: fullMessages,
+      temperature: agent.temperature || 0.7,
+      max_tokens: agent.max_tokens || 4000,
+    });
 
-    console.log('System message:', systemMessage)
-
-    // Prepare messages array with context
-    const contextualizedMessages = [
-      systemMessage,
-      ...messages
-    ]
-
-    // Get completion from OpenAI with agent parameters
-    const completion = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAiKey}`,
-        'Content-Type': 'application/json'
+    // Log the interaction
+    await supabase.rpc('log_agent_event', {
+      p_agent_id: agentId,
+      p_conversation_id: memory?.conversationId,
+      p_event_type: 'completion',
+      p_configuration: {
+        model,
+        temperature: agent.temperature,
+        max_tokens: agent.max_tokens,
+        chunks_found: relevantChunks?.length || 0
       },
-      body: JSON.stringify({
-        model: model || 'gpt-4o-mini',
-        messages: contextualizedMessages,
-        temperature: agent?.temperature || 0.7,
-        max_tokens: agent?.max_tokens || 1000,
-        top_p: agent?.top_p || 0.9,
-      })
-    })
+      p_details: `Query: ${lastUserMessage}\nResponse: ${completion.data.choices[0].message?.content}`
+    });
 
-    const completionData = await completion.json()
-    
-    // Log completion for debugging
-    console.log('Completion response:', completionData)
-
-    return new Response(JSON.stringify(completionData), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify(completion.data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
-    console.error('Error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    console.error('Error:', error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
   }
-})
+});
