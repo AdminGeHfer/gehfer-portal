@@ -14,16 +14,30 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model, agentId, memory } = await req.json();
+    // Initialize OpenAI
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
 
-    // Initialize clients
+    const configuration = new Configuration({
+      apiKey: openAIApiKey,
+    });
+    const openai = new OpenAIApi(configuration);
+
+    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const openai = new OpenAIApi(new Configuration({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    }));
+    // Parse request
+    const { messages, model, agentId, memory } = await req.json();
+    
+    if (!messages || !Array.isArray(messages)) {
+      throw new Error('Invalid messages format');
+    }
+
+    console.log('Processing request with:', { model, agentId });
 
     // Get agent configuration
     const { data: agent, error: agentError } = await supabase
