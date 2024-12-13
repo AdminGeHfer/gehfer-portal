@@ -1,60 +1,42 @@
-import { OpenAIEmbeddingResponse } from '../types/openai';
+import { ProcessingMetrics } from "../utils/metrics.ts";
+import { withRetry } from "../utils/retry.ts";
+
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const EMBEDDING_MODEL = 'text-embedding-3-small';
 
 export class EmbeddingsService {
-  private apiKey: string;
-  private cache: Map<string, number[]>;
+  private metrics: ProcessingMetrics;
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    this.cache = new Map();
+  constructor(metrics: ProcessingMetrics) {
+    this.metrics = metrics;
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
-    // Check cache first
-    const cacheKey = this.hashText(text);
-    if (this.cache.has(cacheKey)) {
-      console.log('Cache hit for embedding');
-      return this.cache.get(cacheKey)!;
-    }
-
-    try {
+    console.log(`Generating embedding for text of length ${text.length}`);
+    
+    return await withRetry(async () => {
       const response = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           input: text,
-          model: 'text-embedding-ada-002',
+          model: EMBEDDING_MODEL,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        const error = await response.json();
+        console.error('OpenAI API error:', error);
+        throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
       }
 
-      const data: OpenAIEmbeddingResponse = await response.json();
-      const embedding = data.data[0].embedding;
-
-      // Cache the result
-      this.cache.set(cacheKey, embedding);
-
-      return embedding;
-    } catch (error) {
-      console.error('Error generating embedding:', error);
-      throw error;
-    }
-  }
-
-  private hashText(text: string): string {
-    // Simple hash function for cache keys
-    let hash = 0;
-    for (let i = 0; i < text.length; i++) {
-      const char = text.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return hash.toString();
+      const data = await response.json();
+      this.metrics.trackMetric('embedding_tokens_used', data.usage?.total_tokens || 0);
+      
+      return data.data[0].embedding;
+    });
   }
 }

@@ -11,3 +11,8 @@ export interface OpenAIEmbeddingResponse {
     total_tokens: number;
   };
 }
+
+export interface ProcessedChunk {
+  content: string;
+  embedding: number[];
+}

@@ -1,36 +1,47 @@
-export class QueueService {
-  private maxRetries: number;
-  private baseDelay: number;
+import { ProcessingMetrics } from "../utils/metrics.ts";
+import { validateContent } from "../utils/validation.ts";
+import { ChunkingService } from "./chunking.ts";
+import { EmbeddingsService } from "./embeddings.ts";
 
-  constructor(maxRetries = 3, baseDelay = 1000) {
-    this.maxRetries = maxRetries;
-    this.baseDelay = baseDelay;
+export class QueueService {
+  private chunkingService: ChunkingService;
+  private embeddingsService: EmbeddingsService;
+  private metrics: ProcessingMetrics;
+
+  constructor(metrics: ProcessingMetrics) {
+    this.metrics = metrics;
+    this.chunkingService = new ChunkingService();
+    this.embeddingsService = new EmbeddingsService(metrics);
   }
 
-  async executeWithRetry<T>(
-    operation: () => Promise<T>,
-    retryCount = 0
-  ): Promise<T> {
-    try {
-      return await operation();
-    } catch (error) {
-      if (retryCount >= this.maxRetries) {
-        console.error(`Max retries (${this.maxRetries}) reached:`, error);
+  async executeWithRetry(content: string, chunkSize: number, overlap: number) {
+    console.log('Starting document processing...');
+    
+    const validation = validateContent(content);
+    if (!validation.isValid) {
+      throw new Error(`Content validation failed: ${validation.error}`);
+    }
+
+    const chunks = this.chunkingService.createChunks(content, chunkSize, overlap);
+    console.log(`Created ${chunks.length} chunks`);
+    this.metrics.trackMetric('chunks_created', chunks.length);
+
+    const results = [];
+    for (let i = 0; i < chunks.length; i++) {
+      try {
+        console.log(`Processing chunk ${i + 1}/${chunks.length}`);
+        const embedding = await this.embeddingsService.generateEmbedding(chunks[i]);
+        results.push({
+          content: chunks[i],
+          embedding,
+        });
+        this.metrics.trackMetric('chunks_processed', i + 1);
+      } catch (error) {
+        console.error(`Error processing chunk ${i}:`, error);
         throw error;
       }
-
-      const delay = this.calculateBackoff(retryCount);
-      console.log(`Retry ${retryCount + 1}/${this.maxRetries} after ${delay}ms`);
-      
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return this.executeWithRetry(operation, retryCount + 1);
     }
-  }
 
-  private calculateBackoff(retryCount: number): number {
-    // Exponential backoff with jitter
-    const exponential = Math.pow(2, retryCount) * this.baseDelay;
-    const jitter = Math.random() * 1000;
-    return Math.min(exponential + jitter, 10000); // Max 10 seconds
+    return results;
   }
 }

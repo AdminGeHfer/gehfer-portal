@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { EmbeddingsService } from "./services/embeddings.ts";
+import { ProcessingMetrics } from "./utils/metrics.ts";
 import { QueueService } from "./services/queue.ts";
 
 const corsHeaders = {
@@ -13,39 +13,46 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const metrics = new ProcessingMetrics();
+  console.log('Starting document processing request');
+
   try {
-    const apiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY is not set');
+    const { content, chunkSize = 1000, overlap = 200 } = await req.json();
+    
+    if (!content) {
+      throw new Error('No content provided');
     }
 
-    const { text } = await req.json();
-    if (!text) {
-      throw new Error('Text is required');
-    }
+    const queueService = new QueueService(metrics);
+    const results = await queueService.executeWithRetry(content, chunkSize, overlap);
 
-    const embeddingsService = new EmbeddingsService(apiKey);
-    const queueService = new QueueService();
-
-    const embedding = await queueService.executeWithRetry(() => 
-      embeddingsService.generateEmbedding(text)
-    );
+    metrics.trackMemory();
+    const finalMetrics = metrics.getAllMetrics();
+    console.log('Processing completed successfully', finalMetrics);
 
     return new Response(
-      JSON.stringify({ embedding }),
+      JSON.stringify({ 
+        success: true, 
+        results,
+        metrics: finalMetrics
+      }),
       { 
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
-        }
+        } 
       }
     );
   } catch (error) {
-    console.error('Error in process-document function:', error);
+    console.error('Error in document processing:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: error.message,
+        metrics: metrics.getAllMetrics()
+      }),
       { 
-        status: 400,
+        status: 500,
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json'
