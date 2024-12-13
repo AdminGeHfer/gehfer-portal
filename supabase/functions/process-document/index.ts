@@ -11,6 +11,7 @@ const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 200;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+const BATCH_SIZE = 3; // Reduced batch size to prevent memory issues
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -54,7 +55,7 @@ serve(async (req) => {
       } catch (error) {
         downloadError = error;
         if (i < MAX_RETRIES - 1) {
-          console.log(`Retry ${i + 1} failed, waiting ${RETRY_DELAY}ms...`);
+          console.log(`Download retry ${i + 1} failed, waiting ${RETRY_DELAY}ms...`);
           await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
         }
       }
@@ -66,8 +67,8 @@ serve(async (req) => {
 
     // Convert file to text
     const content = await fileData.text()
-
-    // Update document with content in smaller chunks
+    
+    // Update document with basic info first
     const { error: updateError } = await supabaseClient
       .from('documents')
       .update({ 
@@ -83,16 +84,21 @@ serve(async (req) => {
     const chunks = splitIntoChunks(content, CHUNK_SIZE, CHUNK_OVERLAP)
     console.log(`Created ${chunks.length} chunks`)
 
-    // Process chunks in batches to avoid memory issues
-    const BATCH_SIZE = 5;
+    // Process chunks in smaller batches
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       const batchChunks = chunks.slice(i, i + BATCH_SIZE);
       console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(chunks.length/BATCH_SIZE)}`);
       
-      await Promise.all(batchChunks.map(async (chunk) => {
-        let embeddingError;
+      // Add delay between batches to prevent rate limiting
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      }
+
+      // Process each chunk in the batch
+      for (const chunk of batchChunks) {
         let embedding;
-        
+        let embeddingError;
+
         // Retry embedding generation
         for (let j = 0; j < MAX_RETRIES; j++) {
           try {
@@ -109,6 +115,7 @@ serve(async (req) => {
             break;
           } catch (error) {
             embeddingError = error;
+            console.log(`Embedding generation error:`, error);
             if (j < MAX_RETRIES - 1) {
               console.log(`Embedding retry ${j + 1} failed, waiting ${RETRY_DELAY}ms...`);
               await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
@@ -133,8 +140,11 @@ serve(async (req) => {
             }
           })
 
-        if (chunkError) throw chunkError
-      }));
+        if (chunkError) {
+          console.error('Error storing chunk:', chunkError);
+          throw chunkError;
+        }
+      }
     }
 
     // Mark document as processed
