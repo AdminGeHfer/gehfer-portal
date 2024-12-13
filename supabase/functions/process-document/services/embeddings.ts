@@ -1,20 +1,23 @@
-import { Configuration, OpenAIApi } from "https://esm.sh/@langchain/openai@0.0.14";
+import { OpenAIEmbeddingResponse } from '../types/openai';
 
 export class EmbeddingsService {
   private apiKey: string;
+  private cache: Map<string, number[]>;
 
-  constructor() {
-    const apiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!apiKey) {
-      throw new Error('Missing OpenAI API key');
-    }
+  constructor(apiKey: string) {
     this.apiKey = apiKey;
+    this.cache = new Map();
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
+    // Check cache first
+    const cacheKey = this.hashText(text);
+    if (this.cache.has(cacheKey)) {
+      console.log('Cache hit for embedding');
+      return this.cache.get(cacheKey)!;
+    }
+
     try {
-      console.log('Generating embedding for text:', text.substring(0, 100) + '...');
-      
       const response = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
@@ -28,16 +31,30 @@ export class EmbeddingsService {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log('Successfully generated embedding');
-      return data.data[0].embedding;
+      const data: OpenAIEmbeddingResponse = await response.json();
+      const embedding = data.data[0].embedding;
+
+      // Cache the result
+      this.cache.set(cacheKey, embedding);
+
+      return embedding;
     } catch (error) {
       console.error('Error generating embedding:', error);
       throw error;
     }
+  }
+
+  private hashText(text: string): string {
+    // Simple hash function for cache keys
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      const char = text.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash.toString();
   }
 }
