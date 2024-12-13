@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model = 'gpt-4o-mini', agentId, memory } = await req.json();
+    const { messages, model = 'gpt-4o-mini', agentId, memory, query } = await req.json();
 
     console.log('Received request with agentId:', agentId);
 
@@ -28,8 +28,10 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch agent configuration if agentId is provided
+    // Fetch agent configuration
     let agentConfig = null;
+    let relevantDocs = [];
+    
     if (agentId) {
       console.log('Fetching agent configuration...');
       const { data: agent, error } = await supabase
@@ -38,25 +40,32 @@ serve(async (req) => {
         .eq('id', agentId)
         .single();
 
-      if (error) {
-        console.error('Error fetching agent:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       agentConfig = agent;
-      console.log('Agent configuration:', agentConfig);
 
-      // Log agent usage
-      await supabase.rpc('log_agent_event', {
-        p_agent_id: agentId,
-        p_conversation_id: messages[0]?.conversation_id,
-        p_event_type: 'chat_request',
-        p_configuration: agentConfig,
-        p_details: 'Agent configuration applied to chat request'
-      });
+      // If agent uses knowledge base, search for relevant documents
+      if (agentConfig.use_knowledge_base && query) {
+        const openai = new OpenAIApi(new Configuration({
+          apiKey: Deno.env.get('OPENAI_API_KEY'),
+        }));
+
+        const embedding = await openai.createEmbedding({
+          model: "text-embedding-ada-002",
+          input: query,
+        });
+
+        const { data: docs, error: searchError } = await supabase.rpc('match_documents', {
+          query_embedding: embedding.data.data[0].embedding,
+          match_threshold: agentConfig.search_threshold,
+          match_count: 5
+        });
+
+        if (searchError) throw searchError;
+        relevantDocs = docs;
+      }
     }
 
-    // Initialize chat model with agent configuration if available
+    // Initialize chat model
     const chat = new ChatOpenAI({
       modelName: agentConfig?.model_id || model,
       temperature: agentConfig?.temperature || 0.7,
@@ -64,26 +73,37 @@ serve(async (req) => {
       topP: agentConfig?.top_p || 0.9,
     });
 
-    // Prepare messages array starting with system prompt if available
+    // Prepare messages array
     const formattedMessages = [];
 
-    // Add system prompt as the first message if available
+    // Add system prompt and knowledge context
     if (agentConfig?.system_prompt) {
-      console.log('Adding system prompt:', agentConfig.system_prompt);
-      formattedMessages.push(new SystemMessage(agentConfig.system_prompt));
+      let systemPrompt = agentConfig.system_prompt;
+      
+      if (relevantDocs.length > 0) {
+        const context = relevantDocs
+          .map(doc => `Content: ${doc.content}\nSource: ${doc.metadata?.filename || 'Unknown'}`)
+          .join('\n\n');
+        
+        systemPrompt += `\n\nRelevant context from knowledge base:\n${context}`;
+      }
+      
+      formattedMessages.push(new SystemMessage(systemPrompt));
     }
 
-    // Add memory context if available
+    // Add memory context
     if (memory?.history) {
-      console.log('Adding memory context');
-      const memoryMessages = memory.history.map((msg: any) => {
-        if (msg.type === 'message') {
-          return msg.metadata.role === 'user' 
-            ? new HumanMessage(msg.content)
-            : new AIMessage(msg.content);
-        }
-        return null;
-      }).filter(Boolean);
+      const memoryMessages = memory.history
+        .map((msg: any) => {
+          if (msg.type === 'message') {
+            return msg.metadata.role === 'user' 
+              ? new HumanMessage(msg.content)
+              : new AIMessage(msg.content);
+          }
+          return null;
+        })
+        .filter(Boolean);
+      
       formattedMessages.push(...memoryMessages);
     }
 
@@ -91,7 +111,6 @@ serve(async (req) => {
     messages.forEach((msg: { role: string; content: string; }) => {
       switch (msg.role) {
         case 'system':
-          // Skip system messages as we already added our system prompt
           break;
         case 'user':
           formattedMessages.push(new HumanMessage(msg.content));
@@ -105,9 +124,20 @@ serve(async (req) => {
     });
 
     console.log('Final message count:', formattedMessages.length);
-    console.log('Messages being sent to OpenAI:', formattedMessages);
 
     const response = await chat.call(formattedMessages);
+
+    // Log the interaction
+    await supabase.rpc('log_agent_event', {
+      p_agent_id: agentId,
+      p_event_type: 'chat_completion',
+      p_configuration: {
+        model: agentConfig?.model_id || model,
+        relevantDocsCount: relevantDocs.length,
+        messageCount: formattedMessages.length
+      },
+      p_details: 'Chat completion with knowledge base integration'
+    });
 
     return new Response(
       JSON.stringify({
@@ -119,6 +149,14 @@ serve(async (req) => {
             },
           },
         ],
+        knowledgeBase: {
+          used: relevantDocs.length > 0,
+          sourcesCount: relevantDocs.length,
+          sources: relevantDocs.map(doc => ({
+            filename: doc.metadata?.filename,
+            similarity: doc.similarity
+          }))
+        }
       }),
       {
         headers: {
