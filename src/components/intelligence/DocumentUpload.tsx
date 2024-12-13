@@ -17,7 +17,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
 
     setIsUploading(true);
     try {
-      // Generate a unique filename to prevent duplicates
+      // Generate a unique filename
       const timestamp = new Date().toISOString().replace(/[^0-9]/g, "");
       const uniqueFilename = `${timestamp}-${file.name}`;
       
@@ -62,10 +62,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       
       // Process the document
       const { error: processError } = await supabase.functions.invoke('process-document', {
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        body: formData
       });
 
       if (processError) throw processError;
