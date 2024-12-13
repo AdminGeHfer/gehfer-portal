@@ -12,13 +12,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ProcessDocumentPayload {
-  content: string;
-  metadata?: Record<string, any>;
-  chunkSize?: number;
-  chunkOverlap?: number;
-}
-
 serve(async (req) => {
   const metrics = new ProcessingMetrics();
   
@@ -28,9 +21,35 @@ serve(async (req) => {
   }
 
   try {
-    const payload: ProcessDocumentPayload = await req.json();
-    const { content, metadata = {}, chunkSize = 100, chunkOverlap = 20 } = payload;
+    // Parse FormData
+    const formData = await req.formData();
+    const documentId = formData.get('documentId');
+    const filePath = formData.get('filePath');
 
+    if (!documentId || !filePath) {
+      throw new Error('Missing required fields: documentId or filePath');
+    }
+
+    console.log('Processing document:', { documentId, filePath });
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Download file from storage
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('documents')
+      .download(filePath);
+
+    if (downloadError) {
+      throw new Error(`Error downloading file: ${downloadError.message}`);
+    }
+
+    // Convert file to text
+    const content = await fileData.text();
+    
     // Log metrics
     metrics.trackMetric('contentLength', content.length);
     metrics.trackMemory();
@@ -47,7 +66,7 @@ serve(async (req) => {
     const queueService = new QueueService();
 
     // Process in chunks with queue
-    const chunks = chunkingService.createChunks(content, chunkSize, chunkOverlap);
+    const chunks = chunkingService.createChunks(content, 250, 50);
     metrics.trackMetric('numberOfChunks', chunks.length);
 
     // Process chunks in batches
@@ -79,36 +98,29 @@ serve(async (req) => {
 
     metrics.trackMetric('processedChunks', results.length);
 
-    // Store results in Supabase
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    const { data, error } = await supabase
+    // Update document with processed content
+    const { error: updateError } = await supabase
       .from('documents')
-      .insert({
+      .update({
         content,
-        metadata,
         embedding: results[0].embedding,
         processed: true,
-        chunk_size: chunkSize,
-        chunk_overlap: chunkOverlap
+        chunk_size: 250,
+        chunk_overlap: 50
       })
-      .select()
-      .single();
+      .eq('id', documentId);
 
-    if (error) throw error;
+    if (updateError) throw updateError;
 
     // Store chunks with embeddings
     const chunkInsertPromises = results.map(({ chunk, embedding }) =>
       supabase
         .from('document_chunks')
         .insert({
-          document_id: data.id,
+          document_id: documentId,
           content: chunk,
           embedding,
-          metadata: metadata
+          metadata: {}
         })
     );
 
@@ -119,7 +131,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        documentId: data.id,
+        documentId,
         metrics: metrics.getAllMetrics()
       }),
       { 
