@@ -1,159 +1,147 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { CONFIG, CORS_HEADERS } from "./config.ts";
-import { validateContent } from "./utils/validation.ts";
 import { ProcessingMetrics } from "./utils/metrics.ts";
+import { validateContent } from "./utils/validation.ts";
+import { ChunkingService } from "./services/chunking.ts";
 import { EmbeddingsService } from "./services/embeddings.ts";
-import { splitIntoChunks } from "./services/chunking.ts";
+import { QueueService } from "./services/queue.ts";
+import { createClient } from '@supabase/supabase-js';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface ProcessDocumentPayload {
+  content: string;
+  metadata?: Record<string, any>;
+  chunkSize?: number;
+  chunkOverlap?: number;
+}
 
 serve(async (req) => {
   const metrics = new ProcessingMetrics();
   
+  // Handle CORS
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: CORS_HEADERS });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Starting document processing...');
-    
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const payload: ProcessDocumentPayload = await req.json();
+    const { content, metadata = {}, chunkSize = 100, chunkOverlap = 20 } = payload;
 
-    const formData = await req.formData();
-    const documentId = formData.get('documentId')?.toString();
-    const filePath = formData.get('filePath')?.toString();
-
-    if (!documentId || !filePath) {
-      throw new Error('Missing required parameters');
-    }
-
-    console.log('Processing document:', documentId, 'at path:', filePath);
-    metrics.trackMetric('documentId', documentId);
-
-    // Download file with timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
-    
-    const response = await supabaseClient.storage
-      .from('documents')
-      .download(filePath);
-    
-    clearTimeout(timeout);
-    
-    if (response.error) throw response.error;
-    
-    const content = await response.data.text();
-    console.log('Document content length:', content.length);
+    // Log metrics
     metrics.trackMetric('contentLength', content.length);
+    metrics.trackMemory();
 
     // Validate content
     const validation = validateContent(content);
     if (!validation.isValid) {
-      throw new Error(`Content validation failed: ${validation.error}`);
+      throw new Error(`Invalid content: ${validation.error}`);
     }
 
-    // Update document with basic info
-    await supabaseClient
-      .from('documents')
-      .update({ 
-        content,
-        chunk_size: CONFIG.CHUNK_SIZE,
-        chunk_overlap: CONFIG.CHUNK_OVERLAP
-      })
-      .eq('id', documentId);
-
-    // Process chunks with memory management
-    const chunks = splitIntoChunks(content);
-    console.log(`Created ${chunks.length} chunks`);
-    metrics.trackMetric('chunksCount', chunks.length);
-
+    // Initialize services
+    const chunkingService = new ChunkingService();
     const embeddingsService = new EmbeddingsService();
+    const queueService = new QueueService();
 
-    // Process chunks in smaller batches with delays
-    for (let i = 0; i < chunks.length; i += CONFIG.BATCH_SIZE) {
-      metrics.trackMemory();
-      
-      const batchChunks = chunks.slice(i, i + CONFIG.BATCH_SIZE);
-      console.log(`Processing batch ${Math.floor(i/CONFIG.BATCH_SIZE) + 1} of ${Math.ceil(chunks.length/CONFIG.BATCH_SIZE)}`);
-      
-      // Add delay between batches
-      if (i > 0) {
-        await new Promise(resolve => setTimeout(resolve, CONFIG.INTER_CHUNK_DELAY));
-      }
+    // Process in chunks with queue
+    const chunks = chunkingService.createChunks(content, chunkSize, chunkOverlap);
+    metrics.trackMetric('numberOfChunks', chunks.length);
 
-      // Process each chunk in the batch
-      for (const chunk of batchChunks) {
-        let retries = 0;
-        let success = false;
-
-        while (!success && retries < CONFIG.MAX_RETRIES) {
-          try {
-            const embedding = await embeddingsService.generateEmbedding(chunk);
-
-            await supabaseClient
-              .from('document_chunks')
-              .insert({
-                document_id: documentId,
-                content: chunk,
-                embedding: embedding,
-                metadata: {
-                  chunk_size: CONFIG.CHUNK_SIZE,
-                  chunk_overlap: CONFIG.CHUNK_OVERLAP
-                }
-              });
-
-            success = true;
-          } catch (error) {
-            retries++;
-            console.error(`Attempt ${retries} failed:`, error);
-            
-            if (retries < CONFIG.MAX_RETRIES) {
-              const delay = Math.min(
-                CONFIG.INITIAL_RETRY_DELAY * Math.pow(2, retries - 1),
-                CONFIG.MAX_RETRY_DELAY
-              );
-              await new Promise(resolve => setTimeout(resolve, delay));
-            } else {
-              throw error;
-            }
-          }
+    // Process chunks in batches
+    const batchSize = 5;
+    const results = [];
+    
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      const batch = chunks.slice(i, i + batchSize);
+      const batchPromises = batch.map(async (chunk) => {
+        try {
+          const embedding = await queueService.enqueue(
+            () => embeddingsService.generateEmbedding(chunk)
+          );
+          return { chunk, embedding };
+        } catch (error) {
+          console.error(`Error processing chunk ${i}:`, error);
+          throw error;
         }
+      });
 
-        // Add small delay between chunks
-        await new Promise(resolve => setTimeout(resolve, CONFIG.INTER_CHUNK_DELAY));
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
+
+      // Force garbage collection and pause between batches
+      if (i + batchSize < chunks.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 
-    // Mark document as processed
-    await supabaseClient
-      .from('documents')
-      .update({ processed: true })
-      .eq('id', documentId);
+    metrics.trackMetric('processedChunks', results.length);
 
-    const finalMetrics = metrics.getAllMetrics();
-    console.log('Processing completed. Metrics:', finalMetrics);
+    // Store results in Supabase
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data, error } = await supabase
+      .from('documents')
+      .insert({
+        content,
+        metadata,
+        embedding: results[0].embedding, // Store first embedding as document embedding
+        processed: true,
+        chunk_size: chunkSize,
+        chunk_overlap: chunkOverlap
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Store chunks with embeddings
+    const chunkInsertPromises = results.map(({ chunk, embedding }) =>
+      supabase
+        .from('document_chunks')
+        .insert({
+          document_id: data.id,
+          content: chunk,
+          embedding,
+          metadata: metadata
+        })
+    );
+
+    await Promise.all(chunkInsertPromises);
+
+    metrics.trackMetric('totalExecutionTime', metrics.getExecutionTime());
 
     return new Response(
-      JSON.stringify({ success: true, metrics: finalMetrics }),
-      {
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
-        status: 200,
+      JSON.stringify({ 
+        success: true, 
+        documentId: data.id,
+        metrics: metrics.getAllMetrics()
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
       }
     );
+
   } catch (error) {
-    console.error('Error processing document:', error);
-    metrics.trackMetric('error', error.message);
-    
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
         metrics: metrics.getAllMetrics()
       }),
-      {
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      { 
         status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       }
     );
   }
