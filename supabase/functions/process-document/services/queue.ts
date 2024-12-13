@@ -33,15 +33,27 @@ export class QueueService {
     }
   }
 
-  async executeWithRetry(item: any): Promise<void> {
+  private async executeWithRetry(item: any, retryCount = 0): Promise<void> {
     try {
-      const { operation, onSuccess, onError } = item;
-      const result = await operation();
-      if (onSuccess) await onSuccess(result);
+      const { operation } = item;
+      await operation();
     } catch (error) {
-      console.error('Error executing queue item:', error);
-      if (item.onError) await item.onError(error);
-      throw error;
+      console.error(`Error executing operation (attempt ${retryCount + 1}/${CONFIG.MAX_RETRIES}):`, error);
+      
+      if (retryCount >= CONFIG.MAX_RETRIES - 1) {
+        if (item.onError) await item.onError(error);
+        throw error;
+      }
+
+      const delay = Math.min(
+        CONFIG.INITIAL_RETRY_DELAY * Math.pow(2, retryCount),
+        CONFIG.MAX_RETRY_DELAY
+      );
+
+      console.log(`Retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      return this.executeWithRetry(item, retryCount + 1);
     }
   }
 }

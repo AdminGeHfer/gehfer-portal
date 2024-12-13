@@ -10,16 +10,23 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req) => {
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: CORS_HEADERS });
   }
 
   try {
-    const { documentId, filePath } = await req.json();
+    console.log('Processing document request');
+    
+    // Parse request body
+    const body = await req.json();
+    const { documentId, filePath } = body;
     
     if (!documentId || !filePath) {
       throw new Error('Missing required fields: documentId or filePath');
     }
+
+    console.log(`Processing document ${documentId} with file path ${filePath}`);
 
     // Fetch document content from storage
     const { data: fileData, error: fileError } = await supabase
@@ -27,7 +34,10 @@ serve(async (req) => {
       .from('documents')
       .download(filePath);
 
-    if (fileError) throw fileError;
+    if (fileError) {
+      console.error('Error downloading file:', fileError);
+      throw fileError;
+    }
 
     const content = await fileData.text();
     const validation = validateContent(content);
