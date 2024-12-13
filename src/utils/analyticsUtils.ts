@@ -6,6 +6,12 @@ export interface SearchAnalytics {
   topQueries: { query: string; count: number }[];
 }
 
+interface LogConfiguration {
+  resultsCount: number;
+  averageSimilarity: number;
+  timestamp: string;
+}
+
 export const logSearchQuery = async (
   query: string,
   results: any[],
@@ -39,7 +45,10 @@ export const getSearchAnalytics = async (agentId?: string): Promise<SearchAnalyt
   if (error) throw error;
 
   const queries = logs.map(log => log.details);
-  const similarities = logs.map(log => log.configuration?.averageSimilarity || 0);
+  const similarities = logs.map(log => {
+    const config = log.configuration as LogConfiguration;
+    return config?.averageSimilarity || 0;
+  });
 
   const queryCount: Record<string, number> = {};
   queries.forEach(q => {
