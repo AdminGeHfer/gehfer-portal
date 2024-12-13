@@ -46,8 +46,18 @@ export const getSearchAnalytics = async (agentId?: string): Promise<SearchAnalyt
 
   const queries = logs.map(log => log.details);
   const similarities = logs.map(log => {
-    const config = log.configuration as LogConfiguration;
-    return config?.averageSimilarity || 0;
+    if (!log.configuration || typeof log.configuration !== 'object') return 0;
+    
+    // Type guard to check if the configuration has the required properties
+    const isLogConfig = (config: any): config is LogConfiguration => {
+      return (
+        'averageSimilarity' in config &&
+        typeof config.averageSimilarity === 'number'
+      );
+    };
+
+    const config = log.configuration;
+    return isLogConfig(config) ? config.averageSimilarity : 0;
   });
 
   const queryCount: Record<string, number> = {};
