@@ -55,14 +55,12 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
 
       if (assocError) throw assocError;
 
-      // Create form data for processing
-      const formData = new FormData();
-      formData.append('documentId', documentData.id);
-      formData.append('filePath', storageData.path);
-      
       // Process the document
       const { error: processError } = await supabase.functions.invoke('process-document', {
-        body: formData
+        body: JSON.stringify({
+          documentId: documentData.id,
+          filePath: storageData.path
+        })
       });
 
       if (processError) throw processError;

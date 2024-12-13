@@ -17,14 +17,16 @@ serve(async (req) => {
   console.log('Starting document processing request');
 
   try {
-    const { content, chunkSize = 1000, overlap = 200 } = await req.json();
-    
-    if (!content) {
-      throw new Error('No content provided');
+    // Parse the JSON body
+    const body = await req.json();
+    console.log('Received request body:', body);
+
+    if (!body.documentId || !body.filePath) {
+      throw new Error('Missing required fields: documentId or filePath');
     }
 
     const queueService = new QueueService(metrics);
-    const results = await queueService.executeWithRetry(content, chunkSize, overlap);
+    const results = await queueService.executeWithRetry(body.documentId, body.filePath);
 
     metrics.trackMemory();
     const finalMetrics = metrics.getAllMetrics();
