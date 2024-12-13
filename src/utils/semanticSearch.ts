@@ -14,7 +14,7 @@ export async function semanticSearch(
 ): Promise<SearchResult[]> {
   const { data: chunks, error } = await supabase
     .rpc('match_documents', {
-      query_embedding: embedding,
+      query_embedding: embedding.toString(),
       match_threshold,
       match_count
     });

@@ -11,6 +11,11 @@ interface Document {
   metadata: any;
 }
 
+interface AgentDocument {
+  document_id: string;
+  documents: Document;
+}
+
 export function useDocuments(agentId: string) {
   const queryClient = useQueryClient();
 
@@ -32,7 +37,7 @@ export function useDocuments(agentId: string) {
         .eq('agent_id', agentId);
 
       if (error) throw error;
-      return data?.map(d => d.documents) || [];
+      return (data as AgentDocument[])?.map(d => d.documents) || [];
     }
   });
 
@@ -54,7 +59,7 @@ export function useDocuments(agentId: string) {
       if (docError) throw docError;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['documents', agentId]);
+      queryClient.invalidateQueries({ queryKey: ['documents', agentId] });
       toast.success("Documento removido com sucesso");
     },
     onError: (error: any) => {
