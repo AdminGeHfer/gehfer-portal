@@ -45,7 +45,7 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
           document_id,
           documents (
             id,
-            metadata->>'filename' as filename,
+            metadata,
             created_at
           )
         `)
@@ -54,13 +54,13 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
       if (error) throw error;
 
       if (data) {
-        // First cast data to unknown, then to DocumentResponse[]
-        const typedData = data as unknown as DocumentResponse[];
-        const formattedDocs = typedData.map(item => ({
-          id: item.documents.id,
-          filename: item.documents.metadata.filename,
-          created_at: item.documents.created_at
-        }));
+        const formattedDocs = data
+          .filter(item => item.documents && item.documents.metadata)
+          .map(item => ({
+            id: item.documents.id,
+            filename: item.documents.metadata?.filename || 'Unnamed Document',
+            created_at: item.documents.created_at
+          }));
 
         setDocuments(formattedDocs);
       }
