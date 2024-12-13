@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -31,12 +32,17 @@ serve(async (req) => {
       .eq('id', agentId)
       .single();
 
-    if (agentError) throw agentError;
+    if (agentError) {
+      console.error('Error fetching agent:', agentError);
+      throw agentError;
+    }
 
     console.log('Agent configuration:', agent);
 
     // Generate embedding for the last user message
     const lastUserMessage = messages[messages.length - 1].content;
+    console.log('Processing query:', lastUserMessage);
+
     const embeddingResponse = await openai.createEmbedding({
       model: "text-embedding-3-small",
       input: lastUserMessage,
@@ -45,6 +51,8 @@ serve(async (req) => {
     const queryEmbedding = embeddingResponse.data.data[0].embedding;
 
     // Search for relevant chunks
+    console.log('Knowledge base enabled, searching for relevant documents...');
+    
     const { data: relevantChunks, error: searchError } = await supabase
       .rpc('match_document_chunks', {
         query_embedding: queryEmbedding,
@@ -52,7 +60,10 @@ serve(async (req) => {
         match_count: 5
       });
 
-    if (searchError) throw searchError;
+    if (searchError) {
+      console.error('Error searching documents:', searchError);
+      throw searchError;
+    }
 
     console.log(`Found ${relevantChunks?.length || 0} relevant chunks`);
 
@@ -62,6 +73,7 @@ serve(async (req) => {
       contextText = 'Relevant context:\n' + relevantChunks
         .map(chunk => chunk.content)
         .join('\n---\n');
+      console.log('Context prepared from chunks:', contextText);
     }
 
     // Prepare system message
@@ -72,6 +84,8 @@ serve(async (req) => {
 
     // Combine messages
     const fullMessages = [systemMessage, ...messages];
+
+    console.log('Sending request to OpenAI with messages:', fullMessages);
 
     // Get completion from OpenAI
     const completion = await openai.createChatCompletion({
@@ -101,7 +115,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in chat-completion function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

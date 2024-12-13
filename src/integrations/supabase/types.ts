@@ -1572,6 +1572,19 @@ export type Database = {
         }
         Returns: string
       }
+      match_document_chunks: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+          match_count: number
+        }
+        Returns: {
+          id: string
+          content: string
+          metadata: Json
+          similarity: number
+        }[]
+      }
       match_documents:
         | {
             Args: {
