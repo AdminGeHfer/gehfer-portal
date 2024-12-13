@@ -37,7 +37,13 @@ export function useDocuments(agentId: string) {
         .eq('agent_id', agentId);
 
       if (error) throw error;
-      return (data as AgentDocument[])?.map(d => d.documents) || [];
+      
+      // Ensure proper type casting and null checking
+      if (!data) return [];
+      
+      // Type assertion after validation
+      const validData = data as unknown as AgentDocument[];
+      return validData.map(d => d.documents) || [];
     }
   });
 
