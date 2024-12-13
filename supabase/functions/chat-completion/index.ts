@@ -16,7 +16,13 @@ serve(async (req) => {
   try {
     const { messages, model = 'gpt-4o-mini', agentId, memory, query } = await req.json();
 
-    console.log('Received request with agentId:', agentId);
+    console.log('Processing request with:', {
+      messageCount: messages.length,
+      model,
+      agentId,
+      hasMemory: !!memory,
+      query
+    });
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -42,26 +48,34 @@ serve(async (req) => {
 
       if (error) throw error;
       agentConfig = agent;
+      console.log('Agent config:', {
+        name: agentConfig.name,
+        useKnowledgeBase: agentConfig.use_knowledge_base,
+        model: agentConfig.model_id
+      });
 
       // If agent uses knowledge base, search for relevant documents
-      if (agentConfig.use_knowledge_base && query) {
-        const openai = new OpenAIApi(new Configuration({
-          apiKey: Deno.env.get('OPENAI_API_KEY'),
-        }));
-
-        const embedding = await openai.createEmbedding({
-          model: "text-embedding-ada-002",
-          input: query,
-        });
-
-        const { data: docs, error: searchError } = await supabase.rpc('match_documents', {
-          query_embedding: embedding.data.data[0].embedding,
-          match_threshold: agentConfig.search_threshold,
-          match_count: 5
-        });
+      if (agentConfig.use_knowledge_base) {
+        console.log('Agent uses knowledge base, searching for relevant documents...');
+        
+        // Get the last user message for context
+        const lastUserMessage = messages.findLast(m => m.role === 'user')?.content || '';
+        
+        const { data: docs, error: searchError } = await supabase
+          .rpc('match_documents', {
+            query_embedding: await generateEmbedding(lastUserMessage),
+            match_threshold: agentConfig.search_threshold || 0.7,
+            match_count: 5
+          });
 
         if (searchError) throw searchError;
-        relevantDocs = docs;
+        
+        if (docs && docs.length > 0) {
+          console.log(`Found ${docs.length} relevant documents`);
+          relevantDocs = docs;
+        } else {
+          console.log('No relevant documents found');
+        }
       }
     }
 
@@ -85,7 +99,7 @@ serve(async (req) => {
           .map(doc => `Content: ${doc.content}\nSource: ${doc.metadata?.filename || 'Unknown'}`)
           .join('\n\n');
         
-        systemPrompt += `\n\nRelevant context from knowledge base:\n${context}`;
+        systemPrompt += `\n\nRelevant context from knowledge base:\n${context}\n\nUse the information above to help answer user questions. If the information is not relevant to the question, you can ignore it.`;
       }
       
       formattedMessages.push(new SystemMessage(systemPrompt));
@@ -179,3 +193,27 @@ serve(async (req) => {
     );
   }
 });
+
+async function generateEmbedding(text: string): Promise<number[]> {
+  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!openaiApiKey) throw new Error('Missing OpenAI API key');
+
+  const response = await fetch('https://api.openai.com/v1/embeddings', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openaiApiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      input: text,
+      model: 'text-embedding-ada-002'
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.statusText}`);
+  }
+
+  const json = await response.json();
+  return json.data[0].embedding;
+}
