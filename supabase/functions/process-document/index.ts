@@ -9,6 +9,8 @@ const corsHeaders = {
 
 const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 200;
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -37,20 +39,35 @@ serve(async (req) => {
 
     console.log('Processing document:', documentId, 'at path:', filePath)
 
-    // Download file from storage
-    const { data: fileData, error: downloadError } = await supabaseClient
-      .storage
-      .from('documents')
-      .download(filePath)
+    // Download file from storage with retries
+    let fileData;
+    let downloadError;
+    for (let i = 0; i < MAX_RETRIES; i++) {
+      try {
+        const response = await supabaseClient.storage
+          .from('documents')
+          .download(filePath);
+        
+        if (response.error) throw response.error;
+        fileData = response.data;
+        break;
+      } catch (error) {
+        downloadError = error;
+        if (i < MAX_RETRIES - 1) {
+          console.log(`Retry ${i + 1} failed, waiting ${RETRY_DELAY}ms...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        }
+      }
+    }
 
-    if (downloadError) {
-      throw downloadError
+    if (!fileData) {
+      throw downloadError || new Error('Failed to download file after retries');
     }
 
     // Convert file to text
     const content = await fileData.text()
 
-    // Update document with content
+    // Update document with content in smaller chunks
     const { error: updateError } = await supabaseClient
       .from('documents')
       .update({ 
@@ -66,40 +83,64 @@ serve(async (req) => {
     const chunks = splitIntoChunks(content, CHUNK_SIZE, CHUNK_OVERLAP)
     console.log(`Created ${chunks.length} chunks`)
 
-    // Process each chunk
-    for (const chunk of chunks) {
-      // Generate embedding
-      const { data: embedding } = await openai.createEmbedding({
-        model: "text-embedding-ada-002",
-        input: chunk,
-      })
-
-      if (!embedding?.data?.[0]?.embedding) {
-        throw new Error('Failed to generate embedding')
-      }
-
-      // Store chunk with embedding
-      const { error: chunkError } = await supabaseClient
-        .from('document_chunks')
-        .insert({
-          document_id: documentId,
-          content: chunk,
-          embedding: embedding.data[0].embedding,
-          metadata: {
-            chunk_size: CHUNK_SIZE,
-            chunk_overlap: CHUNK_OVERLAP
+    // Process chunks in batches to avoid memory issues
+    const BATCH_SIZE = 5;
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+      const batchChunks = chunks.slice(i, i + BATCH_SIZE);
+      console.log(`Processing batch ${Math.floor(i/BATCH_SIZE) + 1} of ${Math.ceil(chunks.length/BATCH_SIZE)}`);
+      
+      await Promise.all(batchChunks.map(async (chunk) => {
+        let embeddingError;
+        let embedding;
+        
+        // Retry embedding generation
+        for (let j = 0; j < MAX_RETRIES; j++) {
+          try {
+            const response = await openai.createEmbedding({
+              model: "text-embedding-ada-002",
+              input: chunk,
+            });
+            
+            if (!response.data?.data?.[0]?.embedding) {
+              throw new Error('Failed to generate embedding');
+            }
+            
+            embedding = response.data.data[0].embedding;
+            break;
+          } catch (error) {
+            embeddingError = error;
+            if (j < MAX_RETRIES - 1) {
+              console.log(`Embedding retry ${j + 1} failed, waiting ${RETRY_DELAY}ms...`);
+              await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+            }
           }
-        })
+        }
 
-      if (chunkError) throw chunkError
+        if (!embedding) {
+          throw embeddingError || new Error('Failed to generate embedding after retries');
+        }
+
+        // Store chunk with embedding
+        const { error: chunkError } = await supabaseClient
+          .from('document_chunks')
+          .insert({
+            document_id: documentId,
+            content: chunk,
+            embedding: embedding,
+            metadata: {
+              chunk_size: CHUNK_SIZE,
+              chunk_overlap: CHUNK_OVERLAP
+            }
+          })
+
+        if (chunkError) throw chunkError
+      }));
     }
 
     // Mark document as processed
     const { error: finalizeError } = await supabaseClient
       .from('documents')
-      .update({ 
-        processed: true
-      })
+      .update({ processed: true })
       .eq('id', documentId)
 
     if (finalizeError) throw finalizeError

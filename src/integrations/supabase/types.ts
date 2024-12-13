@@ -504,28 +504,37 @@ export type Database = {
       }
       documents: {
         Row: {
+          chunk_overlap: number | null
+          chunk_size: number | null
           content: string | null
           created_at: string | null
           created_by: string | null
           embedding: string | null
           id: string
           metadata: Json | null
+          processed: boolean | null
         }
         Insert: {
+          chunk_overlap?: number | null
+          chunk_size?: number | null
           content?: string | null
           created_at?: string | null
           created_by?: string | null
           embedding?: string | null
           id?: string
           metadata?: Json | null
+          processed?: boolean | null
         }
         Update: {
+          chunk_overlap?: number | null
+          chunk_size?: number | null
           content?: string | null
           created_at?: string | null
           created_by?: string | null
           embedding?: string | null
           id?: string
           metadata?: Json | null
+          processed?: boolean | null
         }
         Relationships: [
           {
