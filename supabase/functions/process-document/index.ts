@@ -1,10 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.47.6";
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
 import { ProcessingMetrics } from "./utils/metrics.ts";
 import { validateContent } from "./utils/validation.ts";
 import { ChunkingService } from "./services/chunking.ts";
 import { EmbeddingsService } from "./services/embeddings.ts";
 import { QueueService } from "./services/queue.ts";
-import { createClient } from '@supabase/supabase-js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -50,7 +51,7 @@ serve(async (req) => {
     metrics.trackMetric('numberOfChunks', chunks.length);
 
     // Process chunks in batches
-    const batchSize = 5;
+    const batchSize = 2;
     const results = [];
     
     for (let i = 0; i < chunks.length; i += batchSize) {
@@ -72,7 +73,7 @@ serve(async (req) => {
 
       // Force garbage collection and pause between batches
       if (i + batchSize < chunks.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
@@ -89,7 +90,7 @@ serve(async (req) => {
       .insert({
         content,
         metadata,
-        embedding: results[0].embedding, // Store first embedding as document embedding
+        embedding: results[0].embedding,
         processed: true,
         chunk_size: chunkSize,
         chunk_overlap: chunkOverlap
