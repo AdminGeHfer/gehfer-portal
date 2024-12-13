@@ -20,8 +20,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Get the last user message
+    // Get the last user message for similarity search
     const lastUserMessage = messages[messages.length - 1].content
+    console.log('Processing query:', lastUserMessage)
 
     // Get agent configuration
     const { data: agent } = await supabase
@@ -32,10 +33,9 @@ serve(async (req) => {
 
     console.log('Agent config:', agent)
 
-    // Search for relevant documents if knowledge base is enabled
     let relevantDocs = []
     if (agent?.use_knowledge_base) {
-      console.log('Searching for relevant documents...')
+      console.log('Knowledge base enabled, searching for relevant documents...')
       
       // Generate embedding for the query
       const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
@@ -53,31 +53,51 @@ serve(async (req) => {
       const embeddingData = await embeddingResponse.json()
       const queryEmbedding = embeddingData.data[0].embedding
 
-      // Search for similar documents
-      const { data: documents } = await supabase.rpc('match_documents', {
+      // Search for similar documents using match_documents function
+      const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
         query_embedding: queryEmbedding,
-        match_threshold: agent.search_threshold,
+        match_threshold: agent.search_threshold || 0.7,
         match_count: 5
       })
 
-      console.log('Found relevant documents:', documents)
+      if (searchError) {
+        console.error('Error searching documents:', searchError)
+      }
+
+      console.log('Found relevant documents:', documents?.length || 0)
       
       if (documents && documents.length > 0) {
-        relevantDocs = documents.map(doc => doc.content)
+        relevantDocs = documents.map(doc => ({
+          content: doc.content,
+          similarity: doc.similarity
+        }))
+        console.log('Relevant docs:', relevantDocs)
       }
     }
 
-    // Construct system message with context
+    // Construct system message with context and memory
     const systemMessage = {
       role: 'system',
       content: `${agent?.system_prompt || 'You are a helpful assistant.'}\n\n${
         relevantDocs.length > 0 
           ? 'Here are some relevant documents that may help with the query:\n\n' + 
-            relevantDocs.join('\n\n') + 
-            '\n\nPlease use this information to help answer the query.'
+            relevantDocs.map(doc => `[Similarity: ${doc.similarity.toFixed(2)}]\n${doc.content}`).join('\n\n') +
+            '\n\nPlease use this information to help answer the query. If the information is relevant, incorporate it into your response.'
           : ''
       }`
     }
+
+    // Add memory context if available
+    const memoryContext = memory?.history?.length > 0
+      ? '\n\nConversation history:\n' + 
+        memory.history.map(item => `${item.metadata.role}: ${item.content}`).join('\n')
+      : ''
+
+    if (memoryContext) {
+      systemMessage.content += memoryContext
+    }
+
+    console.log('System message:', systemMessage)
 
     // Prepare messages array with context
     const contextualizedMessages = [
@@ -85,9 +105,7 @@ serve(async (req) => {
       ...messages
     ]
 
-    console.log('Sending request to OpenAI with messages:', contextualizedMessages)
-
-    // Get completion from OpenAI
+    // Get completion from OpenAI with agent parameters
     const completion = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -105,6 +123,9 @@ serve(async (req) => {
 
     const completionData = await completion.json()
     
+    // Log completion for debugging
+    console.log('Completion response:', completionData)
+
     return new Response(JSON.stringify(completionData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
