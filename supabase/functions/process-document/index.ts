@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { ProcessingMetrics } from "./utils/metrics.ts";
 import { QueueService } from "./services/queue.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +9,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -17,7 +17,6 @@ serve(async (req) => {
   console.log('Starting document processing request');
 
   try {
-    // Parse the JSON body
     const body = await req.json();
     console.log('Received request body:', body);
 
@@ -27,6 +26,28 @@ serve(async (req) => {
 
     const queueService = new QueueService(metrics);
     const results = await queueService.executeWithRetry(body.documentId, body.filePath);
+
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Update document status after successful processing
+    const { error: updateError } = await supabase
+      .from('documents')
+      .update({ 
+        processed: true,
+        embedding: results.embedding,
+        content: results.content
+      })
+      .eq('id', body.documentId);
+
+    if (updateError) {
+      console.error('Error updating document status:', updateError);
+      throw updateError;
+    }
+
+    console.log(`Document ${body.documentId} marked as processed`);
 
     metrics.trackMemory();
     const finalMetrics = metrics.getAllMetrics();

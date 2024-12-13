@@ -14,15 +14,19 @@ export class QueueService {
     this.embeddingsService = new EmbeddingsService(metrics);
   }
 
-  async executeWithRetry(content: string, chunkSize: number, overlap: number) {
-    console.log('Starting document processing...');
+  async executeWithRetry(documentId: string, filePath: string) {
+    console.log('Starting document processing...', { documentId, filePath });
+    
+    // Fetch document content
+    const response = await fetch(`${Deno.env.get('SUPABASE_URL')}/storage/v1/object/public/documents/${filePath}`);
+    const content = await response.text();
     
     const validation = validateContent(content);
     if (!validation.isValid) {
       throw new Error(`Content validation failed: ${validation.error}`);
     }
 
-    const chunks = this.chunkingService.createChunks(content, chunkSize, overlap);
+    const chunks = this.chunkingService.createChunks(content, 1000, 200);
     console.log(`Created ${chunks.length} chunks`);
     this.metrics.trackMetric('chunks_created', chunks.length);
 
@@ -42,6 +46,11 @@ export class QueueService {
       }
     }
 
-    return results;
+    // Return combined results
+    return {
+      content: content,
+      embedding: results[0]?.embedding, // Use first chunk's embedding for document
+      chunks: results
+    };
   }
 }
