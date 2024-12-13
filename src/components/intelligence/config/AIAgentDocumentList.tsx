@@ -18,6 +18,9 @@ interface SupabaseDocument {
   id: string;
   metadata: {
     filename: string;
+    contentType: string;
+    size: number;
+    path: string;
   };
   created_at: string;
 }
@@ -55,10 +58,14 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
       if (data) {
         const formattedDocs = data
-          .filter(item => item.documents && item.documents.metadata)
+          .filter((item): item is DocumentResponse => 
+            item.documents !== null && 
+            typeof item.documents.metadata === 'object' && 
+            item.documents.metadata !== null && 
+            'filename' in item.documents.metadata)
           .map(item => ({
             id: item.documents.id,
-            filename: item.documents.metadata?.filename || 'Unnamed Document',
+            filename: item.documents.metadata.filename,
             created_at: item.documents.created_at
           }));
 

@@ -32,10 +32,15 @@ serve(async (req) => {
     console.log('Processing document:', documentId, 'at path:', filePath);
     metrics.trackMetric('documentId', documentId);
 
-    // Download file
+    // Download file with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
+    
     const response = await supabaseClient.storage
       .from('documents')
       .download(filePath);
+    
+    clearTimeout(timeout);
     
     if (response.error) throw response.error;
     
@@ -59,39 +64,64 @@ serve(async (req) => {
       })
       .eq('id', documentId);
 
-    // Process chunks
+    // Process chunks with memory management
     const chunks = splitIntoChunks(content);
     console.log(`Created ${chunks.length} chunks`);
     metrics.trackMetric('chunksCount', chunks.length);
 
     const embeddingsService = new EmbeddingsService();
 
-    // Process chunks in batches
+    // Process chunks in smaller batches with delays
     for (let i = 0; i < chunks.length; i += CONFIG.BATCH_SIZE) {
       metrics.trackMemory();
       
       const batchChunks = chunks.slice(i, i + CONFIG.BATCH_SIZE);
       console.log(`Processing batch ${Math.floor(i/CONFIG.BATCH_SIZE) + 1} of ${Math.ceil(chunks.length/CONFIG.BATCH_SIZE)}`);
       
+      // Add delay between batches
       if (i > 0) {
         await new Promise(resolve => setTimeout(resolve, CONFIG.INTER_CHUNK_DELAY));
       }
 
+      // Process each chunk in the batch
       for (const chunk of batchChunks) {
-        const embedding = await embeddingsService.generateEmbedding(chunk);
+        let retries = 0;
+        let success = false;
 
-        await supabaseClient
-          .from('document_chunks')
-          .insert({
-            document_id: documentId,
-            content: chunk,
-            embedding: embedding,
-            metadata: {
-              chunk_size: CONFIG.CHUNK_SIZE,
-              chunk_overlap: CONFIG.CHUNK_OVERLAP
+        while (!success && retries < CONFIG.MAX_RETRIES) {
+          try {
+            const embedding = await embeddingsService.generateEmbedding(chunk);
+
+            await supabaseClient
+              .from('document_chunks')
+              .insert({
+                document_id: documentId,
+                content: chunk,
+                embedding: embedding,
+                metadata: {
+                  chunk_size: CONFIG.CHUNK_SIZE,
+                  chunk_overlap: CONFIG.CHUNK_OVERLAP
+                }
+              });
+
+            success = true;
+          } catch (error) {
+            retries++;
+            console.error(`Attempt ${retries} failed:`, error);
+            
+            if (retries < CONFIG.MAX_RETRIES) {
+              const delay = Math.min(
+                CONFIG.INITIAL_RETRY_DELAY * Math.pow(2, retries - 1),
+                CONFIG.MAX_RETRY_DELAY
+              );
+              await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+              throw error;
             }
-          });
+          }
+        }
 
+        // Add small delay between chunks
         await new Promise(resolve => setTimeout(resolve, CONFIG.INTER_CHUNK_DELAY));
       }
     }

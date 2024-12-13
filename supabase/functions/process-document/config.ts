@@ -1,11 +1,11 @@
 export const CONFIG = {
-  CHUNK_SIZE: 250,
+  CHUNK_SIZE: 250, // Reduced from previous value
   CHUNK_OVERLAP: 50,
   MAX_RETRIES: 3,
   INITIAL_RETRY_DELAY: 1000,
   MAX_RETRY_DELAY: 10000,
   TIMEOUT: 10000,
-  BATCH_SIZE: 2,
+  BATCH_SIZE: 2, // Process in smaller batches
   INTER_CHUNK_DELAY: 500
 };
 
