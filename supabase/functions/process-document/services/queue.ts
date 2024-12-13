@@ -1,39 +1,47 @@
+import { CONFIG } from "../config.ts";
+
 export class QueueService {
-  private queue: Promise<any>[] = [];
-  private concurrency: number = 2;
-  private running: number = 0;
-  private retryAttempts: number = 3;
-  private retryDelay: number = 1000;
+  private queue: any[] = [];
+  private processing = false;
 
-  async enqueue<T>(task: () => Promise<T>): Promise<T> {
-    while (this.running >= this.concurrency) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
+  constructor(private batchSize = CONFIG.BATCH_SIZE) {}
 
-    this.running++;
-
-    try {
-      return await this.executeWithRetry(task);
-    } finally {
-      this.running--;
+  async add(item: any): Promise<void> {
+    this.queue.push(item);
+    if (!this.processing) {
+      await this.process();
     }
   }
 
-  private async executeWithRetry<T>(
-    task: () => Promise<T>, 
-    attempt: number = 1
-  ): Promise<T> {
+  private async process(): Promise<void> {
+    this.processing = true;
+    
     try {
-      return await task();
-    } catch (error) {
-      if (attempt >= this.retryAttempts) {
-        throw error;
+      while (this.queue.length > 0) {
+        const batch = this.queue.splice(0, this.batchSize);
+        await Promise.all(batch.map(item => this.executeWithRetry(item)));
+        
+        if (this.queue.length > 0) {
+          await new Promise(resolve => setTimeout(resolve, CONFIG.INTER_CHUNK_DELAY));
+        }
       }
+    } catch (error) {
+      console.error('Error processing queue:', error);
+      throw error;
+    } finally {
+      this.processing = false;
+    }
+  }
 
-      const delay = this.retryDelay * Math.pow(2, attempt - 1);
-      await new Promise(resolve => setTimeout(resolve, delay));
-
-      return this.executeWithRetry(task, attempt + 1);
+  async executeWithRetry(item: any): Promise<void> {
+    try {
+      const { operation, onSuccess, onError } = item;
+      const result = await operation();
+      if (onSuccess) await onSuccess(result);
+    } catch (error) {
+      console.error('Error executing queue item:', error);
+      if (item.onError) await item.onError(error);
+      throw error;
     }
   }
 }

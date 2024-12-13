@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@4.26.0";
 import { withRetry } from "../utils/retry.ts";
 
 export class EmbeddingsService {
@@ -10,21 +10,31 @@ export class EmbeddingsService {
       throw new Error('Missing OpenAI API key');
     }
 
-    this.openai = new OpenAIApi(new Configuration({ apiKey: openaiApiKey }));
+    const configuration = new Configuration({ apiKey: openaiApiKey });
+    this.openai = new OpenAIApi(configuration);
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
     return await withRetry(async () => {
-      const response = await this.openai.createEmbedding({
-        model: 'text-embedding-ada-002',
-        input: text,
+      const response = await fetch('https://api.openai.com/v1/embeddings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: text,
+          model: 'text-embedding-ada-002',
+        }),
       });
 
-      if (!response.data?.data?.[0]?.embedding) {
-        throw new Error('Failed to generate embedding');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
       }
 
-      return response.data.data[0].embedding;
+      const data = await response.json();
+      return data.data[0].embedding;
     });
   }
 }

@@ -1,4 +1,4 @@
-import { CONFIG } from '../config.ts';
+import { CONFIG } from "../config.ts";
 
 export async function withRetry<T>(
   operation: () => Promise<T>,
@@ -7,7 +7,10 @@ export async function withRetry<T>(
   try {
     return await operation();
   } catch (error) {
+    console.error(`Error in operation (attempt ${retryCount + 1}/${CONFIG.MAX_RETRIES}):`, error);
+
     if (retryCount >= CONFIG.MAX_RETRIES) {
+      console.error('Max retries reached, throwing error');
       throw error;
     }
 
@@ -16,7 +19,7 @@ export async function withRetry<T>(
       CONFIG.MAX_RETRY_DELAY
     );
 
-    console.log(`Retry ${retryCount + 1}/${CONFIG.MAX_RETRIES} after ${delay}ms`);
+    console.log(`Retrying in ${delay}ms...`);
     await new Promise(resolve => setTimeout(resolve, delay));
 
     return withRetry(operation, retryCount + 1);
