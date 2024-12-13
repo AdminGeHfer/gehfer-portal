@@ -1,219 +1,119 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { ChatOpenAI } from "https://esm.sh/@langchain/openai@0.0.14";
-import { HumanMessage, SystemMessage, AIMessage } from "https://esm.sh/@langchain/core@0.1.25/messages";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { messages, model = 'gpt-4o-mini', agentId, memory, query } = await req.json();
-
-    console.log('Processing request with:', {
-      messageCount: messages.length,
-      model,
-      agentId,
-      hasMemory: !!memory,
-      query
-    });
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase environment variables');
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Fetch agent configuration
-    let agentConfig = null;
-    let relevantDocs = [];
+    const { messages, model, agentId, memory } = await req.json()
+    const openAiKey = Deno.env.get('OPENAI_API_KEY')
     
-    if (agentId) {
-      console.log('Fetching agent configuration...');
-      const { data: agent, error } = await supabase
-        .from('ai_agents')
-        .select('*')
-        .eq('id', agentId)
-        .single();
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    const supabase = createClient(supabaseUrl, supabaseKey)
 
-      if (error) throw error;
-      agentConfig = agent;
-      console.log('Agent config:', {
-        name: agentConfig.name,
-        useKnowledgeBase: agentConfig.use_knowledge_base,
-        model: agentConfig.model_id
-      });
+    // Get the last user message
+    const lastUserMessage = messages[messages.length - 1].content
 
-      // If agent uses knowledge base, search for relevant documents
-      if (agentConfig.use_knowledge_base) {
-        console.log('Agent uses knowledge base, searching for relevant documents...');
-        
-        // Get the last user message for context
-        const lastUserMessage = messages.findLast(m => m.role === 'user')?.content || '';
-        
-        const { data: docs, error: searchError } = await supabase
-          .rpc('match_documents', {
-            query_embedding: await generateEmbedding(lastUserMessage),
-            match_threshold: agentConfig.search_threshold || 0.7,
-            match_count: 5
-          });
+    // Get agent configuration
+    const { data: agent } = await supabase
+      .from('ai_agents')
+      .select('*')
+      .eq('id', agentId)
+      .single()
 
-        if (searchError) throw searchError;
-        
-        if (docs && docs.length > 0) {
-          console.log(`Found ${docs.length} relevant documents`);
-          relevantDocs = docs;
-        } else {
-          console.log('No relevant documents found');
-        }
-      }
-    }
+    console.log('Agent config:', agent)
 
-    // Initialize chat model
-    const chat = new ChatOpenAI({
-      modelName: agentConfig?.model_id || model,
-      temperature: agentConfig?.temperature || 0.7,
-      maxTokens: agentConfig?.max_tokens || 4000,
-      topP: agentConfig?.top_p || 0.9,
-    });
-
-    // Prepare messages array
-    const formattedMessages = [];
-
-    // Add system prompt and knowledge context
-    if (agentConfig?.system_prompt) {
-      let systemPrompt = agentConfig.system_prompt;
+    // Search for relevant documents if knowledge base is enabled
+    let relevantDocs = []
+    if (agent?.use_knowledge_base) {
+      console.log('Searching for relevant documents...')
       
-      if (relevantDocs.length > 0) {
-        const context = relevantDocs
-          .map(doc => `Content: ${doc.content}\nSource: ${doc.metadata?.filename || 'Unknown'}`)
-          .join('\n\n');
-        
-        systemPrompt += `\n\nRelevant context from knowledge base:\n${context}\n\nUse the information above to help answer user questions. If the information is not relevant to the question, you can ignore it.`;
-      }
-      
-      formattedMessages.push(new SystemMessage(systemPrompt));
-    }
-
-    // Add memory context
-    if (memory?.history) {
-      const memoryMessages = memory.history
-        .map((msg: any) => {
-          if (msg.type === 'message') {
-            return msg.metadata.role === 'user' 
-              ? new HumanMessage(msg.content)
-              : new AIMessage(msg.content);
-          }
-          return null;
+      // Generate embedding for the query
+      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          input: lastUserMessage,
+          model: "text-embedding-ada-002"
         })
-        .filter(Boolean);
+      })
+
+      const embeddingData = await embeddingResponse.json()
+      const queryEmbedding = embeddingData.data[0].embedding
+
+      // Search for similar documents
+      const { data: documents } = await supabase.rpc('match_documents', {
+        query_embedding: queryEmbedding,
+        match_threshold: agent.search_threshold,
+        match_count: 5
+      })
+
+      console.log('Found relevant documents:', documents)
       
-      formattedMessages.push(...memoryMessages);
+      if (documents && documents.length > 0) {
+        relevantDocs = documents.map(doc => doc.content)
+      }
     }
 
-    // Add current messages
-    messages.forEach((msg: { role: string; content: string; }) => {
-      switch (msg.role) {
-        case 'system':
-          break;
-        case 'user':
-          formattedMessages.push(new HumanMessage(msg.content));
-          break;
-        case 'assistant':
-          formattedMessages.push(new AIMessage(msg.content));
-          break;
-        default:
-          console.warn(`Unknown message role: ${msg.role}`);
-      }
-    });
+    // Construct system message with context
+    const systemMessage = {
+      role: 'system',
+      content: `${agent?.system_prompt || 'You are a helpful assistant.'}\n\n${
+        relevantDocs.length > 0 
+          ? 'Here are some relevant documents that may help with the query:\n\n' + 
+            relevantDocs.join('\n\n') + 
+            '\n\nPlease use this information to help answer the query.'
+          : ''
+      }`
+    }
 
-    console.log('Final message count:', formattedMessages.length);
+    // Prepare messages array with context
+    const contextualizedMessages = [
+      systemMessage,
+      ...messages
+    ]
 
-    const response = await chat.call(formattedMessages);
+    console.log('Sending request to OpenAI with messages:', contextualizedMessages)
 
-    // Log the interaction
-    await supabase.rpc('log_agent_event', {
-      p_agent_id: agentId,
-      p_event_type: 'chat_completion',
-      p_configuration: {
-        model: agentConfig?.model_id || model,
-        relevantDocsCount: relevantDocs.length,
-        messageCount: formattedMessages.length
+    // Get completion from OpenAI
+    const completion = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAiKey}`,
+        'Content-Type': 'application/json'
       },
-      p_details: 'Chat completion with knowledge base integration'
-    });
-
-    return new Response(
-      JSON.stringify({
-        choices: [
-          {
-            message: {
-              role: 'assistant',
-              content: response.content,
-            },
-          },
-        ],
-        knowledgeBase: {
-          used: relevantDocs.length > 0,
-          sourcesCount: relevantDocs.length,
-          sources: relevantDocs.map(doc => ({
-            filename: doc.metadata?.filename,
-            similarity: doc.similarity
-          }))
-        }
-      }),
-      {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  } catch (error) {
-    console.error('Error in chat completion:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  }
-});
-
-async function generateEmbedding(text: string): Promise<number[]> {
-  const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-  if (!openaiApiKey) throw new Error('Missing OpenAI API key');
-
-  const response = await fetch('https://api.openai.com/v1/embeddings', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openaiApiKey}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      input: text,
-      model: 'text-embedding-ada-002'
+      body: JSON.stringify({
+        model: model || 'gpt-4o-mini',
+        messages: contextualizedMessages,
+        temperature: agent?.temperature || 0.7,
+        max_tokens: agent?.max_tokens || 1000,
+        top_p: agent?.top_p || 0.9,
+      })
     })
-  });
 
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const completionData = await completion.json()
+    
+    return new Response(JSON.stringify(completionData), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
-
-  const json = await response.json();
-  return json.data[0].embedding;
-}
+})
