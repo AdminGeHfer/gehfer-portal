@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,16 +13,11 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize OpenAI
+    // Get OpenAI API key
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
-
-    const configuration = new Configuration({
-      apiKey: openAIApiKey,
-    });
-    const openai = new OpenAIApi(configuration);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -57,12 +51,26 @@ serve(async (req) => {
     const lastUserMessage = messages[messages.length - 1].content;
     console.log('Processing query:', lastUserMessage);
 
-    const embeddingResponse = await openai.createEmbedding({
-      model: "text-embedding-3-small",
-      input: lastUserMessage,
+    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "text-embedding-3-small",
+        input: lastUserMessage,
+      }),
     });
 
-    const queryEmbedding = embeddingResponse.data.data[0].embedding;
+    if (!embeddingResponse.ok) {
+      const error = await embeddingResponse.json();
+      console.error('OpenAI Embedding Error:', error);
+      throw new Error(`OpenAI Embedding Error: ${error.error?.message || 'Unknown error'}`);
+    }
+
+    const embeddingData = await embeddingResponse.json();
+    const queryEmbedding = embeddingData.data[0].embedding;
 
     // Search for relevant chunks
     console.log('Knowledge base enabled, searching for relevant documents...');
@@ -102,12 +110,27 @@ serve(async (req) => {
     console.log('Sending request to OpenAI with messages:', fullMessages);
 
     // Get completion from OpenAI
-    const completion = await openai.createChatCompletion({
-      model: model || 'gpt-4o-mini',
-      messages: fullMessages,
-      temperature: agent.temperature || 0.7,
-      max_tokens: agent.max_tokens || 4000,
+    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-4o-mini',
+        messages: fullMessages,
+        temperature: agent.temperature || 0.7,
+        max_tokens: agent.max_tokens || 4000,
+      }),
     });
+
+    if (!completionResponse.ok) {
+      const error = await completionResponse.json();
+      console.error('OpenAI Completion Error:', error);
+      throw new Error(`OpenAI Completion Error: ${error.error?.message || 'Unknown error'}`);
+    }
+
+    const completion = await completionResponse.json();
 
     // Log the interaction
     await supabase.rpc('log_agent_event', {
@@ -120,11 +143,11 @@ serve(async (req) => {
         max_tokens: agent.max_tokens,
         chunks_found: relevantChunks?.length || 0
       },
-      p_details: `Query: ${lastUserMessage}\nResponse: ${completion.data.choices[0].message?.content}`
+      p_details: `Query: ${lastUserMessage}\nResponse: ${completion.choices[0].message?.content}`
     });
 
     return new Response(
-      JSON.stringify(completion.data),
+      JSON.stringify(completion),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
