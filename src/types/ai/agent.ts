@@ -1,4 +1,5 @@
 import { Database } from "@/integrations/supabase/types";
+import { AgentType } from "./agent-types";
 
 export type MemoryType = 'buffer' | 'window' | 'summary';
 export type ChainType = 'conversation' | 'qa' | 'conversational_qa';
