@@ -20,7 +20,7 @@ export function useAIAgents() {
         return;
       }
 
-      const { data: userAgents, error: userAgentsError } = await supabase
+      let { data: userAgents, error: userAgentsError } = await supabase
         .from('ai_agents')
         .select('*')
         .eq('user_id', session.session.user.id);
