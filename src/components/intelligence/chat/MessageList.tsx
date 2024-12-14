@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface MessageListProps {
   messages: Message[];
@@ -59,31 +60,35 @@ export const MessageList = ({ messages }: MessageListProps) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className={`flex items-start gap-3 ${
-              message.role === 'assistant' ? 'justify-start' : 'flex-row-reverse'
-            }`}
+            className={cn(
+              "flex items-start gap-3",
+              message.role === 'assistant' ? "justify-start" : "flex-row-reverse"
+            )}
           >
-            <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+            <div className={cn(
+              "shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
               message.role === 'assistant' 
-                ? 'bg-primary/10 text-primary' 
-                : 'bg-secondary/10 text-secondary-foreground'
-            }`}>
+                ? "bg-primary/10 text-primary" 
+                : "bg-secondary/10 text-secondary-foreground"
+            )}>
               {message.role === 'assistant' 
                 ? <MessageSquare className="w-4 h-4" />
                 : <User className="w-4 h-4" />
               }
             </div>
-            <div className={`group relative max-w-[80%] space-y-1`}>
-              <div className={`rounded-lg p-3 ${
+            <div className="group relative max-w-[80%] space-y-1">
+              <div className={cn(
+                "rounded-lg p-3",
                 message.role === 'assistant'
-                  ? 'bg-accent text-accent-foreground'
-                  : 'bg-primary text-primary-foreground'
-              }`}>
+                  ? "bg-accent/50 backdrop-blur-sm text-accent-foreground"
+                  : "bg-primary/90 backdrop-blur-sm text-primary-foreground"
+              )}>
                 {renderMessageContent(message.content)}
               </div>
-              <span className={`text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ${
-                message.role === 'assistant' ? 'text-left' : 'text-right'
-              }`}>
+              <span className={cn(
+                "text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity",
+                message.role === 'assistant' ? "text-left" : "text-right"
+              )}>
                 {formatMessageTime(message.created_at)}
               </span>
             </div>

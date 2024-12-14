@@ -38,7 +38,7 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 p-4 border-t bg-background/50">
+    <form onSubmit={handleSubmit} className="flex gap-2">
       <div className="flex-1 flex gap-2">
         <div className="relative flex items-center">
           <Input
@@ -50,7 +50,7 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
           <label 
             htmlFor="file-upload"
             className={cn(
-              "cursor-pointer p-2 rounded-md hover:bg-accent",
+              "cursor-pointer p-2 rounded-md hover:bg-accent transition-colors",
               !conversationId && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -61,7 +61,7 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Digite sua mensagem..."
-          className="min-h-[2.5rem] max-h-32 bg-background/50"
+          className="min-h-[2.5rem] max-h-32 bg-background/50 resize-none"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -74,7 +74,7 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
         type="submit" 
         size="icon"
         disabled={isLoading}
-        className="shrink-0 bg-primary/90 hover:bg-primary"
+        className="shrink-0 bg-primary/90 hover:bg-primary transition-colors"
       >
         <MessageSquare className="h-4 w-4" />
       </Button>

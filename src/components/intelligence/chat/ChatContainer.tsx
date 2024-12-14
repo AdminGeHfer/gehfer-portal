@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/ai";
@@ -156,14 +155,18 @@ export const ChatContainer = () => {
         isLoading={isLoading}
       />
       
-      <Card className="flex-1 overflow-hidden backdrop-blur-sm bg-card/30 border-0">
-        <MessageList messages={messages} />
-        <ChatInput 
-          onSubmit={handleSubmit} 
-          onFileUpload={handleFileUpload}
-          isLoading={isLoading} 
-        />
-      </Card>
+      <div className="flex-1 overflow-hidden bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-xl border-0 rounded-lg m-2">
+        <div className="relative flex flex-col h-full">
+          <MessageList messages={messages} />
+          <div className="sticky bottom-0 p-4 bg-background/80 backdrop-blur-md border-t">
+            <ChatInput 
+              onSubmit={handleSubmit} 
+              onFileUpload={handleFileUpload}
+              isLoading={isLoading} 
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
