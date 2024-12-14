@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { Brain, Network, FlowChart } from "lucide-react";
+import { Brain, Network, GitBranch } from "lucide-react";
 import { AgentType } from "@/types/ai/agent-types";
 
 interface AgentTypeStepProps {
@@ -25,7 +25,7 @@ export const AgentTypeStep = ({ value, onChange }: AgentTypeStepProps) => {
       id: 'flowise',
       name: 'Flowise',
       description: 'Integração com Flowise AI',
-      icon: FlowChart,
+      icon: GitBranch,
     },
   ];
 

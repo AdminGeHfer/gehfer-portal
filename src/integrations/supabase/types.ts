@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_templates: {
+        Row: {
+          agent_type: Database["public"]["Enums"]["agent_type_enum"]
+          configuration: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+        }
+        Insert: {
+          agent_type: Database["public"]["Enums"]["agent_type_enum"]
+          configuration?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+        }
+        Update: {
+          agent_type?: Database["public"]["Enums"]["agent_type_enum"]
+          configuration?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_agent_documents: {
         Row: {
           agent_id: string | null
@@ -102,13 +143,20 @@ export type Database = {
       }
       ai_agents: {
         Row: {
+          agent_type: Database["public"]["Enums"]["agent_type_enum"] | null
+          auth_token: string | null
           chain_type: Database["public"]["Enums"]["chain_type_enum"]
           chunk_overlap: number
           chunk_size: number
+          color: string | null
+          connection_status: string | null
           created_at: string
           description: string | null
           embedding_model: string
+          external_url: string | null
+          icon: string | null
           id: string
+          last_tested: string | null
           max_tokens: number
           memory_type: Database["public"]["Enums"]["memory_type_enum"]
           model_id: string
@@ -119,6 +167,7 @@ export type Database = {
           stop_sequences: string[] | null
           system_prompt: string | null
           temperature: number
+          template_id: string | null
           tools: string[] | null
           top_k: number
           top_p: number
@@ -127,13 +176,20 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          agent_type?: Database["public"]["Enums"]["agent_type_enum"] | null
+          auth_token?: string | null
           chain_type?: Database["public"]["Enums"]["chain_type_enum"]
           chunk_overlap?: number
           chunk_size?: number
+          color?: string | null
+          connection_status?: string | null
           created_at?: string
           description?: string | null
           embedding_model?: string
+          external_url?: string | null
+          icon?: string | null
           id?: string
+          last_tested?: string | null
           max_tokens?: number
           memory_type?: Database["public"]["Enums"]["memory_type_enum"]
           model_id: string
@@ -144,6 +200,7 @@ export type Database = {
           stop_sequences?: string[] | null
           system_prompt?: string | null
           temperature?: number
+          template_id?: string | null
           tools?: string[] | null
           top_k?: number
           top_p?: number
@@ -152,13 +209,20 @@ export type Database = {
           user_id: string
         }
         Update: {
+          agent_type?: Database["public"]["Enums"]["agent_type_enum"] | null
+          auth_token?: string | null
           chain_type?: Database["public"]["Enums"]["chain_type_enum"]
           chunk_overlap?: number
           chunk_size?: number
+          color?: string | null
+          connection_status?: string | null
           created_at?: string
           description?: string | null
           embedding_model?: string
+          external_url?: string | null
+          icon?: string | null
           id?: string
+          last_tested?: string | null
           max_tokens?: number
           memory_type?: Database["public"]["Enums"]["memory_type_enum"]
           model_id?: string
@@ -169,6 +233,7 @@ export type Database = {
           stop_sequences?: string[] | null
           system_prompt?: string | null
           temperature?: number
+          template_id?: string | null
           tools?: string[] | null
           top_k?: number
           top_p?: number
@@ -1674,6 +1739,7 @@ export type Database = {
       }
     }
     Enums: {
+      agent_type_enum: "openai" | "n8n" | "flowise"
       chain_type_enum: "conversation" | "qa" | "conversational_qa"
       collection_status_enum:
         | "pending"

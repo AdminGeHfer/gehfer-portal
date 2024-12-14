@@ -19,11 +19,13 @@ export const SpecificConfigStep = ({ data, onChange }: SpecificConfigStepProps) 
   const { data: templates } = useQuery({
     queryKey: ['agent-templates', data.type],
     queryFn: async () => {
-      const { data: templates } = await supabase
+      const { data: templates, error } = await supabase
         .from('agent_templates')
         .select('*')
         .eq('agent_type', data.type)
         .eq('is_public', true);
+
+      if (error) throw error;
       return templates;
     },
   });
