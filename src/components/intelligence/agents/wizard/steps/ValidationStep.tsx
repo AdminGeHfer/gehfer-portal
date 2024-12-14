@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, AlertCircle } from "lucide-react";
+import { Check, AlertCircle, Loader2 } from "lucide-react";
 
 interface ValidationStepProps {
   data: {
@@ -9,9 +9,10 @@ interface ValidationStepProps {
     externalUrl?: string;
   };
   onTest: () => Promise<void>;
+  isConnectionTesting: boolean;
 }
 
-export const ValidationStep = ({ data, onTest }: ValidationStepProps) => {
+export const ValidationStep = ({ data, onTest, isConnectionTesting }: ValidationStepProps) => {
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">Teste e Validação</h2>
@@ -41,9 +42,17 @@ export const ValidationStep = ({ data, onTest }: ValidationStepProps) => {
               <Button
                 variant="outline"
                 onClick={onTest}
+                disabled={isConnectionTesting}
                 className="w-full"
               >
-                Testar Conexão
+                {isConnectionTesting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Testando Conexão...
+                  </>
+                ) : (
+                  'Testar Conexão'
+                )}
               </Button>
             </div>
           )}

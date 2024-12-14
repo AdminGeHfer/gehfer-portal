@@ -8,49 +8,61 @@ interface AgentTypeStepProps {
 }
 
 export const AgentTypeStep = ({ value, onChange }: AgentTypeStepProps) => {
-  const types = [
-    {
-      id: 'openai',
-      name: 'Interno (OpenAI)',
-      description: 'Agente usando modelos OpenAI',
-      icon: Brain,
-    },
-    {
-      id: 'n8n',
-      name: 'N8N',
-      description: 'Integração com fluxos N8N',
-      icon: Network,
-    },
-    {
-      id: 'flowise',
-      name: 'Flowise',
-      description: 'Integração com Flowise AI',
-      icon: GitBranch,
-    },
-  ];
-
   return (
-    <div className="grid gap-4">
-      <h2 className="text-lg font-semibold">Selecione o Tipo de Agente</h2>
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">Tipo de Agente</h2>
       
       <div className="grid gap-4 md:grid-cols-3">
-        {types.map((type) => (
-          <Card
-            key={type.id}
-            className={`p-4 cursor-pointer transition-colors ${
-              value === type.id ? 'border-primary' : ''
-            }`}
-            onClick={() => onChange(type.id as AgentType)}
-          >
-            <div className="flex flex-col items-center text-center gap-2">
-              <type.icon className="h-8 w-8" />
-              <h3 className="font-medium">{type.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {type.description}
-              </p>
+        <Card
+          className={`p-4 cursor-pointer hover:border-primary transition-colors ${
+            value === 'openai' ? 'border-2 border-primary' : ''
+          }`}
+          onClick={() => onChange('openai')}
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Brain className="h-6 w-6 text-primary" />
             </div>
-          </Card>
-        ))}
+            <h3 className="font-medium">Interno</h3>
+            <p className="text-sm text-muted-foreground">
+              OpenAI, Claude, etc
+            </p>
+          </div>
+        </Card>
+
+        <Card
+          className={`p-4 cursor-pointer hover:border-primary transition-colors ${
+            value === 'n8n' ? 'border-2 border-primary' : ''
+          }`}
+          onClick={() => onChange('n8n')}
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Network className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-medium">N8N</h3>
+            <p className="text-sm text-muted-foreground">
+              Automação com N8N
+            </p>
+          </div>
+        </Card>
+
+        <Card
+          className={`p-4 cursor-pointer hover:border-primary transition-colors ${
+            value === 'flowise' ? 'border-2 border-primary' : ''
+          }`}
+          onClick={() => onChange('flowise')}
+        >
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <GitBranch className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-medium">Flowise</h3>
+            <p className="text-sm text-muted-foreground">
+              Fluxos com Flowise
+            </p>
+          </div>
+        </Card>
       </div>
     </div>
   );

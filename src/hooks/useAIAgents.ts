@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -6,8 +6,76 @@ import { AIAgent, AIAgentConfig } from "@/types/ai/agent";
 
 export function useAIAgents() {
   const [agents, setAgents] = useState<AIAgent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const loadAgents = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user) {
+        console.warn('No authenticated user found');
+        return;
+      }
+
+      const { data: userAgents, error: userAgentsError } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('user_id', session.session.user.id);
+
+      if (userAgentsError) throw userAgentsError;
+
+      if (!userAgents || userAgents.length === 0) {
+        const defaultAgent = {
+          name: "Assistente de Qualidade",
+          description: "Especializado em análise de RNCs e processos de qualidade",
+          model_id: "gpt-4o-mini",
+          memory_type: "buffer",
+          use_knowledge_base: true,
+          temperature: 0.7,
+          max_tokens: 4000,
+          top_p: 0.9,
+          top_k: 50,
+          stop_sequences: [] as string[],
+          chain_type: "conversation",
+          chunk_size: 1000,
+          chunk_overlap: 200,
+          embedding_model: "openai",
+          search_type: "similarity",
+          search_threshold: 0.7,
+          output_format: "text",
+          tools: [] as string[],
+          system_prompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
+          user_id: session.session.user.id
+        } as const;
+
+        const { data: newAgent, error: createError } = await supabase
+          .from('ai_agents')
+          .insert({...defaultAgent})
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        
+        userAgents = [newAgent];
+      }
+
+      setAgents(userAgents);
+    } catch (error) {
+      console.error('Error loading agents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load AI agents",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const refreshAgents = useCallback(() => loadAgents(), [loadAgents]);
 
   const startChat = async (agentId: string) => {
     try {
@@ -23,7 +91,6 @@ export function useAIAgents() {
         return;
       }
 
-      // First check if agent exists
       const { data: existingAgent, error: agentError } = await supabase
         .from('ai_agents')
         .select('id')
@@ -78,7 +145,6 @@ export function useAIAgents() {
         return { success: false };
       }
 
-      // Ensure all required fields are present for new agents
       const agentData = {
         name: updatedAgent.name || 'New Agent',
         model_id: updatedAgent.model_id || 'gpt-4o-mini',
@@ -100,13 +166,18 @@ export function useAIAgents() {
         tools: [...(updatedAgent.tools || [])],
         system_prompt: updatedAgent.system_prompt || '',
         user_id: session.session.user.id,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        agent_type: updatedAgent.agent_type,
+        external_url: updatedAgent.external_url,
+        auth_token: updatedAgent.auth_token,
+        icon: updatedAgent.icon,
+        color: updatedAgent.color,
+        template_id: updatedAgent.template_id
       };
 
       let result;
       
       if (agentId === "") {
-        // This is a new agent
         console.log('Creating new agent:', agentData);
         result = await supabase
           .from('ai_agents')
@@ -117,7 +188,6 @@ export function useAIAgents() {
           .select()
           .single();
       } else {
-        // This is an update to an existing agent
         console.log('Updating existing agent:', agentId, agentData);
         result = await supabase
           .from('ai_agents')
@@ -131,20 +201,7 @@ export function useAIAgents() {
       const { error, data: updatedData } = result;
       if (error) throw error;
 
-      // Update local state
-      setAgents(prev => {
-        if (agentId === "") {
-          // Add new agent
-          return [...prev, updatedData];
-        } else {
-          // Update existing agent
-          return prev.map(agent => 
-            agent.id === agentId 
-              ? { ...agent, ...updatedAgent }
-              : agent
-          );
-        }
-      });
+      await loadAgents();
 
       toast({
         title: "Success",
@@ -163,79 +220,15 @@ export function useAIAgents() {
     }
   };
 
-  const loadAgents = async () => {
-    try {
-      const { data: session } = await supabase.auth.getSession();
-      
-      if (!session?.session?.user) {
-        console.warn('No authenticated user found');
-        return;
-      }
-
-      // First try to get user's agents
-      let { data: userAgents, error: userAgentsError } = await supabase
-        .from('ai_agents')
-        .select('*')
-        .eq('user_id', session.session.user.id);
-
-      if (userAgentsError) throw userAgentsError;
-
-      // If user has no agents, create default one
-      if (!userAgents || userAgents.length === 0) {
-        const defaultAgent = {
-          name: "Assistente de Qualidade",
-          description: "Especializado em análise de RNCs e processos de qualidade",
-          model_id: "gpt-4o-mini",
-          memory_type: "buffer",
-          use_knowledge_base: true,
-          temperature: 0.7,
-          max_tokens: 4000,
-          top_p: 0.9,
-          top_k: 50,
-          stop_sequences: [] as string[],
-          chain_type: "conversation",
-          chunk_size: 1000,
-          chunk_overlap: 200,
-          embedding_model: "openai",
-          search_type: "similarity",
-          search_threshold: 0.7,
-          output_format: "text",
-          tools: [] as string[],
-          system_prompt: "Você é um assistente especializado em qualidade, focado em análise de RNCs e melhoria de processos.",
-          user_id: session.session.user.id
-        } as const;
-
-        const { data: newAgent, error: createError } = await supabase
-          .from('ai_agents')
-          .insert({...defaultAgent})
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        
-        userAgents = [newAgent];
-      }
-
-      setAgents(userAgents);
-    } catch (error) {
-      console.error('Error loading agents:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load AI agents",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Load agents on mount
   useEffect(() => {
     loadAgents();
-  }, []);
+  }, [loadAgents]);
 
   return {
     agents,
     startChat,
     updateAgent,
+    refreshAgents,
     isLoading: agents.length === 0
   };
 }
