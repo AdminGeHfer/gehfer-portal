@@ -5,7 +5,12 @@ import { cn } from "@/lib/utils";
 import { MessageSquare, Plus } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useConversations } from "@/hooks/useConversations";
-import { Tooltip } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const ConversationList = () => {
   const navigate = useNavigate();
@@ -33,43 +38,57 @@ export const ConversationList = () => {
     )}>
       <div className="flex flex-col h-full">
         <div className="p-3">
-          <Tooltip content="Nova Conversa" side="right">
-            <Button
-              onClick={createNewConversation}
-              className={cn(
-                "w-full justify-start gap-2 bg-primary/90 hover:bg-primary text-primary-foreground",
-                isCollapsed && "justify-center"
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={createNewConversation}
+                  className={cn(
+                    "w-full justify-start gap-2 bg-primary/90 hover:bg-primary text-primary-foreground",
+                    isCollapsed && "justify-center"
+                  )}
+                >
+                  <Plus className="h-4 w-4" />
+                  {!isCollapsed && <span>Nova Conversa</span>}
+                </Button>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right">
+                  Nova Conversa
+                </TooltipContent>
               )}
-            >
-              <Plus className="h-4 w-4" />
-              {!isCollapsed && <span>Nova Conversa</span>}
-            </Button>
-          </Tooltip>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <ScrollArea className="flex-1 px-2">
           <div className="space-y-2 py-2">
             {conversations.map((conversation) => (
-              <Tooltip
-                key={conversation.id}
-                content={isCollapsed ? conversation.title : undefined}
-                side="right"
-              >
-                <Button
-                  variant={conversation.id === conversationId ? "secondary" : "ghost"}
-                  className={cn(
-                    "w-full justify-start gap-2 truncate transition-all duration-200",
-                    conversation.id === conversationId && "bg-accent",
-                    isCollapsed && "justify-center"
+              <TooltipProvider key={conversation.id}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={conversation.id === conversationId ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full justify-start gap-2 truncate transition-all duration-200",
+                        conversation.id === conversationId && "bg-accent",
+                        isCollapsed && "justify-center"
+                      )}
+                      onClick={() => navigate(`/intelligence/chat/${conversation.id}`)}
+                    >
+                      <MessageSquare className="h-4 w-4 shrink-0" />
+                      {!isCollapsed && (
+                        <span className="truncate">{conversation.title}</span>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  {isCollapsed && (
+                    <TooltipContent side="right">
+                      {conversation.title}
+                    </TooltipContent>
                   )}
-                  onClick={() => navigate(`/intelligence/chat/${conversation.id}`)}
-                >
-                  <MessageSquare className="h-4 w-4 shrink-0" />
-                  {!isCollapsed && (
-                    <span className="truncate">{conversation.title}</span>
-                  )}
-                </Button>
-              </Tooltip>
+                </Tooltip>
+              </TooltipProvider>
             ))}
           </div>
         </ScrollArea>
