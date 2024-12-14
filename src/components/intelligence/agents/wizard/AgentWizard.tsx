@@ -47,7 +47,7 @@ export const AgentWizard = ({ open, onOpenChange }: AgentWizardProps) => {
       await updateAgent("", {
         name: formData.name,
         description: formData.description,
-        agent_type: formData.type,
+        type: formData.type,
         external_url: formData.externalUrl,
         auth_token: formData.authToken,
         icon: formData.icon,

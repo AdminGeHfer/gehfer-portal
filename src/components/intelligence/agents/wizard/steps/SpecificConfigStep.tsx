@@ -15,6 +15,13 @@ interface SpecificConfigStepProps {
   onChange: (data: Partial<SpecificConfigStepProps['data']>) => void;
 }
 
+interface Template {
+  id: string;
+  name: string;
+  description: string;
+  agent_type: AgentType;
+}
+
 export const SpecificConfigStep = ({ data, onChange }: SpecificConfigStepProps) => {
   const { data: templates } = useQuery({
     queryKey: ['agent-templates', data.type],
@@ -26,7 +33,7 @@ export const SpecificConfigStep = ({ data, onChange }: SpecificConfigStepProps) 
         .eq('is_public', true);
 
       if (error) throw error;
-      return templates;
+      return templates as Template[];
     },
   });
 
