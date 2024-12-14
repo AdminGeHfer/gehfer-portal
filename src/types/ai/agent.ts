@@ -29,6 +29,14 @@ export interface AIAgent {
   user_id: string;
   created_at: string;
   updated_at: string;
+  agent_type: AgentType;
+  external_url?: string;
+  auth_token?: string;
+  icon?: string;
+  color?: string;
+  template_id?: string;
+  connection_status?: string;
+  last_tested?: string;
 }
 
 export interface AIAgentConfig {
