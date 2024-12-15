@@ -3,41 +3,43 @@ import { Header } from "@/components/layout/Header";
 import { AgentTrainingHub } from "@/components/intelligence/training/AgentTrainingHub";
 import { AgentTrainingSession } from "@/components/intelligence/training/AgentTrainingSession";
 import { useAIAgents } from "@/hooks/useAIAgents";
-import { AIAgent } from "@/types/ai/agent";
-
-interface AgentTrainingHubProps {
-  agents: AIAgent[];
-  isLoading: boolean;
-  onSelectAgent: (id: string) => void;
-}
-
-interface AgentTrainingSessionProps {
-  agentId: string;
-  onBack: () => void;
-}
+import { toast } from "sonner";
 
 const Training = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { agents, isLoading } = useAIAgents();
 
+  const handleSelectAgent = (id: string) => {
+    try {
+      setSelectedAgentId(id);
+    } catch (error) {
+      console.error("Error selecting agent:", error);
+      toast.error("Erro ao selecionar agente");
+    }
+  };
+
+  const handleBack = () => {
+    setSelectedAgentId(null);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header 
         title="Treinamento de Agentes" 
-        subtitle="Melhore o desempenho dos seus agentes através de feedback" 
+        subtitle="Aprimore seus agentes através de sessões de treinamento interativo" 
       />
       
       <main className="container mx-auto px-4 py-8">
         {selectedAgentId ? (
           <AgentTrainingSession
             agentId={selectedAgentId}
-            onBack={() => setSelectedAgentId(null)}
+            onBack={handleBack}
           />
         ) : (
           <AgentTrainingHub
-            agents={agents || []}
+            agents={agents}
             isLoading={isLoading}
-            onSelectAgent={setSelectedAgentId}
+            onSelectAgent={handleSelectAgent}
           />
         )}
       </main>

@@ -12,7 +12,7 @@ const IntelligenceRoutes = () => {
       <Route path="/hub" element={<Hub />} />
       <Route path="/chat" element={<Chat />} />
       <Route path="/chat/:conversationId" element={<Chat />} />
-      <Route path="/training/*" element={<Training />} />
+      <Route path="/training" element={<Training />} />
     </Routes>
   );
 };
