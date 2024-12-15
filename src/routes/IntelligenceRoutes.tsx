@@ -8,7 +8,7 @@ const Chat = lazy(() => import("@/pages/intelligence/Chat"));
 const Hub = lazy(() => import("@/pages/intelligence/Hub"));
 const Training = lazy(() => import("@/pages/intelligence/Training"));
 
-export const IntelligenceRoutes = () => {
+const IntelligenceRoutes = () => {
   const { agents, isLoading } = useAIAgents();
 
   return (
@@ -19,7 +19,7 @@ export const IntelligenceRoutes = () => {
       <Route path="/training" element={<Training />}>
         <Route index element={
           <AgentTrainingHub 
-            agents={agents} 
+            agents={agents || []} 
             isLoading={isLoading} 
             onSelectAgent={() => {}} 
           />
@@ -34,3 +34,5 @@ export const IntelligenceRoutes = () => {
     </Routes>
   );
 };
+
+export default IntelligenceRoutes;
