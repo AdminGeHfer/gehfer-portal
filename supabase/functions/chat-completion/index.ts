@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,28 +13,23 @@ serve(async (req) => {
   }
 
   try {
-    // Get OpenAI API key
+    const { message, agentId } = await req.json();
+    console.log('Processing request:', { message, agentId });
+
+    // Get OpenAI API key from environment
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Parse request
-    const { messages, model, agentId, memory } = await req.json();
-    
-    if (!messages || !Array.isArray(messages)) {
-      throw new Error('Invalid messages format');
-    }
-
-    console.log('Processing request with:', { model, agentId });
+    // Create supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     // Get agent configuration
-    const { data: agent, error: agentError } = await supabase
+    const { data: agent, error: agentError } = await supabaseClient
       .from('ai_agents')
       .select('*')
       .eq('id', agentId)
@@ -45,109 +40,58 @@ serve(async (req) => {
       throw agentError;
     }
 
-    console.log('Agent configuration:', agent);
+    // Prepare messages for OpenAI
+    const messages = [
+      {
+        role: 'system',
+        content: agent.system_prompt || 'You are a helpful AI assistant.'
+      },
+      {
+        role: 'user',
+        content: message
+      }
+    ];
 
-    // Generate embedding for the last user message
-    const lastUserMessage = messages[messages.length - 1].content;
-    console.log('Processing query:', lastUserMessage);
+    console.log('Sending request to OpenAI with messages:', messages);
 
-    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+    // Call OpenAI API
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "text-embedding-3-small",
-        input: lastUserMessage,
-      }),
-    });
-
-    if (!embeddingResponse.ok) {
-      const error = await embeddingResponse.json();
-      console.error('OpenAI Embedding Error:', error);
-      throw new Error(`OpenAI Embedding Error: ${error.error?.message || 'Unknown error'}`);
-    }
-
-    const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = embeddingData.data[0].embedding;
-
-    // Search for relevant chunks
-    console.log('Knowledge base enabled, searching for relevant documents...');
-    
-    const { data: relevantChunks, error: searchError } = await supabase
-      .rpc('match_document_chunks', {
-        query_embedding: queryEmbedding,
-        match_threshold: agent.search_threshold || 0.7,
-        match_count: 5
-      });
-
-    if (searchError) {
-      console.error('Error searching documents:', searchError);
-      throw searchError;
-    }
-
-    console.log(`Found ${relevantChunks?.length || 0} relevant chunks`);
-
-    // Prepare context from chunks
-    let contextText = '';
-    if (relevantChunks && relevantChunks.length > 0) {
-      contextText = 'Relevant context:\n' + relevantChunks
-        .map(chunk => chunk.content)
-        .join('\n---\n');
-      console.log('Context prepared from chunks:', contextText);
-    }
-
-    // Prepare system message
-    const systemMessage = {
-      role: 'system',
-      content: `${agent.system_prompt || 'You are a helpful assistant.'}\n\n${contextText}`
-    };
-
-    // Combine messages
-    const fullMessages = [systemMessage, ...messages];
-
-    console.log('Sending request to OpenAI with messages:', fullMessages);
-
-    // Get completion from OpenAI
-    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: model || 'gpt-4o-mini',
-        messages: fullMessages,
+        model: agent.model_id || 'gpt-4o-mini',
+        messages,
         temperature: agent.temperature || 0.7,
         max_tokens: agent.max_tokens || 4000,
       }),
     });
 
-    if (!completionResponse.ok) {
-      const error = await completionResponse.json();
-      console.error('OpenAI Completion Error:', error);
-      throw new Error(`OpenAI Completion Error: ${error.error?.message || 'Unknown error'}`);
+    if (!openAIResponse.ok) {
+      const error = await openAIResponse.json();
+      console.error('OpenAI API Error:', error);
+      throw new Error(`OpenAI API Error: ${error.error?.message || 'Unknown error'}`);
     }
 
-    const completion = await completionResponse.json();
+    const completion = await openAIResponse.json();
+    console.log('OpenAI response:', completion);
 
     // Log the interaction
-    await supabase.rpc('log_agent_event', {
+    await supabaseClient.rpc('log_agent_event', {
       p_agent_id: agentId,
-      p_conversation_id: memory?.conversationId,
       p_event_type: 'completion',
       p_configuration: {
-        model,
+        model: agent.model_id,
         temperature: agent.temperature,
-        max_tokens: agent.max_tokens,
-        chunks_found: relevantChunks?.length || 0
+        max_tokens: agent.max_tokens
       },
-      p_details: `Query: ${lastUserMessage}\nResponse: ${completion.choices[0].message?.content}`
+      p_details: `Query: ${message}\nResponse: ${completion.choices[0].message?.content}`
     });
 
     return new Response(
-      JSON.stringify(completion),
+      JSON.stringify({ response: completion.choices[0].message?.content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
