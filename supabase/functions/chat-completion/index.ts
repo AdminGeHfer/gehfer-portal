@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,8 +14,8 @@ serve(async (req) => {
   }
 
   try {
-    const { message, agentId } = await req.json();
-    console.log('Processing request:', { message, agentId });
+    const { messages, agentId, model = 'gpt-4o-mini' } = await req.json();
+    console.log('Processing request:', { messages, agentId, model });
 
     // Get OpenAI API key from environment
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -28,31 +29,35 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get agent configuration
-    const { data: agent, error: agentError } = await supabaseClient
-      .from('ai_agents')
-      .select('*')
-      .eq('id', agentId)
-      .single();
+    // Get agent configuration if agentId is provided
+    let systemPrompt = 'You are a helpful AI assistant.';
+    if (agentId) {
+      const { data: agent, error: agentError } = await supabaseClient
+        .from('ai_agents')
+        .select('*')
+        .eq('id', agentId)
+        .single();
 
-    if (agentError) {
-      console.error('Error fetching agent:', agentError);
-      throw agentError;
+      if (agentError) {
+        console.error('Error fetching agent:', agentError);
+        throw agentError;
+      }
+
+      if (agent?.system_prompt) {
+        systemPrompt = agent.system_prompt;
+      }
     }
 
     // Prepare messages for OpenAI
-    const messages = [
+    const formattedMessages = [
       {
         role: 'system',
-        content: agent.system_prompt || 'You are a helpful AI assistant.'
+        content: systemPrompt
       },
-      {
-        role: 'user',
-        content: message
-      }
+      ...messages
     ];
 
-    console.log('Sending request to OpenAI with messages:', messages);
+    console.log('Sending request to OpenAI with messages:', formattedMessages);
 
     // Call OpenAI API
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -62,10 +67,10 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: agent.model_id || 'gpt-4o-mini',
-        messages,
-        temperature: agent.temperature || 0.7,
-        max_tokens: agent.max_tokens || 4000,
+        model,
+        messages: formattedMessages,
+        temperature: 0.7,
+        max_tokens: 1000,
       }),
     });
 
@@ -78,20 +83,22 @@ serve(async (req) => {
     const completion = await openAIResponse.json();
     console.log('OpenAI response:', completion);
 
-    // Log the interaction
-    await supabaseClient.rpc('log_agent_event', {
-      p_agent_id: agentId,
-      p_event_type: 'completion',
-      p_configuration: {
-        model: agent.model_id,
-        temperature: agent.temperature,
-        max_tokens: agent.max_tokens
-      },
-      p_details: `Query: ${message}\nResponse: ${completion.choices[0].message?.content}`
-    });
+    // Log the interaction if agentId is provided
+    if (agentId) {
+      await supabaseClient.rpc('log_agent_event', {
+        p_agent_id: agentId,
+        p_event_type: 'completion',
+        p_configuration: {
+          model,
+          temperature: 0.7,
+          max_tokens: 1000
+        },
+        p_details: `Query: ${messages[messages.length - 1].content}\nResponse: ${completion.choices[0].message.content}`
+      });
+    }
 
     return new Response(
-      JSON.stringify({ response: completion.choices[0].message?.content }),
+      JSON.stringify(completion),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
