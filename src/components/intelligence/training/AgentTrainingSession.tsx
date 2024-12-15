@@ -37,15 +37,34 @@ export const AgentTrainingSession = ({ agentId, onBack }: AgentTrainingSessionPr
     setMessages(prev => [...prev, userMessage]);
 
     try {
+      // Format messages array properly for the edge function
+      const formattedMessages = messages.concat(userMessage).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
       const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: { message: input, agentId }
+        body: { 
+          messages: formattedMessages,
+          agentId,
+          model: agent?.model_id || 'gpt-4o-mini'
+        }
       });
 
       if (error) throw error;
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      if (data?.choices?.[0]?.message) {
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: data.choices[0].message.content 
+        }]);
+      } else {
+        throw new Error('Invalid response format from AI');
+      }
+      
       setInput("");
     } catch (error) {
+      console.error('Error in chat completion:', error);
       toast.error("Failed to send message");
     }
   };
@@ -80,6 +99,7 @@ export const AgentTrainingSession = ({ agentId, onBack }: AgentTrainingSessionPr
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
             className="flex-1 border rounded p-2"
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           />
           <Button onClick={handleSend}>Send</Button>
         </div>
