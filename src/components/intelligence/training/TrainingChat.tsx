@@ -1,94 +1,74 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Send, Loader2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Message } from "@/types/ai";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface TrainingChatProps {
   agentId: string;
 }
 
 export const TrainingChat = ({ agentId }: TrainingChatProps) => {
-  const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
 
-  const { mutate: sendMessage, isPending } = useMutation({
-    mutationFn: async (content: string) => {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: { message: content, agentId }
+  const sendMessage = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await supabase.functions.invoke('chat-completion', {
+        body: { message, agentId }
       });
-
-      if (error) throw error;
-      return data;
+      return response.data;
     },
     onSuccess: (data) => {
-      setMessages(prev => [...prev, 
-        { role: 'assistant', content: data.response }
-      ]);
-    },
-    onError: () => {
-      toast.error("Failed to send message");
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data.response,
+        conversation_id: '',
+        created_at: new Date().toISOString()
+      }]);
+      setInput("");
     }
   });
 
   const handleSend = () => {
-    if (!input.trim() || isPending) return;
-    
-    const userMessage = { role: 'user' as const, content: input };
+    if (!input.trim() || sendMessage.isPending) return;
+
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: input,
+      conversation_id: '',
+      created_at: new Date().toISOString()
+    };
+
     setMessages(prev => [...prev, userMessage]);
-    sendMessage(input);
-    setInput("");
+    sendMessage.mutate(input);
   };
 
   return (
-    <div className="flex flex-col h-[600px]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            <Card className={`max-w-[80%] p-4 ${
-              message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-            }`}>
-              <div className="flex items-start gap-2">
-                <MessageSquare className="w-4 h-4 mt-1 flex-shrink-0" />
-                <div>
-                  {message.content}
-                </div>
-              </div>
-            </Card>
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.map((msg) => (
+          <div key={msg.id} className="mb-4">
+            <strong>{msg.role}:</strong> {msg.content}
           </div>
         ))}
       </div>
       <div className="p-4 border-t">
         <div className="flex gap-2">
-          <Textarea
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
+            placeholder="Type a message..."
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           />
           <Button 
             onClick={handleSend}
-            disabled={isPending}
+            disabled={sendMessage.isPending}
           >
-            {isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
+            Send
           </Button>
         </div>
       </div>

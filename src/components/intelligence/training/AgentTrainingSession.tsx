@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MessageSquare } from "lucide-react";
 import { toast } from "sonner";
+import { AIAgent } from "@/types/ai/agent";
 
 interface AgentTrainingSessionProps {
   agentId: string;
@@ -15,15 +16,18 @@ export const AgentTrainingSession = ({ agentId, onBack }: AgentTrainingSessionPr
   const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
   const [input, setInput] = useState("");
 
-  const { data: agent, isLoading } = useQuery(['agent', agentId], async () => {
-    const { data, error } = await supabase
-      .from('ai_agents')
-      .select('*')
-      .eq('id', agentId)
-      .single();
+  const { data: agent, isLoading } = useQuery({
+    queryKey: ['agent', agentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('id', agentId)
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data as AIAgent;
+    }
   });
 
   const handleSend = async () => {
@@ -46,14 +50,13 @@ export const AgentTrainingSession = ({ agentId, onBack }: AgentTrainingSessionPr
     }
   };
 
-  useEffect(() => {
-    if (isLoading) return;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-    if (!agent) {
-      toast.error("Agent not found");
-      onBack();
-    }
-  }, [agent, isLoading, onBack]);
+  if (!agent) {
+    return <div>Agent not found</div>;
+  }
 
   return (
     <div className="flex flex-col h-full">
