@@ -3,6 +3,18 @@ import { Header } from "@/components/layout/Header";
 import { AgentTrainingHub } from "@/components/intelligence/training/AgentTrainingHub";
 import { AgentTrainingSession } from "@/components/intelligence/training/AgentTrainingSession";
 import { useAIAgents } from "@/hooks/useAIAgents";
+import { AIAgent } from "@/types/ai/agent";
+
+interface AgentTrainingHubProps {
+  agents: AIAgent[];
+  isLoading: boolean;
+  onSelectAgent: (id: string) => void;
+}
+
+interface AgentTrainingSessionProps {
+  agentId: string;
+  onBack: () => void;
+}
 
 const Training = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -23,7 +35,7 @@ const Training = () => {
           />
         ) : (
           <AgentTrainingHub
-            agents={agents}
+            agents={agents || []}
             isLoading={isLoading}
             onSelectAgent={setSelectedAgentId}
           />
