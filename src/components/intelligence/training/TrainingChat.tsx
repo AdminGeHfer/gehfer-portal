@@ -1,16 +1,11 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { MessageSquare, Send, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ThumbsUp, ThumbsDown, MessageSquare, Send, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
 interface TrainingChatProps {
   agentId: string;
@@ -19,9 +14,8 @@ interface TrainingChatProps {
 export const TrainingChat = ({ agentId }: TrainingChatProps) => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const queryClient = useQueryClient();
 
-  const { mutate: sendMessage, isLoading } = useMutation({
+  const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async (content: string) => {
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: { message: content, agentId }
@@ -34,37 +28,14 @@ export const TrainingChat = ({ agentId }: TrainingChatProps) => {
       setMessages(prev => [...prev, 
         { role: 'assistant', content: data.response }
       ]);
-      queryClient.invalidateQueries({ queryKey: ['agent-training-sessions'] });
     },
     onError: () => {
       toast.error("Failed to send message");
     }
   });
 
-  const { mutate: evaluateResponse } = useMutation({
-    mutationFn: async ({ messageId, rating, feedback }: { messageId: string, rating: number, feedback?: string }) => {
-      const { error } = await supabase
-        .from('agent_training_evaluations')
-        .insert({
-          message_id: messageId,
-          rating,
-          feedback,
-          session_id: agentId
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Evaluation submitted");
-      queryClient.invalidateQueries({ queryKey: ['agent-training-sessions'] });
-    },
-    onError: () => {
-      toast.error("Failed to submit evaluation");
-    }
-  });
-
   const handleSend = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isPending) return;
     
     const userMessage = { role: 'user' as const, content: input };
     setMessages(prev => [...prev, userMessage]);
@@ -89,30 +60,6 @@ export const TrainingChat = ({ agentId }: TrainingChatProps) => {
                 <MessageSquare className="w-4 h-4 mt-1 flex-shrink-0" />
                 <div>
                   {message.content}
-                  {message.role === 'assistant' && (
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => evaluateResponse({ 
-                          messageId: index.toString(),
-                          rating: 1
-                        })}
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => evaluateResponse({ 
-                          messageId: index.toString(),
-                          rating: 0
-                        })}
-                      >
-                        <ThumbsDown className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </div>
             </Card>
@@ -135,9 +82,9 @@ export const TrainingChat = ({ agentId }: TrainingChatProps) => {
           />
           <Button 
             onClick={handleSend}
-            disabled={isLoading}
+            disabled={isPending}
           >
-            {isLoading ? (
+            {isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Send className="w-4 h-4" />
