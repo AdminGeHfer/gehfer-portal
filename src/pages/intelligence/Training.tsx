@@ -7,12 +7,7 @@ import { toast } from "sonner";
 
 const Training = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-  const { agents, isLoading, error } = useAIAgents();
-
-  if (error) {
-    toast.error("Erro ao carregar agentes");
-    console.error("Error loading agents:", error);
-  }
+  const { agents, isLoading } = useAIAgents();
 
   const handleSelectAgent = (id: string) => {
     setSelectedAgentId(id);
