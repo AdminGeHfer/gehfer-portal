@@ -1,21 +1,14 @@
-import { Route, Routes, Navigate } from "react-router-dom";
-import Chat from "@/pages/intelligence/Chat";
-import Hub from "@/pages/intelligence/Hub";
-import AIHub from "@/pages/intelligence/AIHub";
-import Training from "@/pages/intelligence/Training";
+import { Route, Routes } from "react-router-dom";
+import { AgentTrainingHub } from "@/components/intelligence/training/AgentTrainingHub";
+import { AgentTrainingSession } from "@/components/intelligence/training/AgentTrainingSession";
+import { SomeExistingComponent } from "@/components/somewhere/SomeExistingComponent"; // Example existing import
 
-const IntelligenceRoutes = () => {
+export const IntelligenceRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/intelligence/hub" replace />} />
-      <Route path="/hub" element={<Hub />} />
-      <Route path="/ai-hub" element={<AIHub />} />
-      <Route path="/training" element={<Training />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/chat/:conversationId" element={<Chat />} />
-      <Route path="*" element={<Navigate to="/intelligence/hub" replace />} />
+      <Route path="/existing-route" element={<SomeExistingComponent />} />
+      <Route path="/training" element={<AgentTrainingHub />} />
+      <Route path="/training/:agentId" element={<AgentTrainingSession />} />
     </Routes>
   );
 };
-
-export default IntelligenceRoutes;

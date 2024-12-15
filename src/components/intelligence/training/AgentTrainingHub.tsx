@@ -1,75 +1,90 @@
-import { AIAgent } from "@/types/ai/agent";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Brain, Star, TrendingUp } from "lucide-react";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Brain, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-interface AgentTrainingHubProps {
-  agents: AIAgent[];
-  isLoading: boolean;
-  onSelectAgent: (agentId: string) => void;
-}
+export const AgentTrainingHub = () => {
+  const navigate = useNavigate();
 
-export const AgentTrainingHub = ({ agents, isLoading, onSelectAgent }: AgentTrainingHubProps) => {
+  const { data: agents, isLoading } = useQuery({
+    queryKey: ['ai-agents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ai_agents')
+        .select(`
+          id,
+          name,
+          description,
+          icon,
+          color,
+          agent_training_sessions (
+            id,
+            score,
+            metrics
+          )
+        `);
+
+      if (error) {
+        toast.error("Error loading agents");
+        throw error;
+      }
+
+      return data;
+    }
+  });
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {agents.map((agent) => (
-        <Card key={agent.id} className="p-6 hover:shadow-lg transition-shadow">
-          <div className="flex items-center gap-4 mb-4">
-            <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: agent.color || '#4F46E5' }}
-            >
-              {agent.icon ? (
-                <img src={agent.icon} alt={agent.name} className="w-6 h-6" />
-              ) : (
-                <Brain className="w-6 h-6 text-white" />
-              )}
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">{agent.name}</h3>
-              <p className="text-sm text-muted-foreground">{agent.description}</p>
-            </div>
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+      {agents?.map((agent) => {
+        const latestSession = agent.agent_training_sessions?.[0];
+        const score = latestSession?.score || 0;
 
-          <div className="space-y-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-yellow-400" />
-              <div className="flex-1">
-                <div className="h-2 bg-gray-200 rounded-full">
-                  <div 
-                    className="h-2 bg-yellow-400 rounded-full"
-                    style={{ width: '75%' }}
-                  />
+        return (
+          <Card 
+            key={agent.id}
+            className="hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => navigate(`/intelligence/training/${agent.id}`)}
+          >
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                {agent.icon ? (
+                  <img src={agent.icon} alt={agent.name} className="w-12 h-12 rounded-full" />
+                ) : (
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${agent.color || 'bg-primary'}`}>
+                    <Brain className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                <div>
+                  <CardTitle>{agent.name}</CardTitle>
+                  <CardDescription>{agent.description}</CardDescription>
                 </div>
               </div>
-              <span className="text-sm font-medium">75%</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              <span className="text-sm text-muted-foreground">
-                Melhorou 15% esta semana
-              </span>
-            </div>
-          </div>
-
-          <Button 
-            className="w-full"
-            onClick={() => onSelectAgent(agent.id)}
-          >
-            Treinar Agente
-          </Button>
-        </Card>
-      ))}
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">Performance Score</div>
+                <div className="text-lg font-semibold">{score}%</div>
+              </div>
+              <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-primary h-2.5 rounded-full transition-all duration-500" 
+                  style={{ width: `${score}%` }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

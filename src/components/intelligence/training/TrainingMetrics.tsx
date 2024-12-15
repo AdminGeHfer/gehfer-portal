@@ -1,93 +1,72 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Card } from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+
+interface Session {
+  id: string;
+  score: number;
+  metrics: any;
+  created_at: string;
+}
 
 interface TrainingMetricsProps {
   agentId: string;
+  sessions: Session[];
 }
 
-export const TrainingMetrics = ({ agentId }: TrainingMetricsProps) => {
+export const TrainingMetrics = ({ sessions }: TrainingMetricsProps) => {
+  const chartData = sessions
+    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .map(session => ({
+      date: new Date(session.created_at).toLocaleDateString(),
+      score: session.score
+    }));
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Score Geral
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">85%</div>
-            <Progress value={85} className="mt-2" />
-          </CardContent>
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Performance Over Time</h3>
+        <div className="h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line 
+                type="monotone" 
+                dataKey="score" 
+                stroke="#2563eb" 
+                strokeWidth={2}
+                dot={{ r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="p-6">
+          <h4 className="text-sm font-medium text-gray-500">Average Score</h4>
+          <p className="text-3xl font-bold mt-2">
+            {Math.round(
+              sessions.reduce((acc, session) => acc + session.score, 0) / 
+              sessions.length
+            )}%
+          </p>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Respostas Avaliadas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">124</div>
-            <p className="text-xs text-muted-foreground">
-              Últimos 30 dias
-            </p>
-          </CardContent>
+        <Card className="p-6">
+          <h4 className="text-sm font-medium text-gray-500">Total Sessions</h4>
+          <p className="text-3xl font-bold mt-2">{sessions.length}</p>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Melhoria
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-500">
-              +15%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Em relação ao mês anterior
-            </p>
-          </CardContent>
+        <Card className="p-6">
+          <h4 className="text-sm font-medium text-gray-500">Latest Score</h4>
+          <p className="text-3xl font-bold mt-2">
+            {sessions[sessions.length - 1]?.score || 0}%
+          </p>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Distribuição por Categoria</CardTitle>
-          <CardDescription>
-            Performance do agente em diferentes áreas
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[
-              { label: "Técnico", value: 92 },
-              { label: "Comercial", value: 78 },
-              { label: "Atendimento", value: 88 },
-              { label: "Produto", value: 85 },
-            ].map((category) => (
-              <div key={category.label}>
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium">
-                    {category.label}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {category.value}%
-                  </span>
-                </div>
-                <Progress value={category.value} />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
