@@ -50,6 +50,115 @@ export type Database = {
           },
         ]
       }
+      agent_training_evaluations: {
+        Row: {
+          category: string | null
+          correct_response: string | null
+          created_at: string
+          created_by: string | null
+          feedback: string | null
+          id: string
+          message_id: string | null
+          rating: number
+          session_id: string | null
+          tags: string[] | null
+        }
+        Insert: {
+          category?: string | null
+          correct_response?: string | null
+          created_at?: string
+          created_by?: string | null
+          feedback?: string | null
+          id?: string
+          message_id?: string | null
+          rating: number
+          session_id?: string | null
+          tags?: string[] | null
+        }
+        Update: {
+          category?: string | null
+          correct_response?: string | null
+          created_at?: string
+          created_by?: string | null
+          feedback?: string | null
+          id?: string
+          message_id?: string | null
+          rating?: number
+          session_id?: string | null
+          tags?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_training_evaluations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_training_evaluations_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "ai_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_training_evaluations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "agent_training_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_training_sessions: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          metrics: Json | null
+          score: number | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metrics?: Json | null
+          score?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          metrics?: Json | null
+          score?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_training_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_training_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_agent_documents: {
         Row: {
           agent_id: string | null
