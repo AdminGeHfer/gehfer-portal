@@ -13,7 +13,8 @@ import {
   Brain,
   MessageSquare,
   Settings,
-  Building2
+  Building2,
+  GraduationCap
 } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useState } from "react";
@@ -68,6 +69,11 @@ export const SidebarNav = () => {
           title: "Chat",
           href: "/intelligence/chat",
           icon: <MessageSquare className="h-4 w-4" />,
+        },
+        {
+          title: "Treinamento",
+          href: "/intelligence/training",
+          icon: <GraduationCap className="h-4 w-4" />,
         },
         {
           title: "Configurações",

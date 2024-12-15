@@ -10,7 +10,11 @@ const Training = () => {
   const { agents, isLoading } = useAIAgents();
 
   const handleSelectAgent = (id: string) => {
-    setSelectedAgentId(id);
+    try {
+      setSelectedAgentId(id);
+    } catch (error) {
+      toast.error("Erro ao selecionar agente");
+    }
   };
 
   const handleBack = () => {
