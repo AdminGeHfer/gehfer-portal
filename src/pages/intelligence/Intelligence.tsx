@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+
+// Import components directly instead of using dynamic imports
 import Hub from "./Hub";
-import Training from "./Training";
-import Chat from "./Chat";
 import AIHub from "./AIHub";
+import Chat from "./Chat";
 
 const Intelligence = () => {
   return (
@@ -14,7 +15,6 @@ const Intelligence = () => {
         <Route path="/hub" element={<AIHub />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/chat/:conversationId" element={<Chat />} />
-        <Route path="/training" element={<Training />} />
         <Route path="*" element={<Navigate to="/intelligence" replace />} />
       </Routes>
     </Suspense>

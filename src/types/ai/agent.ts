@@ -1,4 +1,6 @@
-export type AgentType = 'openai' | 'n8n' | 'flowise';
+import { Database } from "@/integrations/supabase/types";
+import { AgentType } from "./agent-types";
+
 export type MemoryType = 'buffer' | 'window' | 'summary';
 export type ChainType = 'conversation' | 'qa' | 'conversational_qa';
 export type SearchType = 'similarity' | 'mmr';
@@ -9,12 +11,6 @@ export interface AIAgent {
   name: string;
   description?: string;
   model_id: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
-  agent_type?: AgentType;
-  icon?: string;
-  color?: string;
   memory_type: MemoryType;
   use_knowledge_base: boolean;
   temperature: number;
@@ -31,8 +27,14 @@ export interface AIAgent {
   output_format: OutputFormat;
   tools: string[];
   system_prompt?: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  agent_type: AgentType;
   external_url?: string;
   auth_token?: string;
+  icon?: string;
+  color?: string;
   template_id?: string;
   connection_status?: string;
   last_tested?: string;

@@ -1,18 +1,17 @@
-import { lazy } from "react";
-import { Route, Routes } from "react-router-dom";
-
-const Chat = lazy(() => import("@/pages/intelligence/Chat"));
-const Hub = lazy(() => import("@/pages/intelligence/Hub"));
-const Training = lazy(() => import("@/pages/intelligence/Training"));
+import { Route, Routes, Navigate } from "react-router-dom";
+import Chat from "@/pages/intelligence/Chat";
+import Hub from "@/pages/intelligence/Hub";
+import AIHub from "@/pages/intelligence/AIHub";
 
 const IntelligenceRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Hub />} />
+      <Route path="/" element={<Navigate to="/intelligence/hub" replace />} />
       <Route path="/hub" element={<Hub />} />
+      <Route path="/ai-hub" element={<AIHub />} />
       <Route path="/chat" element={<Chat />} />
       <Route path="/chat/:conversationId" element={<Chat />} />
-      <Route path="/training" element={<Training />} />
+      <Route path="*" element={<Navigate to="/intelligence/hub" replace />} />
     </Routes>
   );
 };
