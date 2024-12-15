@@ -22,7 +22,7 @@ export const ConversationList = () => {
     return (
       <aside className={cn(
         "h-screen border-r bg-card/50 backdrop-blur-sm transition-all duration-300",
-        isCollapsed ? "w-[60px]" : "w-[250px]"
+        isCollapsed ? "w-[60px]" : "w-[280px]"
       )}>
         <div className="flex items-center justify-center h-full">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -34,7 +34,7 @@ export const ConversationList = () => {
   return (
     <aside className={cn(
       "h-screen border-r bg-card/50 backdrop-blur-sm transition-all duration-300",
-      isCollapsed ? "w-[60px]" : "w-[250px]"
+      isCollapsed ? "w-[60px]" : "w-[280px]"
     )}>
       <div className="flex flex-col h-full">
         <div className="p-3">

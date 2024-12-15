@@ -1,7 +1,6 @@
 import { Message } from "@/types/ai";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, User, Paperclip } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { MessageSquare, User } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -12,46 +11,18 @@ interface MessageListProps {
 }
 
 export const MessageList = ({ messages }: MessageListProps) => {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollElement = scrollAreaRef.current;
-      scrollElement.scrollTop = scrollElement.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  const renderMessageContent = (content: string) => {
-    const fileMatch = content.match(/\[Arquivo anexado: (.*?)\]\((.*?)\)/);
-    if (fileMatch) {
-      const [, fileName, fileUrl] = fileMatch;
-      return (
-        <div className="flex items-center space-x-2 bg-accent/50 rounded-lg p-2">
-          <Paperclip className="h-4 w-4" />
-          <a 
-            href={fileUrl} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="underline hover:text-primary transition-colors"
-          >
-            {fileName}
-          </a>
-        </div>
-      );
-    }
-    return content;
-  };
 
   const formatMessageTime = (timestamp: string) => {
     return format(new Date(timestamp), "HH:mm", { locale: ptBR });
   };
 
   return (
-    <ScrollArea 
-      ref={scrollAreaRef}
-      className="flex-1 p-4 space-y-4 overflow-y-auto"
-      style={{ maxHeight: "calc(100vh - 13rem)" }}
-    >
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
       <AnimatePresence initial={false}>
         {messages.map((message, index) => (
           <motion.div
@@ -62,28 +33,23 @@ export const MessageList = ({ messages }: MessageListProps) => {
             transition={{ duration: 0.2 }}
             className={cn(
               "flex items-start gap-3",
-              message.role === 'assistant' ? "justify-start" : "flex-row-reverse"
+              message.role === 'assistant' ? "justify-start" : "justify-end"
             )}
           >
-            <div className={cn(
-              "shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
-              message.role === 'assistant' 
-                ? "bg-primary/10 text-primary" 
-                : "bg-secondary/10 text-secondary-foreground"
-            )}>
-              {message.role === 'assistant' 
-                ? <MessageSquare className="w-4 h-4" />
-                : <User className="w-4 h-4" />
-              }
-            </div>
+            {message.role === 'assistant' && (
+              <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-primary" />
+              </div>
+            )}
+            
             <div className="group relative max-w-[80%] space-y-1">
               <div className={cn(
-                "rounded-lg p-3",
+                "rounded-2xl p-3 shadow-sm",
                 message.role === 'assistant'
-                  ? "bg-accent/50 backdrop-blur-sm text-accent-foreground"
-                  : "bg-primary/90 backdrop-blur-sm text-primary-foreground"
+                  ? "bg-card text-card-foreground rounded-tl-none"
+                  : "bg-primary text-primary-foreground rounded-tr-none"
               )}>
-                {renderMessageContent(message.content)}
+                {message.content}
               </div>
               <span className={cn(
                 "text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity",
@@ -92,9 +58,16 @@ export const MessageList = ({ messages }: MessageListProps) => {
                 {formatMessageTime(message.created_at)}
               </span>
             </div>
+
+            {message.role === 'user' && (
+              <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+            )}
           </motion.div>
         ))}
       </AnimatePresence>
-    </ScrollArea>
+      <div ref={messagesEndRef} />
+    </div>
   );
 };
