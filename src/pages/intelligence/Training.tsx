@@ -7,15 +7,15 @@ import { toast } from "sonner";
 
 const Training = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-  const { agents, isLoading } = useAIAgents();
+  const { agents, isLoading, error } = useAIAgents();
+
+  if (error) {
+    toast.error("Erro ao carregar agentes");
+    console.error("Error loading agents:", error);
+  }
 
   const handleSelectAgent = (id: string) => {
-    try {
-      setSelectedAgentId(id);
-    } catch (error) {
-      console.error("Error selecting agent:", error);
-      toast.error("Erro ao selecionar agente");
-    }
+    setSelectedAgentId(id);
   };
 
   const handleBack = () => {
@@ -37,7 +37,7 @@ const Training = () => {
           />
         ) : (
           <AgentTrainingHub
-            agents={agents}
+            agents={agents || []}
             isLoading={isLoading}
             onSelectAgent={handleSelectAgent}
           />
