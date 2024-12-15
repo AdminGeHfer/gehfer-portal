@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Brain, MessageSquare, Settings, Building2 } from "lucide-react";
+import { Brain, MessageSquare, Settings, Building2, GraduationCap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
@@ -26,6 +26,13 @@ const aiModules: AIModule[] = [
     description: "Interface unificada de conversação",
     icon: <MessageSquare className="h-12 w-12 text-primary" />,
     route: "/intelligence/chat",
+    category: 'tool'
+  },
+  {
+    title: "Treinamento",
+    description: "Treine e aprimore seus agentes de IA",
+    icon: <GraduationCap className="h-12 w-12 text-primary" />,
+    route: "/intelligence/training",
     category: 'tool'
   },
   {
