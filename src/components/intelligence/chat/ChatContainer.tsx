@@ -68,7 +68,6 @@ export const ChatContainer = () => {
 
       if (conversation.agent_id) {
         setAgentId(conversation.agent_id);
-        // Set the model from the agent's configuration
         if (conversation.ai_agents?.model_id) {
           setModel(conversation.ai_agents.model_id);
         }
@@ -130,7 +129,11 @@ export const ChatContainer = () => {
       
       <div className="flex-1 overflow-hidden bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-xl border-0 rounded-lg m-2">
         <div className="relative flex flex-col h-full">
-          <MessageList messages={messages} />
+          <MessageList 
+            messages={messages} 
+            agentId={agentId || ''} 
+            conversationId={conversationId || ''}
+          />
           <div className="sticky bottom-0 p-4 bg-background/80 backdrop-blur-md border-t">
             <ChatInput 
               onSubmit={handleSubmit} 

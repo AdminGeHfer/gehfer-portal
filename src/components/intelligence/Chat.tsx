@@ -95,7 +95,14 @@ export const Chat = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <ChatHeader title={conversation?.title || 'Nova Conversa'} />
+      <ChatHeader 
+        title={conversation?.title || 'Nova Conversa'} 
+        model={conversation?.ai_agents?.model_id || ''}
+        onModelChange={() => {}}
+        isDeleting={false}
+        onDelete={() => {}}
+        isLoading={isLoading}
+      />
       
       <div className="flex-1 overflow-hidden">
         <MessageList 
