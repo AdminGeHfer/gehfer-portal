@@ -3,27 +3,32 @@ import { Trash2 } from "lucide-react";
 import { ModelSelector } from "../shared/ModelSelector";
 
 interface ChatHeaderProps {
-  onDelete: () => void;
-  isDeleting: boolean;
+  title: string;
   model: string;
   onModelChange: (model: string) => void;
+  isDeleting: boolean;
+  onDelete: () => void;
   isLoading: boolean;
 }
 
 export const ChatHeader = ({ 
-  onDelete, 
-  isDeleting, 
+  title, 
   model, 
   onModelChange,
+  isDeleting,
+  onDelete,
   isLoading 
 }: ChatHeaderProps) => {
   return (
     <div className="flex items-center justify-between p-4 border-b">
-      <ModelSelector 
-        value={model} 
-        onValueChange={onModelChange}
-        disabled={isLoading || isDeleting}
-      />
+      <div className="flex items-center gap-4">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <ModelSelector 
+          value={model} 
+          onValueChange={onModelChange}
+          disabled={isLoading || isDeleting}
+        />
+      </div>
       <Button
         variant="ghost"
         size="icon"
