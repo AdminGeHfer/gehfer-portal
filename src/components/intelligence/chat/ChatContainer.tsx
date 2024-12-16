@@ -8,15 +8,16 @@ import { ChatInput } from "./ChatInput";
 import { ChatHeader } from "./ChatHeader";
 import { useChatLogic } from "@/hooks/useChatLogic";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const ChatContainer = () => {
   const { conversationId } = useParams();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [model, setModel] = useState("gpt-4o-mini");
+  const [model, setModel] = useState("gpt-4-mini");
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['messages', conversationId],
@@ -32,10 +33,10 @@ export const ChatContainer = () => {
       if (error) throw error;
       return data as Message[];
     },
-    staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes (replaces cacheTime)
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    gcTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   const { isLoading: isChatLoading, handleSubmit } = useChatLogic(conversationId!, model, agentId);
@@ -51,7 +52,6 @@ export const ChatContainer = () => {
     if (!conversationId) return;
     
     try {
-      console.log('Loading conversation details for:', conversationId);
       const { data: conversation, error } = await supabase
         .from('ai_conversations')
         .select('title, agent_id')
@@ -60,13 +60,10 @@ export const ChatContainer = () => {
 
       if (error) throw error;
 
-      console.log('Conversation details:', conversation);
       if (conversation.agent_id) {
-        console.log('Setting agent ID:', conversation.agent_id);
         setAgentId(conversation.agent_id);
       }
-    } catch (error) {
-      console.error('Error loading conversation details:', error);
+    } catch (error: any) {
       toast({
         title: "Erro ao carregar detalhes da conversa",
         description: "Não foi possível carregar as configurações do assistente",
@@ -101,7 +98,6 @@ export const ChatContainer = () => {
 
       navigate('/intelligence/chat');
     } catch (error: any) {
-      console.error('Error deleting conversation:', error);
       toast({
         title: "Erro ao excluir conversa",
         description: error.message,
@@ -111,10 +107,6 @@ export const ChatContainer = () => {
       setIsDeleting(false);
     }
   };
-
-  if (!conversationId) {
-    return null;
-  }
 
   return (
     <div className="flex flex-col h-full">
