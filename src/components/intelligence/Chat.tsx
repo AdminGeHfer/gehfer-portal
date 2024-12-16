@@ -112,6 +112,19 @@ export const Chat = () => {
 
       console.log('Completion response:', completionData);
 
+      // Save the AI response
+      if (completionData?.choices?.[0]?.message?.content) {
+        const { error: aiMessageError } = await supabase
+          .from('ai_messages')
+          .insert({
+            conversation_id: conversationId,
+            content: completionData.choices[0].message.content,
+            role: 'assistant',
+          });
+
+        if (aiMessageError) throw aiMessageError;
+      }
+
     } catch (error: any) {
       console.error('Error in chat flow:', error);
       toast.error("Erro ao processar mensagem");

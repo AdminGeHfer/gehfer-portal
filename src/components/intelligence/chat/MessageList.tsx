@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { MessageSquare, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useRef } from "react";
+import ReactMarkdown from 'react-markdown';
 
 interface MessageListProps {
   messages: Message[];
@@ -60,7 +61,9 @@ export const MessageList = ({ messages }: MessageListProps) => {
                 }
               `}
             >
-              {message.content}
+              <ReactMarkdown className="prose dark:prose-invert max-w-none">
+                {message.content}
+              </ReactMarkdown>
             </div>
             <span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
               {new Date(message.created_at).toLocaleTimeString([], { 
