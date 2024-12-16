@@ -8,7 +8,7 @@ export const useMemory = (conversationId: string) => {
   const initializeMemory = async () => {
     const vectorStore = new SupabaseVectorStore(
       new OpenAIEmbeddings({
-        openAIApiKey: process.env.OPENAI_API_KEY,
+        openAIApiKey: import.meta.env.VITE_OPENAI_API_KEY,
       }), 
       {
         client: supabase,
@@ -19,7 +19,11 @@ export const useMemory = (conversationId: string) => {
 
     const memory = new ConversationSummaryMemory({
       memoryKey: "chat_history",
-      llm: new ChatOpenAI({ modelName: "gpt-4", temperature: 0 }),
+      llm: new ChatOpenAI({ 
+        modelName: "gpt-4", 
+        temperature: 0,
+        openAIApiKey: import.meta.env.VITE_OPENAI_API_KEY,
+      }),
       returnMessages: true,
       inputKey: "input",
       outputKey: "output",
