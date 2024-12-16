@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@hookform/resolvers": "^3.9.1",
     "@langchain/openai": "^0.3.14",
     "@phosphor-icons/react": "^2.1.7",

@@ -33,7 +33,7 @@ export const ChatContainer = () => {
       return data as Message[];
     },
     staleTime: 1000 * 60, // Consider data fresh for 1 minute
-    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    gcTime: 1000 * 60 * 5, // Keep in cache for 5 minutes (replaces cacheTime)
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   });
