@@ -1,7 +1,7 @@
 import { Message } from "@/types/ai";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, User, Quote, Smile } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { MessageSquare, User, Quote } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -15,20 +15,12 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import emojiData from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface MessageListProps {
   messages: Message[];
 }
 
 const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boolean }) => {
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
 
   const formatMessageTime = (timestamp: string) => {
@@ -37,8 +29,13 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
 
   const handleQuote = (content: string) => {
     setSelectedMessage(content);
-    // You can implement the quote functionality here
-    // For example, updating the input field with the quoted text
+    // Scroll to bottom after quoting
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   };
 
   return (
@@ -77,10 +74,10 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className={cn(
-                      "px-4 py-2 rounded-lg max-w-[80%] break-words",
+                      "px-4 py-2 rounded-lg max-w-[80%] break-words shadow-sm",
                       isUser 
                         ? "bg-primary text-primary-foreground ml-auto rounded-tr-none"
-                        : "bg-muted rounded-tl-none"
+                        : "bg-card dark:bg-gray-800 rounded-tl-none border border-border/50"
                     )}>
                       <ReactMarkdown className="prose dark:prose-invert max-w-none">
                         {message.content}
@@ -100,23 +97,6 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
                     {formatMessageTime(message.created_at)}
                   </TooltipContent>
                 </Tooltip>
-
-                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
-                    <PopoverTrigger asChild>
-                      <button className="p-1 hover:bg-accent rounded">
-                        <Smile className="w-4 h-4" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Picker 
-                        data={emojiData}
-                        onEmojiSelect={console.log}
-                        theme="light"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
               </motion.div>
             </ContextMenuTrigger>
             <ContextMenuContent>
@@ -127,9 +107,8 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
               <ContextMenuItem onClick={() => navigator.clipboard.writeText(message.content)}>
                 Copiar
               </ContextMenuItem>
-              <ContextMenuItem className="text-destructive">Deletar</ContextMenuItem>
             </ContextMenuContent>
-          </ContextMenu>
+          </motion.div>
         ))}
       </div>
     </div>
@@ -137,7 +116,17 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
 };
 
 export const MessageList = ({ messages }: MessageListProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [messages]);
 
   // Group messages by user and consecutive messages
   const groupedMessages = messages.reduce((groups: Message[][], message) => {
@@ -159,19 +148,9 @@ export const MessageList = ({ messages }: MessageListProps) => {
     return groups;
   }, []);
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  }, [messages]);
-
   return (
     <div 
-      ref={scrollRef}
+      ref={scrollAreaRef}
       className="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-xl"
     >
       <Virtuoso

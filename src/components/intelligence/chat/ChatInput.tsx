@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Paperclip, Smile } from "lucide-react";
+import { MessageSquare, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -77,7 +77,7 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
           placeholder="Digite sua mensagem..."
           className={cn(
             "min-h-[2.5rem] max-h-32 resize-none bg-card/50 border-0 focus-visible:ring-1",
-            "rounded-lg px-4 py-3 text-sm leading-relaxed"
+            "rounded-lg px-4 py-3 text-sm leading-relaxed shadow-sm"
           )}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -90,27 +90,11 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon"
-              className="shrink-0"
-            >
-              <Smile className="h-5 w-5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Emojis
-          </TooltipContent>
-        </Tooltip>
-        
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
               type="submit" 
               size="icon"
               disabled={isLoading || !input.trim()}
               className={cn(
-                "shrink-0 bg-primary hover:bg-primary/90 transition-colors",
+                "shrink-0 bg-primary hover:bg-primary/90 transition-colors shadow-sm",
                 isLoading && "animate-pulse"
               )}
             >
