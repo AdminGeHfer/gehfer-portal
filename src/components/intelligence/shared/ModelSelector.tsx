@@ -11,23 +11,23 @@ export interface AIModel {
 
 export const AI_MODELS: AIModel[] = [
   {
-    id: 'gpt-3.5-turbo-1106',
-    name: 'GPT-3.5 Turbo',
-    description: 'Rápido e eficiente para tarefas simples',
+    id: 'gpt-4o-mini',
+    name: 'GPT-4o Mini',
+    description: 'Versão otimizada do GPT-3.5 Turbo',
     maxTokens: 4096,
     contextWindow: 16385
   },
   {
-    id: 'gpt-4-1106-preview',
+    id: 'gpt-4o',
     name: 'GPT-4o',
     description: 'Mais poderoso para tarefas complexas',
     maxTokens: 4096,
     contextWindow: 128000
   },
   {
-    id: 'gpt-3.5-turbo-1106',
-    name: 'GPT-4o Mini',
-    description: 'Versão otimizada do GPT-3.5 Turbo',
+    id: 'gpt-3.5-turbo',
+    name: 'GPT-3.5 Turbo',
+    description: 'Rápido e eficiente para tarefas simples',
     maxTokens: 4096,
     contextWindow: 16385
   }

@@ -22,6 +22,16 @@ serve(async (req) => {
             throw new Error('Invalid messages format');
         }
 
+        // Map the frontend model IDs to OpenAI model IDs
+        const modelMapping: { [key: string]: string } = {
+            'gpt-4o': 'gpt-4-1106-preview',
+            'gpt-4o-mini': 'gpt-3.5-turbo-1106',
+            'gpt-3.5-turbo': 'gpt-3.5-turbo-1106'
+        };
+
+        const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-1106';
+        console.log(`Using model: ${model} -> ${openAIModel}`);
+
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL') || '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
@@ -129,7 +139,7 @@ serve(async (req) => {
         }
 
         // Usando o modelo exatamente como recebido, sem mapeamento
-        console.log(`Using OpenAI model: ${model}`);
+        console.log(`Using OpenAI model: ${openAIModel}`);
         console.log('Relevant context length:', relevantContext.length);
 
         const controller = new AbortController();
@@ -143,7 +153,7 @@ serve(async (req) => {
             },
             signal: controller.signal,
             body: JSON.stringify({
-                model: model,
+                model: openAIModel,
                 messages: [
                     { role: 'system', content: agent.system_prompt || 'You are a helpful assistant.' },
                     ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
@@ -168,7 +178,7 @@ serve(async (req) => {
             p_agent_id: agentId,
             p_event_type: 'completion',
             p_configuration: {
-                model,
+                model: openAIModel,
                 temperature: agent.temperature,
                 max_tokens: agent.max_tokens,
                 knowledge_base_used: agent.use_knowledge_base,
