@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
+import { ModelSelector } from "./shared/ModelSelector";
 
 export const Chat = () => {
   const { conversationId } = useParams();
