@@ -30,18 +30,16 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
     }
   };
 
-  const clearText = () => {
+  const handleClearText = () => {
+    setContent("");
     if (textareaRef.current) {
-      textareaRef.current.value = "";
       textareaRef.current.style.height = 'auto';
       textareaRef.current.focus();
     }
-    setContent("");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
-    // Adjust textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
@@ -66,7 +64,7 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
             variant="ghost"
             size="icon"
             className="absolute right-2 top-2 h-6 w-6"
-            onClick={clearText}
+            onClick={handleClearText}
           >
             <X className="h-4 w-4" />
           </Button>
