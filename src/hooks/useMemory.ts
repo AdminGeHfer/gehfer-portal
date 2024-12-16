@@ -3,8 +3,11 @@ import { OpenAIEmbeddings } from "@langchain/openai";
 import { ConversationSummaryMemory } from "langchain/memory";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatOpenAI } from "@langchain/openai";
+import { useToast } from "@/hooks/use-toast";
 
 export const useMemory = (conversationId: string) => {
+  const { toast } = useToast();
+
   const initializeMemory = async () => {
     console.log('Initializing memory and retrieving OpenAI API key...');
     
@@ -71,8 +74,16 @@ export const useMemory = (conversationId: string) => {
         console.error('Error initializing memory:', memoryError);
         throw new Error(`Failed to initialize chat memory: ${memoryError.message}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fatal error in memory initialization:', error);
+      
+      // Show a user-friendly toast message
+      toast({
+        title: "Error Initializing Chat",
+        description: error.message || "An error occurred while setting up the chat. Please try again.",
+        variant: "destructive",
+      });
+      
       throw error;
     }
   };
