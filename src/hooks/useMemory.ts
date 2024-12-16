@@ -17,7 +17,7 @@ export const useMemory = (conversationId: string) => {
         throw new Error(`Failed to retrieve OpenAI API key: ${error.message}`);
       }
 
-      if (!data || data.length === 0 || !data[0].secret) {
+      if (!data || !data[0]?.secret) {
         console.error('OpenAI API key not found in Supabase secrets');
         throw new Error("OpenAI API key not found in Supabase secrets. Please add it using the form above.");
       }
@@ -50,7 +50,7 @@ export const useMemory = (conversationId: string) => {
         const memory = new ConversationSummaryMemory({
           memoryKey: "chat_history",
           llm: new ChatOpenAI({ 
-            modelName: "gpt-4o-mini", 
+            modelName: "gpt-3.5-turbo", // Changed from gpt-4o-mini to a valid model
             temperature: 0,
             openAIApiKey,
           }),
