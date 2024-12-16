@@ -26,7 +26,27 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
 
     try {
       console.log('Processing message with agentId:', agentId);
-      const memory = await initializeMemory();
+      
+      let memory;
+      try {
+        memory = await initializeMemory();
+        console.log('Memory initialized successfully');
+      } catch (memoryError: any) {
+        if (memoryError.message.includes('API key not found')) {
+          toast({
+            title: "Chave API OpenAI não encontrada",
+            description: "Por favor, configure sua chave API OpenAI nas configurações.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro de inicialização",
+            description: "Erro ao inicializar o chat: " + memoryError.message,
+            variant: "destructive",
+          });
+        }
+        throw memoryError;
+      }
       
       const userMessage: Message = {
         id: crypto.randomUUID(),
