@@ -21,19 +21,44 @@ interface AgentMetricsDashboardProps {
 }
 
 export const AgentMetricsDashboard = ({ agentId }: AgentMetricsDashboardProps) => {
-  const { data: metrics, isLoading } = useQuery({
+  const { data: metrics, isLoading, error } = useQuery({
     queryKey: ['agent-metrics', agentId],
     queryFn: async () => {
+      if (!agentId) {
+        console.log('No agent ID provided for metrics');
+        return null;
+      }
+
       const { data, error } = await supabase
         .rpc('calculate_agent_metrics', { p_agent_id: agentId });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching agent metrics:', error);
+        throw error;
+      }
       return data as MetricData[];
-    }
+    },
+    enabled: !!agentId // Only run query if agentId exists
   });
 
+  if (!agentId) {
+    return null; // Don't render anything if no agentId
+  }
+
   if (isLoading) {
-    return <div>Carregando métricas...</div>;
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-sm text-destructive p-4">
+        Erro ao carregar métricas do agente
+      </div>
+    );
   }
 
   const feedbackMetrics = metrics?.find(m => m.metric_type === 'feedback_rating');
@@ -62,29 +87,35 @@ export const AgentMetricsDashboard = ({ agentId }: AgentMetricsDashboardProps) =
         </CardHeader>
         <CardContent>
           <div className="h-[200px]">
-            <ChartContainer
-              config={{
-                rating: {
-                  label: "Avaliação",
-                  color: "hsl(var(--primary))",
-                },
-              }}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={metrics}>
-                  <XAxis dataKey="date" />
-                  <YAxis domain={[0, 5]} />
-                  <ChartTooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="avg_value"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {metrics && metrics.length > 0 ? (
+              <ChartContainer
+                config={{
+                  rating: {
+                    label: "Avaliação",
+                    color: "hsl(var(--primary))",
+                  },
+                }}
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={metrics}>
+                    <XAxis dataKey="date" />
+                    <YAxis domain={[0, 5]} />
+                    <ChartTooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="avg_value"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                Nenhum dado disponível
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
