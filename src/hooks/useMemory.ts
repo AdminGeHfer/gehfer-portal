@@ -9,7 +9,7 @@ export const useMemory = (conversationId: string) => {
     console.log('Initializing memory and retrieving OpenAI API key...');
     
     try {
-      // Primeiro, vamos verificar se conseguimos fazer a chamada RPC
+      // First, let's verify if we can make the RPC call
       console.log('Attempting to retrieve OpenAI API key from Supabase secrets...');
       const { data: secretData, error: secretError } = await supabase
         .from('secrets')
