@@ -12,25 +12,22 @@ export const useMemory = (conversationId: string) => {
     console.log('Initializing memory and retrieving OpenAI API key...');
     
     try {
-      // First, let's verify if we can make the RPC call
-      console.log('Attempting to retrieve OpenAI API key from Supabase secrets...');
-      const { data: secretData, error: secretError } = await supabase
-        .from('secrets')
-        .select('value')
-        .eq('name', 'OPENAI_API_KEY')
-        .single();
+      // Get OpenAI API key directly from Edge Function
+      const { data: response, error: apiError } = await supabase.functions.invoke('get-openai-key', {
+        body: {}
+      });
 
-      if (secretError) {
-        console.error('Error fetching OpenAI API key:', secretError);
-        throw new Error(`Failed to retrieve OpenAI API key: ${secretError.message}`);
+      if (apiError) {
+        console.error('Error fetching OpenAI API key:', apiError);
+        throw new Error(`Failed to retrieve OpenAI API key: ${apiError.message}`);
       }
 
-      if (!secretData?.value) {
+      if (!response?.apiKey) {
         console.error('OpenAI API key not found');
         throw new Error("OpenAI API key not found. Please add it in the Supabase settings.");
       }
 
-      const openAIApiKey = secretData.value;
+      const openAIApiKey = response.apiKey;
       console.log('OpenAI API key retrieved successfully');
 
       // Initialize vector store with retry mechanism
