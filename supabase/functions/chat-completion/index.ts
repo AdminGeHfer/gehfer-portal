@@ -119,7 +119,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: model || 'gpt-4o-mini',
+          model: model === 'gpt-4o-mini' ? 'gpt-4' : 'gpt-3.5-turbo',
           messages: fullMessages,
           temperature: agent.temperature || 0.7,
           max_tokens: agent.max_tokens || 4000,
