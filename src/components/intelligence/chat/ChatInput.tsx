@@ -31,10 +31,20 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
   };
 
   const clearText = () => {
-    setContent("");
     if (textareaRef.current) {
+      textareaRef.current.value = "";
       textareaRef.current.style.height = 'auto';
       textareaRef.current.focus();
+    }
+    setContent("");
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+    // Adjust textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   };
 
@@ -44,7 +54,7 @@ export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps)
         <Textarea
           ref={textareaRef}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="Digite sua mensagem..."
           className="pr-10 resize-none min-h-[60px] max-h-[200px]"
