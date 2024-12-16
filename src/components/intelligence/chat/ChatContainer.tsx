@@ -117,9 +117,25 @@ export const ChatContainer = () => {
     }
   };
 
+  const { data: conversation } = useQuery({
+    queryKey: ['conversation', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return null;
+      const { data, error } = await supabase
+        .from('ai_conversations')
+        .select('title')
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
   return (
     <div className="flex flex-col h-full">
       <ChatHeader 
+        title={conversation?.title || "Nova Conversa"}
         onDelete={handleDeleteConversation} 
         isDeleting={isDeleting}
         model={model}
