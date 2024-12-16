@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/ai";
 import { truncateMessages } from "@/utils/chatUtils";
 import { useMemory } from "@/hooks/useMemory";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useChatLogic = (conversationId: string, model: string, agentId: string | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { initializeMemory } = useMemory(conversationId);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (content: string) => {
     if (!conversationId || !content.trim()) {
@@ -34,28 +36,34 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
     // Set loading state immediately
     setIsLoading(true);
 
+    // Immediately update the local cache to show the user message
+    queryClient.setQueryData(['messages', conversationId], (oldData: Message[] = []) => {
+      return [...oldData, userMessage];
+    });
+
     try {
-      // Save user message immediately and don't wait for the response
-      const saveMessagePromise = supabase
+      // Save user message to Supabase
+      const { error: saveError } = await supabase
         .from('ai_messages')
         .insert(userMessage);
 
-      // Start memory initialization and message fetching in parallel
-      const [memory, { data: messages, error: messagesError }] = await Promise.all([
-        initializeMemory(),
-        supabase
-          .from('ai_messages')
-          .select('role, content')
-          .eq('conversation_id', conversationId)
-          .order('created_at', { ascending: true }),
-        saveMessagePromise // Include this to ensure it completes
-      ]);
+      if (saveError) throw saveError;
+
+      // Get existing messages
+      const { data: messages, error: messagesError } = await supabase
+        .from('ai_messages')
+        .select('role, content')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
 
+      // Initialize memory only if needed (could be cached)
+      const memory = await initializeMemory();
+
       console.log('Sending request to chat-completion with:', {
         messages: truncateMessages(
-          [...(messages || []), { role: userMessage.role, content: userMessage.content }],
+          [...messages, { role: userMessage.role, content: userMessage.content }],
           model
         ),
         model,
@@ -66,7 +74,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
       const response = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: truncateMessages(
-            [...(messages || []), { role: userMessage.role, content: userMessage.content }],
+            [...messages, { role: userMessage.role, content: userMessage.content }],
             model
           ),
           model,
@@ -87,6 +95,11 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         content: response.data.choices[0].message.content,
         created_at: new Date().toISOString(),
       };
+
+      // Update local cache immediately with assistant's response
+      queryClient.setQueryData(['messages', conversationId], (oldData: Message[] = []) => {
+        return [...oldData, assistantMessage];
+      });
 
       const { error: saveAiError } = await supabase
         .from('ai_messages')
