@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -8,34 +7,26 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-    // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders });
     }
 
     try {
-        // Get OpenAI API key from environment
         const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
         if (!openAIApiKey) {
-            console.error('OpenAI API key not configured');
             throw new Error('OpenAI API key not configured');
         }
 
-        // Initialize OpenAI
-        const openai = new OpenAIApi(new Configuration({ apiKey: openAIApiKey }));
-
-        // Process request
         const { messages, model, agentId } = await req.json();
         if (!messages || !Array.isArray(messages)) {
             throw new Error('Invalid messages format');
         }
 
-        // Initialize Supabase client
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const supabase = createClient(
+            Deno.env.get('SUPABASE_URL') || '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+        );
 
-        // Get agent configuration
         const { data: agent, error: agentError } = await supabase
             .from('ai_agents')
             .select('*')
@@ -47,16 +38,15 @@ serve(async (req) => {
             throw agentError;
         }
 
-        // Get the last user message
         const lastMessage = messages[messages.length - 1].content;
 
-        // Search relevant documents if knowledge base is enabled
         let relevantContext = '';
         if (agent.use_knowledge_base) {
             console.log('Knowledge base is enabled, searching for relevant documents...');
             
             try {
-                // Generate embedding for the query
+                console.log('Generating embedding for query:', lastMessage);
+                
                 const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
                     method: 'POST',
                     headers: {
@@ -81,11 +71,26 @@ serve(async (req) => {
                 }
 
                 console.log('Successfully generated embedding, searching documents...');
+                console.log('Search threshold:', agent.search_threshold);
 
-                // Search for relevant documents
+                // Primeiro, vamos verificar os documentos disponíveis
+                const { data: availableDocs, error: docsError } = await supabase
+                    .from('ai_agent_documents')
+                    .select('document_id')
+                    .eq('agent_id', agentId);
+
+                if (docsError) {
+                    throw new Error('Error fetching available documents: ' + docsError.message);
+                }
+
+                console.log('Available documents:', availableDocs?.length || 0);
+
+                // Busca com threshold mais baixo inicialmente
+                const searchThreshold = agent.search_threshold || 0.5; // Reduzido de 0.7 para 0.5
+                
                 const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
                     query_embedding: queryEmbedding,
-                    match_threshold: agent.search_threshold || 0.7,
+                    match_threshold: searchThreshold,
                     match_count: 5
                 });
 
@@ -95,20 +100,35 @@ serve(async (req) => {
                 }
 
                 if (documents && documents.length > 0) {
-                    console.log(`Found ${documents.length} relevant documents`);
+                    console.log(`Found ${documents.length} relevant documents with similarity scores:`);
+                    documents.forEach((doc, i) => {
+                        console.log(`Doc ${i + 1} similarity: ${doc.similarity}`);
+                    });
+                    
                     relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
-                    console.log('Context added:', relevantContext);
+                    console.log('Context added with length:', relevantContext.length);
                 } else {
-                    console.log('No relevant documents found');
+                    console.log('No relevant documents found with threshold:', searchThreshold);
+                    
+                    // Tentar novamente com threshold mais baixo se não encontrou nada
+                    const { data: documentsRetry, error: retryError } = await supabase.rpc('match_documents', {
+                        query_embedding: queryEmbedding,
+                        match_threshold: 0.3, // Threshold mais baixo para segunda tentativa
+                        match_count: 3
+                    });
+
+                    if (documentsRetry && documentsRetry.length > 0) {
+                        console.log(`Found ${documentsRetry.length} documents with lower threshold`);
+                        relevantContext = `Relevant information from knowledge base:\n${documentsRetry.map(doc => doc.content).join('\n\n')}`;
+                        console.log('Context added with length:', relevantContext.length);
+                    }
                 }
             } catch (error) {
                 console.error('Error in knowledge base search:', error);
-                // Log the full error for debugging
                 console.error('Full error:', JSON.stringify(error, null, 2));
             }
         }
 
-        // Map models
         const modelMap: Record<string, string> = {
             'gpt-4o-mini': 'gpt-4',
             'gpt-4o': 'gpt-4-turbo-preview'
@@ -118,7 +138,6 @@ serve(async (req) => {
         console.log(`Using OpenAI model: ${actualModel}`);
         console.log('Relevant context length:', relevantContext.length);
 
-        // Call OpenAI API with timeout
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -151,7 +170,6 @@ serve(async (req) => {
 
         const completion = await completionResponse.json();
 
-        // Log the interaction
         await supabase.rpc('log_agent_event', {
             p_agent_id: agentId,
             p_event_type: 'completion',
