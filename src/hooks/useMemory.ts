@@ -9,11 +9,11 @@ export const useMemory = (conversationId: string) => {
     const { data, error } = await supabase
       .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
 
-    if (error || !data) {
+    if (error || !data || data.length === 0) {
       throw new Error("OpenAI API key not found in Supabase secrets. Please add it using the form above.");
     }
 
-    const openAIApiKey = data.secret;
+    const openAIApiKey = data[0].secret;
 
     const vectorStore = new SupabaseVectorStore(
       new OpenAIEmbeddings({
