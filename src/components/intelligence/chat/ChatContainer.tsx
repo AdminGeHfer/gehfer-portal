@@ -13,30 +13,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 export const ChatContainer = () => {
   const { conversationId } = useParams();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [model, setModel] = useState("gpt-4o-mini");
+  const [model, setModel] = useState("gpt-4-mini");
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: conversation, isLoading: isLoadingConversation } = useQuery({
-    queryKey: ['conversation', conversationId],
-    queryFn: async () => {
-      if (!conversationId) return null;
-      
-      const { data, error } = await supabase
-        .from('ai_conversations')
-        .select('title, agent_id, ai_agents(name, icon, color)')
-        .eq('id', conversationId)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!conversationId
-  });
-
-  const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
+  const { data: messages = [], isLoading } = useQuery({
     queryKey: ['messages', conversationId],
     queryFn: async () => {
       if (!conversationId) return [];
@@ -50,43 +33,44 @@ export const ChatContainer = () => {
       if (error) throw error;
       return data as Message[];
     },
-    enabled: !!conversationId
+    gcTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
-  useEffect(() => {
-    if (conversation?.agent_id) {
-      setAgentId(conversation.agent_id);
-    }
-  }, [conversation]);
-
-  useEffect(() => {
-    if (!conversationId) return;
-
-    const subscription = supabase
-      .channel('ai_messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'ai_messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          queryClient.setQueryData(['messages', conversationId], (old: Message[] = []) => 
-            [...old, payload.new as Message]
-          );
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [conversationId, queryClient]);
-
-  const { isLoading: isSending, handleSubmit } = useChatLogic(conversationId!, model, agentId);
+  const { isLoading: isChatLoading, handleSubmit } = useChatLogic(conversationId!, model, agentId);
   const handleFileUpload = useFileUpload(handleSubmit);
+
+  useEffect(() => {
+    if (conversationId) {
+      loadConversationDetails();
+    }
+  }, [conversationId]);
+
+  const loadConversationDetails = async () => {
+    if (!conversationId) return;
+    
+    try {
+      const { data: conversation, error } = await supabase
+        .from('ai_conversations')
+        .select('title, agent_id')
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+
+      if (conversation.agent_id) {
+        setAgentId(conversation.agent_id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao carregar detalhes da conversa",
+        description: "Não foi possível carregar as configurações do assistente",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleDeleteConversation = async () => {
     if (!conversationId || isDeleting) return;
@@ -107,9 +91,6 @@ export const ChatContainer = () => {
 
       if (deleteConversationError) throw deleteConversationError;
 
-      queryClient.invalidateQueries({ queryKey: ['messages'] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-
       toast({
         title: "Conversa excluída",
         description: "A conversa foi excluída com sucesso.",
@@ -117,7 +98,6 @@ export const ChatContainer = () => {
 
       navigate('/intelligence/chat');
     } catch (error: any) {
-      console.error('Error deleting conversation:', error);
       toast({
         title: "Erro ao excluir conversa",
         description: error.message,
@@ -127,12 +107,6 @@ export const ChatContainer = () => {
       setIsDeleting(false);
     }
   };
-
-  if (!conversationId) {
-    return null;
-  }
-
-  const isLoading = isLoadingConversation || isLoadingMessages || isSending;
 
   return (
     <div className="flex flex-col h-full">
@@ -151,7 +125,7 @@ export const ChatContainer = () => {
             <ChatInput 
               onSubmit={handleSubmit} 
               onFileUpload={handleFileUpload}
-              isLoading={isLoading} 
+              isLoading={isChatLoading} 
             />
           </div>
         </div>

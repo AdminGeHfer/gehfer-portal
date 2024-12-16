@@ -1,11 +1,13 @@
 import { Message } from "@/types/ai";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, User } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { MessageSquare, User, Quote, Smile } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ReactMarkdown from 'react-markdown';
+import { Virtuoso } from 'react-virtuoso';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -13,16 +15,30 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useVirtualizer } from '@tanstack/react-virtual';
+import emojiData from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface MessageListProps {
   messages: Message[];
 }
 
 const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boolean }) => {
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
+
   const formatMessageTime = (timestamp: string) => {
     return format(new Date(timestamp), "HH:mm", { locale: ptBR });
+  };
+
+  const handleQuote = (content: string) => {
+    setSelectedMessage(content);
+    // You can implement the quote functionality here
+    // For example, updating the input field with the quoted text
   };
 
   return (
@@ -66,22 +82,51 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
                         ? "bg-primary text-primary-foreground ml-auto rounded-tr-none"
                         : "bg-muted rounded-tl-none"
                     )}>
-                      {message.content.split('\n').map((text, i) => (
-                        <p key={i} className="mb-1 last:mb-0">
-                          {text}
-                        </p>
-                      ))}
+                      <ReactMarkdown className="prose dark:prose-invert max-w-none">
+                        {message.content}
+                      </ReactMarkdown>
+                      
+                      {selectedMessage === message.content && (
+                        <div className="mt-2 p-2 border-l-2 border-primary/50 bg-primary/10 rounded">
+                          <Quote className="w-4 h-4 mb-1" />
+                          <ReactMarkdown className="prose dark:prose-invert max-w-none text-sm">
+                            {selectedMessage}
+                          </ReactMarkdown>
+                        </div>
+                      )}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side={isUser ? "left" : "right"}>
                     {formatMessageTime(message.created_at)}
                   </TooltipContent>
                 </Tooltip>
+
+                <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                    <PopoverTrigger asChild>
+                      <button className="p-1 hover:bg-accent rounded">
+                        <Smile className="w-4 h-4" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Picker 
+                        data={emojiData}
+                        onEmojiSelect={console.log}
+                        theme="light"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </motion.div>
             </ContextMenuTrigger>
             <ContextMenuContent>
-              <ContextMenuItem>Copiar</ContextMenuItem>
-              <ContextMenuItem>Responder</ContextMenuItem>
+              <ContextMenuItem onClick={() => handleQuote(message.content)}>
+                <Quote className="w-4 h-4 mr-2" />
+                Citar
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => navigator.clipboard.writeText(message.content)}>
+                Copiar
+              </ContextMenuItem>
               <ContextMenuItem className="text-destructive">Deletar</ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
@@ -92,8 +137,7 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
 };
 
 export const MessageList = ({ messages }: MessageListProps) => {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const lastMessageRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Group messages by user and consecutive messages
   const groupedMessages = messages.reduce((groups: Message[][], message) => {
@@ -115,62 +159,40 @@ export const MessageList = ({ messages }: MessageListProps) => {
     return groups;
   }, []);
 
-  const rowVirtualizer = useVirtualizer({
-    count: groupedMessages.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 100,
-    overscan: 5,
-  });
-
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (lastMessageRef.current && messages.length > 0) {
-      lastMessageRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'end'
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
       });
     }
   }, [messages]);
 
   return (
-    <ScrollArea 
-      ref={parentRef}
-      className="flex-1 p-4 space-y-6 h-full"
+    <div 
+      ref={scrollRef}
+      className="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-xl"
     >
-      <div
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        <AnimatePresence initial={false}>
-          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const group = groupedMessages[virtualRow.index];
-            return (
-              <motion.div
-                key={group[0].id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.2 }}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  transform: `translateY(${virtualRow.start}px)`,
-                }}
-                ref={virtualRow.index === groupedMessages.length - 1 ? lastMessageRef : null}
-              >
-                <MessageGroup 
-                  messages={group} 
-                  isUser={group[0].role === 'user'} 
-                />
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-    </ScrollArea>
+      <Virtuoso
+        style={{ height: '100%' }}
+        data={groupedMessages}
+        itemContent={(index, group) => (
+          <motion.div
+            key={group[0].id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <MessageGroup 
+              messages={group} 
+              isUser={group[0].role === 'user'} 
+            />
+          </motion.div>
+        )}
+        followOutput="smooth"
+      />
+    </div>
   );
 };

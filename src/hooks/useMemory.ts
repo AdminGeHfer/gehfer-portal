@@ -1,31 +1,56 @@
-import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { SupabaseBufferMemory } from '@/lib/langchain/memory/supabaseMemory';
+import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import { ConversationSummaryMemory } from "langchain/memory";
+import { supabase } from "@/integrations/supabase/client";
+import { ChatOpenAI } from "@langchain/openai";
 
 export const useMemory = (conversationId: string) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const initializeMemory = async () => {
+    const vectorStore = new SupabaseVectorStore(
+      new OpenAIEmbeddings({
+        openAIApiKey: process.env.OPENAI_API_KEY,
+      }), 
+      {
+        client: supabase,
+        tableName: 'documents',
+        queryName: 'match_documents'
+      }
+    );
 
-  const initializeMemory = useCallback(async () => {
-    return new SupabaseBufferMemory({ conversationId });
-  }, [conversationId]);
+    const memory = new ConversationSummaryMemory({
+      memoryKey: "chat_history",
+      llm: new ChatOpenAI({ modelName: "gpt-4", temperature: 0 }),
+      returnMessages: true,
+      inputKey: "input",
+      outputKey: "output",
+    });
 
-  const clearMemory = useCallback(async () => {
-    setIsLoading(true);
+    return memory;
+  };
+
+  const logInteraction = async (input: string, response: string, metrics: any) => {
     try {
-      await supabase
-        .from('ai_memory_buffers')
-        .delete()
-        .eq('conversation_id', conversationId);
+      const { error } = await supabase
+        .from('ai_agent_logs')
+        .insert({
+          conversation_id: conversationId,
+          event_type: 'interaction',
+          details: input,
+          configuration: {
+            input,
+            response,
+            metrics
+          }
+        });
+
+      if (error) throw error;
     } catch (error) {
-      console.error('Error clearing memory:', error);
-    } finally {
-      setIsLoading(false);
+      console.error('Error logging interaction:', error);
     }
-  }, [conversationId]);
+  };
 
   return {
     initializeMemory,
-    clearMemory,
-    isLoading
+    logInteraction
   };
 };

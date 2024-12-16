@@ -23,11 +23,10 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
     }
 
     setIsLoading(true);
-    console.log('Processing message with agentId:', agentId);
 
     try {
+      console.log('Processing message with agentId:', agentId);
       const memory = await initializeMemory();
-      console.log('Memory initialized successfully');
       
       const userMessage: Message = {
         id: crypto.randomUUID(),
@@ -45,7 +44,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
 
       const { data: messages } = await supabase
         .from('ai_messages')
-        .select('role, content, created_at')
+        .select('role, content')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
@@ -54,14 +53,11 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         model
       );
 
-      // Get memory variables without passing arguments
-      const memoryVariables = await memory.loadMemoryVariables();
-      
       console.log('Sending request to chat-completion with:', {
         messages: truncatedMessages,
         model,
         agentId,
-        memory: memoryVariables
+        memory: await memory.loadMemoryVariables()
       });
 
       const response = await supabase.functions.invoke('chat-completion', {
@@ -69,7 +65,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
           messages: truncatedMessages,
           model,
           agentId,
-          memory: memoryVariables
+          memory: await memory.loadMemoryVariables()
         },
       });
 
@@ -86,7 +82,6 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         created_at: new Date().toISOString(),
       };
 
-      // Save context with correct property names
       await memory.saveContext(
         { input: userMessage.content },
         { response: assistantMessage.content }
@@ -111,7 +106,6 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
   };
 
   const handleErrorResponse = (error: any) => {
-    console.error('Error response:', error);
     if (error.message?.includes('Limite de tokens excedido') ||
         error.message?.includes('conversa ficou muito longa')) {
       toast({
