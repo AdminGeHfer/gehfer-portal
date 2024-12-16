@@ -1,0 +1,95 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Message } from "@/types/ai";
+
+export const useChatActions = (conversationId: string | undefined) => {
+  const navigate = useNavigate();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (content: string) => {
+    if (!conversationId || !content.trim() || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      const userMessageId = crypto.randomUUID();
+      
+      const { error: messageError } = await supabase
+        .from('ai_messages')
+        .insert({
+          id: userMessageId,
+          conversation_id: conversationId,
+          content,
+          role: 'user',
+        });
+
+      if (messageError) throw messageError;
+
+      const { data: completionData, error: completionError } = await supabase.functions
+        .invoke('chat-completion', {
+          body: {
+            messages: [{ role: 'user', content, created_at: new Date().toISOString() }],
+            model: 'gpt-4o-mini',
+          },
+        });
+
+      if (completionError) throw completionError;
+
+      if (completionData?.choices?.[0]?.message?.content) {
+        const { error: aiMessageError } = await supabase
+          .from('ai_messages')
+          .insert({
+            conversation_id: conversationId,
+            content: completionData.choices[0].message.content,
+            role: 'assistant',
+          });
+
+        if (aiMessageError) throw aiMessageError;
+      }
+
+    } catch (error: any) {
+      console.error('Error in chat flow:', error);
+      toast.error("Erro ao processar mensagem");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!conversationId || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      const { error: deleteMessagesError } = await supabase
+        .from('ai_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      if (deleteMessagesError) throw deleteMessagesError;
+
+      const { error: deleteConversationError } = await supabase
+        .from('ai_conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (deleteConversationError) throw deleteConversationError;
+
+      toast.success("Conversa excluída com sucesso");
+      navigate('/intelligence/chat');
+    } catch (error: any) {
+      console.error('Error deleting conversation:', error);
+      toast.error("Erro ao excluir conversa");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return {
+    handleSubmit,
+    handleDeleteConversation,
+    isDeleting,
+    isLoading
+  };
+};
