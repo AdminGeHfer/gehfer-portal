@@ -3,6 +3,8 @@ import { ChatContainer } from "./chat/ChatContainer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Bot } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { motion } from "framer-motion";
 
 export const Chat = () => {
   const { conversationId } = useParams();
@@ -24,22 +26,33 @@ export const Chat = () => {
   });
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-background to-background/90">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex flex-col h-full bg-gradient-to-br from-background to-background/90"
+    >
       {conversationId && (
         <div className="h-14 border-b bg-card/50 backdrop-blur-sm flex items-center px-4 gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            {agent?.icon ? (
-              <img src={agent.icon} alt={agent?.name} className="w-5 h-5" />
-            ) : (
-              <Bot className="w-5 h-5 text-primary" />
-            )}
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={agent?.icon} />
+            <AvatarFallback className="bg-primary/10">
+              <Bot className="h-4 w-4 text-primary" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-medium text-sm">
+              {agent?.name || 'Assistente'}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Online
+            </span>
           </div>
-          <span className="font-medium">{agent?.name || 'Assistente'}</span>
         </div>
       )}
       <div className="flex-1 overflow-hidden">
         <ChatContainer />
       </div>
-    </div>
+    </motion.div>
   );
 };

@@ -5,69 +5,142 @@ import { useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MessageListProps {
   messages: Message[];
 }
 
-export const MessageList = ({ messages }: MessageListProps) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
+const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boolean }) => {
   const formatMessageTime = (timestamp: string) => {
     return format(new Date(timestamp), "HH:mm", { locale: ptBR });
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className={cn(
+      "flex items-start gap-3",
+      isUser ? "flex-row-reverse" : "flex-row"
+    )}>
+      <Avatar className="w-8 h-8">
+        {isUser ? (
+          <>
+            <AvatarImage src="/placeholder.svg" />
+            <AvatarFallback>
+              <User className="w-4 h-4" />
+            </AvatarFallback>
+          </>
+        ) : (
+          <>
+            <AvatarImage src="/placeholder.svg" />
+            <AvatarFallback>
+              <MessageSquare className="w-4 h-4" />
+            </AvatarFallback>
+          </>
+        )}
+      </Avatar>
+
+      <div className="flex-1 space-y-2">
+        {messages.map((message) => (
+          <ContextMenu key={message.id}>
+            <ContextMenuTrigger>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="group relative"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={cn(
+                      "px-4 py-2 rounded-lg max-w-[80%] break-words",
+                      isUser 
+                        ? "bg-primary text-primary-foreground ml-auto rounded-tr-none"
+                        : "bg-muted rounded-tl-none"
+                    )}>
+                      {message.content.split('\n').map((text, i) => (
+                        <p key={i} className="mb-1 last:mb-0">
+                          {text}
+                        </p>
+                      ))}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side={isUser ? "left" : "right"}>
+                    {formatMessageTime(message.created_at)}
+                  </TooltipContent>
+                </Tooltip>
+              </motion.div>
+            </ContextMenuTrigger>
+            <ContextMenuContent>
+              <ContextMenuItem>Copiar</ContextMenuItem>
+              <ContextMenuItem>Responder</ContextMenuItem>
+              <ContextMenuItem className="text-destructive">Deletar</ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const MessageList = ({ messages }: MessageListProps) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  // Group messages by user and consecutive messages
+  const groupedMessages = messages.reduce((groups: Message[][], message) => {
+    const lastGroup = groups[groups.length - 1];
+    
+    if (
+      lastGroup && 
+      lastGroup[0].role === message.role &&
+      // Group messages within 2 minutes of each other
+      Math.abs(
+        new Date(lastGroup[lastGroup.length - 1].created_at).getTime() - 
+        new Date(message.created_at).getTime()
+      ) < 120000
+    ) {
+      lastGroup.push(message);
+    } else {
+      groups.push([message]);
+    }
+    
+    return groups;
+  }, []);
+
+  return (
+    <ScrollArea 
+      ref={scrollRef}
+      className="flex-1 p-4 space-y-6"
+    >
       <AnimatePresence initial={false}>
-        {messages.map((message, index) => (
+        {groupedMessages.map((group, index) => (
           <motion.div
-            key={message.id}
+            key={group[0].id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
-            className={cn(
-              "flex items-start gap-3",
-              message.role === 'assistant' ? "justify-start" : "justify-end"
-            )}
           >
-            {message.role === 'assistant' && (
-              <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-primary" />
-              </div>
-            )}
-            
-            <div className="group relative max-w-[80%] space-y-1">
-              <div className={cn(
-                "rounded-2xl p-3 shadow-sm",
-                message.role === 'assistant'
-                  ? "bg-card text-card-foreground rounded-tl-none"
-                  : "bg-primary text-primary-foreground rounded-tr-none"
-              )}>
-                {message.content}
-              </div>
-              <span className={cn(
-                "text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity",
-                message.role === 'assistant' ? "text-left" : "text-right"
-              )}>
-                {formatMessageTime(message.created_at)}
-              </span>
-            </div>
-
-            {message.role === 'user' && (
-              <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-            )}
+            <MessageGroup 
+              messages={group} 
+              isUser={group[0].role === 'user'} 
+            />
           </motion.div>
         ))}
       </AnimatePresence>
-      <div ref={messagesEndRef} />
-    </div>
+    </ScrollArea>
   );
 };
