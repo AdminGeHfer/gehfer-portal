@@ -91,7 +91,15 @@ export const Chat = () => {
       const { data: completionData, error: completionError } = await supabase.functions
         .invoke('chat-completion', {
           body: {
-            messages: messages.concat({ role: 'user', content, created_at: new Date().toISOString() }),
+            messages: messages.map(msg => ({
+              role: msg.role,
+              content: msg.content,
+              created_at: msg.created_at
+            })).concat({
+              role: 'user' as const,
+              content,
+              created_at: new Date().toISOString()
+            }),
             model: conversation?.ai_agents?.model_id || 'gpt-4o-mini',
             agentId: conversation?.ai_agents?.id,
           },
