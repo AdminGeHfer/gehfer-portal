@@ -15,7 +15,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { data as emojiData } from '@emoji-mart/data';
+import emojiData from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import {
   Popover,
