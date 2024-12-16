@@ -4,7 +4,6 @@ import { Message } from "@/types/ai";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./chat/MessageList";
 import { ChatHeader } from "./chat/ChatHeader";
-import { AgentMetricsDashboard } from "./metrics/AgentMetricsDashboard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -114,7 +113,6 @@ export const Chat = () => {
 
       <div className="border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex flex-col gap-4 py-4">
-          <AgentMetricsDashboard agentId={conversation?.ai_agents?.id || ''} />
           <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
         </div>
       </div>

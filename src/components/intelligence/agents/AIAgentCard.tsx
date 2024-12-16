@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { AIAgentSettings } from "./AIAgentSettings";
+import { MetricsDialog } from "../metrics/MetricsDialog";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -77,12 +78,16 @@ export const AIAgentCard = ({
             <MessageSquare className="h-4 w-4 mr-2" />
             Iniciar Chat
           </Button>
+
+          <MetricsDialog agentId={agent.id} agentName={agent.name} />
+
           {agent.use_knowledge_base && (
             <Button variant="outline" size="sm" className="flex-shrink-0">
               <Database className="h-4 w-4 mr-2" />
               Base de Conhecimento
             </Button>
           )}
+
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="ghost" size="sm" className="flex-shrink-0">
