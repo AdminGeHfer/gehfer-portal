@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { ModelSelect } from "./ModelSelect";
+import { ModelSelector } from "../shared/ModelSelector";
 
 interface ChatHeaderProps {
   onDelete: () => void;
@@ -19,7 +19,7 @@ export const ChatHeader = ({
 }: ChatHeaderProps) => {
   return (
     <div className="flex items-center justify-between p-4 border-b">
-      <ModelSelect 
+      <ModelSelector 
         value={model} 
         onValueChange={onModelChange}
         disabled={isLoading || isDeleting}
