@@ -11,27 +11,23 @@ export const useMemory = (conversationId: string) => {
     try {
       // Primeiro, vamos verificar se conseguimos fazer a chamada RPC
       console.log('Attempting to retrieve OpenAI API key from Supabase secrets...');
-      const { data, error } = await supabase
-        .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
+      const { data: secretData, error: secretError } = await supabase
+        .from('secrets')
+        .select('value')
+        .eq('name', 'OPENAI_API_KEY')
+        .single();
 
-      if (error) {
-        console.error('Error fetching OpenAI API key:', error);
-        throw new Error(`Failed to retrieve OpenAI API key: ${error.message}`);
+      if (secretError) {
+        console.error('Error fetching OpenAI API key:', secretError);
+        throw new Error(`Failed to retrieve OpenAI API key: ${secretError.message}`);
       }
 
-      console.log('API key response:', data); // Log the response structure
-
-      if (!data || !data[0]) {
-        console.error('No data returned from get_secret');
-        throw new Error("No data returned from get_secret RPC call");
+      if (!secretData?.value) {
+        console.error('OpenAI API key not found');
+        throw new Error("OpenAI API key not found. Please add it in the Supabase settings.");
       }
 
-      if (!data[0].secret) {
-        console.error('Secret value is null or undefined');
-        throw new Error("Secret value is null or undefined in the response");
-      }
-
-      const openAIApiKey = data[0].secret;
+      const openAIApiKey = secretData.value;
       console.log('OpenAI API key retrieved successfully');
 
       // Initialize vector store with retry mechanism
