@@ -633,6 +633,7 @@ export type Database = {
       }
       document_chunks: {
         Row: {
+          coherence_score: number | null
           content: string
           created_at: string
           created_by: string | null
@@ -640,8 +641,12 @@ export type Database = {
           embedding: string | null
           id: string
           metadata: Json
+          semantic_context: string | null
+          topic: string | null
+          version_id: string | null
         }
         Insert: {
+          coherence_score?: number | null
           content: string
           created_at?: string
           created_by?: string | null
@@ -649,8 +654,12 @@ export type Database = {
           embedding?: string | null
           id?: string
           metadata?: Json
+          semantic_context?: string | null
+          topic?: string | null
+          version_id?: string | null
         }
         Update: {
+          coherence_score?: number | null
           content?: string
           created_at?: string
           created_by?: string | null
@@ -658,6 +667,9 @@ export type Database = {
           embedding?: string | null
           id?: string
           metadata?: Json
+          semantic_context?: string | null
+          topic?: string | null
+          version_id?: string | null
         }
         Relationships: [
           {
@@ -669,6 +681,58 @@ export type Database = {
           },
           {
             foreignKeyName: "document_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_chunks_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          document_id: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          version_number: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "documents"
@@ -1655,6 +1719,13 @@ export type Database = {
             }
             Returns: unknown
           }
+      calculate_chunk_coherence: {
+        Args: {
+          chunk_text: string
+          context: string
+        }
+        Returns: number
+      }
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]

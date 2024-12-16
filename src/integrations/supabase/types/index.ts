@@ -1,9 +1,10 @@
-import { AITablesSchema } from './ai';
 import { Json } from './json';
+import { DocumentTypes } from './documents';
+import { Database as AITablesSchema } from './ai';
 
 export interface Database {
   public: {
-    Tables: AITablesSchema & {
+    Tables: DocumentTypes & AITablesSchema & {
       ai_conversations: {
         Row: {
           created_at: string;
@@ -33,7 +34,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       ai_messages: {
@@ -65,7 +66,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "ai_conversations";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       audit_logs: {
@@ -103,7 +104,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       collection_evidence: {
@@ -154,7 +155,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       collection_requests: {
@@ -221,42 +222,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "rncs";
             referencedColumns: ["id"];
-          },
-        ];
-      };
-      documents: {
-        Row: {
-          content: string | null;
-          created_at: string | null;
-          created_by: string | null;
-          embedding: string | null;
-          id: string;
-          metadata: Json | null;
-        };
-        Insert: {
-          content?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          embedding?: string | null;
-          id?: string;
-          metadata?: Json | null;
-        };
-        Update: {
-          content?: string | null;
-          created_at?: string | null;
-          created_by?: string | null;
-          embedding?: string | null;
-          id?: string;
-          metadata?: Json | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "documents_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
+          }
         ];
       };
       materials: {
@@ -288,7 +254,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       notifications: {
@@ -336,118 +302,8 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
-      };
-      operations: {
-        Row: {
-          bay_number: number | null;
-          created_at: string | null;
-          dock_number: string | null;
-          entry_time: string | null;
-          estimated_time: number | null;
-          exit_time: string | null;
-          final_weight: number | null;
-          id: string;
-          initial_weight: number | null;
-          net_weight: number | null;
-          notes: string | null;
-          operation_type: string;
-          origin_destination: string | null;
-          priority: string | null;
-          status: string;
-          truck_id: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          bay_number?: number | null;
-          created_at?: string | null;
-          dock_number?: string | null;
-          entry_time?: string | null;
-          estimated_time?: number | null;
-          exit_time?: string | null;
-          final_weight?: number | null;
-          id?: string;
-          initial_weight?: number | null;
-          net_weight?: number | null;
-          notes?: string | null;
-          operation_type: string;
-          origin_destination?: string | null;
-          priority?: string | null;
-          status: string;
-          truck_id?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          bay_number?: number | null;
-          created_at?: string | null;
-          dock_number?: string | null;
-          entry_time?: string | null;
-          estimated_time?: number | null;
-          exit_time?: string | null;
-          final_weight?: number | null;
-          id?: string;
-          initial_weight?: number | null;
-          net_weight?: number | null;
-          notes?: string | null;
-          operation_type?: string;
-          origin_destination?: string | null;
-          priority?: string | null;
-          status?: string;
-          truck_id?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "operations_truck_id_fkey";
-            columns: ["truck_id"];
-            isOneToOne: false;
-            referencedRelation: "trucks";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      pre_registered_vehicles: {
-        Row: {
-          blacklist_reason: string | null;
-          blacklisted: boolean | null;
-          created_at: string | null;
-          driver_name: string;
-          id: string;
-          plate: string;
-          recurring: boolean | null;
-          transport_company: string;
-          truck_type: string;
-          updated_at: string | null;
-          valid_until: string | null;
-        };
-        Insert: {
-          blacklist_reason?: string | null;
-          blacklisted?: boolean | null;
-          created_at?: string | null;
-          driver_name: string;
-          id?: string;
-          plate: string;
-          recurring?: boolean | null;
-          transport_company: string;
-          truck_type: string;
-          updated_at?: string | null;
-          valid_until?: string | null;
-        };
-        Update: {
-          blacklist_reason?: string | null;
-          blacklisted?: boolean | null;
-          created_at?: string | null;
-          driver_name?: string;
-          id?: string;
-          plate?: string;
-          recurring?: boolean | null;
-          transport_company?: string;
-          truck_type?: string;
-          updated_at?: string | null;
-          valid_until?: string | null;
-        };
-        Relationships: [];
       };
       products: {
         Row: {
@@ -484,7 +340,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       profiles: {
@@ -569,7 +425,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "products";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       rnc_attachments: {
@@ -617,7 +473,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "rncs";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       rnc_contacts: {
@@ -649,7 +505,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "rncs";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       rnc_events: {
@@ -694,7 +550,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "rncs";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       rnc_workflow_transitions: {
@@ -739,7 +595,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "rncs";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       rncs: {
@@ -824,182 +680,8 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
-      };
-      scheduled_operations: {
-        Row: {
-          cargo_type: string | null;
-          created_at: string | null;
-          estimated_duration: number | null;
-          id: string;
-          notes: string | null;
-          operation_type: string;
-          pre_registered_vehicle_id: string | null;
-          priority: string | null;
-          scheduled_time: string;
-          status: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          cargo_type?: string | null;
-          created_at?: string | null;
-          estimated_duration?: number | null;
-          id?: string;
-          notes?: string | null;
-          operation_type: string;
-          pre_registered_vehicle_id?: string | null;
-          priority?: string | null;
-          scheduled_time: string;
-          status?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          cargo_type?: string | null;
-          created_at?: string | null;
-          estimated_duration?: number | null;
-          id?: string;
-          notes?: string | null;
-          operation_type?: string;
-          pre_registered_vehicle_id?: string | null;
-          priority?: string | null;
-          scheduled_time?: string;
-          status?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "scheduled_operations_pre_registered_vehicle_id_fkey";
-            columns: ["pre_registered_vehicle_id"];
-            isOneToOne: false;
-            referencedRelation: "pre_registered_vehicles";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      tachograph_records: {
-        Row: {
-          created_at: string | null;
-          final_mileage: number | null;
-          final_mileage_photo_url: string | null;
-          id: string;
-          image_url: string | null;
-          mileage: number;
-          operation_id: string | null;
-          record_type: string;
-        };
-        Insert: {
-          created_at?: string | null;
-          final_mileage?: number | null;
-          final_mileage_photo_url?: string | null;
-          id?: string;
-          image_url?: string | null;
-          mileage: number;
-          operation_id?: string | null;
-          record_type: string;
-        };
-        Update: {
-          created_at?: string | null;
-          final_mileage?: number | null;
-          final_mileage_photo_url?: string | null;
-          id?: string;
-          image_url?: string | null;
-          mileage?: number;
-          operation_id?: string | null;
-          record_type?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "tachograph_records_operation_id_fkey";
-            columns: ["operation_id"];
-            isOneToOne: false;
-            referencedRelation: "operations";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      truck_access_logs: {
-        Row: {
-          cargo_description: string | null;
-          created_at: string | null;
-          driver_document: string | null;
-          driver_photo: string | null;
-          entry_time: string | null;
-          exit_time: string | null;
-          id: string;
-          notes: string | null;
-          purpose: string;
-          truck_id: string | null;
-          truck_photo: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          cargo_description?: string | null;
-          created_at?: string | null;
-          driver_document?: string | null;
-          driver_photo?: string | null;
-          entry_time?: string | null;
-          exit_time?: string | null;
-          id?: string;
-          notes?: string | null;
-          purpose: string;
-          truck_id?: string | null;
-          truck_photo?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          cargo_description?: string | null;
-          created_at?: string | null;
-          driver_document?: string | null;
-          driver_photo?: string | null;
-          entry_time?: string | null;
-          exit_time?: string | null;
-          id?: string;
-          notes?: string | null;
-          purpose?: string;
-          truck_id?: string | null;
-          truck_photo?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "truck_access_logs_truck_id_fkey";
-            columns: ["truck_id"];
-            isOneToOne: false;
-            referencedRelation: "trucks";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      trucks: {
-        Row: {
-          created_at: string | null;
-          driver_name: string;
-          id: string;
-          plate: string;
-          transport_company: string;
-          truck_type: string;
-          updated_at: string | null;
-        };
-        Insert: {
-          created_at?: string | null;
-          driver_name: string;
-          id?: string;
-          plate: string;
-          transport_company: string;
-          truck_type: string;
-          updated_at?: string | null;
-        };
-        Update: {
-          created_at?: string | null;
-          driver_name?: string;
-          id?: string;
-          plate?: string;
-          transport_company?: string;
-          truck_type?: string;
-          updated_at?: string | null;
-        };
-        Relationships: [];
       };
       workflow_states: {
         Row: {
@@ -1040,13 +722,6 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: "fk_workflow_states_assigned_to";
-            columns: ["assigned_to"];
-            isOneToOne: false;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "workflow_states_assigned_to_fkey";
             columns: ["assigned_to"];
             isOneToOne: false;
@@ -1059,7 +734,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "workflow_templates";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       workflow_templates: {
@@ -1097,7 +772,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
       workflow_transitions: {
@@ -1146,7 +821,7 @@ export interface Database {
             isOneToOne: false;
             referencedRelation: "workflow_templates";
             referencedColumns: ["id"];
-          },
+          }
         ];
       };
     };

@@ -14,12 +14,12 @@ export const processDocumentWithSemanticChunking = async (
   overlap: number = 200
 ) => {
   try {
-    // Criar nova versão do documento
+    // Create new document version
     const { data: versionData, error: versionError } = await supabase
       .from('document_versions')
       .insert({
         document_id: documentId,
-        version_number: 1, // Será incrementado via trigger
+        version_number: 1,
         metadata: {
           chunk_size: chunkSize,
           overlap,
@@ -31,7 +31,7 @@ export const processDocumentWithSemanticChunking = async (
 
     if (versionError) throw versionError;
 
-    // Processar chunks semanticamente via Edge Function
+    // Process chunks semantically via Edge Function
     const { data: processedChunks, error: processingError } = await supabase.functions
       .invoke('process-semantic-chunks', {
         body: { content, chunkSize, overlap }
@@ -39,7 +39,7 @@ export const processDocumentWithSemanticChunking = async (
 
     if (processingError) throw processingError;
 
-    // Inserir chunks processados
+    // Insert processed chunks
     const { error: insertError } = await supabase
       .from('document_chunks')
       .insert(
