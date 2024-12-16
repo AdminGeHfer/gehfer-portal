@@ -21,7 +21,7 @@ serve(async (req) => {
         }
 
         // Process request
-        const { messages, model, agentId } = await req.json();
+        const { messages, model, agentId, memory } = await req.json();
         if (!messages || !Array.isArray(messages)) {
             throw new Error('Invalid messages format');
         }
@@ -41,6 +41,23 @@ serve(async (req) => {
         if (agentError) {
             console.error('Error fetching agent:', agentError);
             throw agentError;
+        }
+
+        // Search relevant documents if knowledge base is enabled
+        let relevantContext = '';
+        if (agent.use_knowledge_base) {
+            const lastMessage = messages[messages.length - 1].content;
+            const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
+                query_embedding: memory.vectorStore.embedding,
+                match_threshold: agent.search_threshold || 0.7,
+                match_count: 5
+            });
+
+            if (searchError) {
+                console.error('Error searching documents:', searchError);
+            } else if (documents && documents.length > 0) {
+                relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
+            }
         }
 
         // Map models
@@ -67,6 +84,7 @@ serve(async (req) => {
                 model: actualModel,
                 messages: [
                     { role: 'system', content: agent.system_prompt || 'You are a helpful assistant.' },
+                    ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
                     ...messages
                 ],
                 temperature: agent.temperature || 0.7,

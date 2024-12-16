@@ -66,7 +66,14 @@ export const useMemory = (conversationId: string) => {
           outputKey: "output",
         });
         console.log('Memory initialized successfully');
-        return memory;
+
+        // Add vector store to memory context
+        const memoryWithKnowledge = {
+          ...memory,
+          vectorStore
+        };
+
+        return memoryWithKnowledge;
       } catch (memoryError) {
         console.error('Error initializing memory:', memoryError);
         throw new Error(`Failed to initialize chat memory: ${memoryError.message}`);
