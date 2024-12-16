@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { AIAgent } from "@/types/ai/agent";
+import { AIAgent, AIAgentConfig, configToAgent } from "@/types/ai/agent";
 
 export function useAgentUpdate() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const updateAgent = async (agentId: string, updatedAgent: Partial<AIAgent>) => {
+  const updateAgent = async (agentId: string, updatedAgent: Partial<AIAgent> | AIAgentConfig) => {
     try {
       setIsSubmitting(true);
       const { data: session } = await supabase.auth.getSession();
@@ -21,10 +21,15 @@ export function useAgentUpdate() {
         return { success: false };
       }
 
+      // Convert config format to database format if needed
+      const dbFormat = 'chainType' in updatedAgent 
+        ? configToAgent(updatedAgent as AIAgentConfig, session.session.user.id)
+        : updatedAgent;
+
       const result = await supabase
         .from('ai_agents')
         .update({
-          ...updatedAgent,
+          ...dbFormat,
           updated_at: new Date().toISOString()
         })
         .eq('id', agentId)

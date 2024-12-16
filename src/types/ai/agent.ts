@@ -61,3 +61,54 @@ export interface AIAgentConfig {
   tools: string[];
   systemPrompt: string;
 }
+
+// Helper function to convert from config (camelCase) to database format (snake_case)
+export const configToAgent = (config: AIAgentConfig, userId: string): Partial<AIAgent> => {
+  return {
+    name: config.name,
+    description: config.description,
+    model_id: config.modelId,
+    memory_type: config.memoryType,
+    use_knowledge_base: config.useKnowledgeBase,
+    temperature: config.temperature,
+    max_tokens: config.maxTokens,
+    top_p: config.topP,
+    top_k: config.topK,
+    stop_sequences: config.stopSequences,
+    chain_type: config.chainType,
+    chunk_size: config.chunkSize,
+    chunk_overlap: config.chunkOverlap,
+    embedding_model: config.embeddingModel,
+    search_type: config.searchType,
+    search_threshold: config.searchThreshold,
+    output_format: config.outputFormat,
+    tools: config.tools,
+    system_prompt: config.systemPrompt,
+    user_id: userId,
+  };
+};
+
+// Helper function to convert from database format (snake_case) to config (camelCase)
+export const agentToConfig = (agent: AIAgent): AIAgentConfig => {
+  return {
+    name: agent.name,
+    description: agent.description || "",
+    modelId: agent.model_id,
+    memoryType: agent.memory_type,
+    useKnowledgeBase: agent.use_knowledge_base,
+    temperature: agent.temperature,
+    maxTokens: agent.max_tokens,
+    topP: agent.top_p,
+    topK: agent.top_k,
+    stopSequences: agent.stop_sequences,
+    chainType: agent.chain_type,
+    chunkSize: agent.chunk_size,
+    chunkOverlap: agent.chunk_overlap,
+    embeddingModel: agent.embedding_model,
+    searchType: agent.search_type,
+    searchThreshold: agent.search_threshold,
+    outputFormat: agent.output_format,
+    tools: agent.tools,
+    systemPrompt: agent.system_prompt || "",
+  };
+};
