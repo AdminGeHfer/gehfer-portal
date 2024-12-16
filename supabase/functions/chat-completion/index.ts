@@ -55,28 +55,40 @@ serve(async (req) => {
         if (agent.use_knowledge_base) {
             console.log('Knowledge base is enabled, generating embedding for search...');
             
-            // Generate embedding for the query
-            const embeddingResponse = await openai.createEmbedding({
-                model: "text-embedding-3-small",
-                input: lastMessage,
-            });
+            try {
+                // Generate embedding for the query
+                const embeddingResponse = await openai.createEmbedding({
+                    model: "text-embedding-3-small",
+                    input: lastMessage,
+                });
 
-            const queryEmbedding = embeddingResponse.data.data[0].embedding;
+                if (!embeddingResponse.data.data[0].embedding) {
+                    throw new Error('Failed to generate embedding');
+                }
 
-            console.log('Searching for relevant documents...');
-            const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
-                query_embedding: queryEmbedding,
-                match_threshold: agent.search_threshold || 0.7,
-                match_count: 5
-            });
+                const queryEmbedding = embeddingResponse.data.data[0].embedding;
 
-            if (searchError) {
-                console.error('Error searching documents:', searchError);
-            } else if (documents && documents.length > 0) {
-                console.log(`Found ${documents.length} relevant documents`);
-                relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
-            } else {
-                console.log('No relevant documents found');
+                console.log('Searching for relevant documents...');
+                const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
+                    query_embedding: queryEmbedding,
+                    match_threshold: agent.search_threshold || 0.7,
+                    match_count: 5
+                });
+
+                if (searchError) {
+                    console.error('Error searching documents:', searchError);
+                    throw searchError;
+                }
+
+                if (documents && documents.length > 0) {
+                    console.log(`Found ${documents.length} relevant documents`);
+                    relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
+                } else {
+                    console.log('No relevant documents found');
+                }
+            } catch (error) {
+                console.error('Error in knowledge base search:', error);
+                // Continue without knowledge base context if there's an error
             }
         }
 
