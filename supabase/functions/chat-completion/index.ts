@@ -13,12 +13,19 @@ serve(async (req) => {
   }
 
   try {
-    // Get OpenAI API key
+    // Get OpenAI API key with detailed logging
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured. Please add it in the Supabase Console under Settings > API Keys.');
     }
+
+    // Log first few characters of key for debugging (safely)
+    console.log('API Key format check:', {
+      startsWithSk: openAIApiKey.startsWith('sk-'),
+      length: openAIApiKey.length,
+      firstChars: openAIApiKey.substring(0, 5) + '...'
+    });
 
     // Parse request
     const { messages, model, agentId, memory } = await req.json();
@@ -57,7 +64,7 @@ serve(async (req) => {
     const actualModel = modelMap[model] || 'gpt-4';
     console.log(`Using OpenAI model: ${actualModel}`);
 
-    // Get completion from OpenAI
+    // Get completion from OpenAI with detailed error handling
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
