@@ -111,6 +111,15 @@ serve(async (req) => {
 
       console.log('Sending request to OpenAI with messages:', fullMessages);
 
+      // Map model names to actual OpenAI models
+      const modelMap: { [key: string]: string } = {
+        'gpt-4o-mini': 'gpt-4',
+        'gpt-4o': 'gpt-4-turbo-preview'
+      };
+
+      const actualModel = modelMap[model] || 'gpt-4';
+      console.log(`Using OpenAI model: ${actualModel}`);
+
       // Get completion from OpenAI
       const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -119,7 +128,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: model === 'gpt-4o-mini' ? 'gpt-4' : 'gpt-3.5-turbo',
+          model: actualModel,
           messages: fullMessages,
           temperature: agent.temperature || 0.7,
           max_tokens: agent.max_tokens || 4000,
