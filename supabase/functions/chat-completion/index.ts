@@ -22,14 +22,13 @@ serve(async (req) => {
             throw new Error('Invalid messages format');
         }
 
-        // Map the frontend model IDs to OpenAI model IDs
+        // Map frontend model IDs to OpenAI model IDs
         const modelMapping: { [key: string]: string } = {
-            'gpt-4o': 'gpt-4o',
-            'gpt-4o-mini': 'gpt-4o-mini',
-            'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
+            'gpt-4o': 'gpt-4',
+            'gpt-4o-mini': 'gpt-4',  // Using gpt-4 for both to ensure consistency
         };
 
-        const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-1106';
+        const openAIModel = modelMapping[model] || 'gpt-4';
         console.log(`Using model: ${model} -> ${openAIModel}`);
 
         const supabase = createClient(
@@ -155,12 +154,12 @@ serve(async (req) => {
             body: JSON.stringify({
                 model: openAIModel,
                 messages: [
-                    { role: 'system', content: agent.system_prompt || 'You are a helpful assistant.' },
+                    { role: 'system', content: agent?.system_prompt || 'You are a helpful assistant.' },
                     ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
                     ...messages
                 ],
-                temperature: agent.temperature || 0.7,
-                max_tokens: agent.max_tokens || 4000,
+                temperature: agent?.temperature || 0.7,
+                max_tokens: agent?.max_tokens || 4000,
             }),
         });
 
@@ -179,9 +178,9 @@ serve(async (req) => {
             p_event_type: 'completion',
             p_configuration: {
                 model: openAIModel,
-                temperature: agent.temperature,
-                max_tokens: agent.max_tokens,
-                knowledge_base_used: agent.use_knowledge_base,
+                temperature: agent?.temperature,
+                max_tokens: agent?.max_tokens,
+                knowledge_base_used: agent?.use_knowledge_base,
                 documents_found: relevantContext ? 'yes' : 'no'
             },
             p_details: `Response: ${completion.choices[0].message?.content}`

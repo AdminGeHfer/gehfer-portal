@@ -13,7 +13,7 @@ export const AI_MODELS: AIModel[] = [
   {
     id: 'gpt-4o-mini',
     name: 'GPT-4o Mini',
-    description: 'Versão otimizada do GPT-3.5 Turbo',
+    description: 'Versão otimizada do GPT-4',
     maxTokens: 4096,
     contextWindow: 16385
   },
@@ -23,13 +23,6 @@ export const AI_MODELS: AIModel[] = [
     description: 'Mais poderoso para tarefas complexas',
     maxTokens: 4096,
     contextWindow: 128000
-  },
-  {
-    id: 'gpt-3.5-turbo',
-    name: 'GPT-3.5 Turbo',
-    description: 'Rápido e eficiente para tarefas simples',
-    maxTokens: 4096,
-    contextWindow: 16385
   }
 ];
 
