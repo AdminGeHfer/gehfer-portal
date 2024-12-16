@@ -1344,6 +1344,27 @@ export type Database = {
           },
         ]
       }
+      secrets: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          value?: string
+        }
+        Relationships: []
+      }
       tachograph_records: {
         Row: {
           created_at: string | null
@@ -1634,6 +1655,14 @@ export type Database = {
             }
             Returns: unknown
           }
+      get_secret: {
+        Args: {
+          secret_name: string
+        }
+        Returns: {
+          secret: string
+        }[]
+      }
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]
