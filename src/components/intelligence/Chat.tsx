@@ -43,7 +43,10 @@ export const Chat = () => {
         return;
       }
 
-      setMessages(data || []);
+      if (data) {
+        console.log('Loaded messages:', data);
+        setMessages(data);
+      }
     };
 
     loadMessages();
@@ -76,10 +79,14 @@ export const Chat = () => {
 
     setIsLoading(true);
     try {
+      // Create a unique ID for the user message
+      const userMessageId = crypto.randomUUID();
+      
       // First save the user message
       const { error: messageError } = await supabase
         .from('ai_messages')
         .insert({
+          id: userMessageId,
           conversation_id: conversationId,
           content,
           role: 'user',
