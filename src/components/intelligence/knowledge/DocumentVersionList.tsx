@@ -37,7 +37,12 @@ export function DocumentVersionList({ documentId, onVersionChange }: DocumentVer
       // Transform the data to ensure type safety
       return (data || []).map(version => ({
         ...version,
-        metadata: version.metadata as DocumentVersion['metadata']
+        metadata: version.metadata ? {
+          chunks_count: (version.metadata as any).chunks_count || 0,
+          avg_coherence: (version.metadata as any).avg_coherence || 0,
+          processed_at: (version.metadata as any).processed_at,
+          processor_version: (version.metadata as any).processor_version
+        } : null
       })) as DocumentVersion[];
     }
   });
