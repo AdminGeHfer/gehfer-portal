@@ -1634,6 +1634,14 @@ export type Database = {
             }
             Returns: unknown
           }
+      get_secret: {
+        Args: {
+          secret_name: string
+        }
+        Returns: {
+          secret: string
+        }[]
+      }
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]
