@@ -7,39 +7,39 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-    // Handle CORS preflight requests
+    // Lidar com requisições CORS
     if (req.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders });
     }
 
     try {
-        // Get OpenAI API key directly from environment variables
+        // Obter a chave da API diretamente do ambiente
         const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
         if (!openAIApiKey) {
             console.error('OpenAI API key not configured');
             throw new Error('OpenAI API key not configured. Please ensure it is set in Edge Function Secrets Management.');
         }
 
-        // Log for debugging (safe logging)
+        // Log para verificações (cuidado para não expor dados sensíveis)
         console.log('API Key format check:', {
             startsWithSk: openAIApiKey.startsWith('sk-'),
             length: openAIApiKey.length,
             firstChars: openAIApiKey.substring(0, 5) + '...'
         });
 
-        // Parse request
+        // Processar a requisição
         const { messages, model, agentId, memory } = await req.json();
         if (!messages || !Array.isArray(messages)) {
             throw new Error('Invalid messages format');
         }
         console.log('Processing request with:', { model, agentId });
 
-        // Initialize Supabase client
+        // Inicializar cliente Supabase
         const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Get agent configuration
+        // Obter configuração do agente
         const { data: agent, error: agentError } = await supabase
             .from('ai_agents')
             .select('*')
@@ -52,7 +52,7 @@ serve(async (req) => {
         }
         console.log('Agent configuration:', agent);
 
-        // Map model names to actual OpenAI models
+        // Mapear modelos para a API OpenAI
         const modelMap = {
             'gpt-4o-mini': 'gpt-4',
             'gpt-4o': 'gpt-4-turbo-preview'
@@ -60,7 +60,7 @@ serve(async (req) => {
         const actualModel = modelMap[model] || 'gpt-4';
         console.log(`Using OpenAI model: ${actualModel}`);
 
-        // Make a request to OpenAI
+        // Chamada à API OpenAI
         const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -78,6 +78,7 @@ serve(async (req) => {
             }),
         });
 
+        // Verificar a resposta da OpenAI
         if (!completionResponse.ok) {
             const error = await completionResponse.json();
             console.error('OpenAI Completion Error:', error);
@@ -86,7 +87,7 @@ serve(async (req) => {
 
         const completion = await completionResponse.json();
 
-        // Log the interaction
+        // Log da interação
         await supabase.rpc('log_agent_event', {
             p_agent_id: agentId,
             p_conversation_id: memory?.conversationId,
@@ -99,7 +100,7 @@ serve(async (req) => {
             p_details: `Response: ${completion.choices[0].message?.content}`
         });
 
-        // Return the completion response
+        // Retornar a resposta
         return new Response(JSON.stringify(completion), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
