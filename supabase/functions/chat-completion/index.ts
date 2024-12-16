@@ -25,10 +25,11 @@ serve(async (req) => {
         // Map frontend model IDs to OpenAI model IDs
         const modelMapping: { [key: string]: string } = {
             'gpt-4o': 'gpt-4',
-            'gpt-4o-mini': 'gpt-4',  // Using gpt-4 for both to ensure consistency
+            'gpt-4o-mini': 'gpt-4',
+            'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
         };
 
-        const openAIModel = modelMapping[model] || 'gpt-4';
+        const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
         console.log(`Using model: ${model} -> ${openAIModel}`);
 
         const supabase = createClient(
@@ -50,7 +51,7 @@ serve(async (req) => {
         const lastMessage = messages[messages.length - 1].content;
 
         let relevantContext = '';
-        if (agent.use_knowledge_base) {
+        if (agent?.use_knowledge_base) {
             console.log('Knowledge base is enabled, searching for relevant documents...');
             
             try {
@@ -137,7 +138,6 @@ serve(async (req) => {
             }
         }
 
-        // Usando o modelo exatamente como recebido, sem mapeamento
         console.log(`Using OpenAI model: ${openAIModel}`);
         console.log('Relevant context length:', relevantContext.length);
 
