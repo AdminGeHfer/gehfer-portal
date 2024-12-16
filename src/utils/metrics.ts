@@ -9,6 +9,7 @@ export interface ChatMetrics {
     accuracy: number;
     confidence: number;
   };
+  [key: string]: any; // Add index signature to make it compatible with Json type
 }
 
 export const trackMetrics = async (
@@ -21,7 +22,7 @@ export const trackMetrics = async (
       .insert({
         conversation_id: conversationId,
         event_type: 'metrics',
-        configuration: metrics
+        configuration: metrics as any // Type assertion needed for Supabase
       });
 
     if (error) throw error;

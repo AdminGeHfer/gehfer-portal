@@ -53,11 +53,15 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         model
       );
 
+      const memoryVariables = await memory.loadMemoryVariables({
+        input: userMessage.content
+      });
+
       console.log('Sending request to chat-completion with:', {
         messages: truncatedMessages,
         model,
         agentId,
-        memory: await memory.loadMemoryVariables()
+        memory: memoryVariables
       });
 
       const response = await supabase.functions.invoke('chat-completion', {
@@ -65,7 +69,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
           messages: truncatedMessages,
           model,
           agentId,
-          memory: await memory.loadMemoryVariables()
+          memory: memoryVariables
         },
       });
 
@@ -84,7 +88,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
 
       await memory.saveContext(
         { input: userMessage.content },
-        { response: assistantMessage.content }
+        { output: assistantMessage.content }
       );
 
       const { error: saveAiError } = await supabase

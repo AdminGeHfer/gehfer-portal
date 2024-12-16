@@ -1,4 +1,4 @@
-import { SupabaseVectorStore } from "langchain/vectorstores/supabase";
+import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { ConversationSummaryMemory } from "langchain/memory";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,29 +28,7 @@ export const useMemory = (conversationId: string) => {
     return memory;
   };
 
-  const logInteraction = async (input: string, response: string, metrics: any) => {
-    try {
-      const { error } = await supabase
-        .from('ai_agent_logs')
-        .insert({
-          conversation_id: conversationId,
-          event_type: 'interaction',
-          details: input,
-          configuration: {
-            input,
-            response,
-            metrics
-          }
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error logging interaction:', error);
-    }
-  };
-
   return {
     initializeMemory,
-    logInteraction
   };
 };
