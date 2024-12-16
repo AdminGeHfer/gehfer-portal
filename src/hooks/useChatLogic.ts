@@ -11,7 +11,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
   const { initializeMemory } = useMemory(conversationId);
 
   const handleSubmit = async (content: string) => {
-    if (!conversationId || isLoading || !content.trim()) {
+    if (!conversationId || !content.trim()) {
       if (!content.trim()) {
         toast({
           title: "Mensagem vazia",
@@ -22,51 +22,41 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
       return;
     }
 
-    setIsLoading(true);
+    // Create user message object
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      conversation_id: conversationId,
+      role: 'user',
+      content,
+      created_at: new Date().toISOString(),
+    };
 
     try {
-      console.log('Processing message with agentId:', agentId);
-      
-      let memory;
-      try {
-        memory = await initializeMemory();
-        console.log('Memory initialized successfully');
-      } catch (memoryError: any) {
-        if (memoryError.message.includes('API key not found')) {
-          toast({
-            title: "Chave API OpenAI não encontrada",
-            description: "Por favor, configure sua chave API OpenAI nas configurações.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Erro de inicialização",
-            description: "Erro ao inicializar o chat: " + memoryError.message,
-            variant: "destructive",
-          });
-        }
-        throw memoryError;
-      }
-      
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        conversation_id: conversationId,
-        role: 'user',
-        content,
-        created_at: new Date().toISOString(),
-      };
-
+      // Immediately save and display user message
       const { error: saveError } = await supabase
         .from('ai_messages')
         .insert(userMessage);
 
       if (saveError) throw saveError;
 
-      const { data: messages } = await supabase
+      // Start loading state for AI response
+      setIsLoading(true);
+
+      // Initialize memory in parallel with getting messages
+      const memoryPromise = initializeMemory();
+      
+      // Fetch messages in parallel
+      const messagesPromise = supabase
         .from('ai_messages')
         .select('role, content')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
+
+      // Wait for both operations to complete
+      const [memory, { data: messages }] = await Promise.all([
+        memoryPromise,
+        messagesPromise
+      ]);
 
       const truncatedMessages = truncateMessages(
         [...(messages || []), { role: userMessage.role, content: userMessage.content }],

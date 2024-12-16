@@ -177,6 +177,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
       <Virtuoso
         style={{ height: '100%' }}
         data={groupedMessages}
+        followOutput="smooth"
         itemContent={(index, group) => (
           <motion.div
             key={group[0].id}
@@ -191,7 +192,6 @@ export const MessageList = ({ messages }: MessageListProps) => {
             />
           </motion.div>
         )}
-        followOutput="smooth"
       />
     </div>
   );
