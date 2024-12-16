@@ -58,7 +58,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
 
       if (messagesError) throw messagesError;
 
-      // Initialize memory only if needed (could be cached)
+      // Initialize memory
       const memory = await initializeMemory();
 
       console.log('Sending request to chat-completion with:', {
@@ -68,7 +68,6 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         ),
         model,
         agentId,
-        memory
       });
 
       const response = await supabase.functions.invoke('chat-completion', {
@@ -79,7 +78,6 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
           ),
           model,
           agentId,
-          memory
         },
       });
 

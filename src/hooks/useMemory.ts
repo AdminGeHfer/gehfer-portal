@@ -1,5 +1,3 @@
-import { SupabaseVectorStore } from "@langchain/community/vectorstores/supabase";
-import { OpenAIEmbeddings } from "@langchain/openai";
 import { ConversationSummaryMemory } from "langchain/memory";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatOpenAI } from "@langchain/openai";
@@ -30,27 +28,6 @@ export const useMemory = (conversationId: string) => {
       const openAIApiKey = response.apiKey;
       console.log('OpenAI API key retrieved successfully');
 
-      // Initialize vector store with retry mechanism
-      let vectorStore;
-      try {
-        console.log('Initializing vector store...');
-        vectorStore = new SupabaseVectorStore(
-          new OpenAIEmbeddings({
-            openAIApiKey,
-            modelName: "text-embedding-3-small"
-          }), 
-          {
-            client: supabase,
-            tableName: 'documents',
-            queryName: 'match_documents'
-          }
-        );
-        console.log('Vector store initialized successfully');
-      } catch (vectorError) {
-        console.error('Error initializing vector store:', vectorError);
-        throw new Error(`Failed to initialize vector store: ${vectorError.message}`);
-      }
-
       // Initialize memory with proper error handling
       try {
         console.log('Initializing conversation memory...');
@@ -67,13 +44,7 @@ export const useMemory = (conversationId: string) => {
         });
         console.log('Memory initialized successfully');
 
-        // Add vector store to memory context
-        const memoryWithKnowledge = {
-          ...memory,
-          vectorStore
-        };
-
-        return memoryWithKnowledge;
+        return memory;
       } catch (memoryError) {
         console.error('Error initializing memory:', memoryError);
         throw new Error(`Failed to initialize chat memory: ${memoryError.message}`);
@@ -81,7 +52,6 @@ export const useMemory = (conversationId: string) => {
     } catch (error: any) {
       console.error('Fatal error in memory initialization:', error);
       
-      // Show a user-friendly toast message
       toast({
         title: "Error Initializing Chat",
         description: error.message || "An error occurred while setting up the chat. Please try again.",

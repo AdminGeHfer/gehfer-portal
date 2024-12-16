@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -17,11 +18,14 @@ serve(async (req) => {
         const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
         if (!openAIApiKey) {
             console.error('OpenAI API key not configured');
-            throw new Error('OpenAI API key not configured. Please ensure it is set in Edge Function Secrets Management.');
+            throw new Error('OpenAI API key not configured');
         }
 
+        // Initialize OpenAI
+        const openai = new OpenAIApi(new Configuration({ apiKey: openAIApiKey }));
+
         // Process request
-        const { messages, model, agentId, memory } = await req.json();
+        const { messages, model, agentId } = await req.json();
         if (!messages || !Array.isArray(messages)) {
             throw new Error('Invalid messages format');
         }
@@ -43,12 +47,25 @@ serve(async (req) => {
             throw agentError;
         }
 
+        // Get the last user message
+        const lastMessage = messages[messages.length - 1].content;
+
         // Search relevant documents if knowledge base is enabled
         let relevantContext = '';
         if (agent.use_knowledge_base) {
-            const lastMessage = messages[messages.length - 1].content;
+            console.log('Knowledge base is enabled, generating embedding for search...');
+            
+            // Generate embedding for the query
+            const embeddingResponse = await openai.createEmbedding({
+                model: "text-embedding-3-small",
+                input: lastMessage,
+            });
+
+            const queryEmbedding = embeddingResponse.data.data[0].embedding;
+
+            console.log('Searching for relevant documents...');
             const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
-                query_embedding: memory.vectorStore.embedding,
+                query_embedding: queryEmbedding,
                 match_threshold: agent.search_threshold || 0.7,
                 match_count: 5
             });
@@ -56,7 +73,10 @@ serve(async (req) => {
             if (searchError) {
                 console.error('Error searching documents:', searchError);
             } else if (documents && documents.length > 0) {
+                console.log(`Found ${documents.length} relevant documents`);
                 relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
+            } else {
+                console.log('No relevant documents found');
             }
         }
 
@@ -71,7 +91,7 @@ serve(async (req) => {
 
         // Call OpenAI API with timeout
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        const timeout = setTimeout(() => controller.abort(), 30000);
 
         const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
@@ -109,7 +129,9 @@ serve(async (req) => {
             p_configuration: {
                 model,
                 temperature: agent.temperature,
-                max_tokens: agent.max_tokens
+                max_tokens: agent.max_tokens,
+                knowledge_base_used: agent.use_knowledge_base,
+                documents_found: relevantContext ? 'yes' : 'no'
             },
             p_details: `Response: ${completion.choices[0].message?.content}`
         });
