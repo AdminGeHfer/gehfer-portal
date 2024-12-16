@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 export const ChatContainer = () => {
   const { conversationId } = useParams();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [model, setModel] = useState("gpt-4o-mini");
+  const [model, setModel] = useState("");
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -54,7 +54,13 @@ export const ChatContainer = () => {
     try {
       const { data: conversation, error } = await supabase
         .from('ai_conversations')
-        .select('title, agent_id')
+        .select(`
+          title, 
+          agent_id,
+          ai_agents (
+            model_id
+          )
+        `)
         .eq('id', conversationId)
         .single();
 
@@ -62,6 +68,10 @@ export const ChatContainer = () => {
 
       if (conversation.agent_id) {
         setAgentId(conversation.agent_id);
+        // Set the model from the agent's configuration
+        if (conversation.ai_agents?.model_id) {
+          setModel(conversation.ai_agents.model_id);
+        }
       }
     } catch (error: any) {
       toast({
