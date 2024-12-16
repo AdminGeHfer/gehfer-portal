@@ -8,43 +8,27 @@ import { ChatInput } from "./ChatInput";
 import { ChatHeader } from "./ChatHeader";
 import { useChatLogic } from "@/hooks/useChatLogic";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const ChatContainer = () => {
   const { conversationId } = useParams();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [model, setModel] = useState("gpt-4-mini");
+  const [model, setModel] = useState("gpt-4o-mini");
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
-  const { data: messages = [], isLoading } = useQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: async () => {
-      if (!conversationId) return [];
-      
-      const { data, error } = await supabase
-        .from('ai_messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      return data as Message[];
-    },
-    gcTime: 1000 * 60 * 5,
-    staleTime: 1000 * 60,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
-  });
-
-  const { isLoading: isChatLoading, handleSubmit } = useChatLogic(conversationId!, model, agentId);
+  const { isLoading, handleSubmit } = useChatLogic(conversationId!, model, agentId);
   const handleFileUpload = useFileUpload(handleSubmit);
 
   useEffect(() => {
     if (conversationId) {
+      loadMessages();
       loadConversationDetails();
+      const subscription = subscribeToMessages();
+      return () => {
+        subscription?.unsubscribe();
+      };
     }
   }, [conversationId]);
 
@@ -52,6 +36,7 @@ export const ChatContainer = () => {
     if (!conversationId) return;
     
     try {
+      console.log('Loading conversation details for:', conversationId);
       const { data: conversation, error } = await supabase
         .from('ai_conversations')
         .select('title, agent_id')
@@ -60,16 +45,63 @@ export const ChatContainer = () => {
 
       if (error) throw error;
 
+      console.log('Conversation details:', conversation);
       if (conversation.agent_id) {
+        console.log('Setting agent ID:', conversation.agent_id);
         setAgentId(conversation.agent_id);
       }
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error loading conversation details:', error);
       toast({
         title: "Erro ao carregar detalhes da conversa",
         description: "Não foi possível carregar as configurações do assistente",
         variant: "destructive",
       });
     }
+  };
+
+  const loadMessages = async () => {
+    if (!conversationId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('ai_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      console.log('Loaded messages:', data?.length || 0);
+      setMessages(data as Message[]);
+      
+    } catch (error: any) {
+      console.error('Error loading messages:', error);
+      toast({
+        title: "Erro ao carregar mensagens",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const subscribeToMessages = () => {
+    if (!conversationId) return;
+
+    return supabase
+      .channel('ai_messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'ai_messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          setMessages((current) => [...current, payload.new as Message]);
+        }
+      )
+      .subscribe();
   };
 
   const handleDeleteConversation = async () => {
@@ -98,6 +130,7 @@ export const ChatContainer = () => {
 
       navigate('/intelligence/chat');
     } catch (error: any) {
+      console.error('Error deleting conversation:', error);
       toast({
         title: "Erro ao excluir conversa",
         description: error.message,
@@ -107,6 +140,10 @@ export const ChatContainer = () => {
       setIsDeleting(false);
     }
   };
+
+  if (!conversationId) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -125,7 +162,7 @@ export const ChatContainer = () => {
             <ChatInput 
               onSubmit={handleSubmit} 
               onFileUpload={handleFileUpload}
-              isLoading={isChatLoading} 
+              isLoading={isLoading} 
             />
           </div>
         </div>
