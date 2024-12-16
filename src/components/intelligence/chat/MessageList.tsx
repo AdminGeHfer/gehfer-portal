@@ -22,7 +22,7 @@ interface MessageListProps {
 
 const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boolean }) => {
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef(null);
 
   const formatMessageTime = (timestamp: string) => {
     return format(new Date(timestamp), "HH:mm", { locale: ptBR });
@@ -30,13 +30,16 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
 
   const handleQuote = (content: string) => {
     setSelectedMessage(content);
-    // Scroll to bottom after quoting
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
+    // Scroll to bottom after quoting with a small delay to ensure content is rendered
+    setTimeout(() => {
+      if (virtuosoRef.current) {
+        virtuosoRef.current.scrollToIndex({
+          index: 'LAST',
+          behavior: 'smooth',
+          align: 'end',
+        });
+      }
+    }, 100);
   };
 
   return (
@@ -117,17 +120,7 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
 };
 
 export const MessageList = ({ messages }: MessageListProps) => {
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  }, [messages]);
+  const virtuosoRef = useRef(null);
 
   // Group messages by user and consecutive messages
   const groupedMessages = messages.reduce((groups: Message[][], message) => {
@@ -150,14 +143,14 @@ export const MessageList = ({ messages }: MessageListProps) => {
   }, []);
 
   return (
-    <div 
-      ref={scrollAreaRef}
-      className="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-xl"
-    >
+    <div className="flex-1 overflow-hidden p-4 space-y-6 bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-xl">
       <Virtuoso
+        ref={virtuosoRef}
         style={{ height: '100%' }}
         data={groupedMessages}
         followOutput="smooth"
+        initialTopMostItemIndex={999} // Start at bottom
+        alignToBottom={true}
         itemContent={(index, group) => (
           <motion.div
             key={group[0].id}
