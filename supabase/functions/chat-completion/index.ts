@@ -53,22 +53,36 @@ serve(async (req) => {
         // Search relevant documents if knowledge base is enabled
         let relevantContext = '';
         if (agent.use_knowledge_base) {
-            console.log('Knowledge base is enabled, generating embedding for search...');
+            console.log('Knowledge base is enabled, searching for relevant documents...');
             
             try {
                 // Generate embedding for the query
-                const embeddingResponse = await openai.createEmbedding({
-                    model: "text-embedding-3-small",
-                    input: lastMessage,
+                const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${openAIApiKey}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: "text-embedding-3-small",
+                        input: lastMessage,
+                    }),
                 });
 
-                if (!embeddingResponse.data.data[0].embedding) {
-                    throw new Error('Failed to generate embedding');
+                if (!embeddingResponse.ok) {
+                    throw new Error('Failed to generate embedding: ' + await embeddingResponse.text());
                 }
 
-                const queryEmbedding = embeddingResponse.data.data[0].embedding;
+                const embeddingData = await embeddingResponse.json();
+                const queryEmbedding = embeddingData.data[0].embedding;
 
-                console.log('Searching for relevant documents...');
+                if (!queryEmbedding) {
+                    throw new Error('No embedding generated');
+                }
+
+                console.log('Successfully generated embedding, searching documents...');
+
+                // Search for relevant documents
                 const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
                     query_embedding: queryEmbedding,
                     match_threshold: agent.search_threshold || 0.7,
@@ -83,12 +97,14 @@ serve(async (req) => {
                 if (documents && documents.length > 0) {
                     console.log(`Found ${documents.length} relevant documents`);
                     relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
+                    console.log('Context added:', relevantContext);
                 } else {
                     console.log('No relevant documents found');
                 }
             } catch (error) {
                 console.error('Error in knowledge base search:', error);
-                // Continue without knowledge base context if there's an error
+                // Log the full error for debugging
+                console.error('Full error:', JSON.stringify(error, null, 2));
             }
         }
 
@@ -100,6 +116,7 @@ serve(async (req) => {
         const actualModel = modelMap[model] || 'gpt-4';
 
         console.log(`Using OpenAI model: ${actualModel}`);
+        console.log('Relevant context length:', relevantContext.length);
 
         // Call OpenAI API with timeout
         const controller = new AbortController();
