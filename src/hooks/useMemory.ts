@@ -9,6 +9,8 @@ export const useMemory = (conversationId: string) => {
     console.log('Initializing memory and retrieving OpenAI API key...');
     
     try {
+      // Primeiro, vamos verificar se conseguimos fazer a chamada RPC
+      console.log('Attempting to retrieve OpenAI API key from Supabase secrets...');
       const { data, error } = await supabase
         .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
 
@@ -17,9 +19,16 @@ export const useMemory = (conversationId: string) => {
         throw new Error(`Failed to retrieve OpenAI API key: ${error.message}`);
       }
 
-      if (!data || !data[0]?.secret) {
-        console.error('OpenAI API key not found in Supabase secrets');
-        throw new Error("OpenAI API key not found in Supabase secrets. Please add it using the form above.");
+      console.log('API key response:', data); // Log the response structure
+
+      if (!data || !data[0]) {
+        console.error('No data returned from get_secret');
+        throw new Error("No data returned from get_secret RPC call");
+      }
+
+      if (!data[0].secret) {
+        console.error('Secret value is null or undefined');
+        throw new Error("Secret value is null or undefined in the response");
       }
 
       const openAIApiKey = data[0].secret;
@@ -28,6 +37,7 @@ export const useMemory = (conversationId: string) => {
       // Initialize vector store with retry mechanism
       let vectorStore;
       try {
+        console.log('Initializing vector store...');
         vectorStore = new SupabaseVectorStore(
           new OpenAIEmbeddings({
             openAIApiKey,
@@ -47,10 +57,11 @@ export const useMemory = (conversationId: string) => {
 
       // Initialize memory with proper error handling
       try {
+        console.log('Initializing conversation memory...');
         const memory = new ConversationSummaryMemory({
           memoryKey: "chat_history",
           llm: new ChatOpenAI({ 
-            modelName: "gpt-3.5-turbo", // Changed from gpt-4o-mini to a valid model
+            modelName: "gpt-3.5-turbo",
             temperature: 0,
             openAIApiKey,
           }),
