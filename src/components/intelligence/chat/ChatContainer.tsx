@@ -8,27 +8,42 @@ import { ChatInput } from "./ChatInput";
 import { ChatHeader } from "./ChatHeader";
 import { useChatLogic } from "@/hooks/useChatLogic";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { useQuery } from "@tanstack/react-query";
 
 export const ChatContainer = () => {
   const { conversationId } = useParams();
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [model, setModel] = useState("gpt-4o-mini");
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const { isLoading, handleSubmit } = useChatLogic(conversationId!, model, agentId);
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ['messages', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return [];
+      
+      const { data, error } = await supabase
+        .from('ai_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data as Message[];
+    },
+    staleTime: 1000 * 60, // Consider data fresh for 1 minute
+    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
+  const { isLoading: isChatLoading, handleSubmit } = useChatLogic(conversationId!, model, agentId);
   const handleFileUpload = useFileUpload(handleSubmit);
 
   useEffect(() => {
     if (conversationId) {
-      loadMessages();
       loadConversationDetails();
-      const subscription = subscribeToMessages();
-      return () => {
-        subscription?.unsubscribe();
-      };
     }
   }, [conversationId]);
 
@@ -58,50 +73,6 @@ export const ChatContainer = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const loadMessages = async () => {
-    if (!conversationId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('ai_messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      console.log('Loaded messages:', data?.length || 0);
-      setMessages(data as Message[]);
-      
-    } catch (error: any) {
-      console.error('Error loading messages:', error);
-      toast({
-        title: "Erro ao carregar mensagens",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const subscribeToMessages = () => {
-    if (!conversationId) return;
-
-    return supabase
-      .channel('ai_messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'ai_messages',
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          setMessages((current) => [...current, payload.new as Message]);
-        }
-      )
-      .subscribe();
   };
 
   const handleDeleteConversation = async () => {
@@ -162,7 +133,7 @@ export const ChatContainer = () => {
             <ChatInput 
               onSubmit={handleSubmit} 
               onFileUpload={handleFileUpload}
-              isLoading={isLoading} 
+              isLoading={isChatLoading} 
             />
           </div>
         </div>
