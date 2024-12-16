@@ -8,62 +8,39 @@ import { ChatInput } from "./ChatInput";
 import { ChatHeader } from "./ChatHeader";
 import { useChatLogic } from "@/hooks/useChatLogic";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const ChatContainer = () => {
   const { conversationId } = useParams();
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [model, setModel] = useState("gpt-4o-mini");
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const { isLoading, handleSubmit } = useChatLogic(conversationId!, model, agentId);
-  const handleFileUpload = useFileUpload(handleSubmit);
-
-  useEffect(() => {
-    if (conversationId) {
-      loadMessages();
-      loadConversationDetails();
-      const subscription = subscribeToMessages();
-      return () => {
-        subscription?.unsubscribe();
-      };
-    }
-  }, [conversationId]);
-
-  const loadConversationDetails = async () => {
-    if (!conversationId) return;
-    
-    try {
-      console.log('Loading conversation details for:', conversationId);
-      const { data: conversation, error } = await supabase
+  const { data: conversation, isLoading: isLoadingConversation } = useQuery({
+    queryKey: ['conversation', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return null;
+      
+      const { data, error } = await supabase
         .from('ai_conversations')
-        .select('title, agent_id')
+        .select('title, agent_id, ai_agents(name, icon, color)')
         .eq('id', conversationId)
         .single();
 
       if (error) throw error;
+      return data;
+    },
+    enabled: !!conversationId
+  });
 
-      console.log('Conversation details:', conversation);
-      if (conversation.agent_id) {
-        console.log('Setting agent ID:', conversation.agent_id);
-        setAgentId(conversation.agent_id);
-      }
-    } catch (error) {
-      console.error('Error loading conversation details:', error);
-      toast({
-        title: "Erro ao carregar detalhes da conversa",
-        description: "Não foi possível carregar as configurações do assistente",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const loadMessages = async () => {
-    if (!conversationId) return;
-    
-    try {
+  const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
+    queryKey: ['messages', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return [];
+      
       const { data, error } = await supabase
         .from('ai_messages')
         .select('*')
@@ -71,23 +48,21 @@ export const ChatContainer = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      console.log('Loaded messages:', data?.length || 0);
-      setMessages(data as Message[]);
-      
-    } catch (error: any) {
-      console.error('Error loading messages:', error);
-      toast({
-        title: "Erro ao carregar mensagens",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+      return data as Message[];
+    },
+    enabled: !!conversationId
+  });
 
-  const subscribeToMessages = () => {
+  useEffect(() => {
+    if (conversation?.agent_id) {
+      setAgentId(conversation.agent_id);
+    }
+  }, [conversation]);
+
+  useEffect(() => {
     if (!conversationId) return;
 
-    return supabase
+    const subscription = supabase
       .channel('ai_messages')
       .on(
         'postgres_changes',
@@ -98,11 +73,20 @@ export const ChatContainer = () => {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
-          setMessages((current) => [...current, payload.new as Message]);
+          queryClient.setQueryData(['messages', conversationId], (old: Message[] = []) => 
+            [...old, payload.new as Message]
+          );
         }
       )
       .subscribe();
-  };
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [conversationId, queryClient]);
+
+  const { isLoading: isSending, handleSubmit } = useChatLogic(conversationId!, model, agentId);
+  const handleFileUpload = useFileUpload(handleSubmit);
 
   const handleDeleteConversation = async () => {
     if (!conversationId || isDeleting) return;
@@ -122,6 +106,9 @@ export const ChatContainer = () => {
         .eq('id', conversationId);
 
       if (deleteConversationError) throw deleteConversationError;
+
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
 
       toast({
         title: "Conversa excluída",
@@ -144,6 +131,8 @@ export const ChatContainer = () => {
   if (!conversationId) {
     return null;
   }
+
+  const isLoading = isLoadingConversation || isLoadingMessages || isSending;
 
   return (
     <div className="flex flex-col h-full">

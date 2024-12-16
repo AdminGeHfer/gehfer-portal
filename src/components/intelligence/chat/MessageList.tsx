@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/context-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface MessageListProps {
   messages: Message[];
@@ -91,13 +92,8 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
 };
 
 export const MessageList = ({ messages }: MessageListProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+  const parentRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
   // Group messages by user and consecutive messages
   const groupedMessages = messages.reduce((groups: Message[][], message) => {
@@ -106,7 +102,6 @@ export const MessageList = ({ messages }: MessageListProps) => {
     if (
       lastGroup && 
       lastGroup[0].role === message.role &&
-      // Group messages within 2 minutes of each other
       Math.abs(
         new Date(lastGroup[lastGroup.length - 1].created_at).getTime() - 
         new Date(message.created_at).getTime()
@@ -120,27 +115,62 @@ export const MessageList = ({ messages }: MessageListProps) => {
     return groups;
   }, []);
 
+  const rowVirtualizer = useVirtualizer({
+    count: groupedMessages.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 100,
+    overscan: 5,
+  });
+
+  useEffect(() => {
+    if (lastMessageRef.current && messages.length > 0) {
+      lastMessageRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
+  }, [messages]);
+
   return (
     <ScrollArea 
-      ref={scrollRef}
-      className="flex-1 p-4 space-y-6"
+      ref={parentRef}
+      className="flex-1 p-4 space-y-6 h-full"
     >
-      <AnimatePresence initial={false}>
-        {groupedMessages.map((group, index) => (
-          <motion.div
-            key={group[0].id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.2 }}
-          >
-            <MessageGroup 
-              messages={group} 
-              isUser={group[0].role === 'user'} 
-            />
-          </motion.div>
-        ))}
-      </AnimatePresence>
+      <div
+        style={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        <AnimatePresence initial={false}>
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const group = groupedMessages[virtualRow.index];
+            return (
+              <motion.div
+                key={group[0].id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+                ref={virtualRow.index === groupedMessages.length - 1 ? lastMessageRef : null}
+              >
+                <MessageGroup 
+                  messages={group} 
+                  isUser={group[0].role === 'user'} 
+                />
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
     </ScrollArea>
   );
 };
