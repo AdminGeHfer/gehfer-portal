@@ -1,12 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { History, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { DocumentVersion } from "@/types/documents";
 
 interface DocumentVersionListProps {
   documentId: string;
@@ -31,16 +32,17 @@ export function DocumentVersionList({ documentId, onVersionChange }: DocumentVer
         .order('version_number', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as DocumentVersion[];
     }
   });
 
   const handleRollback = async (versionId: string) => {
     try {
-      const { error } = await supabase.rpc('rollback_to_version', {
-        p_version_id: versionId,
-        p_document_id: documentId
-      });
+      const { error } = await supabase
+        .rpc('rollback_document_version', {
+          p_version_id: versionId,
+          p_document_id: documentId
+        });
 
       if (error) throw error;
 
