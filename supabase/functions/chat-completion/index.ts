@@ -73,7 +73,6 @@ serve(async (req) => {
                 console.log('Successfully generated embedding, searching documents...');
                 console.log('Search threshold:', agent.search_threshold);
 
-                // Primeiro, vamos verificar os documentos disponíveis
                 const { data: availableDocs, error: docsError } = await supabase
                     .from('ai_agent_documents')
                     .select('document_id')
@@ -85,8 +84,7 @@ serve(async (req) => {
 
                 console.log('Available documents:', availableDocs?.length || 0);
 
-                // Busca com threshold mais baixo inicialmente
-                const searchThreshold = agent.search_threshold || 0.5; // Reduzido de 0.7 para 0.5
+                const searchThreshold = agent.search_threshold || 0.5;
                 
                 const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
                     query_embedding: queryEmbedding,
@@ -110,10 +108,9 @@ serve(async (req) => {
                 } else {
                     console.log('No relevant documents found with threshold:', searchThreshold);
                     
-                    // Tentar novamente com threshold mais baixo se não encontrou nada
                     const { data: documentsRetry, error: retryError } = await supabase.rpc('match_documents', {
                         query_embedding: queryEmbedding,
-                        match_threshold: 0.3, // Threshold mais baixo para segunda tentativa
+                        match_threshold: 0.3,
                         match_count: 3
                     });
 
@@ -131,14 +128,8 @@ serve(async (req) => {
             }
         }
 
-        // Corrigido o mapeamento dos modelos para usar os modelos corretos
-        const modelMap: Record<string, string> = {
-            'gpt-4o-mini': 'gpt-3.5-turbo-1106',  // Usando o modelo mais recente do GPT-3.5
-            'gpt-4o': 'gpt-4-1106-preview'        // Usando o modelo mais recente do GPT-4
-        };
-        
-        const actualModel = modelMap[model] || 'gpt-3.5-turbo-1106'; // Fallback para o modelo mais barato
-        console.log(`Selected model: ${model}, Using OpenAI model: ${actualModel}`);
+        // Usando o modelo exatamente como recebido, sem mapeamento
+        console.log(`Using OpenAI model: ${model}`);
         console.log('Relevant context length:', relevantContext.length);
 
         const controller = new AbortController();
@@ -152,7 +143,7 @@ serve(async (req) => {
             },
             signal: controller.signal,
             body: JSON.stringify({
-                model: actualModel,
+                model: model,
                 messages: [
                     { role: 'system', content: agent.system_prompt || 'You are a helpful assistant.' },
                     ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
