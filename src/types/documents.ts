@@ -10,7 +10,7 @@ export interface DocumentVersion {
   document_id: string;
   version_number: number;
   created_at: string;
-  metadata: DocumentVersionMetadata;
+  metadata: DocumentVersionMetadata | null;
   is_active: boolean;
   profiles?: {
     name: string;

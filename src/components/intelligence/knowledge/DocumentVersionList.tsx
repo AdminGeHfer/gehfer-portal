@@ -34,8 +34,11 @@ export function DocumentVersionList({ documentId, onVersionChange }: DocumentVer
 
       if (error) throw error;
       
-      // Type assertion after validation
-      return (data || []) as DocumentVersion[];
+      // Transform the data to ensure type safety
+      return (data || []).map(version => ({
+        ...version,
+        metadata: version.metadata as DocumentVersion['metadata']
+      })) as DocumentVersion[];
     }
   });
 
@@ -82,7 +85,7 @@ export function DocumentVersionList({ documentId, onVersionChange }: DocumentVer
                 Criada por {version.profiles?.name} em{' '}
                 {format(new Date(version.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
               </p>
-              {version.metadata?.chunks_count && (
+              {version.metadata && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {version.metadata.chunks_count} chunks • 
                   Coerência média: {(version.metadata.avg_coherence * 100).toFixed(1)}%
