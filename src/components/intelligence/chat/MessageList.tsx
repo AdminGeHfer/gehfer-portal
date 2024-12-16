@@ -1,5 +1,5 @@
 import { Message } from "@/types/ai";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { MessageSquare, User, Quote } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
@@ -149,8 +149,11 @@ export const MessageList = ({ messages }: MessageListProps) => {
         style={{ height: '100%' }}
         data={groupedMessages}
         followOutput="smooth"
-        initialTopMostItemIndex={999} // Start at bottom
+        initialTopMostItemIndex={999}
         alignToBottom={true}
+        components={{
+          Footer: () => <div style={{ paddingBottom: "20px" }} /> // Adds padding at the bottom
+        }}
         itemContent={(index, group) => (
           <motion.div
             key={group[0].id}
