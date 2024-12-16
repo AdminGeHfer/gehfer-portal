@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Message } from "@/types/ai";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./chat/MessageList";
@@ -10,8 +10,10 @@ import { toast } from "sonner";
 
 export const Chat = () => {
   const { conversationId } = useParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
@@ -140,6 +142,37 @@ export const Chat = () => {
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!conversationId || isDeleting) return;
+
+    setIsDeleting(true);
+    try {
+      // First delete all messages
+      const { error: deleteMessagesError } = await supabase
+        .from('ai_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      if (deleteMessagesError) throw deleteMessagesError;
+
+      // Then delete the conversation
+      const { error: deleteConversationError } = await supabase
+        .from('ai_conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (deleteConversationError) throw deleteConversationError;
+
+      toast.success("Conversa excluída com sucesso");
+      navigate('/intelligence/chat');
+    } catch (error: any) {
+      console.error('Error deleting conversation:', error);
+      toast.error("Erro ao excluir conversa");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!conversationId) return null;
 
   return (
@@ -148,8 +181,8 @@ export const Chat = () => {
         title={conversation?.title || 'Nova Conversa'} 
         model={conversation?.ai_agents?.model_id || ''}
         onModelChange={() => {}}
-        isDeleting={false}
-        onDelete={() => {}}
+        isDeleting={isDeleting}
+        onDelete={handleDeleteConversation}
         isLoading={isLoading}
       />
       
