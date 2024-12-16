@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 export const ChatContainer = () => {
   const { conversationId } = useParams();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [model, setModel] = useState("gpt-4-mini");
+  const [model, setModel] = useState("gpt-4o-mini");
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
