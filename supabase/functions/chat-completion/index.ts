@@ -25,7 +25,7 @@ serve(async (req) => {
         // Map frontend model IDs to OpenAI model IDs
         const modelMapping: { [key: string]: string } = {
             'gpt-4o': 'gpt-4',
-            'gpt-4o-mini': 'gpt-4',
+            'gpt-4o-mini': 'gpt-4o-mini',
             'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
         };
 
