@@ -1,7 +1,7 @@
 import { Message } from "@/types/ai";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, User, Quote } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ interface MessageListProps {
 
 const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boolean }) => {
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const formatMessageTime = (timestamp: string) => {
     return format(new Date(timestamp), "HH:mm", { locale: ptBR });
@@ -108,7 +109,7 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
                 Copiar
               </ContextMenuItem>
             </ContextMenuContent>
-          </motion.div>
+          </ContextMenu>
         ))}
       </div>
     </div>
