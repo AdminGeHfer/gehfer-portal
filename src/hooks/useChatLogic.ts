@@ -53,7 +53,9 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         model
       );
 
-      const memoryVariables = await memory.loadMemoryVariables({});
+      const memoryVariables = await memory.loadMemoryVariables({
+        input: userMessage.content
+      });
 
       console.log('Sending request to chat-completion with:', {
         messages: truncatedMessages,

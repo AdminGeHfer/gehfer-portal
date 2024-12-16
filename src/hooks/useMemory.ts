@@ -6,9 +6,15 @@ import { ChatOpenAI } from "@langchain/openai";
 
 export const useMemory = (conversationId: string) => {
   const initializeMemory = async () => {
+    const openAIApiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    
+    if (!openAIApiKey) {
+      throw new Error("OpenAI API key not found");
+    }
+
     const vectorStore = new SupabaseVectorStore(
       new OpenAIEmbeddings({
-        openAIApiKey: import.meta.env.VITE_OPENAI_API_KEY,
+        openAIApiKey,
       }), 
       {
         client: supabase,
@@ -20,9 +26,9 @@ export const useMemory = (conversationId: string) => {
     const memory = new ConversationSummaryMemory({
       memoryKey: "chat_history",
       llm: new ChatOpenAI({ 
-        modelName: "gpt-4", 
+        modelName: "gpt-4o-mini", 
         temperature: 0,
-        openAIApiKey: import.meta.env.VITE_OPENAI_API_KEY,
+        openAIApiKey,
       }),
       returnMessages: true,
       inputKey: "input",
