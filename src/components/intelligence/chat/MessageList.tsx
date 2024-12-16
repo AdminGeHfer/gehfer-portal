@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ReactMarkdown from 'react-markdown';
 import { Virtuoso } from 'react-virtuoso';
+import { MessageFeedback } from "../feedback/MessageFeedback";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -18,9 +19,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 interface MessageListProps {
   messages: Message[];
+  agentId: string;
+  conversationId: string;
 }
 
-const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boolean }) => {
+const MessageGroup = ({ messages, isUser, agentId, conversationId }: { 
+  messages: Message[], 
+  isUser: boolean,
+  agentId: string,
+  conversationId: string 
+}) => {
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const virtuosoRef = useRef(null);
 
@@ -30,7 +38,6 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
 
   const handleQuote = (content: string) => {
     setSelectedMessage(content);
-    // Scroll to bottom after quoting with a small delay to ensure content is rendered
     setTimeout(() => {
       if (virtuosoRef.current) {
         virtuosoRef.current.scrollToIndex({
@@ -101,6 +108,16 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
                     {formatMessageTime(message.created_at)}
                   </TooltipContent>
                 </Tooltip>
+
+                {!isUser && (
+                  <div className="absolute top-0 right-0 -mr-12">
+                    <MessageFeedback 
+                      messageId={message.id}
+                      agentId={agentId}
+                      conversationId={conversationId}
+                    />
+                  </div>
+                )}
               </motion.div>
             </ContextMenuTrigger>
             <ContextMenuContent>
@@ -119,10 +136,9 @@ const MessageGroup = ({ messages, isUser }: { messages: Message[], isUser: boole
   );
 };
 
-export const MessageList = ({ messages }: MessageListProps) => {
+export const MessageList = ({ messages, agentId, conversationId }: MessageListProps) => {
   const virtuosoRef = useRef(null);
 
-  // Group messages by user and consecutive messages
   const groupedMessages = messages.reduce((groups: Message[][], message) => {
     const lastGroup = groups[groups.length - 1];
     
@@ -152,7 +168,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
         initialTopMostItemIndex={999}
         alignToBottom={true}
         components={{
-          Footer: () => <div style={{ paddingBottom: "20px" }} /> // Adds padding at the bottom
+          Footer: () => <div style={{ paddingBottom: "20px" }} />
         }}
         itemContent={(index, group) => (
           <motion.div
@@ -165,6 +181,8 @@ export const MessageList = ({ messages }: MessageListProps) => {
             <MessageGroup 
               messages={group} 
               isUser={group[0].role === 'user'} 
+              agentId={agentId}
+              conversationId={conversationId}
             />
           </motion.div>
         )}

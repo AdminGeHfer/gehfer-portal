@@ -1,59 +1,116 @@
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { ChatContainer } from "./chat/ChatContainer";
+import { Message } from "@/types/ai";
+import { ChatInput } from "./ChatInput";
+import { MessageList } from "./chat/MessageList";
+import { ChatHeader } from "./chat/ChatHeader";
+import { AgentMetricsDashboard } from "./metrics/AgentMetricsDashboard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Bot } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { motion } from "framer-motion";
-import { ModelSelector } from "./shared/ModelSelector";
 
 export const Chat = () => {
   const { conversationId } = useParams();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { data: agent } = useQuery({
-    queryKey: ['agent', conversationId],
+  const { data: conversation } = useQuery({
+    queryKey: ['conversation', conversationId],
     queryFn: async () => {
       if (!conversationId) return null;
-      
-      const { data: conversation } = await supabase
+      const { data, error } = await supabase
         .from('ai_conversations')
-        .select('agent_id, ai_agents(name, icon, color)')
+        .select('*, ai_agents(*)')
         .eq('id', conversationId)
         .single();
 
-      return conversation?.ai_agents;
-    },
-    enabled: !!conversationId
+      if (error) throw error;
+      return data;
+    }
   });
 
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!conversationId) return;
+
+      const { data, error } = await supabase
+        .from('ai_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading messages:', error);
+        return;
+      }
+
+      setMessages(data || []);
+    };
+
+    loadMessages();
+
+    // Subscribe to new messages
+    const channel = supabase
+      .channel(`conversation_${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'ai_messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          setMessages((current) => [...current, payload.new as Message]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId]);
+
+  const handleSubmit = async (content: string) => {
+    if (!conversationId || !content.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('ai_messages')
+        .insert({
+          conversation_id: conversationId,
+          content,
+          role: 'user',
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!conversationId) return null;
+
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="flex flex-col h-full bg-gradient-to-br from-background to-background/90"
-    >
-      {conversationId && (
-        <div className="h-14 border-b bg-card/50 backdrop-blur-sm flex items-center px-4 gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={agent?.icon} />
-            <AvatarFallback className="bg-primary/10">
-              <Bot className="h-4 w-4 text-primary" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-medium text-sm">
-              {agent?.name || 'Assistente'}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Online
-            </span>
-          </div>
-        </div>
-      )}
+    <div className="flex flex-col h-full">
+      <ChatHeader title={conversation?.title || 'Nova Conversa'} />
+      
       <div className="flex-1 overflow-hidden">
-        <ChatContainer />
+        <MessageList 
+          messages={messages} 
+          agentId={conversation?.ai_agents?.id || ''} 
+          conversationId={conversationId}
+        />
       </div>
-    </motion.div>
+
+      <div className="border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex flex-col gap-4 py-4">
+          <AgentMetricsDashboard agentId={conversation?.ai_agents?.id || ''} />
+          <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+        </div>
+      </div>
+    </div>
   );
 };

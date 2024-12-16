@@ -9,6 +9,153 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_adjustments: {
+        Row: {
+          adjustment_type: string
+          agent_id: string
+          applied_at: string | null
+          created_at: string
+          id: string
+          metrics_snapshot: Json | null
+          new_value: Json
+          previous_value: Json
+          reason: string
+        }
+        Insert: {
+          adjustment_type: string
+          agent_id: string
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          metrics_snapshot?: Json | null
+          new_value: Json
+          previous_value: Json
+          reason: string
+        }
+        Update: {
+          adjustment_type?: string
+          agent_id?: string
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          metrics_snapshot?: Json | null
+          new_value?: Json
+          previous_value?: Json
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_adjustments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_feedback: {
+        Row: {
+          agent_id: string
+          conversation_id: string
+          created_at: string
+          created_by: string | null
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          message_id: string
+          rating: number
+        }
+        Insert: {
+          agent_id: string
+          conversation_id: string
+          created_at?: string
+          created_by?: string | null
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          message_id: string
+          rating: number
+        }
+        Update: {
+          agent_id?: string
+          conversation_id?: string
+          created_at?: string
+          created_by?: string | null
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          message_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_feedback_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_feedback_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "ai_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_metrics: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          measured_at: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          measured_at?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          measured_at?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_metrics_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_templates: {
         Row: {
           agent_type: Database["public"]["Enums"]["agent_type_enum"]
@@ -1719,6 +1866,16 @@ export type Database = {
             }
             Returns: unknown
           }
+      calculate_agent_metrics: {
+        Args: {
+          p_agent_id: string
+        }
+        Returns: {
+          metric_type: string
+          avg_value: number
+          total_count: number
+        }[]
+      }
       calculate_chunk_coherence: {
         Args: {
           chunk_text: string
