@@ -1,13 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Paperclip } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Send, X } from "lucide-react";
 
 interface ChatInputProps {
   onSubmit: (content: string) => void;
@@ -16,96 +10,65 @@ interface ChatInputProps {
 }
 
 export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps) => {
-  const [input, setInput] = useState("");
+  const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "0px";
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = scrollHeight + "px";
+  const handleSubmit = () => {
+    if (content.trim() && !isLoading) {
+      onSubmit(content);
+      setContent("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     }
-  }, [input]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-    onSubmit(input);
-    setInput("");
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onFileUpload) {
-      onFileUpload(file);
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const clearText = () => {
+    setContent("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.focus();
     }
   };
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
-      className="flex gap-2 p-4 bg-background/80 backdrop-blur-md border-t"
-    >
-      <div className="flex-1 flex gap-2 max-w-[900px] mx-auto w-full">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="icon"
-              className="shrink-0"
-              onClick={() => document.getElementById('file-upload')?.click()}
-            >
-              <Paperclip className="h-5 w-5" />
-              <input
-                id="file-upload"
-                type="file"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Anexar arquivo
-          </TooltipContent>
-        </Tooltip>
-        
+    <div className="flex gap-2 items-end">
+      <div className="flex-1 relative">
         <Textarea
           ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Digite sua mensagem..."
-          className={cn(
-            "min-h-[2.5rem] max-h-32 resize-none bg-card/50 border-0 focus-visible:ring-1",
-            "rounded-lg px-4 py-3 text-sm leading-relaxed shadow-sm"
-          )}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
+          className="pr-10 resize-none min-h-[60px] max-h-[200px]"
+          rows={1}
         />
-        
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              type="submit" 
-              size="icon"
-              disabled={isLoading || !input.trim()}
-              className={cn(
-                "shrink-0 bg-primary hover:bg-primary/90 transition-colors shadow-sm",
-                isLoading && "animate-pulse"
-              )}
-            >
-              <MessageSquare className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            Enviar mensagem
-          </TooltipContent>
-        </Tooltip>
+        {content && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 h-6 w-6"
+            onClick={clearText}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
-    </form>
+      <Button 
+        onClick={handleSubmit} 
+        disabled={!content.trim() || isLoading}
+        className="shrink-0"
+      >
+        <Send className="h-4 w-4" />
+      </Button>
+    </div>
   );
 };
