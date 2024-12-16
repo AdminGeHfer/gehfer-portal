@@ -31,55 +31,47 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
       created_at: new Date().toISOString(),
     };
 
+    // Set loading state immediately
+    setIsLoading(true);
+
     try {
-      // Immediately save and display user message
-      const { error: saveError } = await supabase
+      // Save user message immediately and don't wait for the response
+      const saveMessagePromise = supabase
         .from('ai_messages')
         .insert(userMessage);
 
-      if (saveError) throw saveError;
-
-      // Start loading state for AI response
-      setIsLoading(true);
-
-      // Initialize memory in parallel with getting messages
-      const memoryPromise = initializeMemory();
-      
-      // Fetch messages in parallel
-      const messagesPromise = supabase
-        .from('ai_messages')
-        .select('role, content')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-
-      // Wait for both operations to complete
-      const [memory, { data: messages }] = await Promise.all([
-        memoryPromise,
-        messagesPromise
+      // Start memory initialization and message fetching in parallel
+      const [memory, { data: messages, error: messagesError }] = await Promise.all([
+        initializeMemory(),
+        supabase
+          .from('ai_messages')
+          .select('role, content')
+          .eq('conversation_id', conversationId)
+          .order('created_at', { ascending: true }),
+        saveMessagePromise // Include this to ensure it completes
       ]);
 
-      const truncatedMessages = truncateMessages(
-        [...(messages || []), { role: userMessage.role, content: userMessage.content }],
-        model
-      );
-
-      const memoryVariables = await memory.loadMemoryVariables({
-        input: userMessage.content
-      });
+      if (messagesError) throw messagesError;
 
       console.log('Sending request to chat-completion with:', {
-        messages: truncatedMessages,
+        messages: truncateMessages(
+          [...(messages || []), { role: userMessage.role, content: userMessage.content }],
+          model
+        ),
         model,
         agentId,
-        memory: memoryVariables
+        memory
       });
 
       const response = await supabase.functions.invoke('chat-completion', {
         body: {
-          messages: truncatedMessages,
+          messages: truncateMessages(
+            [...(messages || []), { role: userMessage.role, content: userMessage.content }],
+            model
+          ),
           model,
           agentId,
-          memory: memoryVariables
+          memory
         },
       });
 
@@ -95,11 +87,6 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
         content: response.data.choices[0].message.content,
         created_at: new Date().toISOString(),
       };
-
-      await memory.saveContext(
-        { input: userMessage.content },
-        { output: assistantMessage.content }
-      );
 
       const { error: saveAiError } = await supabase
         .from('ai_messages')
