@@ -121,6 +121,8 @@ serve(async (req) => {
                         console.log(`Found ${documentsRetry.length} documents with lower threshold`);
                         relevantContext = `Relevant information from knowledge base:\n${documentsRetry.map(doc => doc.content).join('\n\n')}`;
                         console.log('Context added with length:', relevantContext.length);
+                    } else {
+                        console.log('No relevant documents found');
                     }
                 }
             } catch (error) {
@@ -129,13 +131,14 @@ serve(async (req) => {
             }
         }
 
+        // Corrigido o mapeamento dos modelos para usar os modelos corretos
         const modelMap: Record<string, string> = {
-            'gpt-4o-mini': 'gpt-4',
-            'gpt-4o': 'gpt-4-turbo-preview'
+            'gpt-4o-mini': 'gpt-3.5-turbo-1106',  // Usando o modelo mais recente do GPT-3.5
+            'gpt-4o': 'gpt-4-1106-preview'        // Usando o modelo mais recente do GPT-4
         };
-        const actualModel = modelMap[model] || 'gpt-4';
-
-        console.log(`Using OpenAI model: ${actualModel}`);
+        
+        const actualModel = modelMap[model] || 'gpt-3.5-turbo-1106'; // Fallback para o modelo mais barato
+        console.log(`Selected model: ${model}, Using OpenAI model: ${actualModel}`);
         console.log('Relevant context length:', relevantContext.length);
 
         const controller = new AbortController();
