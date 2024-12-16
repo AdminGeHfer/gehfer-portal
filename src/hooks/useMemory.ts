@@ -6,10 +6,11 @@ import { ChatOpenAI } from "@langchain/openai";
 
 export const useMemory = (conversationId: string) => {
   const initializeMemory = async () => {
-    const openAIApiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    const { data: { secret: openAIApiKey } } = await supabase
+      .rpc('get_secret', { secret_name: 'OPENAI_API_KEY' });
     
     if (!openAIApiKey) {
-      throw new Error("OpenAI API key not found");
+      throw new Error("OpenAI API key not found in Supabase secrets. Please add it using the form above.");
     }
 
     const vectorStore = new SupabaseVectorStore(
