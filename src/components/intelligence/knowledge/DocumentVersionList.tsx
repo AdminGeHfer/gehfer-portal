@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ export function DocumentVersionList({ documentId, onVersionChange }: DocumentVer
         .from('document_versions')
         .select(`
           id,
+          document_id,
           version_number,
           created_at,
           metadata,
@@ -32,7 +33,9 @@ export function DocumentVersionList({ documentId, onVersionChange }: DocumentVer
         .order('version_number', { ascending: false });
 
       if (error) throw error;
-      return data as DocumentVersion[];
+      
+      // Type assertion after validation
+      return (data || []) as DocumentVersion[];
     }
   });
 

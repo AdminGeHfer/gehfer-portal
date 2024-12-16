@@ -1,6 +1,6 @@
 import { Json } from './json';
 import { DocumentTypes } from './documents';
-import { Database as AITablesSchema } from './ai';
+import { AITablesSchema } from './ai';
 
 export interface Database {
   public: {
@@ -960,6 +960,13 @@ export interface Database {
           metadata: Json;
           similarity: number;
         }[];
+      };
+      rollback_document_version: {
+        Args: {
+          p_version_id: string;
+          p_document_id: string;
+        };
+        Returns: void;
       };
       sparsevec_out: {
         Args: {

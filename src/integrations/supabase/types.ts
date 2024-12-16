@@ -1877,6 +1877,13 @@ export type Database = {
               similarity: number
             }[]
           }
+      rollback_document_version: {
+        Args: {
+          p_version_id: string
+          p_document_id: string
+        }
+        Returns: undefined
+      }
       sparsevec_out: {
         Args: {
           "": unknown
