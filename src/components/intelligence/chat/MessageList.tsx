@@ -12,10 +12,11 @@ interface MessageListProps {
 
 export const MessageList = ({ messages }: MessageListProps) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
@@ -41,6 +42,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
           className={`flex items-start gap-3 ${
             message.role === 'assistant' ? 'justify-start' : 'justify-end'
           }`}
+          ref={index === messages.length - 1 ? lastMessageRef : null}
         >
           {message.role === 'assistant' && (
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">

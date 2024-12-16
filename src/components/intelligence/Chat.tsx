@@ -6,6 +6,7 @@ import { MessageList } from "./chat/MessageList";
 import { ChatHeader } from "./chat/ChatHeader";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Chat = () => {
   const { conversationId } = useParams();
@@ -59,6 +60,7 @@ export const Chat = () => {
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload) => {
+          console.log('New message received:', payload.new);
           setMessages((current) => [...current, payload.new as Message]);
         }
       )
@@ -70,11 +72,12 @@ export const Chat = () => {
   }, [conversationId]);
 
   const handleSubmit = async (content: string) => {
-    if (!conversationId || !content.trim()) return;
+    if (!conversationId || !content.trim() || isLoading) return;
 
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      // First save the user message
+      const { error: messageError } = await supabase
         .from('ai_messages')
         .insert({
           conversation_id: conversationId,
@@ -82,9 +85,28 @@ export const Chat = () => {
           role: 'user',
         });
 
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error sending message:', error);
+      if (messageError) throw messageError;
+
+      // Then call the chat completion function
+      const { data: completionData, error: completionError } = await supabase.functions
+        .invoke('chat-completion', {
+          body: {
+            messages: messages.concat({ role: 'user', content, created_at: new Date().toISOString() }),
+            model: conversation?.ai_agents?.model_id || 'gpt-4o-mini',
+            agentId: conversation?.ai_agents?.id,
+          },
+        });
+
+      if (completionError) {
+        console.error('Completion error:', completionError);
+        throw completionError;
+      }
+
+      console.log('Completion response:', completionData);
+
+    } catch (error: any) {
+      console.error('Error in chat flow:', error);
+      toast.error("Erro ao processar mensagem");
     } finally {
       setIsLoading(false);
     }
