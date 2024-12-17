@@ -56,7 +56,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: "text-embedding-3-small",
+            model: "text-embedding-ada-002", // Revertido para o modelo anterior
             input: lastMessage,
           }),
         });
@@ -88,11 +88,32 @@ serve(async (req) => {
           throw searchError;
         }
 
+        console.log('Search results:', documents ? documents.length : 0, 'documents found');
+        
         if (documents && documents.length > 0) {
-          console.log(`Found ${documents.length} relevant documents`);
+          console.log('Documents found:', documents.map(d => ({ 
+            id: d.id,
+            similarity: d.similarity,
+            contentPreview: d.content.substring(0, 100) + '...'
+          })));
+          
           relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
         } else {
-          console.log('No relevant documents found');
+          console.log('No relevant documents found with threshold 0.5');
+          
+          // Tenta novamente com threshold ainda menor
+          const { data: fallbackDocuments } = await supabase.rpc('match_documents', {
+            query_embedding: queryEmbedding,
+            match_threshold: 0.3,
+            match_count: 3
+          });
+
+          if (fallbackDocuments && fallbackDocuments.length > 0) {
+            console.log('Found documents with lower threshold:', fallbackDocuments.length);
+            relevantContext = `Relevant information from knowledge base:\n${fallbackDocuments.map(doc => doc.content).join('\n\n')}`;
+          } else {
+            console.log('No documents found even with lower threshold');
+          }
         }
       } catch (error) {
         console.error('Error in knowledge base search:', error);
@@ -100,6 +121,7 @@ serve(async (req) => {
     }
 
     console.log('Making completion request with model:', openAIModel);
+    console.log('Context length:', relevantContext.length);
 
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
