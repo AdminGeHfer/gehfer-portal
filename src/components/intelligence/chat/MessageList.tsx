@@ -30,11 +30,8 @@ export const MessageList = ({ messages }: MessageListProps) => {
   }
 
   return (
-    <ScrollArea 
-      ref={scrollAreaRef}
-      className="flex-1 h-[calc(100vh-12rem)] p-4 space-y-4"
-    >
-      <div className="space-y-4">
+    <ScrollArea className="flex-1 h-[calc(100vh-12rem)]">
+      <div className="space-y-4 p-4">
         {messages.map((message, index) => (
           <motion.div
             key={message.id || index}
