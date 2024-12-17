@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getSupabaseClient } from '../_shared/supabaseClient.ts';
+import { getSupabaseClient } from "../_shared/supabaseClient.ts";
 import { structureContext, validateChunks } from './contextUtils.ts';
 import { generateEmbedding, getChatCompletion } from './openaiUtils.ts';
 
