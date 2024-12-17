@@ -26,6 +26,11 @@ serve(async (req) => {
       throw new Error('Invalid messages format');
     }
 
+    if (!agentId) {
+      console.error('Agent ID is required');
+      throw new Error('Agent ID is required');
+    }
+
     const modelMapping: { [key: string]: string } = {
       'gpt-4o': 'gpt-4',
       'gpt-4o-mini': 'gpt-4o-mini',
@@ -39,11 +44,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
-
-    if (!agentId) {
-      console.error('Agent ID is required');
-      throw new Error('Agent ID is required');
-    }
 
     const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
@@ -126,6 +126,20 @@ serve(async (req) => {
 
     console.log('Making completion request with model:', openAIModel);
 
+    const systemMessages = [
+      { 
+        role: 'system', 
+        content: agent?.system_prompt || 'You are a helpful assistant.' 
+      }
+    ];
+
+    if (relevantContext) {
+      systemMessages.push({ 
+        role: 'system', 
+        content: `Here is some relevant context from the knowledge base:\n\n${relevantContext}` 
+      });
+    }
+
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -134,11 +148,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: openAIModel,
-        messages: [
-          { role: 'system', content: agent?.system_prompt || 'You are a helpful assistant.' },
-          ...(relevantContext ? [{ role: 'system', content: `Here is some relevant context:\n\n${relevantContext}` }] : []),
-          ...messages
-        ],
+        messages: [...systemMessages, ...messages],
         temperature: agent?.temperature || 0.7,
         max_tokens: agent?.max_tokens || 4000,
       }),

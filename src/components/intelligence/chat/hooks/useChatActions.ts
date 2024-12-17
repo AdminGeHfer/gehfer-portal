@@ -36,6 +36,15 @@ export const useChatActions = (conversationId: string | undefined) => {
 
     setIsLoading(true);
     try {
+      // Get existing conversation messages
+      const { data: existingMessages, error: messagesError } = await supabase
+        .from('ai_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (messagesError) throw messagesError;
+
       const userMessageId = crypto.randomUUID();
       
       const { error: messageError } = await supabase
@@ -49,10 +58,26 @@ export const useChatActions = (conversationId: string | undefined) => {
 
       if (messageError) throw messageError;
 
+      // Prepare messages array with full conversation history
+      const messages = [
+        ...(existingMessages || []).map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          created_at: msg.created_at
+        })),
+        { 
+          role: 'user', 
+          content, 
+          created_at: new Date().toISOString() 
+        }
+      ];
+
+      console.log('Sending chat completion request with messages:', messages);
+
       const { data: completionData, error: completionError } = await supabase.functions
         .invoke('chat-completion', {
           body: {
-            messages: [{ role: 'user', content, created_at: new Date().toISOString() }],
+            messages,
             model: conversation.ai_agents?.model_id || 'gpt-4o-mini',
             agentId: conversation.agent_id
           },
