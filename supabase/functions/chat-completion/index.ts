@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.47.8';
+import { structureContext, validateChunks } from './contextUtils.ts';
+import { generateEmbedding, getChatCompletion } from './openaiUtils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,10 +33,10 @@ serve(async (req) => {
       throw new Error('Agent ID is required');
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') || '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-    );
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
@@ -51,41 +53,23 @@ serve(async (req) => {
       useKnowledgeBase: agent?.use_knowledge_base,
       temperature: agent?.temperature,
       maxTokens: agent?.max_tokens,
-      model: model || agent?.model_id
+      systemPrompt: agent?.system_prompt,
+      selectedModel: agent?.model_id
     });
 
     let relevantContext = '';
 
     if (agent?.use_knowledge_base) {
       try {
-        console.log('Generating embedding for query:', messages[messages.length - 1].content);
+        const latestMessage = messages[messages.length - 1].content;
+        console.log('Generating embedding for query:', latestMessage);
         
-        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: "text-embedding-3-small",
-            input: messages[messages.length - 1].content,
-          }),
-        });
-
-        if (!embeddingResponse.ok) {
-          console.error('Embedding response not ok:', await embeddingResponse.text());
-          throw new Error('Failed to generate embedding');
-        }
-
-        const embeddingData = await embeddingResponse.json();
-        const queryEmbedding = embeddingData.data[0].embedding;
+        const queryEmbedding = await generateEmbedding(openAIApiKey, latestMessage);
 
         if (!queryEmbedding) {
           console.error('No embedding generated');
           throw new Error('No embedding generated');
         }
-
-        console.log('Successfully generated embedding, searching chunks...');
 
         const searchThreshold = agent?.search_threshold || 0.7;
         console.log('Search threshold:', searchThreshold);
@@ -102,12 +86,15 @@ serve(async (req) => {
         }
 
         if (chunks && chunks.length > 0) {
-          console.log(`Found ${chunks.length} relevant chunks`);
-          relevantContext = chunks
-            .sort((a, b) => b.similarity - a.similarity)
-            .map(chunk => chunk.content)
-            .join('\n\n');
-          console.log('Relevant context:', relevantContext);
+          const validChunks = validateChunks(chunks, searchThreshold);
+          console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`);
+          
+          if (validChunks.length > 0) {
+            relevantContext = structureContext(validChunks);
+            console.log('Structured context:', relevantContext);
+          } else {
+            console.log('No chunks passed validation threshold');
+          }
         } else {
           console.log('No relevant chunks found');
         }
@@ -116,55 +103,36 @@ serve(async (req) => {
       }
     }
 
-    // Use agent's system prompt if available
-    const systemMessages = [];
-    
-    if (agent?.system_prompt) {
-      systemMessages.push({ 
-        role: 'system', 
-        content: agent.system_prompt 
-      });
-    }
+    // Validate and map the model
+    const modelMapping: { [key: string]: string } = {
+      'gpt-4o': 'gpt-4',
+      'gpt-4o-mini': 'gpt-3.5-turbo-16k',
+      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
+    };
 
-    // Add context if available
-    if (relevantContext) {
-      systemMessages.push({ 
-        role: 'system', 
-        content: `Context:\n${relevantContext}` 
-      });
-    }
+    const openAIModel = modelMapping[agent.model_id] || 'gpt-3.5-turbo-16k';
+    console.log(`Using model: ${agent.model_id} -> ${openAIModel}`);
 
-    console.log('Making completion request with model:', model || agent?.model_id);
+    // Use the agent's system prompt
+    const systemPrompt = `${agent?.system_prompt || 'You are a helpful assistant.'}\n\n` +
+      (relevantContext ? `Context:\n${relevantContext}\n\n` : '');
 
-    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: model || agent?.model_id || 'gpt-4o-mini',
-        messages: [...systemMessages, ...messages],
-        temperature: agent?.temperature || 0.7,
-        max_tokens: agent?.max_tokens || 4000,
-      }),
-    });
+    console.log('System prompt:', systemPrompt);
 
-    if (!completionResponse.ok) {
-      const error = await completionResponse.json();
-      console.error('OpenAI Completion Error:', error);
-      throw new Error(`OpenAI Completion Error: ${error.error?.message || 'Unknown error'}`);
-    }
+    const completion = await getChatCompletion(
+      openAIApiKey,
+      [{ role: 'system', content: systemPrompt }, ...messages],
+      openAIModel,
+      agent?.temperature || 0.7,
+      agent?.max_tokens || 4000
+    );
 
-    const completion = await completionResponse.json();
-    console.log('Completion received successfully');
-
-    // Log the interaction for analysis
+    // Log the interaction
     await supabase.rpc('log_agent_event', {
       p_agent_id: agentId,
       p_event_type: 'completion',
       p_configuration: {
-        model: model || agent?.model_id,
+        model: openAIModel,
         temperature: agent?.temperature,
         max_tokens: agent?.max_tokens,
         knowledge_base_used: agent?.use_knowledge_base,
