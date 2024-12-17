@@ -1,20 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { validateChunkRelevance, structureChunkContent } from '../_shared/matchDocuments.ts';
+import { createClient } from '@supabase/supabase-js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Improved validation for chunk relevance
-const validateChunks = (chunks: any[], threshold: number = 0.8) => {
-  return chunks.filter(chunk => {
-    if (!validateChunkRelevance(chunk.similarity, threshold)) {
-      console.log(`Chunk filtered out due to low similarity: ${chunk.similarity}`);
-      return false;
-    }
-    return true;
-  });
 };
 
 serve(async (req) => {
@@ -42,15 +31,6 @@ serve(async (req) => {
       throw new Error('Agent ID is required');
     }
 
-    const modelMapping: { [key: string]: string } = {
-      'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-4o-mini',
-      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
-    };
-
-    const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
-    console.log(`Using model: ${model} -> ${openAIModel}`);
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
@@ -70,7 +50,8 @@ serve(async (req) => {
     console.log('Agent configuration:', {
       useKnowledgeBase: agent?.use_knowledge_base,
       temperature: agent?.temperature,
-      maxTokens: agent?.max_tokens
+      maxTokens: agent?.max_tokens,
+      model: model || agent?.model_id
     });
 
     let relevantContext = '';
@@ -106,8 +87,7 @@ serve(async (req) => {
 
         console.log('Successfully generated embedding, searching chunks...');
 
-        // Increased threshold for better relevance
-        const searchThreshold = 0.8; // Forcing higher threshold
+        const searchThreshold = agent?.search_threshold || 0.7;
         console.log('Search threshold:', searchThreshold);
         
         const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', {
@@ -122,13 +102,12 @@ serve(async (req) => {
         }
 
         if (chunks && chunks.length > 0) {
-          // Validate and filter chunks
-          const validChunks = validateChunks(chunks, searchThreshold);
-          console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`);
-          
-          // Structure the context with better parsing
-          relevantContext = structureChunkContent(validChunks);
-          console.log('Structured context:', relevantContext);
+          console.log(`Found ${chunks.length} relevant chunks`);
+          relevantContext = chunks
+            .sort((a, b) => b.similarity - a.similarity)
+            .map(chunk => chunk.content)
+            .join('\n\n');
+          console.log('Relevant context:', relevantContext);
         } else {
           console.log('No relevant chunks found');
         }
@@ -137,30 +116,25 @@ serve(async (req) => {
       }
     }
 
-    // Improved system messages with explicit instructions
+    // Use agent's system prompt if available
     const systemMessages = [];
     
-    // Base system prompt with strict instructions
-    const basePrompt = `Você é um agente de classificação EXTREMAMENTE limitado que:
-1. SÓ PODE usar classificações EXATAS do contexto fornecido
-2. DEVE manter o formato original DESC|BASE|GRUPO
-3. NUNCA pode criar ou modificar classificações
-4. Se não encontrar match EXATO, responda "Não encontrei classificação exata"`;
-
-    systemMessages.push({ 
-      role: 'system', 
-      content: basePrompt 
-    });
-
-    // Context injection with explicit format requirements
-    if (relevantContext) {
+    if (agent?.system_prompt) {
       systemMessages.push({ 
         role: 'system', 
-        content: `IMPORTANTE: Use APENAS as classificações abaixo, mantendo formato EXATO:\n\n${relevantContext}` 
+        content: agent.system_prompt 
       });
     }
 
-    console.log('Making completion request with model:', openAIModel);
+    // Add context if available
+    if (relevantContext) {
+      systemMessages.push({ 
+        role: 'system', 
+        content: `Context:\n${relevantContext}` 
+      });
+    }
+
+    console.log('Making completion request with model:', model || agent?.model_id);
 
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -169,7 +143,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: openAIModel,
+        model: model || agent?.model_id || 'gpt-4o-mini',
         messages: [...systemMessages, ...messages],
         temperature: agent?.temperature || 0.7,
         max_tokens: agent?.max_tokens || 4000,
@@ -190,7 +164,7 @@ serve(async (req) => {
       p_agent_id: agentId,
       p_event_type: 'completion',
       p_configuration: {
-        model: openAIModel,
+        model: model || agent?.model_id,
         temperature: agent?.temperature,
         max_tokens: agent?.max_tokens,
         knowledge_base_used: agent?.use_knowledge_base,
