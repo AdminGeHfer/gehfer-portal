@@ -1,11 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.47.8';
-import { structureContext, validateChunks } from './contextUtils.ts';
-import { generateEmbedding, getChatCompletion } from './openaiUtils.ts';
+import { validateChunkRelevance, structureChunkContent } from '../_shared/matchDocuments.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Improved validation for chunk relevance
+const validateChunks = (chunks: any[], threshold: number = 0.8) => {
+  return chunks.filter(chunk => {
+    if (!validateChunkRelevance(chunk.similarity, threshold)) {
+      console.log(`Chunk filtered out due to low similarity: ${chunk.similarity}`);
+      return false;
+    }
+    return true;
+  });
 };
 
 serve(async (req) => {
@@ -33,10 +42,19 @@ serve(async (req) => {
       throw new Error('Agent ID is required');
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const modelMapping: { [key: string]: string } = {
+      'gpt-4o': 'gpt-4',
+      'gpt-4o-mini': 'gpt-4o-mini',
+      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
+    };
+
+    const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
+    console.log(`Using model: ${model} -> ${openAIModel}`);
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
 
     const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
@@ -52,26 +70,44 @@ serve(async (req) => {
     console.log('Agent configuration:', {
       useKnowledgeBase: agent?.use_knowledge_base,
       temperature: agent?.temperature,
-      maxTokens: agent?.max_tokens,
-      systemPrompt: agent?.system_prompt,
-      selectedModel: agent?.model_id
+      maxTokens: agent?.max_tokens
     });
 
     let relevantContext = '';
 
     if (agent?.use_knowledge_base) {
       try {
-        const latestMessage = messages[messages.length - 1].content;
-        console.log('Generating embedding for query:', latestMessage);
+        console.log('Generating embedding for query:', messages[messages.length - 1].content);
         
-        const queryEmbedding = await generateEmbedding(openAIApiKey, latestMessage);
+        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: "text-embedding-3-small",
+            input: messages[messages.length - 1].content,
+          }),
+        });
+
+        if (!embeddingResponse.ok) {
+          console.error('Embedding response not ok:', await embeddingResponse.text());
+          throw new Error('Failed to generate embedding');
+        }
+
+        const embeddingData = await embeddingResponse.json();
+        const queryEmbedding = embeddingData.data[0].embedding;
 
         if (!queryEmbedding) {
           console.error('No embedding generated');
           throw new Error('No embedding generated');
         }
 
-        const searchThreshold = agent?.search_threshold || 0.7;
+        console.log('Successfully generated embedding, searching chunks...');
+
+        // Increased threshold for better relevance
+        const searchThreshold = 0.8; // Forcing higher threshold
         console.log('Search threshold:', searchThreshold);
         
         const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', {
@@ -86,15 +122,13 @@ serve(async (req) => {
         }
 
         if (chunks && chunks.length > 0) {
+          // Validate and filter chunks
           const validChunks = validateChunks(chunks, searchThreshold);
           console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`);
           
-          if (validChunks.length > 0) {
-            relevantContext = structureContext(validChunks);
-            console.log('Structured context:', relevantContext);
-          } else {
-            console.log('No chunks passed validation threshold');
-          }
+          // Structure the context with better parsing
+          relevantContext = structureChunkContent(validChunks);
+          console.log('Structured context:', relevantContext);
         } else {
           console.log('No relevant chunks found');
         }
@@ -103,31 +137,55 @@ serve(async (req) => {
       }
     }
 
-    // Validate and map the model
-    const modelMapping: { [key: string]: string } = {
-      'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-3.5-turbo-16k',
-      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
-    };
+    // Improved system messages with explicit instructions
+    const systemMessages = [];
+    
+    // Base system prompt with strict instructions
+    const basePrompt = `Você é um agente de classificação EXTREMAMENTE limitado que:
+1. SÓ PODE usar classificações EXATAS do contexto fornecido
+2. DEVE manter o formato original DESC|BASE|GRUPO
+3. NUNCA pode criar ou modificar classificações
+4. Se não encontrar match EXATO, responda "Não encontrei classificação exata"`;
 
-    const openAIModel = modelMapping[agent.model_id] || 'gpt-3.5-turbo-16k';
-    console.log(`Using model: ${agent.model_id} -> ${openAIModel}`);
+    systemMessages.push({ 
+      role: 'system', 
+      content: basePrompt 
+    });
 
-    // Use the agent's system prompt
-    const systemPrompt = `${agent?.system_prompt || 'You are a helpful assistant.'}\n\n` +
-      (relevantContext ? `Context:\n${relevantContext}\n\n` : '');
+    // Context injection with explicit format requirements
+    if (relevantContext) {
+      systemMessages.push({ 
+        role: 'system', 
+        content: `IMPORTANTE: Use APENAS as classificações abaixo, mantendo formato EXATO:\n\n${relevantContext}` 
+      });
+    }
 
-    console.log('System prompt:', systemPrompt);
+    console.log('Making completion request with model:', openAIModel);
 
-    const completion = await getChatCompletion(
-      openAIApiKey,
-      [{ role: 'system', content: systemPrompt }, ...messages],
-      openAIModel,
-      agent?.temperature || 0.7,
-      agent?.max_tokens || 4000
-    );
+    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: openAIModel,
+        messages: [...systemMessages, ...messages],
+        temperature: agent?.temperature || 0.7,
+        max_tokens: agent?.max_tokens || 4000,
+      }),
+    });
 
-    // Log the interaction
+    if (!completionResponse.ok) {
+      const error = await completionResponse.json();
+      console.error('OpenAI Completion Error:', error);
+      throw new Error(`OpenAI Completion Error: ${error.error?.message || 'Unknown error'}`);
+    }
+
+    const completion = await completionResponse.json();
+    console.log('Completion received successfully');
+
+    // Log the interaction for analysis
     await supabase.rpc('log_agent_event', {
       p_agent_id: agentId,
       p_event_type: 'completion',
