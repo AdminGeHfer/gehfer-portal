@@ -18,7 +18,6 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Initialize Supabase client with proper credentials
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
@@ -29,7 +28,13 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { messages, model, agentId, useKnowledgeBase, systemPrompt } = await req.json();
-    console.log('Received request:', { model, agentId, useKnowledgeBase, messageCount: messages?.length });
+    console.log('Request received:', { 
+      model, 
+      agentId, 
+      useKnowledgeBase, 
+      messageCount: messages?.length,
+      systemPrompt: systemPrompt ? 'present' : 'absent'
+    });
 
     if (!messages || !Array.isArray(messages)) {
       console.error('Invalid messages format');
@@ -49,11 +54,9 @@ serve(async (req) => {
     let relevantContext = '';
 
     if (useKnowledgeBase) {
-      console.log('Knowledge base is enabled, searching for relevant documents...');
+      console.log('Knowledge base is enabled, generating embedding...');
       
       try {
-        console.log('Generating embedding for query:', lastMessage);
-        
         const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
           method: 'POST',
           headers: {
@@ -74,50 +77,37 @@ serve(async (req) => {
         const embeddingData = await embeddingResponse.json();
         const queryEmbedding = embeddingData.data[0].embedding;
 
-        if (!queryEmbedding) {
-          console.error('No embedding generated');
-          throw new Error('No embedding generated');
-        }
-
-        console.log('Successfully generated embedding, searching documents...');
-        
-        const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
-          query_embedding: queryEmbedding,
-          match_threshold: 0.5,
-          match_count: 5
+        console.log('Embedding generated successfully:', {
+          dimensions: queryEmbedding.length,
+          firstValues: queryEmbedding.slice(0, 3),
+          norm: Math.sqrt(queryEmbedding.reduce((sum: number, val: number) => sum + val * val, 0))
         });
 
-        if (searchError) {
-          console.error('Error searching documents:', searchError);
-          throw searchError;
+        // Try with initial threshold
+        let documents = await searchDocuments(supabase, queryEmbedding, 0.5);
+        
+        // If no results, try with lower threshold
+        if (!documents.length) {
+          console.log('No documents found with threshold 0.5, trying with 0.3...');
+          documents = await searchDocuments(supabase, queryEmbedding, 0.3);
         }
 
-        console.log('Search results:', documents ? documents.length : 0, 'documents found');
+        // If still no results, try with very low threshold
+        if (!documents.length) {
+          console.log('No documents found with threshold 0.3, trying with 0.1...');
+          documents = await searchDocuments(supabase, queryEmbedding, 0.1);
+        }
+
+        console.log('Search results:', {
+          documentsFound: documents.length,
+          similarities: documents.map(d => d.similarity)
+        });
         
         if (documents && documents.length > 0) {
-          console.log('Documents found:', documents.map(d => ({ 
-            id: d.id,
-            similarity: d.similarity,
-            contentPreview: d.content.substring(0, 100) + '...'
-          })));
-          
           relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
+          console.log('Context length:', relevantContext.length);
         } else {
-          console.log('No relevant documents found with threshold 0.5');
-          
-          // Try again with an even lower threshold
-          const { data: fallbackDocuments } = await supabase.rpc('match_documents', {
-            query_embedding: queryEmbedding,
-            match_threshold: 0.3,
-            match_count: 3
-          });
-
-          if (fallbackDocuments && fallbackDocuments.length > 0) {
-            console.log('Found documents with lower threshold:', fallbackDocuments.length);
-            relevantContext = `Relevant information from knowledge base:\n${fallbackDocuments.map(doc => doc.content).join('\n\n')}`;
-          } else {
-            console.log('No documents found even with lower threshold');
-          }
+          console.log('No relevant documents found with any threshold');
         }
       } catch (error) {
         console.error('Error in knowledge base search:', error);
@@ -125,7 +115,6 @@ serve(async (req) => {
     }
 
     console.log('Making completion request with model:', openAIModel);
-    console.log('Context length:', relevantContext.length);
 
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -172,3 +161,21 @@ serve(async (req) => {
     );
   }
 });
+
+async function searchDocuments(supabase: any, queryEmbedding: number[], threshold: number) {
+  console.log(`Searching documents with threshold ${threshold}...`);
+  
+  const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
+    query_embedding: queryEmbedding,
+    match_threshold: threshold,
+    match_count: 5
+  });
+
+  if (searchError) {
+    console.error('Error searching documents:', searchError);
+    throw searchError;
+  }
+
+  console.log(`Found ${documents?.length || 0} documents`);
+  return documents || [];
+}
