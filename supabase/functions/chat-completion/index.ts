@@ -18,8 +18,8 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const { messages, model, agentId } = await req.json();
-    console.log('Received request:', { model, agentId, messageCount: messages?.length });
+    const { messages, model, agentId, useKnowledgeBase, systemPrompt } = await req.json();
+    console.log('Received request:', { model, agentId, useKnowledgeBase, messageCount: messages?.length });
 
     if (!messages || !Array.isArray(messages)) {
       console.error('Invalid messages format');
@@ -28,7 +28,7 @@ serve(async (req) => {
 
     const modelMapping: { [key: string]: string } = {
       'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-4o-mini',
+      'gpt-4o-mini': 'gpt-3.5-turbo-16k',
       'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
     };
 
@@ -40,27 +40,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
 
-    const { data: agent, error: agentError } = await supabase
-      .from('ai_agents')
-      .select('*')
-      .eq('id', agentId)
-      .single();
-    
-    if (agentError) {
-      console.error('Error fetching agent:', agentError);
-      throw agentError;
-    }
-
-    console.log('Agent configuration:', {
-      useKnowledgeBase: agent?.use_knowledge_base,
-      temperature: agent?.temperature,
-      maxTokens: agent?.max_tokens
-    });
-
     const lastMessage = messages[messages.length - 1].content;
     let relevantContext = '';
 
-    if (agent?.use_knowledge_base) {
+    if (useKnowledgeBase) {
       console.log('Knowledge base is enabled, searching for relevant documents...');
       
       try {
@@ -92,13 +75,10 @@ serve(async (req) => {
         }
 
         console.log('Successfully generated embedding, searching documents...');
-
-        const searchThreshold = agent.search_threshold || 0.5;
-        console.log('Search threshold:', searchThreshold);
         
         const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
           query_embedding: queryEmbedding,
-          match_threshold: searchThreshold,
+          match_threshold: 0.5,
           match_count: 5
         });
 
@@ -129,12 +109,12 @@ serve(async (req) => {
       body: JSON.stringify({
         model: openAIModel,
         messages: [
-          { role: 'system', content: agent?.system_prompt || 'You are a helpful assistant.' },
+          { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
           ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
           ...messages
         ],
-        temperature: agent?.temperature || 0.7,
-        max_tokens: agent?.max_tokens || 4000,
+        temperature: 0.7,
+        max_tokens: 4000,
       }),
     });
 
@@ -146,19 +126,6 @@ serve(async (req) => {
 
     const completion = await completionResponse.json();
     console.log('Completion received successfully');
-
-    await supabase.rpc('log_agent_event', {
-      p_agent_id: agentId,
-      p_event_type: 'completion',
-      p_configuration: {
-        model: openAIModel,
-        temperature: agent?.temperature,
-        max_tokens: agent?.max_tokens,
-        knowledge_base_used: agent?.use_knowledge_base,
-        documents_found: relevantContext ? 'yes' : 'no'
-      },
-      p_details: `Response: ${completion.choices[0].message?.content}`
-    });
 
     return new Response(JSON.stringify(completion), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

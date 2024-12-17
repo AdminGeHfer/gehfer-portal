@@ -15,7 +15,7 @@ export const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: conversation } = useQuery({
+  const { data: conversation, refetch: refetchConversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: async () => {
       if (!conversationId) return null;
@@ -96,6 +96,15 @@ export const Chat = () => {
 
       if (messageError) throw messageError;
 
+      // Get agent configuration for knowledge base
+      const { data: agent, error: agentError } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('id', conversation?.ai_agents?.id)
+        .single();
+
+      if (agentError) throw agentError;
+
       // Then call the chat completion function
       const { data: completionData, error: completionError } = await supabase.functions
         .invoke('chat-completion', {
@@ -111,6 +120,8 @@ export const Chat = () => {
             }),
             model: conversation?.ai_agents?.model_id || 'gpt-4o-mini',
             agentId: conversation?.ai_agents?.id,
+            useKnowledgeBase: agent?.use_knowledge_base,
+            systemPrompt: agent?.system_prompt,
           },
         });
 
@@ -139,6 +150,25 @@ export const Chat = () => {
       toast.error("Erro ao processar mensagem");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleModelChange = async (newModel: string) => {
+    if (!conversationId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('ai_agents')
+        .update({ model_id: newModel })
+        .eq('id', conversation?.ai_agents?.id);
+
+      if (error) throw error;
+      
+      refetchConversation();
+      toast.success("Modelo atualizado com sucesso");
+    } catch (error) {
+      console.error('Error updating model:', error);
+      toast.error("Erro ao atualizar modelo");
     }
   };
 
@@ -180,7 +210,7 @@ export const Chat = () => {
       <ChatHeader 
         title={conversation?.title || 'Nova Conversa'} 
         model={conversation?.ai_agents?.model_id || ''}
-        onModelChange={() => {}}
+        onModelChange={handleModelChange}
         isDeleting={isDeleting}
         onDelete={handleDeleteConversation}
         isLoading={isLoading}
