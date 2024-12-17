@@ -18,13 +18,22 @@ export const Chat = () => {
       if (!conversationId) return null;
       const { data, error } = await supabase
         .from('ai_conversations')
-        .select('*, ai_agents(*)')
+        .select(`
+          *,
+          ai_agents (
+            id,
+            model_id,
+            use_knowledge_base,
+            system_prompt
+          )
+        `)
         .eq('id', conversationId)
         .single();
 
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!conversationId
   });
 
   if (!conversationId) return null;
