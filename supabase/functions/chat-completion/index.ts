@@ -65,6 +65,7 @@ serve(async (req) => {
         if (searchError) throw searchError;
 
         if (documents && documents.length > 0) {
+          // Aqui está a correção principal - removemos o texto "Relevant information from knowledge base"
           relevantContext = documents.map(doc => doc.content).join('\n\n');
         }
       } catch (error) {
@@ -79,7 +80,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: model,
+        model: model === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
         messages: [
           { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
           ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
