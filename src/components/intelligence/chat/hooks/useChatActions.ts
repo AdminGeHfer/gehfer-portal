@@ -42,8 +42,7 @@ export const useChatActions = (conversationId: string | undefined) => {
         .from('ai_messages')
         .select('*')
         .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true })
-        .limit(10);
+        .order('created_at', { ascending: true });
 
       if (historyError) throw historyError;
 
@@ -53,6 +52,14 @@ export const useChatActions = (conversationId: string | undefined) => {
         content: msg.content,
         created_at: msg.created_at
       }));
+
+      console.log('Sending request to chat-completion with:', {
+        messages,
+        model: conversation.ai_agents.model_id,
+        agentId: conversation.ai_agents.id,
+        useKnowledgeBase: conversation.ai_agents.use_knowledge_base,
+        systemPrompt: conversation.ai_agents.system_prompt
+      });
 
       // Call completion with context and agent configuration
       const { data: completionData, error: completionError } = await supabase.functions
