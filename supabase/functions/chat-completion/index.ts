@@ -165,7 +165,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in chat-completion function:', error);
     return new Response(
       JSON.stringify({ 
