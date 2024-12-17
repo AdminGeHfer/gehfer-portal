@@ -40,6 +40,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
 
+    if (!agentId) {
+      console.error('Agent ID is required');
+      throw new Error('Agent ID is required');
+    }
+
     const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
       .select('*')
@@ -169,8 +174,8 @@ serve(async (req) => {
     console.error('Error in chat-completion function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        details: error.stack
+        error: error.message || 'An unknown error occurred',
+        details: error.stack || 'No stack trace available'
       }),
       { 
         status: 500, 
