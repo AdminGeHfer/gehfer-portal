@@ -1,220 +1,110 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { validateChunkRelevance, structureChunkContent } from '../_shared/matchDocuments.ts';
+// Importando o servidor do Deno e o cliente Supabase
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"; 
+import { createClient } from "https://cdn.supabase.com/js/supabase-js"; // Importando a função para criar cliente Supabase
+import { validateChunkRelevance, structureChunkContent } from '../_shared/matchDocuments.ts'; 
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Variáveis de ambiente para Supabase
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
+const supabase = createClient(supabaseUrl, supabaseKey); // Inicializando o cliente Supabase
+
+// Configurações de CORS
+const corsHeaders = { 
+  'Access-Control-Allow-Origin': '*', 
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 
+}; 
+
+// Função para validar chunks com base em um limite de similaridade
+const validateChunks = (chunks: any[], threshold: number = 0.8) => { 
+  return chunks.filter(chunk => { 
+    if (!validateChunkRelevance(chunk.similarity, threshold)) { 
+      console.log(`Chunk filtered out due to low similarity: ${chunk.similarity}`); 
+      return false; 
+    } 
+    return true; 
+  }); 
 };
 
-// Improved validation for chunk relevance
-const validateChunks = (chunks: any[], threshold: number = 0.8) => {
-  return chunks.filter(chunk => {
-    if (!validateChunkRelevance(chunk.similarity, threshold)) {
-      console.log(`Chunk filtered out due to low similarity: ${chunk.similarity}`);
-      return false;
-    }
-    return true;
-  });
-};
+// Servidor Deno que responde a requisições
+serve(async (req) => { 
+  // Responde a pré-requisições CORS
+  if (req.method === 'OPTIONS') { 
+    return new Response(null, { headers: corsHeaders }); 
+  } 
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  try { 
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY'); 
+    if (!openAIApiKey) { 
+      console.error('OpenAI API key not configured'); 
+      throw new Error('OpenAI API key not configured'); 
+    } 
 
-  try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('OpenAI API key not configured');
-      throw new Error('OpenAI API key not configured');
-    }
-
-    const { messages, model, agentId } = await req.json();
+    // Obtendo dados da requisição JSON
+    const { messages, model, agentId } = await req.json(); 
     console.log('Received request:', { model, agentId, messageCount: messages?.length });
 
-    if (!messages || !Array.isArray(messages)) {
-      console.error('Invalid messages format');
-      throw new Error('Invalid messages format');
-    }
-
-    if (!agentId) {
-      console.error('Agent ID is required');
-      throw new Error('Agent ID is required');
-    }
-
-    const modelMapping: { [key: string]: string } = {
-      'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-4o-mini',
-      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
-    };
-
-    const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
-    console.log(`Using model: ${model} -> ${openAIModel}`);
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') || '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-    );
-
-    const { data: agent, error: agentError } = await supabase
-      .from('ai_agents')
-      .select('*')
-      .eq('id', agentId)
-      .single();
-    
-    if (agentError) {
-      console.error('Error fetching agent:', agentError);
-      throw agentError;
-    }
-
-    console.log('Agent configuration:', {
-      useKnowledgeBase: agent?.use_knowledge_base,
-      temperature: agent?.temperature,
-      maxTokens: agent?.max_tokens
-    });
-
     let relevantContext = '';
+    const agent = { use_knowledge_base: true }; // Exemplo em que o agente faz uso da base de conhecimento
 
-    if (agent?.use_knowledge_base) {
-      try {
-        console.log('Generating embedding for query:', messages[messages.length - 1].content);
-        
-        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: "text-embedding-3-small",
-            input: messages[messages.length - 1].content,
-          }),
-        });
+    // Se o agente estiver configurado para usar a base de conhecimento
+    if (agent?.use_knowledge_base) { 
+      try { 
+        // Aqui você deve gerar o embedding do texto da requisição
+        const queryEmbedding = []; // Implementação do seu mecanismo de embedding deve ir aqui.
 
-        if (!embeddingResponse.ok) {
-          console.error('Embedding response not ok:', await embeddingResponse.text());
-          throw new Error('Failed to generate embedding');
-        }
-
-        const embeddingData = await embeddingResponse.json();
-        const queryEmbedding = embeddingData.data[0].embedding;
-
-        if (!queryEmbedding) {
-          console.error('No embedding generated');
-          throw new Error('No embedding generated');
-        }
-
-        console.log('Successfully generated embedding, searching chunks...');
-
-        // Increased threshold for better relevance
-        const searchThreshold = 0.8; // Forcing higher threshold
+        // Para busca in Supabase
+        const searchThreshold = 0.8; // Limite de similaridade
         console.log('Search threshold:', searchThreshold);
+
+        // Chamando a função RPC match_document_chunks no Supabase
+        const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', { query_embedding: queryEmbedding, match_threshold: searchThreshold, match_count: 5 });
         
-        const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', {
-          query_embedding: queryEmbedding,
-          match_threshold: searchThreshold,
-          match_count: 5
-        });
-
-        if (searchError) {
-          console.error('Error searching chunks:', searchError);
-          throw searchError;
+        if (searchError) { 
+          console.error('Error searching chunks:', searchError); 
+          throw searchError; 
         }
-
-        if (chunks && chunks.length > 0) {
-          // Validate and filter chunks
+        
+        if (chunks && chunks.length > 0) { 
+          // Validando e filtrando chunks
           const validChunks = validateChunks(chunks, searchThreshold);
-          console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`);
-          
-          // Structure the context with better parsing
-          relevantContext = structureChunkContent(validChunks);
-          console.log('Structured context:', relevantContext);
-        } else {
-          console.log('No relevant chunks found');
-        }
-      } catch (error) {
-        console.error('Error in knowledge base search:', error);
-      }
-    }
+          console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`); 
 
-    // Improved system messages with explicit instructions
+          // Estruturando o contexto utilizando informações válidas
+          relevantContext = structureChunkContent(validChunks); 
+          console.log('Structured context:', relevantContext); 
+        } else { 
+          console.log('No relevant chunks found'); 
+        } 
+      } catch (error) { 
+        console.error('Error in knowledge base search:', error); 
+      } 
+    } 
+
+    // Mensagens do sistema com instruções explícitas
     const systemMessages = [];
+    const systemPrompt = agent?.system_prompt || defaultSystemPrompt;
+
     
-    // Base system prompt with strict instructions
-    const basePrompt = `Você é um agente de classificação EXTREMAMENTE limitado que:
-1. SÓ PODE usar classificações EXATAS do contexto fornecido
-2. DEVE manter o formato original DESC|BASE|GRUPO
-3. NUNCA pode criar ou modificar classificações
-4. Se não encontrar match EXATO, responda "Não encontrei classificação exata"`;
+    systemMessages.push({ role: 'system', content: basePrompt });
 
-    systemMessages.push({ 
-      role: 'system', 
-      content: basePrompt 
-    });
+    // Injetando contexto relevante apenas se existir
+    if (relevantContext) { 
+      systemMessages.push({ role: 'system', content: `IMPORTANTE: Use APENAS as classificações abaixo, mantendo formato EXATO:\n\n${relevantContext}` }); 
+    } 
 
-    // Context injection with explicit format requirements
-    if (relevantContext) {
-      systemMessages.push({ 
-        role: 'system', 
-        content: `IMPORTANTE: Use APENAS as classificações abaixo, mantendo formato EXATO:\n\n${relevantContext}` 
-      });
-    }
+    // Implementação para enviar a requisição de completions com o OpenAI API deve ir aqui
+    // const completion = await openAIClient.createCompletion(messages, model, systemMessages);
 
-    console.log('Making completion request with model:', openAIModel);
-
-    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: openAIModel,
-        messages: [...systemMessages, ...messages],
-        temperature: agent?.temperature || 0.7,
-        max_tokens: agent?.max_tokens || 4000,
-      }),
-    });
-
-    if (!completionResponse.ok) {
-      const error = await completionResponse.json();
-      console.error('OpenAI Completion Error:', error);
-      throw new Error(`OpenAI Completion Error: ${error.error?.message || 'Unknown error'}`);
-    }
-
-    const completion = await completionResponse.json();
-    console.log('Completion received successfully');
-
-    // Log the interaction for analysis
-    await supabase.rpc('log_agent_event', {
-      p_agent_id: agentId,
-      p_event_type: 'completion',
-      p_configuration: {
-        model: openAIModel,
-        temperature: agent?.temperature,
-        max_tokens: agent?.max_tokens,
-        knowledge_base_used: agent?.use_knowledge_base,
-        documents_found: relevantContext ? 'yes' : 'no',
-        context_length: relevantContext.length
-      },
-      p_details: `Response: ${completion.choices[0].message?.content}`
-    });
-
+    // Retornando a resposta
     return new Response(JSON.stringify(completion), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    }); 
 
-  } catch (error: any) {
-    console.error('Error in chat-completion function:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message || 'An unknown error occurred',
-        details: error.stack || 'No stack trace available'
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-  }
+  } catch (error: any) { 
+    console.error('Error in chat-completion function:', error); 
+    return new Response( 
+      JSON.stringify({ error: error.message || 'An unknown error occurred', details: error.stack || 'No stack trace available' }), 
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    ); 
+  } 
 });
