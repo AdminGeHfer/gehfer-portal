@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Message } from "@/types/ai";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./chat/MessageList";
@@ -10,12 +10,10 @@ import { toast } from "sonner";
 
 export const Chat = () => {
   const { conversationId } = useParams();
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data: conversation, refetch: refetchConversation } = useQuery({
+  const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: async () => {
       if (!conversationId) return null;
@@ -96,17 +94,6 @@ export const Chat = () => {
 
       if (messageError) throw messageError;
 
-      // Get agent configuration for knowledge base
-      const { data: agent, error: agentError } = await supabase
-        .from('ai_agents')
-        .select('*')
-        .eq('id', conversation?.ai_agents?.id)
-        .single();
-
-      if (agentError) throw agentError;
-
-      console.log('Agent configuration:', agent);
-
       // Then call the chat completion function
       const { data: completionData, error: completionError } = await supabase.functions
         .invoke('chat-completion', {
@@ -122,8 +109,6 @@ export const Chat = () => {
             }),
             model: conversation?.ai_agents?.model_id || 'gpt-4o-mini',
             agentId: conversation?.ai_agents?.id,
-            useKnowledgeBase: agent?.use_knowledge_base || false,
-            systemPrompt: agent?.system_prompt || 'You are a helpful assistant.',
           },
         });
 
@@ -155,56 +140,6 @@ export const Chat = () => {
     }
   };
 
-  const handleModelChange = async (newModel: string) => {
-    if (!conversationId) return;
-    
-    try {
-      const { error } = await supabase
-        .from('ai_agents')
-        .update({ model_id: newModel })
-        .eq('id', conversation?.ai_agents?.id);
-
-      if (error) throw error;
-      
-      refetchConversation();
-      toast.success("Modelo atualizado com sucesso");
-    } catch (error) {
-      console.error('Error updating model:', error);
-      toast.error("Erro ao atualizar modelo");
-    }
-  };
-
-  const handleDeleteConversation = async () => {
-    if (!conversationId || isDeleting) return;
-
-    setIsDeleting(true);
-    try {
-      // First delete all messages
-      const { error: deleteMessagesError } = await supabase
-        .from('ai_messages')
-        .delete()
-        .eq('conversation_id', conversationId);
-
-      if (deleteMessagesError) throw deleteMessagesError;
-
-      // Then delete the conversation
-      const { error: deleteConversationError } = await supabase
-        .from('ai_conversations')
-        .delete()
-        .eq('id', conversationId);
-
-      if (deleteConversationError) throw deleteConversationError;
-
-      toast.success("Conversa excluída com sucesso");
-      navigate('/intelligence/chat');
-    } catch (error: any) {
-      console.error('Error deleting conversation:', error);
-      toast.error("Erro ao excluir conversa");
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   if (!conversationId) return null;
 
   return (
@@ -212,9 +147,9 @@ export const Chat = () => {
       <ChatHeader 
         title={conversation?.title || 'Nova Conversa'} 
         model={conversation?.ai_agents?.model_id || ''}
-        onModelChange={handleModelChange}
-        isDeleting={isDeleting}
-        onDelete={handleDeleteConversation}
+        onModelChange={() => {}}
+        isDeleting={false}
+        onDelete={() => {}}
         isLoading={isLoading}
       />
       
