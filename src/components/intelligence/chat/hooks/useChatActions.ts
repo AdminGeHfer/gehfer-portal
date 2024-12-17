@@ -3,14 +3,36 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Message } from "@/types/ai";
+import { useQuery } from "@tanstack/react-query";
 
 export const useChatActions = (conversationId: string | undefined) => {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get conversation details including agent_id
+  const { data: conversation } = useQuery({
+    queryKey: ['conversation', conversationId],
+    queryFn: async () => {
+      if (!conversationId) return null;
+      const { data, error } = await supabase
+        .from('ai_conversations')
+        .select('*, ai_agents(*)')
+        .eq('id', conversationId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!conversationId
+  });
+
   const handleSubmit = async (content: string) => {
     if (!conversationId || !content.trim() || isLoading) return;
+    if (!conversation?.agent_id) {
+      toast.error("No agent found for this conversation");
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -31,7 +53,8 @@ export const useChatActions = (conversationId: string | undefined) => {
         .invoke('chat-completion', {
           body: {
             messages: [{ role: 'user', content, created_at: new Date().toISOString() }],
-            model: 'gpt-4o-mini',
+            model: conversation.ai_agents?.model_id || 'gpt-4o-mini',
+            agentId: conversation.agent_id
           },
         });
 
