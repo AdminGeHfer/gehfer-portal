@@ -76,6 +76,7 @@ serve(async (req) => {
 
         console.log('Successfully generated embedding, searching documents...');
         
+        // Lowered threshold to 0.5 for better matches
         const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
           query_embedding: queryEmbedding,
           match_threshold: 0.5,
