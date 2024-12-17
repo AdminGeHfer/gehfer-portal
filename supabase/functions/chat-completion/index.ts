@@ -41,15 +41,6 @@ serve(async (req) => {
       throw new Error('Invalid messages format');
     }
 
-    const modelMapping: { [key: string]: string } = {
-      'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-3.5-turbo-16k',
-      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
-    };
-
-    const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
-    console.log(`Using model: ${model} -> ${openAIModel}`);
-
     const lastMessage = messages[messages.length - 1].content;
     let relevantContext = '';
 
@@ -83,38 +74,35 @@ serve(async (req) => {
           norm: Math.sqrt(queryEmbedding.reduce((sum: number, val: number) => sum + val * val, 0))
         });
 
-        // Try with initial threshold
-        let documents = await searchDocuments(supabase, queryEmbedding, 0.5);
-        
-        // If no results, try with lower threshold
-        if (!documents.length) {
-          console.log('No documents found with threshold 0.5, trying with 0.3...');
-          documents = await searchDocuments(supabase, queryEmbedding, 0.3);
-        }
+        // Buscar documentos com threshold inicial
+        const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
+          query_embedding: queryEmbedding,
+          match_threshold: 0.5,
+          match_count: 5
+        });
 
-        // If still no results, try with very low threshold
-        if (!documents.length) {
-          console.log('No documents found with threshold 0.3, trying with 0.1...');
-          documents = await searchDocuments(supabase, queryEmbedding, 0.1);
+        if (searchError) {
+          console.error('Error searching documents:', searchError);
+          throw searchError;
         }
 
         console.log('Search results:', {
-          documentsFound: documents.length,
-          similarities: documents.map(d => d.similarity)
+          documentsFound: documents?.length || 0,
+          similarities: documents?.map(d => d.similarity) || []
         });
         
         if (documents && documents.length > 0) {
           relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
           console.log('Context length:', relevantContext.length);
         } else {
-          console.log('No relevant documents found with any threshold');
+          console.log('No relevant documents found');
         }
       } catch (error) {
         console.error('Error in knowledge base search:', error);
       }
     }
 
-    console.log('Making completion request with model:', openAIModel);
+    console.log('Making completion request with model:', model);
 
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -123,7 +111,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: openAIModel,
+        model: model,
         messages: [
           { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
           ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
@@ -161,21 +149,3 @@ serve(async (req) => {
     );
   }
 });
-
-async function searchDocuments(supabase: any, queryEmbedding: number[], threshold: number) {
-  console.log(`Searching documents with threshold ${threshold}...`);
-  
-  const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
-    query_embedding: queryEmbedding,
-    match_threshold: threshold,
-    match_count: 5
-  });
-
-  if (searchError) {
-    console.error('Error searching documents:', searchError);
-    throw searchError;
-  }
-
-  console.log(`Found ${documents?.length || 0} documents`);
-  return documents || [];
-}
