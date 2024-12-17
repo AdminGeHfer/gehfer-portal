@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getSupabaseClient } from "../_shared/supabaseClient.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.47.8';
 import { structureContext, validateChunks } from './contextUtils.ts';
 import { generateEmbedding, getChatCompletion } from './openaiUtils.ts';
 
@@ -33,7 +33,10 @@ serve(async (req) => {
       throw new Error('Agent ID is required');
     }
 
-    const supabase = getSupabaseClient();
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
@@ -84,8 +87,12 @@ serve(async (req) => {
           const validChunks = validateChunks(chunks, searchThreshold);
           console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`);
           
-          relevantContext = structureContext(validChunks);
-          console.log('Structured context:', relevantContext);
+          if (validChunks.length > 0) {
+            relevantContext = structureContext(validChunks);
+            console.log('Structured context:', relevantContext);
+          } else {
+            console.log('No chunks passed validation threshold');
+          }
         } else {
           console.log('No relevant chunks found');
         }
@@ -103,16 +110,20 @@ serve(async (req) => {
     const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
     console.log(`Using model: ${model} -> ${openAIModel}`);
 
-    const systemMessages = [
-      { 
-        role: 'system', 
-        content: `${agent?.system_prompt}\n\nIMPORTANT: You can ONLY use classifications from this context:\n\n${relevantContext}\n\nIf you cannot find an EXACT match in the context above, respond with "Não encontrei classificação exata."` 
-      }
-    ];
+    const systemPrompt = `${agent?.system_prompt || 'You are a helpful assistant.'}\n\n` +
+      'IMPORTANT INSTRUCTIONS:\n' +
+      '1. You can ONLY use classifications that EXACTLY match those provided in the context below.\n' +
+      '2. If you cannot find an EXACT match, respond with "Não encontrei classificação exata."\n' +
+      '3. Do not modify, combine or create new classifications.\n' +
+      '4. Maintain the exact format and text as shown in the context.\n\n' +
+      'Available classifications:\n\n' +
+      relevantContext;
+
+    console.log('System prompt:', systemPrompt);
 
     const completion = await getChatCompletion(
       openAIApiKey,
-      [...systemMessages, ...messages],
+      [{ role: 'system', content: systemPrompt }, ...messages],
       openAIModel,
       agent?.temperature || 0.7,
       agent?.max_tokens || 4000
