@@ -1,20 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { validateChunkRelevance, structureChunkContent } from '../_shared/matchDocuments.ts';
+import { getSupabaseClient } from '../_shared/supabaseClient.ts';
+import { structureContext, validateChunks } from './contextUtils.ts';
+import { generateEmbedding, getChatCompletion } from './openaiUtils.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Improved validation for chunk relevance
-const validateChunks = (chunks: any[], threshold: number = 0.8) => {
-  return chunks.filter(chunk => {
-    if (!validateChunkRelevance(chunk.similarity, threshold)) {
-      console.log(`Chunk filtered out due to low similarity: ${chunk.similarity}`);
-      return false;
-    }
-    return true;
-  });
 };
 
 serve(async (req) => {
@@ -42,19 +33,7 @@ serve(async (req) => {
       throw new Error('Agent ID is required');
     }
 
-    const modelMapping: { [key: string]: string } = {
-      'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-4o-mini',
-      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
-    };
-
-    const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
-    console.log(`Using model: ${model} -> ${openAIModel}`);
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') || '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-    );
+    const supabase = getSupabaseClient();
 
     const { data: agent, error: agentError } = await supabase
       .from('ai_agents')
@@ -77,37 +56,17 @@ serve(async (req) => {
 
     if (agent?.use_knowledge_base) {
       try {
-        console.log('Generating embedding for query:', messages[messages.length - 1].content);
+        const latestMessage = messages[messages.length - 1].content;
+        console.log('Generating embedding for query:', latestMessage);
         
-        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: "text-embedding-3-small",
-            input: messages[messages.length - 1].content,
-          }),
-        });
-
-        if (!embeddingResponse.ok) {
-          console.error('Embedding response not ok:', await embeddingResponse.text());
-          throw new Error('Failed to generate embedding');
-        }
-
-        const embeddingData = await embeddingResponse.json();
-        const queryEmbedding = embeddingData.data[0].embedding;
+        const queryEmbedding = await generateEmbedding(openAIApiKey, latestMessage);
 
         if (!queryEmbedding) {
           console.error('No embedding generated');
           throw new Error('No embedding generated');
         }
 
-        console.log('Successfully generated embedding, searching chunks...');
-
-        // Increased threshold for better relevance
-        const searchThreshold = 0.8; // Forcing higher threshold
+        const searchThreshold = 0.8;
         console.log('Search threshold:', searchThreshold);
         
         const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', {
@@ -122,12 +81,10 @@ serve(async (req) => {
         }
 
         if (chunks && chunks.length > 0) {
-          // Validate and filter chunks
           const validChunks = validateChunks(chunks, searchThreshold);
           console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`);
           
-          // Structure the context with better parsing
-          relevantContext = structureChunkContent(validChunks);
+          relevantContext = structureContext(validChunks);
           console.log('Structured context:', relevantContext);
         } else {
           console.log('No relevant chunks found');
@@ -137,55 +94,31 @@ serve(async (req) => {
       }
     }
 
-    // Improved system messages with explicit instructions
-    const systemMessages = [];
-    
-    // Base system prompt with strict instructions
-    const basePrompt = `Você é um agente de classificação EXTREMAMENTE limitado que:
-1. SÓ PODE usar classificações EXATAS do contexto fornecido
-2. DEVE manter o formato original DESC|BASE|GRUPO
-3. NUNCA pode criar ou modificar classificações
-4. Se não encontrar match EXATO, responda "Não encontrei classificação exata"`;
+    const modelMapping: { [key: string]: string } = {
+      'gpt-4o': 'gpt-4',
+      'gpt-4o-mini': 'gpt-4o-mini',
+      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
+    };
 
-    systemMessages.push({ 
-      role: 'system', 
-      content: basePrompt 
-    });
+    const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
+    console.log(`Using model: ${model} -> ${openAIModel}`);
 
-    // Context injection with explicit format requirements
-    if (relevantContext) {
-      systemMessages.push({ 
+    const systemMessages = [
+      { 
         role: 'system', 
-        content: `IMPORTANTE: Use APENAS as classificações abaixo, mantendo formato EXATO:\n\n${relevantContext}` 
-      });
-    }
+        content: `${agent?.system_prompt}\n\nIMPORTANT: You can ONLY use classifications from this context:\n\n${relevantContext}\n\nIf you cannot find an EXACT match in the context above, respond with "Não encontrei classificação exata."` 
+      }
+    ];
 
-    console.log('Making completion request with model:', openAIModel);
+    const completion = await getChatCompletion(
+      openAIApiKey,
+      [...systemMessages, ...messages],
+      openAIModel,
+      agent?.temperature || 0.7,
+      agent?.max_tokens || 4000
+    );
 
-    const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: openAIModel,
-        messages: [...systemMessages, ...messages],
-        temperature: agent?.temperature || 0.7,
-        max_tokens: agent?.max_tokens || 4000,
-      }),
-    });
-
-    if (!completionResponse.ok) {
-      const error = await completionResponse.json();
-      console.error('OpenAI Completion Error:', error);
-      throw new Error(`OpenAI Completion Error: ${error.error?.message || 'Unknown error'}`);
-    }
-
-    const completion = await completionResponse.json();
-    console.log('Completion received successfully');
-
-    // Log the interaction for analysis
+    // Log the interaction
     await supabase.rpc('log_agent_event', {
       p_agent_id: agentId,
       p_event_type: 'completion',
