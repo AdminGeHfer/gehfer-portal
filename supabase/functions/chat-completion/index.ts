@@ -12,87 +12,113 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model, agentId, useKnowledgeBase, systemPrompt } = await req.json();
-    console.log('Processing request:', { model, agentId, useKnowledgeBase, messageCount: messages?.length });
-
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase environment variables');
+    const { messages, model, agentId } = await req.json();
+    console.log('Received request:', { model, agentId, messageCount: messages?.length });
+
+    if (!messages || !Array.isArray(messages)) {
+      console.error('Invalid messages format');
+      throw new Error('Invalid messages format');
     }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    let relevantContext = '';
-    
-    if (useKnowledgeBase) {
-      console.log('Fetching knowledge base context for agent:', agentId);
-      
-      // Get the last message for context search
-      const lastMessage = messages[messages.length - 1];
-      
-      // Generate embedding for the query
-      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'text-embedding-ada-002',
-          input: lastMessage.content,
-        }),
-      });
-
-      if (!embeddingResponse.ok) {
-        throw new Error('Failed to generate embedding');
-      }
-
-      const { data: [{ embedding }] } = await embeddingResponse.json();
-
-      // Search for relevant documents
-      const { data: documents, error: searchError } = await supabase.rpc(
-        'match_documents',
-        {
-          query_embedding: embedding,
-          match_threshold: 0.7,
-          match_count: 5
-        }
-      );
-
-      if (searchError) throw searchError;
-
-      if (documents && documents.length > 0) {
-        relevantContext = documents
-          .map((doc: any) => doc.content)
-          .join('\n\n');
-        console.log('Found relevant context from knowledge base');
-      }
-    }
-
-    // Prepare messages array with system prompt and context
-    const systemMessage = {
-      role: 'system',
-      content: `${systemPrompt || 'You are a helpful AI assistant.'}\n\n${
-        relevantContext ? `Here is some relevant context from the knowledge base:\n${relevantContext}` : ''
-      }`
-    };
 
     const modelMapping: { [key: string]: string } = {
       'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-3.5-turbo-16k',
+      'gpt-4o-mini': 'gpt-4o-mini',
+      'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
     };
 
     const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
     console.log(`Using model: ${model} -> ${openAIModel}`);
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    );
+
+    const { data: agent, error: agentError } = await supabase
+      .from('ai_agents')
+      .select('*')
+      .eq('id', agentId)
+      .single();
+    
+    if (agentError) {
+      console.error('Error fetching agent:', agentError);
+      throw agentError;
+    }
+
+    console.log('Agent configuration:', {
+      useKnowledgeBase: agent?.use_knowledge_base,
+      temperature: agent?.temperature,
+      maxTokens: agent?.max_tokens
+    });
+
+    const lastMessage = messages[messages.length - 1].content;
+    let relevantContext = '';
+
+    if (agent?.use_knowledge_base) {
+      console.log('Knowledge base is enabled, searching for relevant documents...');
+      
+      try {
+        console.log('Generating embedding for query:', lastMessage);
+        
+        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: "text-embedding-3-small",
+            input: lastMessage,
+          }),
+        });
+
+        if (!embeddingResponse.ok) {
+          console.error('Embedding response not ok:', await embeddingResponse.text());
+          throw new Error('Failed to generate embedding');
+        }
+
+        const embeddingData = await embeddingResponse.json();
+        const queryEmbedding = embeddingData.data[0].embedding;
+
+        if (!queryEmbedding) {
+          console.error('No embedding generated');
+          throw new Error('No embedding generated');
+        }
+
+        console.log('Successfully generated embedding, searching documents...');
+
+        const searchThreshold = agent.search_threshold || 0.5;
+        console.log('Search threshold:', searchThreshold);
+        
+        const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
+          query_embedding: queryEmbedding,
+          match_threshold: searchThreshold,
+          match_count: 5
+        });
+
+        if (searchError) {
+          console.error('Error searching documents:', searchError);
+          throw searchError;
+        }
+
+        if (documents && documents.length > 0) {
+          console.log(`Found ${documents.length} relevant documents`);
+          relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
+        } else {
+          console.log('No relevant documents found');
+        }
+      } catch (error) {
+        console.error('Error in knowledge base search:', error);
+      }
+    }
+
+    console.log('Making completion request with model:', openAIModel);
 
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -102,9 +128,13 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: openAIModel,
-        messages: [systemMessage, ...messages],
-        temperature: 0.7,
-        max_tokens: 1000,
+        messages: [
+          { role: 'system', content: agent?.system_prompt || 'You are a helpful assistant.' },
+          ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
+          ...messages
+        ],
+        temperature: agent?.temperature || 0.7,
+        max_tokens: agent?.max_tokens || 4000,
       }),
     });
 
@@ -117,18 +147,18 @@ serve(async (req) => {
     const completion = await completionResponse.json();
     console.log('Completion received successfully');
 
-    // Log the interaction
-    await supabase
-      .from('ai_agent_logs')
-      .insert({
-        agent_id: agentId,
-        event_type: 'chat_completion',
-        configuration: {
-          model: openAIModel,
-          useKnowledgeBase,
-          hasContext: !!relevantContext,
-        }
-      });
+    await supabase.rpc('log_agent_event', {
+      p_agent_id: agentId,
+      p_event_type: 'completion',
+      p_configuration: {
+        model: openAIModel,
+        temperature: agent?.temperature,
+        max_tokens: agent?.max_tokens,
+        knowledge_base_used: agent?.use_knowledge_base,
+        documents_found: relevantContext ? 'yes' : 'no'
+      },
+      p_details: `Response: ${completion.choices[0].message?.content}`
+    });
 
     return new Response(JSON.stringify(completion), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
