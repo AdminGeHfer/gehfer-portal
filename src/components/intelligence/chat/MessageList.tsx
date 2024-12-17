@@ -12,7 +12,7 @@ interface MessageListProps {
 }
 
 export const MessageList = ({ messages }: MessageListProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,8 +31,8 @@ export const MessageList = ({ messages }: MessageListProps) => {
 
   return (
     <div className="flex-1 overflow-hidden relative">
-      <ScrollArea className="h-[calc(100vh-12rem)] w-full absolute inset-0">
-        <div className="space-y-4 p-4" ref={containerRef}>
+      <ScrollArea ref={scrollAreaRef} className="h-[calc(100vh-12rem)] w-full absolute inset-0">
+        <div className="space-y-4 p-4">
           {messages.map((message, index) => (
             <motion.div
               key={message.id || index}

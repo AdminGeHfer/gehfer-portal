@@ -10,7 +10,8 @@ export const useChatMessages = (conversationId: string | undefined) => {
   useEffect(() => {
     const loadMessages = async () => {
       if (!conversationId) return;
-
+      
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('ai_messages')
         .select('*')
@@ -19,6 +20,7 @@ export const useChatMessages = (conversationId: string | undefined) => {
 
       if (error) {
         console.error('Error loading messages:', error);
+        toast.error("Erro ao carregar mensagens");
         return;
       }
 
@@ -26,6 +28,7 @@ export const useChatMessages = (conversationId: string | undefined) => {
         console.log('Loaded messages:', data);
         setMessages(data);
       }
+      setIsLoading(false);
     };
 
     loadMessages();
