@@ -74,10 +74,10 @@ serve(async (req) => {
           norm: Math.sqrt(queryEmbedding.reduce((sum: number, val: number) => sum + val * val, 0))
         });
 
-        // Buscar documentos com threshold inicial
+        // Buscar documentos com threshold reduzido
         const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
           query_embedding: queryEmbedding,
-          match_threshold: 0.5,
+          match_threshold: 0.5, // Reduzido de 0.7 para 0.5
           match_count: 5
         });
 
@@ -88,14 +88,20 @@ serve(async (req) => {
 
         console.log('Search results:', {
           documentsFound: documents?.length || 0,
-          similarities: documents?.map(d => d.similarity) || []
+          similarities: documents?.map(d => d.similarity) || [],
+          threshold: 0.5
         });
         
         if (documents && documents.length > 0) {
+          console.log('Documents found:', documents.map(d => ({
+            similarity: d.similarity,
+            contentPreview: d.content.substring(0, 100) + '...'
+          })));
+          
           relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
           console.log('Context length:', relevantContext.length);
         } else {
-          console.log('No relevant documents found');
+          console.log('No relevant documents found with threshold 0.5');
         }
       } catch (error) {
         console.error('Error in knowledge base search:', error);
