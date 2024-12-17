@@ -52,7 +52,9 @@ serve(async (req) => {
     console.log('Agent configuration:', {
       useKnowledgeBase: agent?.use_knowledge_base,
       temperature: agent?.temperature,
-      maxTokens: agent?.max_tokens
+      maxTokens: agent?.max_tokens,
+      systemPrompt: agent?.system_prompt,
+      selectedModel: agent?.model_id
     });
 
     let relevantContext = '';
@@ -69,7 +71,7 @@ serve(async (req) => {
           throw new Error('No embedding generated');
         }
 
-        const searchThreshold = 0.8;
+        const searchThreshold = agent?.search_threshold || 0.7;
         console.log('Search threshold:', searchThreshold);
         
         const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', {
@@ -101,23 +103,19 @@ serve(async (req) => {
       }
     }
 
+    // Validate and map the model
     const modelMapping: { [key: string]: string } = {
       'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-4o-mini',
+      'gpt-4o-mini': 'gpt-3.5-turbo-16k',
       'gpt-3.5-turbo': 'gpt-3.5-turbo-16k'
     };
 
-    const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
-    console.log(`Using model: ${model} -> ${openAIModel}`);
+    const openAIModel = modelMapping[agent.model_id] || 'gpt-3.5-turbo-16k';
+    console.log(`Using model: ${agent.model_id} -> ${openAIModel}`);
 
+    // Use the agent's system prompt
     const systemPrompt = `${agent?.system_prompt || 'You are a helpful assistant.'}\n\n` +
-      'IMPORTANT INSTRUCTIONS:\n' +
-      '1. You can ONLY use classifications that EXACTLY match those provided in the context below.\n' +
-      '2. If you cannot find an EXACT match, respond with "Não encontrei classificação exata."\n' +
-      '3. Do not modify, combine or create new classifications.\n' +
-      '4. Maintain the exact format and text as shown in the context.\n\n' +
-      'Available classifications:\n\n' +
-      relevantContext;
+      (relevantContext ? `Context:\n${relevantContext}\n\n` : '');
 
     console.log('System prompt:', systemPrompt);
 
