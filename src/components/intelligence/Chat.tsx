@@ -105,6 +105,8 @@ export const Chat = () => {
 
       if (agentError) throw agentError;
 
+      console.log('Agent configuration:', agent);
+
       // Then call the chat completion function
       const { data: completionData, error: completionError } = await supabase.functions
         .invoke('chat-completion', {
