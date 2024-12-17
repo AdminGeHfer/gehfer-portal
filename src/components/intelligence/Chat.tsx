@@ -122,8 +122,8 @@ export const Chat = () => {
             }),
             model: conversation?.ai_agents?.model_id || 'gpt-4o-mini',
             agentId: conversation?.ai_agents?.id,
-            useKnowledgeBase: agent?.use_knowledge_base,
-            systemPrompt: agent?.system_prompt,
+            useKnowledgeBase: agent?.use_knowledge_base || false,
+            systemPrompt: agent?.system_prompt || 'You are a helpful assistant.',
           },
         });
 
