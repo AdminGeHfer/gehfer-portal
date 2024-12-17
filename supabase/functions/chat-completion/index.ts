@@ -18,6 +18,16 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    // Initialize Supabase client with proper credentials
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase environment variables');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const { messages, model, agentId, useKnowledgeBase, systemPrompt } = await req.json();
     console.log('Received request:', { model, agentId, useKnowledgeBase, messageCount: messages?.length });
 
@@ -35,11 +45,6 @@ serve(async (req) => {
     const openAIModel = modelMapping[model] || 'gpt-3.5-turbo-16k';
     console.log(`Using model: ${model} -> ${openAIModel}`);
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') || '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
-    );
-
     const lastMessage = messages[messages.length - 1].content;
     let relevantContext = '';
 
@@ -56,7 +61,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: "text-embedding-ada-002", // Revertido para o modelo anterior
+            model: "text-embedding-ada-002",
             input: lastMessage,
           }),
         });
@@ -76,7 +81,6 @@ serve(async (req) => {
 
         console.log('Successfully generated embedding, searching documents...');
         
-        // Lowered threshold to 0.5 for better matches
         const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
           query_embedding: queryEmbedding,
           match_threshold: 0.5,
@@ -101,7 +105,7 @@ serve(async (req) => {
         } else {
           console.log('No relevant documents found with threshold 0.5');
           
-          // Tenta novamente com threshold ainda menor
+          // Try again with an even lower threshold
           const { data: fallbackDocuments } = await supabase.rpc('match_documents', {
             query_embedding: queryEmbedding,
             match_threshold: 0.3,
