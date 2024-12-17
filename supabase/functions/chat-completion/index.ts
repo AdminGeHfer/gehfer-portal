@@ -41,15 +41,6 @@ serve(async (req) => {
       throw new Error('Invalid messages format');
     }
 
-    // Map deprecated models to supported ones
-    const modelMapping: { [key: string]: string } = {
-      'gpt-3.5-turbo': 'gpt-4o-mini',
-      'gpt-4': 'gpt-4o',
-    };
-
-    const actualModel = modelMapping[model] || model;
-    console.log(`Using model: ${model} -> ${actualModel}`);
-
     const lastMessage = messages[messages.length - 1].content;
     let relevantContext = '';
 
@@ -83,12 +74,9 @@ serve(async (req) => {
           norm: Math.sqrt(queryEmbedding.reduce((sum: number, val: number) => sum + val * val, 0))
         });
 
-        // Convert embedding array to Postgres vector type format
-        const vectorString = `[${queryEmbedding.join(',')}]`;
-        
         // Buscar documentos com threshold inicial
         const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
-          query_embedding: vectorString,
+          query_embedding: queryEmbedding,
           match_threshold: 0.5,
           match_count: 5
         });
@@ -114,7 +102,7 @@ serve(async (req) => {
       }
     }
 
-    console.log('Making completion request with model:', actualModel);
+    console.log('Making completion request with model:', model);
 
     const completionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -123,7 +111,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: actualModel,
+        model: model,
         messages: [
           { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
           ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
