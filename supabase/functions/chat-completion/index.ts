@@ -91,27 +91,28 @@ serve(async (req) => {
           throw new Error('No embedding generated');
         }
 
-        console.log('Successfully generated embedding, searching documents...');
+        console.log('Successfully generated embedding, searching chunks...');
 
         const searchThreshold = agent.search_threshold || 0.5;
         console.log('Search threshold:', searchThreshold);
         
-        const { data: documents, error: searchError } = await supabase.rpc('match_documents', {
+        const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', {
           query_embedding: queryEmbedding,
           match_threshold: searchThreshold,
           match_count: 5
         });
 
         if (searchError) {
-          console.error('Error searching documents:', searchError);
+          console.error('Error searching chunks:', searchError);
           throw searchError;
         }
 
-        if (documents && documents.length > 0) {
-          console.log(`Found ${documents.length} relevant documents`);
-          relevantContext = `Relevant information from knowledge base:\n${documents.map(doc => doc.content).join('\n\n')}`;
+        if (chunks && chunks.length > 0) {
+          console.log(`Found ${chunks.length} relevant chunks`);
+          relevantContext = chunks.map(chunk => chunk.content).join('\n\n');
+          console.log('Context length:', relevantContext.length);
         } else {
-          console.log('No relevant documents found');
+          console.log('No relevant chunks found');
         }
       } catch (error) {
         console.error('Error in knowledge base search:', error);
@@ -130,7 +131,7 @@ serve(async (req) => {
         model: openAIModel,
         messages: [
           { role: 'system', content: agent?.system_prompt || 'You are a helpful assistant.' },
-          ...(relevantContext ? [{ role: 'system', content: relevantContext }] : []),
+          ...(relevantContext ? [{ role: 'system', content: `Here is some relevant context:\n\n${relevantContext}` }] : []),
           ...messages
         ],
         temperature: agent?.temperature || 0.7,
