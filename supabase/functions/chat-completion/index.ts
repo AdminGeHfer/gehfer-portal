@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { validateChunkRelevance, structureChunkContent } from '../_shared/matchDocuments.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,30 +9,12 @@ const corsHeaders = {
 // Improved validation for chunk relevance
 const validateChunks = (chunks: any[], threshold: number = 0.8) => {
   return chunks.filter(chunk => {
-    // Filter by similarity threshold
-    if (chunk.similarity < threshold) {
+    if (!validateChunkRelevance(chunk.similarity, threshold)) {
       console.log(`Chunk filtered out due to low similarity: ${chunk.similarity}`);
       return false;
     }
-    // Additional validation could be added here
     return true;
   });
-};
-
-// Better context structuring
-const structureContext = (chunks: any[]) => {
-  if (!chunks || chunks.length === 0) return '';
-  
-  // Sort chunks by similarity
-  const sortedChunks = chunks.sort((a, b) => b.similarity - a.similarity);
-  
-  // Format chunks in a structured way
-  return sortedChunks.map(chunk => {
-    return `CLASSIFICATION ENTRY:
-Description: ${chunk.content}
-Relevance Score: ${chunk.similarity.toFixed(2)}
----`;
-  }).join('\n\n');
 };
 
 serve(async (req) => {
@@ -91,14 +73,11 @@ serve(async (req) => {
       maxTokens: agent?.max_tokens
     });
 
-    const lastMessage = messages[messages.length - 1].content;
     let relevantContext = '';
 
     if (agent?.use_knowledge_base) {
-      console.log('Knowledge base is enabled, searching for relevant documents...');
-      
       try {
-        console.log('Generating embedding for query:', lastMessage);
+        console.log('Generating embedding for query:', messages[messages.length - 1].content);
         
         const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
           method: 'POST',
@@ -108,7 +87,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: "text-embedding-3-small",
-            input: lastMessage,
+            input: messages[messages.length - 1].content,
           }),
         });
 
@@ -128,7 +107,7 @@ serve(async (req) => {
         console.log('Successfully generated embedding, searching chunks...');
 
         // Increased threshold for better relevance
-        const searchThreshold = agent.search_threshold || 0.8;
+        const searchThreshold = 0.8; // Forcing higher threshold
         console.log('Search threshold:', searchThreshold);
         
         const { data: chunks, error: searchError } = await supabase.rpc('match_document_chunks', {
@@ -147,8 +126,8 @@ serve(async (req) => {
           const validChunks = validateChunks(chunks, searchThreshold);
           console.log(`Found ${validChunks.length} valid chunks out of ${chunks.length} total`);
           
-          // Structure the context
-          relevantContext = structureContext(validChunks);
+          // Structure the context with better parsing
+          relevantContext = structureChunkContent(validChunks);
           console.log('Structured context:', relevantContext);
         } else {
           console.log('No relevant chunks found');
@@ -161,18 +140,23 @@ serve(async (req) => {
     // Improved system messages with explicit instructions
     const systemMessages = [];
     
-    // Base system prompt
-    const basePrompt = agent?.system_prompt || 'You are a classification assistant that can ONLY use information from the provided context.';
+    // Base system prompt with strict instructions
+    const basePrompt = `Você é um agente de classificação EXTREMAMENTE limitado que:
+1. SÓ PODE usar classificações EXATAS do contexto fornecido
+2. DEVE manter o formato original DESC|BASE|GRUPO
+3. NUNCA pode criar ou modificar classificações
+4. Se não encontrar match EXATO, responda "Não encontrei classificação exata"`;
+
     systemMessages.push({ 
       role: 'system', 
       content: basePrompt 
     });
 
-    // Context injection with explicit instructions
+    // Context injection with explicit format requirements
     if (relevantContext) {
       systemMessages.push({ 
         role: 'system', 
-        content: `IMPORTANT: You are RESTRICTED to ONLY use the classifications from the context below. If you cannot find an EXACT match, respond with "No matching classification found."\n\nAVAILABLE CLASSIFICATIONS:\n${relevantContext}` 
+        content: `IMPORTANTE: Use APENAS as classificações abaixo, mantendo formato EXATO:\n\n${relevantContext}` 
       });
     }
 
