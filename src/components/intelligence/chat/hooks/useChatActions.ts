@@ -16,6 +16,16 @@ export const useChatActions = (conversationId: string | undefined) => {
     try {
       const userMessageId = crypto.randomUUID();
       
+      // Get conversation details including agent
+      const { data: conversation, error: convError } = await supabase
+        .from('ai_conversations')
+        .select('*, ai_agents(*)')
+        .eq('id', conversationId)
+        .single();
+
+      if (convError) throw convError;
+
+      // Insert user message
       const { error: messageError } = await supabase
         .from('ai_messages')
         .insert({
@@ -27,11 +37,32 @@ export const useChatActions = (conversationId: string | undefined) => {
 
       if (messageError) throw messageError;
 
+      // Get previous messages for context
+      const { data: previousMessages, error: historyError } = await supabase
+        .from('ai_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true })
+        .limit(10);
+
+      if (historyError) throw historyError;
+
+      // Format messages for the completion
+      const messages = previousMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        created_at: msg.created_at
+      }));
+
+      // Call completion with context and agent configuration
       const { data: completionData, error: completionError } = await supabase.functions
         .invoke('chat-completion', {
           body: {
-            messages: [{ role: 'user', content, created_at: new Date().toISOString() }],
-            model: 'gpt-4o-mini',
+            messages,
+            model: conversation.ai_agents.model_id,
+            agentId: conversation.ai_agents.id,
+            useKnowledgeBase: conversation.ai_agents.use_knowledge_base,
+            systemPrompt: conversation.ai_agents.system_prompt,
           },
         });
 
