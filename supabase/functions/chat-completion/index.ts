@@ -1,21 +1,11 @@
-/* @ai-optimized
- * version: "2.0"
- * last-update: "2024-03-19"
- * features: [
- *   "knowledge-base",
- *   "dynamic-threshold",
- *   "error-handling",
- *   "logging"
- * ]
- * checksum: "1a2b3c4d5e"
- */
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { corsHeaders } from "./config.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { generateEmbedding, generateChatCompletion } from "./openaiService.ts";
 import { findRelevantDocuments } from "./documentService.ts";
 
-console.log("Chat completion function started");
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -35,20 +25,21 @@ serve(async (req) => {
       searchThreshold = 0.3
     } = await req.json();
 
-    console.log('Request configuration:', {
+    console.log('Chat completion request received:', {
+      messageCount: messages?.length,
       model,
       useKnowledgeBase,
       temperature,
       maxTokens,
       topP,
       agentId,
-      searchThreshold,
-      messageCount: messages?.length
+      searchThreshold
     });
 
     const finalMessages = [];
 
     if (systemPrompt) {
+      console.log('Adding system prompt:', systemPrompt);
       finalMessages.push({
         role: 'system',
         content: systemPrompt
@@ -57,14 +48,26 @@ serve(async (req) => {
 
     if (useKnowledgeBase && messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
+      console.log('Processing knowledge base for message:', lastMessage.content);
       
-      console.log('Generating embedding for knowledge base search');
+      console.log('Generating embedding...');
       const embedding = await generateEmbedding(lastMessage.content);
+      console.log('Embedding generated:', {
+        dimensions: embedding.length,
+        sample: embedding.slice(0, 5)
+      });
       
+      console.log('Searching relevant documents with threshold:', searchThreshold);
       const { documents, metaKnowledge } = await findRelevantDocuments(
         embedding,
         searchThreshold
       );
+      
+      console.log('Search results:', {
+        documentsFound: documents.length,
+        metaKnowledge,
+        similarityScores: documents.map(d => d.similarity)
+      });
 
       if (documents.length > 0) {
         const context = documents
@@ -72,21 +75,29 @@ serve(async (req) => {
           .map(doc => doc.content)
           .join('\n\n');
 
+        console.log('Context prepared:', {
+          contextLength: context.length,
+          documentCount: documents.length,
+          firstDocumentScore: documents[0]?.similarity
+        });
+
         finalMessages.push({
           role: 'system',
           content: `Contexto relevante da base de conhecimento:\n\n${context}\n\n${metaKnowledge}\n\nUse estas informações para informar suas respostas quando relevante.`
         });
+      } else {
+        console.log('No relevant documents found');
       }
     }
 
     finalMessages.push(...messages);
 
-    console.log('Sending request to OpenAI with config:', {
+    console.log('Preparing chat completion with:', {
+      finalMessageCount: finalMessages.length,
       model,
       temperature,
       maxTokens,
-      topP,
-      messageCount: finalMessages.length
+      topP
     });
 
     const completionData = await generateChatCompletion(
@@ -96,6 +107,11 @@ serve(async (req) => {
       maxTokens,
       topP
     );
+
+    console.log('Chat completion successful:', {
+      responseTokens: completionData.usage?.total_tokens,
+      choicesCount: completionData.choices?.length
+    });
 
     return new Response(
       JSON.stringify(completionData),
@@ -109,6 +125,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in chat-completion function:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     
     return new Response(
       JSON.stringify({ 
