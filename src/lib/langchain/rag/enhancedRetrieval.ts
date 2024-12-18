@@ -12,6 +12,11 @@ interface EnhancedRetrieverConfig {
 
 export class EnhancedRetriever extends BaseRetriever {
   private config: EnhancedRetrieverConfig;
+  
+  // Add required lc_namespace property
+  get lc_namespace(): string[] {
+    return ["langchain", "retrievers", "enhanced"];
+  }
 
   constructor(config?: EnhancedRetrieverConfig) {
     super();
@@ -73,11 +78,11 @@ export class EnhancedRetriever extends BaseRetriever {
     return [];
   }
 
-  private getThreshold() {
+  private getThreshold(): number {
     return this.config.dynamicThreshold ? this.calculateDynamicThreshold() : 0.7;
   }
 
-  private calculateDynamicThreshold() {
+  private calculateDynamicThreshold(): number {
     // Implement dynamic threshold calculation
     return 0.7;
   }
