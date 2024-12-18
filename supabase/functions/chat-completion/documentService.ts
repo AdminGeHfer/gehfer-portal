@@ -34,6 +34,14 @@ export async function findRelevantDocuments(
       };
     }
 
+    // Log individual document scores
+    documents.forEach((doc, index) => {
+      console.log(`Document ${index + 1} score:`, {
+        similarity: doc.similarity,
+        content: doc.content.substring(0, 100) + '...'
+      });
+    });
+
     console.log('Document search results:', {
       count: documents.length,
       similarities: documents.map(d => d.similarity),

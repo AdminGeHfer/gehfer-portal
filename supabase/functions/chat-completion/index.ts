@@ -47,11 +47,16 @@ serve(async (req) => {
     }
 
     if (useKnowledgeBase && messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      console.log('Processing knowledge base for message:', lastMessage.content);
+      // Pegar as últimas 3 mensagens para contexto
+      const contextMessages = messages.slice(-3);
+      const contextText = contextMessages
+        .map(msg => msg.content)
+        .join("\n");
+      
+      console.log('Processing knowledge base for context:', contextText);
       
       console.log('Generating embedding...');
-      const embedding = await generateEmbedding(lastMessage.content);
+      const embedding = await generateEmbedding(contextText);
       console.log('Embedding generated:', {
         dimensions: embedding.length,
         sample: embedding.slice(0, 5)

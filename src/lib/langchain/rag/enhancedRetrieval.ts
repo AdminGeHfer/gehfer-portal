@@ -1,7 +1,7 @@
 /* @ai-protected
  * type: "knowledge-base-retriever"
  * status: "optimized"
- * version: "2.2"
+ * version: "2.3"
  * features: [
  *   "semantic-search",
  *   "reranking",
@@ -88,7 +88,7 @@ export class EnhancedRetriever extends BaseRetriever {
     console.log('[EnhancedRetriever] Using threshold:', threshold);
     
     const { data: chunks, error } = await supabase.rpc('match_documents', {
-      query_embedding: embedding.toString(),
+      query_embedding: embedding,
       match_threshold: threshold,
       match_count: 10
     });
@@ -97,11 +97,22 @@ export class EnhancedRetriever extends BaseRetriever {
       console.error('[EnhancedRetriever] Supabase error:', error);
       throw error;
     }
+
+    // Log individual scores for debugging
+    if (chunks && chunks.length > 0) {
+      console.log('[EnhancedRetriever] Document scores:', 
+        chunks.map(c => ({
+          similarity: c.similarity,
+          content: c.content.substring(0, 50) + '...'
+        }))
+      );
+    }
+
     return chunks || [];
   }
 
   private async generateEmbedding(text: string): Promise<number[]> {
-    console.log('[EnhancedRetriever] Generating embedding for text');
+    console.log('[EnhancedRetriever] Generating embedding for text:', text);
     const response = await supabase.functions.invoke('generate-embedding', {
       body: { text }
     });
@@ -114,13 +125,21 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private async rerankResults(results: any[], query: string) {
-    console.log('[EnhancedRetriever] Reranking results');
+    console.log('[EnhancedRetriever] Reranking results with query:', query);
     if (!results.length) return results;
     
     const reranked = results.map(result => ({
       ...result,
       score: this.calculateRelevanceScore(result, query)
     }));
+
+    // Log reranking scores
+    console.log('[EnhancedRetriever] Reranking scores:', 
+      reranked.map(r => ({
+        score: r.score,
+        content: r.content.substring(0, 50) + '...'
+      }))
+    );
 
     return reranked.sort((a, b) => b.score - a.score);
   }
@@ -132,7 +151,7 @@ export class EnhancedRetriever extends BaseRetriever {
     return terms.reduce((score, term) => {
       const frequency = (content.match(new RegExp(term, 'g')) || []).length;
       return score + (frequency > 0 ? (1 + Math.log(frequency)) : 0);
-    }, 0);
+    }, result.similarity); // Include original similarity in score
   }
 
   private async enhanceWithSemanticAnalysis(results: any[]) {
@@ -149,11 +168,11 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private getThreshold(): number {
-    return this.config.dynamicThreshold ? this.calculateDynamicThreshold() : 0.6;
+    return this.config.dynamicThreshold ? this.calculateDynamicThreshold() : 0.4;
   }
 
   private calculateDynamicThreshold(): number {
-    return 0.6;
+    return 0.4; // Mantendo threshold fixo por enquanto
   }
 
   private formatResults(results: any[]): Document[] {
