@@ -2,6 +2,12 @@ import { AIAgent } from "@/types/ai/agent";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 
+const MODEL_MAPPING = {
+  'gpt-4o': 'gpt-4-0125-preview',
+  'gpt-4o-mini': 'gpt-4-turbo-preview',
+  'gpt-3.5-turbo-16k': 'gpt-3.5-turbo-16k',
+};
+
 export const createLLMFromConfig = (config: AIAgent) => {
   console.log('Creating LLM with config:', {
     modelName: config.model_id,
@@ -10,8 +16,10 @@ export const createLLMFromConfig = (config: AIAgent) => {
     topP: config.top_p,
   });
 
+  const modelName = MODEL_MAPPING[config.model_id] || 'gpt-4-turbo-preview';
+
   return new ChatOpenAI({
-    modelName: config.model_id === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
+    modelName,
     temperature: config.temperature,
     maxTokens: config.max_tokens,
     topP: config.top_p,

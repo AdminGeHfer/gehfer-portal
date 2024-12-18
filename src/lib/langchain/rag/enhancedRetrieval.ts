@@ -8,12 +8,13 @@ interface EnhancedRetrieverConfig {
   dynamicThreshold?: boolean;
   chunkSize?: number;
   chunkOverlap?: number;
+  maxRetries?: number;
+  retryDelay?: number;
 }
 
 export class EnhancedRetriever extends BaseRetriever {
   private config: EnhancedRetrieverConfig;
   
-  // Add required lc_namespace property
   get lc_namespace(): string[] {
     return ["langchain", "retrievers", "enhanced"];
   }
@@ -26,14 +27,18 @@ export class EnhancedRetriever extends BaseRetriever {
       dynamicThreshold: true,
       chunkSize: 1000,
       chunkOverlap: 200,
+      maxRetries: 3,
+      retryDelay: 1000,
       ...config
     };
   }
 
   async getRelevantDocuments(query: string): Promise<Document[]> {
     try {
-      // Initial semantic search
-      const initialResults = await this.performSemanticSearch(query);
+      const embedding = await this.generateEmbedding(query);
+      
+      // Initial semantic search with retry mechanism
+      const initialResults = await this.withRetry(() => this.performSemanticSearch(embedding));
       
       // Apply reranking if enabled
       const rerankedResults = this.config.reranking 
@@ -52,11 +57,24 @@ export class EnhancedRetriever extends BaseRetriever {
     }
   }
 
-  private async performSemanticSearch(query: string) {
-    const embedding = await this.generateEmbedding(query);
-    
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
+    let lastError: Error;
+    for (let attempt = 1; attempt <= this.config.maxRetries!; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        if (attempt < this.config.maxRetries!) {
+          await new Promise(resolve => setTimeout(resolve, this.config.retryDelay! * attempt));
+        }
+      }
+    }
+    throw lastError!;
+  }
+
+  private async performSemanticSearch(embedding: number[]) {
     const { data: chunks, error } = await supabase.rpc('match_documents', {
-      query_embedding: embedding.join(','), // Convert number[] to string
+      query_embedding: embedding.join(','),
       match_threshold: this.getThreshold(),
       match_count: 10
     });
@@ -65,19 +83,49 @@ export class EnhancedRetriever extends BaseRetriever {
     return chunks || [];
   }
 
+  private async generateEmbedding(text: string): Promise<number[]> {
+    const response = await supabase.functions.invoke('generate-embedding', {
+      body: { text }
+    });
+
+    if (response.error) throw response.error;
+    return response.data.embedding;
+  }
+
   private async rerankResults(results: any[], query: string) {
+    if (!results.length) return results;
+    
     // Implement cross-encoder reranking
-    return results;
+    const reranked = results.map(result => ({
+      ...result,
+      score: this.calculateRelevanceScore(result, query)
+    }));
+
+    return reranked.sort((a, b) => b.score - a.score);
+  }
+
+  private calculateRelevanceScore(result: any, query: string): number {
+    // Basic TF-IDF implementation
+    const terms = query.toLowerCase().split(' ');
+    const content = result.content.toLowerCase();
+    
+    return terms.reduce((score, term) => {
+      const frequency = (content.match(new RegExp(term, 'g')) || []).length;
+      return score + (frequency > 0 ? (1 + Math.log(frequency)) : 0);
+    }, 0);
   }
 
   private async enhanceWithSemanticAnalysis(results: any[]) {
-    // Implement semantic analysis enhancement
-    return results;
+    return results.map(result => ({
+      ...result,
+      semantic_context: this.extractSemanticContext(result.content)
+    }));
   }
 
-  private async generateEmbedding(text: string): Promise<number[]> {
-    // Implement embedding generation
-    return [];
+  private extractSemanticContext(content: string): string {
+    // Basic semantic context extraction
+    const sentences = content.split(/[.!?]+/).filter(Boolean);
+    return sentences.length > 2 ? sentences.slice(0, 2).join('. ') + '.' : content;
   }
 
   private getThreshold(): number {
@@ -85,7 +133,7 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private calculateDynamicThreshold(): number {
-    // Implement dynamic threshold calculation
+    // Implement dynamic threshold based on query complexity
     return 0.7;
   }
 
@@ -94,7 +142,8 @@ export class EnhancedRetriever extends BaseRetriever {
       pageContent: result.content,
       metadata: {
         source: result.metadata?.source,
-        score: result.similarity
+        score: result.score || result.similarity,
+        semantic_context: result.semantic_context
       }
     }));
   }
