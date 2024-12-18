@@ -1,7 +1,7 @@
 /* @ai-protected
  * type: "knowledge-base-retriever"
  * status: "optimized"
- * version: "2.0"
+ * version: "2.1"
  * features: [
  *   "semantic-search",
  *   "reranking",
@@ -88,7 +88,7 @@ export class EnhancedRetriever extends BaseRetriever {
     console.log('[EnhancedRetriever] Using threshold:', threshold);
     
     const { data: chunks, error } = await supabase.rpc('match_documents', {
-      query_embedding: embedding,
+      query_embedding: embedding.toString(),
       match_threshold: threshold,
       match_count: 10
     });

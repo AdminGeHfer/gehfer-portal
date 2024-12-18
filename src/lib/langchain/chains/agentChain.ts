@@ -1,7 +1,7 @@
 /* @ai-protected
  * type: "agent-chain"
  * status: "optimized"
- * version: "2.0"
+ * version: "2.1"
  * features: [
  *   "knowledge-base-integration",
  *   "dynamic-prompts",
@@ -15,6 +15,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { AIAgent } from "@/types/ai/agent";
 import { EnhancedRetriever } from "../rag/enhancedRetrieval";
+import { RunnableSequence } from "@langchain/core/runnables";
 
 export const createAgentChain = async (
   agent: AIAgent,
@@ -34,12 +35,13 @@ export const createAgentChain = async (
   });
 
   let contextualPrompt = agent.system_prompt || "You are a helpful AI assistant.";
+  let retriever: EnhancedRetriever | undefined;
   
   // Inicializar retriever se knowledge base estiver ativada
   if (agent.use_knowledge_base) {
     console.log('[AgentChain] Initializing knowledge base integration');
     
-    const retriever = new EnhancedRetriever({
+    retriever = new EnhancedRetriever({
       chunkSize: agent.chunk_size,
       chunkOverlap: agent.chunk_overlap,
       dynamicThreshold: true
@@ -47,9 +49,6 @@ export const createAgentChain = async (
 
     // Adicionar contexto do conhecimento ao prompt
     contextualPrompt += `\n\nI have access to a knowledge base and will use it to provide accurate information.`;
-    
-    // Integrar retriever ao modelo
-    model.retriever = retriever;
   }
 
   const prompt = PromptTemplate.fromTemplate(`
@@ -61,11 +60,33 @@ export const createAgentChain = async (
     Human: {input}
     Assistant: `);
 
-  const chain = new ConversationChain({
-    llm: model,
-    memory,
-    prompt,
-  });
+  let chain: ConversationChain;
+
+  if (retriever) {
+    // Create a runnable sequence that includes retrieval
+    const retrieverChain = RunnableSequence.from([
+      (input: any) => input.input,
+      retriever,
+      (docs: any) => {
+        const context = docs.map((doc: any) => doc.pageContent).join("\n");
+        return { context };
+      },
+    ]);
+
+    chain = new ConversationChain({
+      llm: model,
+      memory,
+      prompt,
+      // @ts-ignore - Type issues with latest LangChain version
+      retriever: retrieverChain,
+    });
+  } else {
+    chain = new ConversationChain({
+      llm: model,
+      memory,
+      prompt,
+    });
+  }
 
   // Adicionar mensagens anteriores à memória
   for (const message of previousMessages) {
