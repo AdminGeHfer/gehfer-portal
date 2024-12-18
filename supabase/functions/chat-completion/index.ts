@@ -33,8 +33,13 @@ serve(async (req) => {
       agentId
     });
 
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     const openai = new OpenAIApi(new Configuration({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
+      apiKey: openAIApiKey
     }));
 
     let relevantContext = '';
@@ -42,24 +47,29 @@ serve(async (req) => {
     if (useKnowledgeBase) {
       console.log('Retrieving relevant documents for context...');
       
-      // Get the last user message
       const lastMessage = messages[messages.length - 1];
       
       try {
-        // Generate embedding for the query
         const embeddingResponse = await openai.createEmbedding({
           model: "text-embedding-ada-002",
           input: lastMessage.content,
         });
         
+        if (!embeddingResponse.data.data[0].embedding) {
+          throw new Error('Failed to generate embedding');
+        }
+
         const embedding = embeddingResponse.data.data[0].embedding;
 
-        // Initialize Supabase client
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        
+        if (!supabaseUrl || !supabaseKey) {
+          throw new Error('Supabase configuration missing');
+        }
+
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Search for relevant documents
         const { data: documents, error: searchError } = await supabase.rpc(
           'match_documents',
           {
@@ -82,7 +92,6 @@ serve(async (req) => {
       }
     }
 
-    // Prepare messages array with system prompt and context
     const finalMessages = [
       {
         role: 'system',
@@ -96,7 +105,7 @@ serve(async (req) => {
     ];
 
     console.log('Sending request to OpenAI with config:', {
-      model,
+      model: model === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
       temperature,
       maxTokens,
       topP,
@@ -117,9 +126,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in chat-completion function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
