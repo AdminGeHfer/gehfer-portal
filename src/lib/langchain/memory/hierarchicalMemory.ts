@@ -24,6 +24,11 @@ export class HierarchicalMemory extends BaseMemory {
     this.useSemanticCompression = config?.useSemanticCompression || true;
   }
 
+  // Implement required abstract property
+  get memoryKeys(): string[] {
+    return ["history"];
+  }
+
   async loadMemoryVariables(): Promise<{ history: string }> {
     const shortTermMessages = await this.shortTermMemory.getMessages();
     const longTermMessages = await this.longTermMemory.getMessages();
@@ -56,7 +61,6 @@ export class HierarchicalMemory extends BaseMemory {
   }
 
   private shouldCompress(messages: any[]): boolean {
-    // Implement token counting and threshold check
     return messages.length > 10;
   }
 
@@ -64,8 +68,6 @@ export class HierarchicalMemory extends BaseMemory {
     if (!this.useSemanticCompression) {
       return messages;
     }
-    
-    // Implement semantic compression logic
     return messages;
   }
 
@@ -80,7 +82,6 @@ export class HierarchicalMemory extends BaseMemory {
   }
 
   private filterRelevantMemories(messages: any[]): any[] {
-    // Implement relevance filtering
     return messages;
   }
 

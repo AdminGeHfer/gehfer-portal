@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
-import { BaseRetriever } from "langchain/schema/retriever";
+import { BaseRetriever } from "@langchain/core/retrievers";
 
 interface EnhancedRetrieverConfig {
   reranking?: boolean;
@@ -55,7 +55,7 @@ export class EnhancedRetriever extends BaseRetriever {
     });
 
     if (error) throw error;
-    return chunks;
+    return chunks || [];
   }
 
   private async rerankResults(results: any[], query: string) {
@@ -68,7 +68,7 @@ export class EnhancedRetriever extends BaseRetriever {
     return results;
   }
 
-  private async generateEmbedding(text: string) {
+  private async generateEmbedding(text: string): Promise<number[]> {
     // Implement embedding generation
     return [];
   }
