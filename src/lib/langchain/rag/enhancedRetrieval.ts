@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
 import { BaseRetriever } from "@langchain/core/retrievers";
+import { RunnableConfig } from "@langchain/core/runnables";
 
 interface EnhancedRetrieverConfig {
   reranking?: boolean;
@@ -33,12 +34,12 @@ export class EnhancedRetriever extends BaseRetriever {
     };
   }
 
-  async getRelevantDocuments(query: string): Promise<Document[]> {
+  async getRelevantDocuments(query: string, runnable_config?: RunnableConfig): Promise<Document[]> {
     try {
       const embedding = await this.generateEmbedding(query);
       
       // Initial semantic search with retry mechanism
-      const initialResults = await this.withRetry(() => this.performSemanticSearch(embedding));
+      const initialResults = await this.performSemanticSearchWithRetry(embedding);
       
       // Apply reranking if enabled
       const rerankedResults = this.config.reranking 
@@ -57,11 +58,12 @@ export class EnhancedRetriever extends BaseRetriever {
     }
   }
 
-  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
-    let lastError: Error;
+  private async performSemanticSearchWithRetry(embedding: number[]): Promise<any[]> {
+    let lastError: Error | null = null;
+    
     for (let attempt = 1; attempt <= this.config.maxRetries!; attempt++) {
       try {
-        return await operation();
+        return await this.performSemanticSearch(embedding);
       } catch (error: any) {
         lastError = error;
         if (attempt < this.config.maxRetries!) {
@@ -69,7 +71,8 @@ export class EnhancedRetriever extends BaseRetriever {
         }
       }
     }
-    throw lastError!;
+    
+    throw lastError;
   }
 
   private async performSemanticSearch(embedding: number[]) {
@@ -95,7 +98,6 @@ export class EnhancedRetriever extends BaseRetriever {
   private async rerankResults(results: any[], query: string) {
     if (!results.length) return results;
     
-    // Implement cross-encoder reranking
     const reranked = results.map(result => ({
       ...result,
       score: this.calculateRelevanceScore(result, query)
@@ -105,7 +107,6 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private calculateRelevanceScore(result: any, query: string): number {
-    // Basic TF-IDF implementation
     const terms = query.toLowerCase().split(' ');
     const content = result.content.toLowerCase();
     
@@ -123,7 +124,6 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private extractSemanticContext(content: string): string {
-    // Basic semantic context extraction
     const sentences = content.split(/[.!?]+/).filter(Boolean);
     return sentences.length > 2 ? sentences.slice(0, 2).join('. ') + '.' : content;
   }
@@ -133,7 +133,6 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private calculateDynamicThreshold(): number {
-    // Implement dynamic threshold based on query complexity
     return 0.7;
   }
 
