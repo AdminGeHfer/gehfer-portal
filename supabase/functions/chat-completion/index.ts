@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@4.77.0"; // Altere para a versão desejada
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@4.77.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
