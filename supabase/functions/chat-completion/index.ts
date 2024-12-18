@@ -1,9 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "./config.ts";
-import type { ChatConfig } from "./config.ts";
-import { supabase } from "./supabaseClient.ts";
-import { findRelevantDocuments } from "./documentService.ts";
-import { generateEmbedding, generateChatCompletion } from "./openaiService.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { corsHeaders } from "./config.ts"
+import type { ChatConfig } from "./config.ts"
+import { findRelevantDocuments } from "./documentService.ts"
+import { generateEmbedding, generateChatCompletion } from "./openaiService.ts"
 
 console.log("Chat completion function started");
 
@@ -94,28 +93,6 @@ serve(async (req) => {
       maxTokens,
       topP
     );
-
-    // Log completion for analysis
-    if (agentId) {
-      await supabase
-        .from('ai_agent_logs')
-        .insert({
-          agent_id: agentId,
-          event_type: 'completion',
-          configuration: {
-            model,
-            temperature,
-            maxTokens,
-            topP,
-            useKnowledgeBase,
-            searchThreshold,
-            documentsFound: documents?.length || 0,
-            hasContext: !!documents?.length,
-            hasMetaKnowledge: true
-          },
-          details: `Generated response with ${finalMessages.length} messages`
-        });
-    }
 
     return new Response(
       JSON.stringify(completion),
