@@ -4,9 +4,8 @@
  * version: "2.0"
  * features: [
  *   "dynamic-prompts",
- *   "template-system",
- *   "version-control",
- *   "memory-management"
+ *   "system-prompt-integration",
+ *   "version-control"
  * ]
  * last-modified: "2024-03-13"
  * checksum: "f8e7c3b2a1"
