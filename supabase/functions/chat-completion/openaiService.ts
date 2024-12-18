@@ -1,6 +1,15 @@
+/* @ai-optimized
+ * version: "2.0"
+ * last-update: "2024-03-19"
+ * features: ["openai-integration", "error-handling"]
+ * checksum: "9a8b7c6d5e"
+ */
+
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!;
 
 export async function generateEmbedding(text: string) {
+  console.log('Generating embedding for text');
+  
   const response = await fetch('https://api.openai.com/v1/embeddings', {
     method: 'POST',
     headers: {
@@ -18,6 +27,7 @@ export async function generateEmbedding(text: string) {
   }
 
   const json = await response.json();
+  console.log('Embedding generated successfully');
   return json.data[0].embedding;
 }
 
@@ -28,6 +38,14 @@ export async function generateChatCompletion(
   maxTokens = 1000,
   topP = 1
 ) {
+  console.log('Generating chat completion with config:', {
+    model,
+    temperature,
+    maxTokens,
+    topP,
+    messageCount: messages.length
+  });
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {

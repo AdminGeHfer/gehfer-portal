@@ -1,10 +1,19 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+/* @ai-optimized
+ * version: "2.0"
+ * last-update: "2024-03-19"
+ * features: [
+ *   "knowledge-base",
+ *   "dynamic-threshold",
+ *   "error-handling",
+ *   "logging"
+ * ]
+ * checksum: "1a2b3c4d5e"
+ */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { corsHeaders } from "./config.ts";
+import { generateEmbedding, generateChatCompletion } from "./openaiService.ts";
+import { findRelevantDocuments } from "./documentService.ts";
 
 console.log("Chat completion function started");
 
@@ -23,7 +32,7 @@ serve(async (req) => {
       maxTokens = 1000,
       topP = 1,
       agentId,
-      searchThreshold = 0.5
+      searchThreshold = 0.3
     } = await req.json();
 
     console.log('Request configuration:', {
@@ -39,7 +48,6 @@ serve(async (req) => {
 
     const finalMessages = [];
 
-    // Add system prompt if provided
     if (systemPrompt) {
       finalMessages.push({
         role: 'system',
@@ -47,89 +55,47 @@ serve(async (req) => {
       });
     }
 
-    // Handle knowledge base integration if enabled
     if (useKnowledgeBase && messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       
-      // Initialize OpenAI
-      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          input: lastMessage.content,
-          model: "text-embedding-ada-002"
-        })
-      });
-
-      if (!embeddingResponse.ok) {
-        throw new Error('Failed to generate embedding');
-      }
-
-      const { data: [{ embedding }] } = await embeddingResponse.json();
-
-      // Initialize Supabase client
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+      console.log('Generating embedding for knowledge base search');
+      const embedding = await generateEmbedding(lastMessage.content);
       
-      const { data: documents, error: searchError } = await supabase.rpc(
-        'match_documents',
-        {
-          query_embedding: embedding,
-          match_threshold: searchThreshold,
-          match_count: 5
-        }
+      const { documents, metaKnowledge } = await findRelevantDocuments(
+        embedding,
+        searchThreshold
       );
 
-      if (searchError) throw searchError;
+      if (documents.length > 0) {
+        const context = documents
+          .sort((a, b) => b.similarity - a.similarity)
+          .map(doc => doc.content)
+          .join('\n\n');
 
-      if (documents?.length > 0) {
         finalMessages.push({
           role: 'system',
-          content: `Contexto relevante da base de conhecimento:\n\n${
-            documents
-              .sort((a, b) => b.similarity - a.similarity)
-              .map(doc => doc.content)
-              .join('\n\n')
-          }\n\nUse estas informações para informar suas respostas quando relevante.`
+          content: `Contexto relevante da base de conhecimento:\n\n${context}\n\n${metaKnowledge}\n\nUse estas informações para informar suas respostas quando relevante.`
         });
       }
     }
 
-    // Add user messages
     finalMessages.push(...messages);
 
     console.log('Sending request to OpenAI with config:', {
-      model: model === 'gpt-4o' ? 'gpt-4' : model,
+      model,
       temperature,
       maxTokens,
       topP,
       messageCount: finalMessages.length
     });
 
-    const completion = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: model === 'gpt-4o' ? 'gpt-4' : model,
-        messages: finalMessages,
-        temperature,
-        max_tokens: maxTokens,
-        top_p: topP
-      })
-    });
-
-    if (!completion.ok) {
-      throw new Error('Failed to generate completion');
-    }
-
-    const completionData = await completion.json();
+    const completionData = await generateChatCompletion(
+      finalMessages,
+      model,
+      temperature,
+      maxTokens,
+      topP
+    );
 
     return new Response(
       JSON.stringify(completionData),

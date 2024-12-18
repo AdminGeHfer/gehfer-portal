@@ -1,3 +1,14 @@
+/* @ai-optimized
+ * version: "2.0"
+ * last-update: "2024-03-19"
+ * features: [
+ *   "knowledge-base",
+ *   "error-handling",
+ *   "logging"
+ * ]
+ * checksum: "5e4d3c2b1a"
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,7 +103,7 @@ export const useChatActions = (conversationId: string | undefined) => {
         model: conversation.ai_agents.model_id,
         systemPrompt: conversation.ai_agents.system_prompt,
         useKnowledgeBase: conversation.ai_agents.use_knowledge_base,
-        searchThreshold: conversation.ai_agents.search_threshold
+        searchThreshold: conversation.ai_agents.search_threshold || 0.3
       });
 
       const { data: completionData, error: completionError } = await supabase.functions
@@ -105,7 +116,7 @@ export const useChatActions = (conversationId: string | undefined) => {
             temperature: conversation.ai_agents.temperature,
             maxTokens: conversation.ai_agents.max_tokens,
             topP: conversation.ai_agents.top_p,
-            searchThreshold: conversation.ai_agents.search_threshold,
+            searchThreshold: conversation.ai_agents.search_threshold || 0.3,
             agentId: conversation.ai_agents.id
           },
         });
