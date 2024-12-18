@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,96 +13,104 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model, agentId } = await req.json();
-    console.log('Received request:', { model, agentId, messageCount: messages?.length });
+    const {
+      messages,
+      model,
+      systemPrompt,
+      useKnowledgeBase,
+      temperature,
+      maxTokens,
+      topP,
+      agentId
+    } = await req.json();
+
+    const openai = new OpenAIApi(new Configuration({
+      apiKey: Deno.env.get('OPENAI_API_KEY'),
+    }));
 
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get agent configuration
-    const { data: agent, error: agentError } = await supabase
-      .from('ai_agents')
-      .select('*')
-      .eq('id', agentId)
-      .single();
-
-    if (agentError) {
-      console.error('Error fetching agent:', agentError);
-      throw new Error('Failed to fetch agent configuration');
-    }
-
-    console.log('Agent configuration:', {
-      model: agent.model_id,
-      systemPrompt: agent.system_prompt,
-      temperature: agent.temperature
-    });
-
-    // Model mapping
-    const modelMapping = {
-      'gpt-4o': 'gpt-4',
-      'gpt-4o-mini': 'gpt-4-0125-preview',
-    };
-
-    const openAIModel = modelMapping[model || agent.model_id] || 'gpt-4-0125-preview';
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
-    }
-
-    // Prepare messages array with system prompt
-    const systemMessages = [];
-    if (agent.system_prompt) {
-      systemMessages.push({ 
-        role: 'system', 
-        content: agent.system_prompt 
+    let relevantContext = '';
+    
+    if (useKnowledgeBase) {
+      console.log('Retrieving relevant documents for context...');
+      
+      // Get the last user message
+      const lastMessage = messages[messages.length - 1];
+      
+      // Generate embedding for the query
+      const embeddingResponse = await openai.createEmbedding({
+        model: "text-embedding-ada-002",
+        input: lastMessage.content,
       });
+      
+      const embedding = embeddingResponse.data.data[0].embedding;
+
+      // Search for relevant documents
+      const { data: documents, error: searchError } = await supabase.rpc(
+        'match_documents',
+        {
+          query_embedding: embedding,
+          match_threshold: 0.7,
+          match_count: 5
+        }
+      );
+
+      if (searchError) {
+        console.error('Error searching documents:', searchError);
+      } else if (documents && documents.length > 0) {
+        console.log(`Found ${documents.length} relevant documents`);
+        relevantContext = documents
+          .map(doc => doc.content)
+          .join('\n\n');
+      }
     }
 
-    // Combine system messages with conversation history
-    const allMessages = [...systemMessages, ...messages];
-    console.log('Sending messages to OpenAI:', allMessages);
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
+    // Prepare messages array with system prompt and context
+    const finalMessages = [
+      {
+        role: 'system',
+        content: systemPrompt || "You are a helpful AI assistant."
       },
-      body: JSON.stringify({
-        model: openAIModel,
-        messages: allMessages,
-        temperature: agent.temperature,
-        max_tokens: agent.max_tokens,
-        top_p: agent.top_p,
-      }),
+      ...(relevantContext ? [{
+        role: 'system',
+        content: `Relevant context from knowledge base:\n\n${relevantContext}`
+      }] : []),
+      ...messages
+    ];
+
+    console.log('Sending request to OpenAI with config:', {
+      model,
+      temperature,
+      maxTokens,
+      topP,
+      hasContext: !!relevantContext
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('OpenAI Error:', error);
-      throw new Error(error.error?.message || 'Error calling OpenAI API');
-    }
-
-    const data = await response.json();
-    console.log('OpenAI response:', data);
-
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const completion = await openai.createChatCompletion({
+      model: model === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
+      messages: finalMessages,
+      temperature: temperature || 0.7,
+      max_tokens: maxTokens || 1000,
+      top_p: topP || 1,
     });
+
+    return new Response(
+      JSON.stringify(completion.data),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
 
   } catch (error) {
-    console.error('Error in chat-completion function:', error);
+    console.error('Error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'An unknown error occurred',
-        details: error.stack || 'No stack trace available'
-      }), {
+      JSON.stringify({ error: error.message }),
+      { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      },
     );
   }
 });

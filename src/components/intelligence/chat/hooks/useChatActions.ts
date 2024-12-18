@@ -10,18 +10,35 @@ export const useChatActions = (conversationId: string | undefined) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Get conversation details including agent_id
+  // Updated query to include all necessary agent fields
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: async () => {
       if (!conversationId) return null;
       const { data, error } = await supabase
         .from('ai_conversations')
-        .select('*, ai_agents(*)')
+        .select(`
+          *,
+          ai_agents!inner(
+            id,
+            name,
+            model_id,
+            system_prompt,
+            use_knowledge_base,
+            temperature,
+            max_tokens,
+            top_p
+          )
+        `)
         .eq('id', conversationId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching conversation:', error);
+        throw error;
+      }
+      
+      console.log('Loaded conversation with agent config:', data);
       return data;
     },
     enabled: !!conversationId
@@ -29,8 +46,8 @@ export const useChatActions = (conversationId: string | undefined) => {
 
   const handleSubmit = async (content: string) => {
     if (!conversationId || !content.trim() || isLoading) return;
-    if (!conversation?.agent_id) {
-      toast.error("No agent found for this conversation");
+    if (!conversation?.ai_agents) {
+      toast.error("No agent configuration found");
       return;
     }
 
@@ -72,14 +89,24 @@ export const useChatActions = (conversationId: string | undefined) => {
         }
       ];
 
-      console.log('Sending chat completion request with messages:', messages);
+      console.log('Sending chat completion request with config:', {
+        messages,
+        model: conversation.ai_agents.model_id,
+        systemPrompt: conversation.ai_agents.system_prompt,
+        useKnowledgeBase: conversation.ai_agents.use_knowledge_base
+      });
 
       const { data: completionData, error: completionError } = await supabase.functions
         .invoke('chat-completion', {
           body: {
             messages,
-            model: conversation.ai_agents?.model_id || 'gpt-4o-mini',
-            agentId: conversation.agent_id
+            model: conversation.ai_agents.model_id,
+            systemPrompt: conversation.ai_agents.system_prompt,
+            useKnowledgeBase: conversation.ai_agents.use_knowledge_base,
+            temperature: conversation.ai_agents.temperature,
+            maxTokens: conversation.ai_agents.max_tokens,
+            topP: conversation.ai_agents.top_p,
+            agentId: conversation.ai_agents.id
           },
         });
 
@@ -138,6 +165,7 @@ export const useChatActions = (conversationId: string | undefined) => {
     handleSubmit,
     handleDeleteConversation,
     isDeleting,
-    isLoading
+    isLoading,
+    conversation
   };
 };
