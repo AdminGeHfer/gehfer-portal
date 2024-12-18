@@ -5,14 +5,28 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+      }
+    });
   }
 
   try {
+    console.log('Received request to chat-completion function');
+    
+    if (req.method !== 'POST') {
+      throw new Error(`HTTP method ${req.method} is not allowed`);
+    }
+
     const {
       messages,
       model,
@@ -24,13 +38,14 @@ serve(async (req) => {
       agentId
     } = await req.json();
 
-    console.log('Received request with config:', {
+    console.log('Request payload:', {
       model,
       useKnowledgeBase,
       temperature,
       maxTokens,
       topP,
-      agentId
+      agentId,
+      messageCount: messages?.length
     });
 
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -63,8 +78,8 @@ serve(async (req) => {
 
         const embedding = embeddingResponse.data.data[0].embedding;
 
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
         
         if (!supabaseUrl || !supabaseKey) {
           throw new Error('Supabase configuration missing');
@@ -111,7 +126,8 @@ serve(async (req) => {
       temperature,
       maxTokens,
       topP,
-      hasContext: !!relevantContext
+      hasContext: !!relevantContext,
+      messageCount: finalMessages.length
     });
 
     const completion = await openai.createChatCompletion({
@@ -122,13 +138,21 @@ serve(async (req) => {
       top_p: topP || 1,
     });
 
+    console.log('Received response from OpenAI');
+
     return new Response(
       JSON.stringify(completion.data),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
+      },
     );
 
   } catch (error) {
     console.error('Error in chat-completion function:', error);
+    
     return new Response(
       JSON.stringify({ 
         error: error.message,
@@ -136,7 +160,10 @@ serve(async (req) => {
       }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
       },
     );
   }
