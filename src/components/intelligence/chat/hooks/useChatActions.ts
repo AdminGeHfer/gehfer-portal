@@ -10,7 +10,6 @@ export const useChatActions = (conversationId: string | undefined) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Updated query to include all necessary agent fields
   const { data: conversation } = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: async () => {
@@ -27,7 +26,9 @@ export const useChatActions = (conversationId: string | undefined) => {
             use_knowledge_base,
             temperature,
             max_tokens,
-            top_p
+            top_p,
+            search_threshold,
+            search_type
           )
         `)
         .eq('id', conversationId)
@@ -53,7 +54,6 @@ export const useChatActions = (conversationId: string | undefined) => {
 
     setIsLoading(true);
     try {
-      // Get existing conversation messages
       const { data: existingMessages, error: messagesError } = await supabase
         .from('ai_messages')
         .select('*')
@@ -75,7 +75,6 @@ export const useChatActions = (conversationId: string | undefined) => {
 
       if (messageError) throw messageError;
 
-      // Prepare messages array with full conversation history
       const messages = [
         ...(existingMessages || []).map(msg => ({
           role: msg.role,
@@ -93,7 +92,8 @@ export const useChatActions = (conversationId: string | undefined) => {
         messages,
         model: conversation.ai_agents.model_id,
         systemPrompt: conversation.ai_agents.system_prompt,
-        useKnowledgeBase: conversation.ai_agents.use_knowledge_base
+        useKnowledgeBase: conversation.ai_agents.use_knowledge_base,
+        searchThreshold: conversation.ai_agents.search_threshold
       });
 
       const { data: completionData, error: completionError } = await supabase.functions
@@ -106,6 +106,7 @@ export const useChatActions = (conversationId: string | undefined) => {
             temperature: conversation.ai_agents.temperature,
             maxTokens: conversation.ai_agents.max_tokens,
             topP: conversation.ai_agents.top_p,
+            searchThreshold: conversation.ai_agents.search_threshold,
             agentId: conversation.ai_agents.id
           },
         });

@@ -11,23 +11,13 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-      }
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Received request to chat-completion function');
+    console.log('Starting chat completion request');
     
-    if (req.method !== 'POST') {
-      throw new Error(`HTTP method ${req.method} is not allowed`);
-    }
-
     const {
       messages,
       model,
@@ -36,16 +26,18 @@ serve(async (req) => {
       temperature,
       maxTokens,
       topP,
-      agentId
+      agentId,
+      searchThreshold = 0.5 // More permissive default threshold
     } = await req.json();
 
-    console.log('Request payload:', {
+    console.log('Request configuration:', {
       model,
       useKnowledgeBase,
       temperature,
       maxTokens,
       topP,
       agentId,
+      searchThreshold,
       messageCount: messages?.length
     });
 
@@ -59,14 +51,15 @@ serve(async (req) => {
     });
 
     let relevantContext = '';
+    let metaKnowledge = '';
     
     if (useKnowledgeBase) {
-      console.log('Retrieving relevant documents for context...');
+      console.log('Knowledge base enabled, retrieving relevant documents...');
       
       const lastMessage = messages[messages.length - 1];
       
       try {
-        // Gerar embedding da pergunta
+        // Generate embedding for query
         const embeddingResponse = await openai.embeddings.create({
           model: "text-embedding-ada-002",
           input: lastMessage.content,
@@ -78,23 +71,25 @@ serve(async (req) => {
 
         const embedding = embeddingResponse.data[0].embedding;
 
-        // Configurar cliente Supabase
+        // Initialize Supabase client
         const supabaseUrl = Deno.env.get('SUPABASE_URL');
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
         
         if (!supabaseUrl || !supabaseKey) {
-          throw new Error('Supabase configuration missing');
+          throw new Error('Missing Supabase configuration');
         }
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Buscar documentos relevantes
+        // Search for relevant documents with more permissive threshold
+        console.log('Searching for relevant documents with threshold:', searchThreshold);
+        
         const { data: documents, error: searchError } = await supabase.rpc(
           'match_documents',
           {
             query_embedding: embedding,
-            match_threshold: 0.7,
-            match_count: 5
+            match_threshold: searchThreshold,
+            match_count: 8 // Increased from 5
           }
         );
 
@@ -106,12 +101,33 @@ serve(async (req) => {
         if (documents && documents.length > 0) {
           console.log(`Found ${documents.length} relevant documents`);
           
-          // Estruturar contexto com documentos relevantes
-          relevantContext = documents
-            .map((doc, index) => `[Documento ${index + 1}]: ${doc.content}`)
+          // Process and structure documents by relevance
+          const processedDocs = documents
+            .sort((a, b) => b.similarity - a.similarity)
+            .map((doc, index) => ({
+              ...doc,
+              relevanceScore: doc.similarity,
+              order: index + 1
+            }));
+
+          // Structure context with metadata
+          relevantContext = processedDocs
+            .map(doc => `[Documento ${doc.order} - Relevância: ${(doc.relevanceScore * 100).toFixed(1)}%]:\n${doc.content}`)
             .join('\n\n');
             
-          console.log('Relevant context:', relevantContext.substring(0, 200) + '...');
+          // Generate meta-knowledge about the search results
+          metaKnowledge = `
+Informações sobre a busca:
+- Total de documentos encontrados: ${documents.length}
+- Melhor score de relevância: ${(Math.max(...documents.map(d => d.similarity)) * 100).toFixed(1)}%
+- Score médio de relevância: ${(documents.reduce((acc, doc) => acc + doc.similarity, 0) / documents.length * 100).toFixed(1)}%
+`;
+          
+          console.log('Meta-knowledge generated:', metaKnowledge);
+          console.log('Context preview:', relevantContext.substring(0, 200) + '...');
+        } else {
+          console.log('No relevant documents found');
+          metaKnowledge = 'Nenhum documento relevante encontrado na base de conhecimento.';
         }
       } catch (error) {
         console.error('Error in knowledge base retrieval:', error);
@@ -119,18 +135,32 @@ serve(async (req) => {
       }
     }
 
-    // Construir mensagens com contexto
+    // Build messages array with context and meta-knowledge
     const finalMessages = [
       {
         role: 'system',
         content: systemPrompt || "You are a helpful AI assistant."
-      },
-      ...(relevantContext ? [{
-        role: 'system',
-        content: `Relevant context from knowledge base:\n\n${relevantContext}\n\nUse this context to inform your responses when relevant.`
-      }] : []),
-      ...messages
+      }
     ];
+
+    // Add meta-knowledge if available
+    if (metaKnowledge) {
+      finalMessages.push({
+        role: 'system',
+        content: `Meta-conhecimento sobre a busca:\n${metaKnowledge}`
+      });
+    }
+
+    // Add context if available
+    if (relevantContext) {
+      finalMessages.push({
+        role: 'system',
+        content: `Contexto relevante da base de conhecimento:\n\n${relevantContext}\n\nUse estas informações para informar suas respostas quando relevante.`
+      });
+    }
+
+    // Add user messages
+    finalMessages.push(...messages);
 
     console.log('Sending request to OpenAI with config:', {
       model: model === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
@@ -138,10 +168,11 @@ serve(async (req) => {
       maxTokens,
       topP,
       hasContext: !!relevantContext,
+      hasMetaKnowledge: !!metaKnowledge,
       messageCount: finalMessages.length
     });
 
-    // Gerar resposta com contexto
+    // Generate response with context
     const completion = await openai.chat.completions.create({
       model: model === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
       messages: finalMessages,
@@ -151,6 +182,26 @@ serve(async (req) => {
     });
 
     console.log('Received response from OpenAI');
+
+    // Log completion for analysis
+    const { data: logResult } = await supabase
+      .from('ai_agent_logs')
+      .insert({
+        agent_id: agentId,
+        event_type: 'completion',
+        configuration: {
+          model,
+          temperature,
+          maxTokens,
+          topP,
+          useKnowledgeBase,
+          searchThreshold,
+          documentsFound: documents?.length || 0,
+          hasContext: !!relevantContext,
+          hasMetaKnowledge: !!metaKnowledge
+        },
+        details: `Generated response with ${finalMessages.length} messages`
+      });
 
     return new Response(
       JSON.stringify(completion),
