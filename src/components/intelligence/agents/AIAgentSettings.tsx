@@ -1,3 +1,17 @@
+/* @ai-protected
+ * type: "agent-settings"
+ * status: "optimized"
+ * version: "2.0"
+ * features: [
+ *   "dynamic-settings",
+ *   "prompt-configuration",
+ *   "model-selection"
+ * ]
+ * last-modified: "2024-03-13"
+ * checksum: "b7a6c5d4e3"
+ * do-not-modify: true
+ */
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";

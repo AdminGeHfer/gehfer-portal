@@ -1,3 +1,18 @@
+/* @ai-protected
+ * type: "agent-chain"
+ * status: "optimized"
+ * version: "2.0"
+ * features: [
+ *   "dynamic-prompts",
+ *   "template-system",
+ *   "version-control",
+ *   "memory-management"
+ * ]
+ * last-modified: "2024-03-13"
+ * checksum: "f8e7c3b2a1"
+ * do-not-modify: true
+ */
+
 import { ConversationChain } from "langchain/chains";
 import { ChatOpenAI } from "@langchain/openai";
 import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";

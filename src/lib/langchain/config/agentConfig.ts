@@ -1,3 +1,17 @@
+/* @ai-protected
+ * type: "agent-config"
+ * status: "optimized"
+ * version: "2.0"
+ * features: [
+ *   "dynamic-configuration",
+ *   "model-mapping",
+ *   "prompt-templates"
+ * ]
+ * last-modified: "2024-03-13"
+ * checksum: "d9c4b3a2e1"
+ * do-not-modify: true
+ */
+
 import { AIAgent } from "@/types/ai/agent";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";

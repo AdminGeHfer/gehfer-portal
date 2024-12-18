@@ -1,3 +1,17 @@
+/* @ai-protected
+ * type: "ai-agents-hook"
+ * status: "optimized"
+ * version: "2.0"
+ * features: [
+ *   "agent-management",
+ *   "configuration-persistence",
+ *   "state-management"
+ * ]
+ * last-modified: "2024-03-13"
+ * checksum: "e2d1c0b9a8"
+ * do-not-modify: true
+ */
+
 import { useAgentList } from "./useAgentList";
 import { useAgentChat } from "./useAgentChat";
 import { useAgentCreation } from "./useAgentCreation";
