@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@4.20.1";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -38,9 +38,11 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const openai = new OpenAIApi(new Configuration({
-      apiKey: openAIApiKey
-    }));
+    const configuration = new Configuration({
+      apiKey: openAIApiKey,
+    });
+
+    const openai = new OpenAIApi(configuration);
 
     let relevantContext = '';
     
