@@ -1,68 +1,81 @@
-import { ConversationSummaryMemory } from "langchain/memory";
-import { supabase } from "@/integrations/supabase/client";
-import { ChatOpenAI } from "@langchain/openai";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Message } from '@/types/ai';
 
 export const useMemory = (conversationId: string) => {
-  const { toast } = useToast();
+  const [isInitializing, setIsInitializing] = useState(false);
 
-  const initializeMemory = async () => {
-    console.log('Initializing memory and retrieving OpenAI API key...');
+  const initializeMemory = useCallback(async () => {
+    if (!conversationId || isInitializing) return null;
     
+    setIsInitializing(true);
     try {
-      // Get OpenAI API key directly from Edge Function
-      const { data: response, error: apiError } = await supabase.functions.invoke('get-openai-key', {
-        body: {}
-      });
-
-      if (apiError) {
-        console.error('Error fetching OpenAI API key:', apiError);
-        throw new Error(`Failed to retrieve OpenAI API key: ${apiError.message}`);
-      }
-
-      if (!response?.apiKey) {
-        console.error('OpenAI API key not found');
-        throw new Error("OpenAI API key not found. Please add it in the Supabase settings.");
-      }
-
-      const openAIApiKey = response.apiKey;
-      console.log('OpenAI API key retrieved successfully');
-
-      // Initialize memory with proper error handling
-      try {
-        console.log('Initializing conversation memory...');
-        const memory = new ConversationSummaryMemory({
-          memoryKey: "chat_history",
-          llm: new ChatOpenAI({ 
-            modelName: "gpt-3.5-turbo",
-            temperature: 0,
-            openAIApiKey,
-          }),
-          returnMessages: true,
-          inputKey: "input",
-          outputKey: "output",
-        });
-        console.log('Memory initialized successfully');
-
-        return memory;
-      } catch (memoryError) {
-        console.error('Error initializing memory:', memoryError);
-        throw new Error(`Failed to initialize chat memory: ${memoryError.message}`);
-      }
-    } catch (error: any) {
-      console.error('Fatal error in memory initialization:', error);
+      console.log('Initializing memory for conversation:', conversationId);
       
-      toast({
-        title: "Error Initializing Chat",
-        description: error.message || "An error occurred while setting up the chat. Please try again.",
-        variant: "destructive",
-      });
-      
+      const { data: existingBuffer, error: bufferError } = await supabase
+        .from('ai_memory_buffers')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .single();
+
+      if (bufferError && bufferError.code !== 'PGRST116') {
+        console.error('Error fetching memory buffer:', bufferError);
+        throw bufferError;
+      }
+
+      if (!existingBuffer) {
+        const { error: createError } = await supabase
+          .from('ai_memory_buffers')
+          .insert({
+            conversation_id: conversationId,
+            content: '',
+            type: 'summary',
+          });
+
+        if (createError) {
+          console.error('Error creating memory buffer:', createError);
+          throw createError;
+        }
+      }
+
+      return existingBuffer;
+    } catch (error) {
+      console.error('Error in memory initialization:', error);
+      throw error;
+    } finally {
+      setIsInitializing(false);
+    }
+  }, [conversationId]);
+
+  const updateMemory = useCallback(async (messages: Message[]) => {
+    if (!conversationId || messages.length === 0) return;
+
+    try {
+      const summary = messages
+        .map(msg => `${msg.role}: ${msg.content}`)
+        .join('\n');
+
+      const { error } = await supabase
+        .from('ai_memory_buffers')
+        .update({ 
+          content: summary,
+          updated_at: new Date().toISOString()
+        })
+        .eq('conversation_id', conversationId);
+
+      if (error) {
+        console.error('Error updating memory:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error in memory update:', error);
       throw error;
     }
-  };
+  }, [conversationId]);
 
   return {
     initializeMemory,
+    updateMemory,
+    isInitializing
   };
 };
