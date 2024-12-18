@@ -1,189 +1,80 @@
-/* @ai-protected
- * type: "knowledge-base-retriever"
- * status: "optimized"
- * version: "2.3"
- * features: [
- *   "semantic-search",
- *   "reranking",
- *   "dynamic-threshold"
- * ]
- * checksum: "d9c4b3a2e1"
- */
-
 import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
-import { BaseRetriever } from "@langchain/core/retrievers";
-import { RunnableConfig } from "@langchain/core/runnables";
+import { BaseRetriever } from "langchain/schema/retriever";
 
-interface EnhancedRetrieverConfig {
-  reranking?: boolean;
-  semanticAnalysis?: boolean;
-  dynamicThreshold?: boolean;
-  chunkSize?: number;
-  chunkOverlap?: number;
+interface SearchResult {
+  id: string;
+  content: string;
+  metadata: any;
+  similarity: number;
 }
 
 export class EnhancedRetriever extends BaseRetriever {
-  private config: EnhancedRetrieverConfig;
-  
-  constructor(config?: EnhancedRetrieverConfig) {
+  constructor(
+    private searchThreshold: number = 0.4,
+    private maxResults: number = 5
+  ) {
     super();
-    this.config = {
-      reranking: true,
-      semanticAnalysis: true,
-      dynamicThreshold: true,
-      chunkSize: 1000,
-      chunkOverlap: 200,
-      ...config
-    };
   }
 
-  get lc_namespace(): string[] {
-    return ["langchain", "retrievers", "enhanced"];
-  }
-
-  async getRelevantDocuments(query: string, runnable_config?: RunnableConfig): Promise<Document[]> {
+  async getRelevantDocuments(query: string): Promise<Document[]> {
     try {
-      console.log('[EnhancedRetriever] Starting document retrieval for query:', query);
+      console.log('EnhancedRetriever: Generating embedding for query:', query);
       
-      const embedding = await this.generateEmbedding(query);
-      console.log('[EnhancedRetriever] Generated embedding successfully');
+      const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          input: query,
+          model: 'text-embedding-3-small'
+        })
+      });
+
+      if (!embeddingResponse.ok) {
+        throw new Error(`OpenAI API error: ${embeddingResponse.statusText}`);
+      }
+
+      const { data } = await embeddingResponse.json();
+      const embedding = data[0].embedding;
+
+      console.log('EnhancedRetriever: Embedding generated successfully');
+      console.log('EnhancedRetriever: Searching documents with threshold:', this.searchThreshold);
+
+      const { data: documents, error } = await supabase.rpc('match_documents', {
+        query_embedding: embedding,
+        match_threshold: this.searchThreshold,
+        match_count: this.maxResults
+      });
+
+      if (error) {
+        console.error('EnhancedRetriever: Error searching documents:', error);
+        throw error;
+      }
+
+      console.log('EnhancedRetriever: Found documents:', documents?.length || 0);
       
-      const initialResults = await this.performSemanticSearchWithRetry(embedding);
-      console.log('[EnhancedRetriever] Initial results:', initialResults.length);
-      
-      const rerankedResults = this.config.reranking 
-        ? await this.rerankResults(initialResults, query)
-        : initialResults;
-      console.log('[EnhancedRetriever] Reranked results:', rerankedResults.length);
-      
-      const enhancedResults = this.config.semanticAnalysis
-        ? await this.enhanceWithSemanticAnalysis(rerankedResults)
-        : rerankedResults;
-      console.log('[EnhancedRetriever] Enhanced results:', enhancedResults.length);
-      
-      return this.formatResults(enhancedResults);
+      if (documents && documents.length > 0) {
+        console.log('EnhancedRetriever: Similarity scores:', 
+          documents.map(d => ({ id: d.id, similarity: d.similarity }))
+        );
+      }
+
+      return (documents || []).map((doc: SearchResult) => {
+        return new Document({
+          pageContent: doc.content,
+          metadata: {
+            ...doc.metadata,
+            id: doc.id,
+            similarity: doc.similarity
+          }
+        });
+      });
     } catch (error) {
-      console.error('[EnhancedRetriever] Error in retrieval:', error);
+      console.error('EnhancedRetriever: Error in getRelevantDocuments:', error);
       throw error;
     }
-  }
-
-  private async performSemanticSearchWithRetry(embedding: number[], maxRetries: number = 3): Promise<any[]> {
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`[EnhancedRetriever] Attempt ${attempt} of ${maxRetries}`);
-        return await this.performSemanticSearch(embedding);
-      } catch (error) {
-        console.error(`[EnhancedRetriever] Attempt ${attempt} failed:`, error);
-        if (attempt === maxRetries) throw error;
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-      }
-    }
-    throw new Error('All retry attempts failed');
-  }
-
-  private async performSemanticSearch(embedding: number[]) {
-    const threshold = this.getThreshold();
-    console.log('[EnhancedRetriever] Using threshold:', threshold);
-    
-    const { data: chunks, error } = await supabase.rpc('match_documents', {
-      query_embedding: embedding.toString(),
-      match_threshold: threshold,
-      match_count: 10
-    });
-
-    if (error) {
-      console.error('[EnhancedRetriever] Supabase error:', error);
-      throw error;
-    }
-
-    // Log individual scores for debugging
-    if (chunks && chunks.length > 0) {
-      console.log('[EnhancedRetriever] Document scores:', 
-        chunks.map(c => ({
-          similarity: c.similarity,
-          content: c.content.substring(0, 50) + '...'
-        }))
-      );
-    }
-
-    return chunks || [];
-  }
-
-  private async generateEmbedding(text: string): Promise<number[]> {
-    console.log('[EnhancedRetriever] Generating embedding for text:', text);
-    const response = await supabase.functions.invoke('generate-embedding', {
-      body: { text }
-    });
-
-    if (response.error) {
-      console.error('[EnhancedRetriever] Embedding generation error:', response.error);
-      throw response.error;
-    }
-    return response.data.embedding;
-  }
-
-  private async rerankResults(results: any[], query: string) {
-    console.log('[EnhancedRetriever] Reranking results with query:', query);
-    if (!results.length) return results;
-    
-    const reranked = results.map(result => ({
-      ...result,
-      score: this.calculateRelevanceScore(result, query)
-    }));
-
-    // Log reranking scores
-    console.log('[EnhancedRetriever] Reranking scores:', 
-      reranked.map(r => ({
-        score: r.score,
-        content: r.content.substring(0, 50) + '...'
-      }))
-    );
-
-    return reranked.sort((a, b) => b.score - a.score);
-  }
-
-  private calculateRelevanceScore(result: any, query: string): number {
-    const terms = query.toLowerCase().split(' ');
-    const content = result.content.toLowerCase();
-    
-    return terms.reduce((score, term) => {
-      const frequency = (content.match(new RegExp(term, 'g')) || []).length;
-      return score + (frequency > 0 ? (1 + Math.log(frequency)) : 0);
-    }, result.similarity); // Include original similarity in score
-  }
-
-  private async enhanceWithSemanticAnalysis(results: any[]) {
-    console.log('[EnhancedRetriever] Enhancing results with semantic analysis');
-    return results.map(result => ({
-      ...result,
-      semantic_context: this.extractSemanticContext(result.content)
-    }));
-  }
-
-  private extractSemanticContext(content: string): string {
-    const sentences = content.split(/[.!?]+/).filter(Boolean);
-    return sentences.length > 2 ? sentences.slice(0, 2).join('. ') + '.' : content;
-  }
-
-  private getThreshold(): number {
-    return this.config.dynamicThreshold ? this.calculateDynamicThreshold() : 0.4;
-  }
-
-  private calculateDynamicThreshold(): number {
-    return 0.4; // Mantendo threshold fixo por enquanto
-  }
-
-  private formatResults(results: any[]): Document[] {
-    console.log('[EnhancedRetriever] Formatting final results');
-    return results.map(result => new Document({
-      pageContent: result.content,
-      metadata: {
-        source: result.metadata?.source,
-        score: result.score || result.similarity,
-        semantic_context: result.semantic_context
-      }
-    }));
   }
 }

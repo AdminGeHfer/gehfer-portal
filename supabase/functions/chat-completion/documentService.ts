@@ -1,63 +1,53 @@
-import { supabase } from './supabaseClient.ts';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function findRelevantDocuments(
   embedding: number[],
-  searchThreshold = 0.3
+  searchThreshold: number = 0.4
 ) {
+  console.log('DocumentService: Searching for relevant documents');
+  console.log('DocumentService: Search threshold:', searchThreshold);
+
   try {
-    console.log('Starting document search with:', {
-      embeddingSize: embedding.length,
-      threshold: searchThreshold
-    });
-    
     const { data: documents, error } = await supabase.rpc('match_documents', {
       query_embedding: embedding,
       match_threshold: searchThreshold,
-      match_count: 8
+      match_count: 5
     });
 
     if (error) {
-      console.error('Error in document search:', error);
-      console.error('Error details:', {
-        code: error.code,
-        message: error.message,
-        details: error.details
-      });
-      return { documents: [], metaKnowledge: '' };
+      console.error('DocumentService: Error searching documents:', error);
+      throw error;
     }
 
-    if (!documents || documents.length === 0) {
-      console.log('No documents found matching criteria');
-      return { 
-        documents: [], 
-        metaKnowledge: 'Não foram encontrados documentos relevantes na base de conhecimento.' 
-      };
+    console.log('DocumentService: Found documents:', documents?.length || 0);
+    
+    if (documents && documents.length > 0) {
+      console.log('DocumentService: Top match scores:', 
+        documents.slice(0, 3).map(d => ({
+          similarity: d.similarity,
+          preview: d.content.substring(0, 100)
+        }))
+      );
     }
 
-    // Log individual document scores
-    documents.forEach((doc, index) => {
-      console.log(`Document ${index + 1} score:`, {
-        similarity: doc.similarity,
-        content: doc.content.substring(0, 100) + '...'
-      });
-    });
+    const metaKnowledge = documents && documents.length > 0
+      ? `Encontrei ${documents.length} documentos relevantes com scores de similaridade entre ${
+          Math.min(...documents.map(d => d.similarity)).toFixed(2)
+        } e ${
+          Math.max(...documents.map(d => d.similarity)).toFixed(2)
+        }.`
+      : 'Não encontrei documentos relevantes na base de conhecimento.';
 
-    console.log('Document search results:', {
-      count: documents.length,
-      similarities: documents.map(d => d.similarity),
-      metadata: documents.map(d => d.metadata)
-    });
-
-    const metaKnowledge = `Encontrados ${documents.length} documentos relevantes com similaridade entre ${
-      Math.round(documents[documents.length - 1].similarity * 100) / 100
-    } e ${
-      Math.round(documents[0].similarity * 100) / 100
-    }.`;
-
-    return { documents, metaKnowledge };
+    return {
+      documents: documents || [],
+      metaKnowledge
+    };
   } catch (error) {
-    console.error('Unexpected error in findRelevantDocuments:', error);
-    console.error('Stack trace:', error.stack);
-    return { documents: [], metaKnowledge: '' };
+    console.error('DocumentService: Error in findRelevantDocuments:', error);
+    throw error;
   }
 }

@@ -22,7 +22,7 @@ serve(async (req) => {
       maxTokens = 1000,
       topP = 1,
       agentId,
-      searchThreshold = 0.3
+      searchThreshold = 0.4
     } = await req.json();
 
     console.log('Chat completion request received:', {
@@ -47,7 +47,6 @@ serve(async (req) => {
     }
 
     if (useKnowledgeBase && messages.length > 0) {
-      // Pegar as últimas 3 mensagens para contexto
       const contextMessages = messages.slice(-3);
       const contextText = contextMessages
         .map(msg => msg.content)
