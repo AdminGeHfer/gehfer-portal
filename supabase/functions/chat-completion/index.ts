@@ -66,6 +66,7 @@ serve(async (req) => {
       const lastMessage = messages[messages.length - 1];
       
       try {
+        // Gerar embedding da pergunta
         const embeddingResponse = await openai.embeddings.create({
           model: "text-embedding-ada-002",
           input: lastMessage.content,
@@ -77,6 +78,7 @@ serve(async (req) => {
 
         const embedding = embeddingResponse.data[0].embedding;
 
+        // Configurar cliente Supabase
         const supabaseUrl = Deno.env.get('SUPABASE_URL');
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
         
@@ -86,6 +88,7 @@ serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseKey);
 
+        // Buscar documentos relevantes
         const { data: documents, error: searchError } = await supabase.rpc(
           'match_documents',
           {
@@ -97,17 +100,26 @@ serve(async (req) => {
 
         if (searchError) {
           console.error('Error searching documents:', searchError);
-        } else if (documents && documents.length > 0) {
+          throw searchError;
+        }
+
+        if (documents && documents.length > 0) {
           console.log(`Found ${documents.length} relevant documents`);
+          
+          // Estruturar contexto com documentos relevantes
           relevantContext = documents
-            .map(doc => doc.content)
+            .map((doc, index) => `[Documento ${index + 1}]: ${doc.content}`)
             .join('\n\n');
+            
+          console.log('Relevant context:', relevantContext.substring(0, 200) + '...');
         }
       } catch (error) {
         console.error('Error in knowledge base retrieval:', error);
+        throw error;
       }
     }
 
+    // Construir mensagens com contexto
     const finalMessages = [
       {
         role: 'system',
@@ -115,7 +127,7 @@ serve(async (req) => {
       },
       ...(relevantContext ? [{
         role: 'system',
-        content: `Relevant context from knowledge base:\n\n${relevantContext}`
+        content: `Relevant context from knowledge base:\n\n${relevantContext}\n\nUse this context to inform your responses when relevant.`
       }] : []),
       ...messages
     ];
@@ -129,6 +141,7 @@ serve(async (req) => {
       messageCount: finalMessages.length
     });
 
+    // Gerar resposta com contexto
     const completion = await openai.chat.completions.create({
       model: model === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
       messages: finalMessages,
