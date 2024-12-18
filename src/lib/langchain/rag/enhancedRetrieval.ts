@@ -1,7 +1,7 @@
 /* @ai-protected
  * type: "knowledge-base-retriever"
  * status: "optimized"
- * version: "2.1"
+ * version: "2.2"
  * features: [
  *   "semantic-search",
  *   "reranking",
@@ -47,7 +47,7 @@ export class EnhancedRetriever extends BaseRetriever {
       console.log('[EnhancedRetriever] Starting document retrieval for query:', query);
       
       const embedding = await this.generateEmbedding(query);
-      console.log('[EnhancedRetriever] Generated embedding');
+      console.log('[EnhancedRetriever] Generated embedding successfully');
       
       const initialResults = await this.performSemanticSearchWithRetry(embedding);
       console.log('[EnhancedRetriever] Initial results:', initialResults.length);
@@ -88,7 +88,7 @@ export class EnhancedRetriever extends BaseRetriever {
     console.log('[EnhancedRetriever] Using threshold:', threshold);
     
     const { data: chunks, error } = await supabase.rpc('match_documents', {
-      query_embedding: embedding.toString(),
+      query_embedding: embedding,
       match_threshold: threshold,
       match_count: 10
     });
@@ -149,11 +149,10 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private getThreshold(): number {
-    return this.config.dynamicThreshold ? this.calculateDynamicThreshold() : 0.7;
+    return this.config.dynamicThreshold ? this.calculateDynamicThreshold() : 0.6;
   }
 
   private calculateDynamicThreshold(): number {
-    // Implementar lógica dinâmica baseada em métricas
     return 0.6;
   }
 

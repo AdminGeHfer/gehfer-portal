@@ -1,7 +1,7 @@
 /* @ai-protected
  * type: "agent-chain"
  * status: "optimized"
- * version: "2.1"
+ * version: "2.2"
  * features: [
  *   "knowledge-base-integration",
  *   "dynamic-prompts",
@@ -37,7 +37,6 @@ export const createAgentChain = async (
   let contextualPrompt = agent.system_prompt || "You are a helpful AI assistant.";
   let retriever: EnhancedRetriever | undefined;
   
-  // Inicializar retriever se knowledge base estiver ativada
   if (agent.use_knowledge_base) {
     console.log('[AgentChain] Initializing knowledge base integration');
     
@@ -47,8 +46,7 @@ export const createAgentChain = async (
       dynamicThreshold: true
     });
 
-    // Adicionar contexto do conhecimento ao prompt
-    contextualPrompt += `\n\nI have access to a knowledge base and will use it to provide accurate information.`;
+    contextualPrompt += `\n\nI have access to a knowledge base and will use it to provide accurate information. When answering, I will use the context provided from the knowledge base.`;
   }
 
   const prompt = PromptTemplate.fromTemplate(`
@@ -57,19 +55,31 @@ export const createAgentChain = async (
     Current conversation:
     {chat_history}
     
+    ${agent.use_knowledge_base ? 'Relevant context from knowledge base:\n{context}\n\n' : ''}
+    
     Human: {input}
     Assistant: `);
 
   let chain: ConversationChain;
 
   if (retriever) {
-    // Create a runnable sequence that includes retrieval
+    console.log('[AgentChain] Setting up retriever chain');
+    
     const retrieverChain = RunnableSequence.from([
-      (input: any) => input.input,
-      retriever,
-      (docs: any) => {
-        const context = docs.map((doc: any) => doc.pageContent).join("\n");
-        return { context };
+      {
+        input: (input: any) => input.input,
+        chat_history: (input: any) => input.chat_history,
+      },
+      {
+        context: async (input: any) => {
+          console.log('[AgentChain] Retrieving context for:', input.input);
+          const docs = await retriever.getRelevantDocuments(input.input);
+          const context = docs.map(doc => doc.pageContent).join('\n\n');
+          console.log('[AgentChain] Retrieved context:', context.substring(0, 200) + '...');
+          return context;
+        },
+        chat_history: (input: any) => input.chat_history,
+        input: (input: any) => input.input,
       },
     ]);
 

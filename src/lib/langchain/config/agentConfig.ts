@@ -1,7 +1,7 @@
 /* @ai-protected
  * type: "agent-config"
  * status: "optimized"
- * version: "2.0"
+ * version: "2.1"
  * features: [
  *   "model-mapping",
  *   "prompt-templates",
@@ -45,7 +45,15 @@ export const createPromptTemplate = (config: AIAgent) => {
   let systemPrompt = config.system_prompt || "You are a helpful AI assistant.";
   
   if (config.use_knowledge_base) {
-    systemPrompt += "\n\nI have access to a knowledge base and will use it to provide accurate information.";
+    systemPrompt += `
+    
+I have access to a knowledge base and will use it to provide accurate information.
+When answering questions, I will:
+1. Consider the context provided from the knowledge base
+2. Cite relevant information from the context
+3. Maintain accuracy and relevance to the query
+4. Clearly indicate when I'm using information from the knowledge base
+`;
   }
 
   return PromptTemplate.fromTemplate(`
@@ -53,6 +61,8 @@ export const createPromptTemplate = (config: AIAgent) => {
     
     Current conversation:
     {chat_history}
+    
+    ${config.use_knowledge_base ? 'Relevant context from knowledge base:\n{context}\n\n' : ''}
     
     Human: {input}
     Assistant: Let me help you with that.
