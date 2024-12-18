@@ -53,8 +53,10 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   private async performSemanticSearch(query: string) {
+    const embedding = await this.generateEmbedding(query);
+    
     const { data: chunks, error } = await supabase.rpc('match_documents', {
-      query_embedding: await this.generateEmbedding(query),
+      query_embedding: embedding.join(','), // Convert number[] to string
       match_threshold: this.getThreshold(),
       match_count: 10
     });
