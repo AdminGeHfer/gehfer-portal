@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@4.77.0";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import OpenAI from "https://esm.sh/openai@4.77.0";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,11 +53,9 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const configuration = new Configuration({
+    const openai = new OpenAI({
       apiKey: openAIApiKey,
     });
-
-    const openai = new OpenAIApi(configuration);
 
     let relevantContext = '';
     
@@ -67,16 +65,16 @@ serve(async (req) => {
       const lastMessage = messages[messages.length - 1];
       
       try {
-        const embeddingResponse = await openai.createEmbedding({
+        const embeddingResponse = await openai.embeddings.create({
           model: "text-embedding-ada-002",
           input: lastMessage.content,
         });
         
-        if (!embeddingResponse.data.data[0].embedding) {
+        if (!embeddingResponse.data[0].embedding) {
           throw new Error('Failed to generate embedding');
         }
 
-        const embedding = embeddingResponse.data.data[0].embedding;
+        const embedding = embeddingResponse.data[0].embedding;
 
         const supabaseUrl = Deno.env.get('SUPABASE_URL');
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -130,7 +128,7 @@ serve(async (req) => {
       messageCount: finalMessages.length
     });
 
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: model === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
       messages: finalMessages,
       temperature: temperature || 0.7,
@@ -141,7 +139,7 @@ serve(async (req) => {
     console.log('Received response from OpenAI');
 
     return new Response(
-      JSON.stringify(completion.data),
+      JSON.stringify(completion),
       { 
         headers: { 
           ...corsHeaders,
