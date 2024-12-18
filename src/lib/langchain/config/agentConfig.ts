@@ -3,13 +3,11 @@
  * status: "optimized"
  * version: "2.0"
  * features: [
- *   "dynamic-configuration",
  *   "model-mapping",
- *   "prompt-templates"
+ *   "prompt-templates",
+ *   "knowledge-base-settings"
  * ]
- * last-modified: "2024-03-13"
  * checksum: "d9c4b3a2e1"
- * do-not-modify: true
  */
 
 import { AIAgent } from "@/types/ai/agent";
@@ -23,11 +21,12 @@ const MODEL_MAPPING = {
 };
 
 export const createLLMFromConfig = (config: AIAgent) => {
-  console.log('Creating LLM with config:', {
+  console.log('[AgentConfig] Creating LLM with config:', {
     modelName: config.model_id,
     temperature: config.temperature,
     maxTokens: config.max_tokens,
     topP: config.top_p,
+    useKnowledgeBase: config.use_knowledge_base
   });
 
   const modelName = MODEL_MAPPING[config.model_id] || 'gpt-4-turbo-preview';
@@ -41,10 +40,16 @@ export const createLLMFromConfig = (config: AIAgent) => {
 };
 
 export const createPromptTemplate = (config: AIAgent) => {
-  console.log('Creating prompt template with system prompt:', config.system_prompt);
+  console.log('[AgentConfig] Creating prompt template');
+  
+  let systemPrompt = config.system_prompt || "You are a helpful AI assistant.";
+  
+  if (config.use_knowledge_base) {
+    systemPrompt += "\n\nI have access to a knowledge base and will use it to provide accurate information.";
+  }
 
   return PromptTemplate.fromTemplate(`
-    ${config.system_prompt || "You are a helpful AI assistant."}
+    ${systemPrompt}
     
     Current conversation:
     {chat_history}

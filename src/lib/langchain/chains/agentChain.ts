@@ -3,28 +3,29 @@
  * status: "optimized"
  * version: "2.0"
  * features: [
+ *   "knowledge-base-integration",
  *   "dynamic-prompts",
- *   "system-prompt-integration",
- *   "version-control"
+ *   "context-awareness"
  * ]
- * last-modified: "2024-03-13"
  * checksum: "f8e7c3b2a1"
- * do-not-modify: true
  */
 
 import { ConversationChain } from "langchain/chains";
 import { ChatOpenAI } from "@langchain/openai";
-import { AIMessage, BaseMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { RunnableSequence } from "@langchain/core/runnables";
 import { AIAgent } from "@/types/ai/agent";
+import { EnhancedRetriever } from "../rag/enhancedRetrieval";
 
 export const createAgentChain = async (
   agent: AIAgent,
   memory: any,
-  previousMessages: BaseMessage[] = []
+  previousMessages: any[] = []
 ) => {
+  console.log('[AgentChain] Creating agent chain with config:', {
+    model: agent.model_id,
+    useKnowledgeBase: agent.use_knowledge_base
+  });
+
   const model = new ChatOpenAI({
     modelName: agent.model_id === 'gpt-4o' ? 'gpt-4' : 'gpt-3.5-turbo',
     temperature: agent.temperature,
@@ -32,8 +33,27 @@ export const createAgentChain = async (
     topP: agent.top_p,
   });
 
+  let contextualPrompt = agent.system_prompt || "You are a helpful AI assistant.";
+  
+  // Inicializar retriever se knowledge base estiver ativada
+  if (agent.use_knowledge_base) {
+    console.log('[AgentChain] Initializing knowledge base integration');
+    
+    const retriever = new EnhancedRetriever({
+      chunkSize: agent.chunk_size,
+      chunkOverlap: agent.chunk_overlap,
+      dynamicThreshold: true
+    });
+
+    // Adicionar contexto do conhecimento ao prompt
+    contextualPrompt += `\n\nI have access to a knowledge base and will use it to provide accurate information.`;
+    
+    // Integrar retriever ao modelo
+    model.retriever = retriever;
+  }
+
   const prompt = PromptTemplate.fromTemplate(`
-    ${agent.system_prompt || "You are a helpful AI assistant."}
+    ${contextualPrompt}
     
     Current conversation:
     {chat_history}
@@ -47,20 +67,14 @@ export const createAgentChain = async (
     prompt,
   });
 
-  // Add previous messages to the chain's memory
+  // Adicionar mensagens anteriores à memória
   for (const message of previousMessages) {
-    if (message instanceof HumanMessage) {
-      await memory.saveContext(
-        { input: message.content },
-        { output: "" }
-      );
-    } else if (message instanceof AIMessage) {
-      await memory.saveContext(
-        { input: "" },
-        { output: message.content }
-      );
-    }
+    await memory.saveContext(
+      { input: message.content },
+      { output: "" }
+    );
   }
 
+  console.log('[AgentChain] Agent chain created successfully');
   return chain;
 };
