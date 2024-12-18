@@ -24,14 +24,18 @@ serve(async (req) => {
       agentId
     } = await req.json();
 
+    console.log('Received request with config:', {
+      model,
+      useKnowledgeBase,
+      temperature,
+      maxTokens,
+      topP,
+      agentId
+    });
+
     const openai = new OpenAIApi(new Configuration({
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     }));
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     let relevantContext = '';
     
@@ -41,31 +45,40 @@ serve(async (req) => {
       // Get the last user message
       const lastMessage = messages[messages.length - 1];
       
-      // Generate embedding for the query
-      const embeddingResponse = await openai.createEmbedding({
-        model: "text-embedding-ada-002",
-        input: lastMessage.content,
-      });
-      
-      const embedding = embeddingResponse.data.data[0].embedding;
+      try {
+        // Generate embedding for the query
+        const embeddingResponse = await openai.createEmbedding({
+          model: "text-embedding-ada-002",
+          input: lastMessage.content,
+        });
+        
+        const embedding = embeddingResponse.data.data[0].embedding;
 
-      // Search for relevant documents
-      const { data: documents, error: searchError } = await supabase.rpc(
-        'match_documents',
-        {
-          query_embedding: embedding,
-          match_threshold: 0.7,
-          match_count: 5
+        // Initialize Supabase client
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // Search for relevant documents
+        const { data: documents, error: searchError } = await supabase.rpc(
+          'match_documents',
+          {
+            query_embedding: embedding,
+            match_threshold: 0.7,
+            match_count: 5
+          }
+        );
+
+        if (searchError) {
+          console.error('Error searching documents:', searchError);
+        } else if (documents && documents.length > 0) {
+          console.log(`Found ${documents.length} relevant documents`);
+          relevantContext = documents
+            .map(doc => doc.content)
+            .join('\n\n');
         }
-      );
-
-      if (searchError) {
-        console.error('Error searching documents:', searchError);
-      } else if (documents && documents.length > 0) {
-        console.log(`Found ${documents.length} relevant documents`);
-        relevantContext = documents
-          .map(doc => doc.content)
-          .join('\n\n');
+      } catch (error) {
+        console.error('Error in knowledge base retrieval:', error);
       }
     }
 
