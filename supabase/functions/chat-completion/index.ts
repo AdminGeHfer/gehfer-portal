@@ -38,7 +38,9 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const openai = new OpenAIApi(new Configuration({ apiKey: openAiApiKey }));
+    const configuration = new Configuration({ apiKey: openAiApiKey });
+    const openai = new OpenAIApi(configuration);
+    
     let contextualMessages = [...messages];
 
     if (useKnowledgeBase && agentId) {
