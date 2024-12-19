@@ -6,16 +6,19 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function findRelevantDocuments(
   embedding: number[],
-  searchThreshold: number = 0.4
+  searchThreshold: number = 0.4,
+  agentId?: string
 ) {
   console.log('DocumentService: Searching for relevant documents');
   console.log('DocumentService: Search threshold:', searchThreshold);
+  console.log('DocumentService: Agent ID:', agentId);
 
   try {
     const { data: documents, error } = await supabase.rpc('match_documents', {
       query_embedding: embedding,
       match_threshold: searchThreshold,
-      match_count: 5
+      match_count: 5,
+      p_agent_id: agentId
     });
 
     if (error) {
