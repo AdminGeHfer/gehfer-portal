@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
-import { BaseRetriever, GetRelevantDocumentsParams } from "@langchain/core/retrievers";
+import { BaseRetriever } from "@langchain/core/retrievers";
 import { aiLogger, AILogStage } from "@/lib/logging/aiLoggingService";
+import { CallbackManagerForRetrieverRun } from "@langchain/core/callbacks/manager";
 
 interface SearchResult {
   id: string;
@@ -24,6 +25,8 @@ export class EnhancedRetriever extends BaseRetriever {
   private searchThreshold: number;
   private maxResults: number;
   private config: EnhancedRetrieverConfig;
+  
+  lc_namespace = ["custom", "retriever"];
 
   constructor(config: EnhancedRetrieverConfig = {}) {
     super();
@@ -32,7 +35,10 @@ export class EnhancedRetriever extends BaseRetriever {
     this.config = config;
   }
 
-  async getRelevantDocuments(query: string, runManager?: GetRelevantDocumentsParams): Promise<Document[]> {
+  async getRelevantDocuments(
+    query: string,
+    runManager?: CallbackManagerForRetrieverRun
+  ): Promise<Document[]> {
     const startTime = Date.now();
     
     try {
