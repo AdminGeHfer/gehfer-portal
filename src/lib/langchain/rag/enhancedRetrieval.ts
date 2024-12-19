@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
 import { BaseRetriever } from "langchain/schema/retriever";
+import { aiLogger, AILogStage } from "@/lib/logging/aiLoggingService";
 
 interface SearchResult {
   id: string;
@@ -18,9 +19,20 @@ export class EnhancedRetriever extends BaseRetriever {
   }
 
   async getRelevantDocuments(query: string): Promise<Document[]> {
+    const startTime = Date.now();
+    
     try {
       console.log('EnhancedRetriever: Generating embedding for query:', query);
       
+      await aiLogger.logEvent({
+        stage: AILogStage.QUERY_PROCESSING,
+        details: {
+          query,
+          threshold: this.searchThreshold,
+          maxResults: this.maxResults
+        }
+      });
+
       const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
@@ -40,6 +52,15 @@ export class EnhancedRetriever extends BaseRetriever {
       const { data } = await embeddingResponse.json();
       const embedding = data[0].embedding;
 
+      await aiLogger.logEvent({
+        stage: AILogStage.EMBEDDING_GENERATION,
+        details: {
+          success: true,
+          dimensions: embedding.length,
+          model: 'text-embedding-3-small'
+        }
+      });
+
       console.log('EnhancedRetriever: Embedding generated successfully');
       console.log('EnhancedRetriever: Searching documents with threshold:', this.searchThreshold);
 
@@ -53,6 +74,21 @@ export class EnhancedRetriever extends BaseRetriever {
         console.error('EnhancedRetriever: Error searching documents:', error);
         throw error;
       }
+
+      const searchTime = Date.now() - startTime;
+      
+      await aiLogger.logEvent({
+        stage: AILogStage.DOCUMENT_MATCHING,
+        details: {
+          documentsFound: documents?.length || 0,
+          searchTimeMs: searchTime,
+          topMatches: documents?.slice(0, 3).map(d => ({
+            id: d.id,
+            similarity: d.similarity,
+            snippet: d.content.substring(0, 100)
+          }))
+        }
+      });
 
       console.log('EnhancedRetriever: Found documents:', documents?.length || 0);
       
@@ -74,6 +110,16 @@ export class EnhancedRetriever extends BaseRetriever {
       });
     } catch (error) {
       console.error('EnhancedRetriever: Error in getRelevantDocuments:', error);
+      
+      await aiLogger.logEvent({
+        stage: AILogStage.DOCUMENT_MATCHING,
+        details: {
+          error: error.message,
+          searchTimeMs: Date.now() - startTime,
+          success: false
+        }
+      });
+      
       throw error;
     }
   }

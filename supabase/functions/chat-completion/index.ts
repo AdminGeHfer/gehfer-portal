@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { generateEmbedding, generateChatCompletion } from "./openaiService.ts";
 import { findRelevantDocuments } from "./documentService.ts";
@@ -11,6 +12,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
+  const requestId = crypto.randomUUID();
 
   try {
     const {
@@ -26,6 +30,7 @@ serve(async (req) => {
     } = await req.json();
 
     console.log('Chat completion request received:', {
+      requestId,
       messageCount: messages?.length,
       model,
       useKnowledgeBase,
@@ -52,11 +57,15 @@ serve(async (req) => {
         .map(msg => msg.content)
         .join("\n");
       
-      console.log('Processing knowledge base for context:', contextText);
+      console.log('Processing knowledge base for context:', {
+        requestId,
+        contextLength: contextText.length
+      });
       
       console.log('Generating embedding...');
       const embedding = await generateEmbedding(contextText);
       console.log('Embedding generated:', {
+        requestId,
         dimensions: embedding.length,
         sample: embedding.slice(0, 5)
       });
@@ -68,6 +77,7 @@ serve(async (req) => {
       );
       
       console.log('Search results:', {
+        requestId,
         documentsFound: documents.length,
         metaKnowledge,
         similarityScores: documents.map(d => d.similarity)
@@ -80,6 +90,7 @@ serve(async (req) => {
           .join('\n\n');
 
         console.log('Context prepared:', {
+          requestId,
           contextLength: context.length,
           documentCount: documents.length,
           firstDocumentScore: documents[0]?.similarity
@@ -90,13 +101,14 @@ serve(async (req) => {
           content: `Contexto relevante da base de conhecimento:\n\n${context}\n\n${metaKnowledge}\n\nUse estas informações para informar suas respostas quando relevante.`
         });
       } else {
-        console.log('No relevant documents found');
+        console.log('No relevant documents found', { requestId });
       }
     }
 
     finalMessages.push(...messages);
 
     console.log('Preparing chat completion with:', {
+      requestId,
       finalMessageCount: finalMessages.length,
       model,
       temperature,
@@ -112,9 +124,13 @@ serve(async (req) => {
       topP
     );
 
+    const totalTime = Date.now() - startTime;
+
     console.log('Chat completion successful:', {
+      requestId,
       responseTokens: completionData.usage?.total_tokens,
-      choicesCount: completionData.choices?.length
+      choicesCount: completionData.choices?.length,
+      totalTimeMs: totalTime
     });
 
     return new Response(
@@ -128,17 +144,18 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in chat-completion function:', error);
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
+    console.error('Error in chat-completion function:', {
+      requestId,
+      error: error.message,
+      stack: error.stack,
+      totalTimeMs: Date.now() - startTime
     });
     
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.stack
+        details: error.stack,
+        requestId
       }),
       { 
         status: 500,
