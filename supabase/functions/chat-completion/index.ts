@@ -13,7 +13,17 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model, agentId, systemPrompt, useKnowledgeBase, temperature, maxTokens, topP, searchThreshold } = await req.json();
+    const { 
+      messages, 
+      model, 
+      systemPrompt, 
+      useKnowledgeBase, 
+      temperature,
+      maxTokens,
+      topP,
+      searchThreshold,
+      agentId 
+    } = await req.json();
 
     console.log('Chat completion request received:', {
       messageCount: messages.length,
@@ -23,7 +33,6 @@ serve(async (req) => {
       searchThreshold
     });
 
-    // Initialize OpenAI
     const openai = new OpenAIApi(new Configuration({
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     }));
@@ -33,6 +42,8 @@ serve(async (req) => {
     // Only search for relevant documents if knowledge base is enabled
     if (useKnowledgeBase && agentId) {
       try {
+        console.log('Knowledge base enabled, searching for relevant documents');
+        
         // Generate embedding for the last user message
         const lastUserMessage = messages[messages.length - 1].content;
         
@@ -48,7 +59,12 @@ serve(async (req) => {
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        // Search for relevant documents using the updated match_documents function
+        console.log('Searching documents with parameters:', {
+          threshold: searchThreshold || 0.4,
+          agentId
+        });
+
+        // Search for relevant documents using the match_documents function
         const { data: documents, error: searchError } = await supabase.rpc(
           'match_documents',
           {
@@ -60,6 +76,7 @@ serve(async (req) => {
         );
 
         if (searchError) {
+          console.error('Error searching documents:', searchError);
           throw searchError;
         }
 
@@ -74,15 +91,29 @@ serve(async (req) => {
             .map(doc => doc.content)
             .join('\n\n');
 
-          // Add context to system message if documents were found
+          // Add context to system message
           contextualMessages.unshift({
             role: 'system',
             content: `Context from knowledge base:\n${context}\n\n${systemPrompt || ''}`
           });
+        } else {
+          console.log('No relevant documents found');
+          if (systemPrompt) {
+            contextualMessages.unshift({
+              role: 'system',
+              content: systemPrompt
+            });
+          }
         }
       } catch (error) {
         console.error('Error in document search:', error);
         // Continue without context if document search fails
+        if (systemPrompt) {
+          contextualMessages.unshift({
+            role: 'system',
+            content: systemPrompt
+          });
+        }
       }
     } else if (systemPrompt) {
       // If no knowledge base but system prompt exists, add it
@@ -91,6 +122,8 @@ serve(async (req) => {
         content: systemPrompt
       });
     }
+
+    console.log('Sending completion request with message count:', contextualMessages.length);
 
     // Get completion from OpenAI
     const completion = await openai.createChatCompletion({
