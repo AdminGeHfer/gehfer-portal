@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
-import { BaseRetriever } from "langchain/schema/retriever";
+import { BaseRetriever, GetRelevantDocumentsParams } from "@langchain/core/retrievers";
 import { aiLogger, AILogStage } from "@/lib/logging/aiLoggingService";
 
 interface SearchResult {
@@ -10,15 +10,29 @@ interface SearchResult {
   similarity: number;
 }
 
+interface EnhancedRetrieverConfig {
+  searchThreshold?: number;
+  maxResults?: number;
+  chunkSize?: number;
+  chunkOverlap?: number;
+  dynamicThreshold?: boolean;
+  reranking?: boolean;
+  semanticAnalysis?: boolean;
+}
+
 export class EnhancedRetriever extends BaseRetriever {
-  constructor(
-    private searchThreshold: number = 0.4,
-    private maxResults: number = 5
-  ) {
+  private searchThreshold: number;
+  private maxResults: number;
+  private config: EnhancedRetrieverConfig;
+
+  constructor(config: EnhancedRetrieverConfig = {}) {
     super();
+    this.searchThreshold = config.searchThreshold || 0.4;
+    this.maxResults = config.maxResults || 5;
+    this.config = config;
   }
 
-  async getRelevantDocuments(query: string): Promise<Document[]> {
+  async getRelevantDocuments(query: string, runManager?: GetRelevantDocumentsParams): Promise<Document[]> {
     const startTime = Date.now();
     
     try {
@@ -29,7 +43,8 @@ export class EnhancedRetriever extends BaseRetriever {
         details: {
           query,
           threshold: this.searchThreshold,
-          maxResults: this.maxResults
+          maxResults: this.maxResults,
+          config: this.config
         }
       });
 

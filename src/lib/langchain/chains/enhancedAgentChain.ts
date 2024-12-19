@@ -21,7 +21,9 @@ export const createEnhancedAgentChain = async (
     semanticAnalysis: true,
     dynamicThreshold: true,
     chunkSize: agent.chunk_size,
-    chunkOverlap: agent.chunk_overlap
+    chunkOverlap: agent.chunk_overlap,
+    searchThreshold: 0.4,
+    maxResults: 5
   });
 
   // Initialize language model with agent configuration

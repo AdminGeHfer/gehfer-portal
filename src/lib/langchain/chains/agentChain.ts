@@ -43,7 +43,9 @@ export const createAgentChain = async (
     retriever = new EnhancedRetriever({
       chunkSize: agent.chunk_size,
       chunkOverlap: agent.chunk_overlap,
-      dynamicThreshold: true
+      dynamicThreshold: true,
+      searchThreshold: 0.4,
+      maxResults: 5
     });
 
     contextualPrompt += `\n\nI have access to a knowledge base and will use it to provide accurate information. When answering, I will use the context provided from the knowledge base.`;
