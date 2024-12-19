@@ -2034,6 +2034,20 @@ export type Database = {
               similarity: number
             }[]
           }
+        | {
+            Args: {
+              query_embedding: string
+              match_threshold: number
+              match_count: number
+              p_agent_id: string
+            }
+            Returns: {
+              id: string
+              content: string
+              metadata: Json
+              similarity: number
+            }[]
+          }
       rollback_document_version: {
         Args: {
           p_version_id: string

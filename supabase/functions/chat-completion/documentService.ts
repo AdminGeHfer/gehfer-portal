@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -38,12 +38,12 @@ export async function findRelevantDocuments(
     }
 
     const metaKnowledge = documents && documents.length > 0
-      ? `Encontrei ${documents.length} documentos relevantes com scores de similaridade entre ${
+      ? `Found ${documents.length} relevant documents with similarity scores between ${
           Math.min(...documents.map(d => d.similarity)).toFixed(2)
-        } e ${
+        } and ${
           Math.max(...documents.map(d => d.similarity)).toFixed(2)
         }.`
-      : 'Não encontrei documentos relevantes na base de conhecimento.';
+      : 'No relevant documents found in knowledge base.';
 
     return {
       documents: documents || [],
