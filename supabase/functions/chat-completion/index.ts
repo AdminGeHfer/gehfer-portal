@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
-import { findRelevantDocuments } from "./documentService.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,7 +31,7 @@ serve(async (req) => {
     let contextualMessages = [...messages];
 
     // Only search for relevant documents if knowledge base is enabled
-    if (useKnowledgeBase) {
+    if (useKnowledgeBase && agentId) {
       try {
         // Generate embedding for the last user message
         const lastUserMessage = messages[messages.length - 1].content;
@@ -43,21 +43,33 @@ serve(async (req) => {
 
         const embedding = embeddingResponse.data.data[0].embedding;
 
-        // Search for relevant documents
-        const { documents, metaKnowledge } = await findRelevantDocuments(
-          embedding,
-          searchThreshold || 0.4,
-          agentId
+        // Initialize Supabase client
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        // Search for relevant documents using the updated match_documents function
+        const { data: documents, error: searchError } = await supabase.rpc(
+          'match_documents',
+          {
+            query_embedding: embedding,
+            match_threshold: searchThreshold || 0.4,
+            match_count: 5,
+            p_agent_id: agentId
+          }
         );
 
+        if (searchError) {
+          throw searchError;
+        }
+
         console.log('Search results:', {
-          documentsFound: documents.length,
-          metaKnowledge,
-          similarityScores: documents.map(d => d.similarity)
+          documentsFound: documents?.length || 0,
+          similarityScores: documents?.map(d => d.similarity)
         });
 
         // Prepare context from relevant documents
-        if (documents.length > 0) {
+        if (documents && documents.length > 0) {
           const context = documents
             .map(doc => doc.content)
             .join('\n\n');
