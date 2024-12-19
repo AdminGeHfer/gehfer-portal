@@ -33,10 +33,16 @@ serve(async (req) => {
       searchThreshold
     });
 
-    const openai = new OpenAIApi(new Configuration({
-      apiKey: Deno.env.get('OPENAI_API_KEY'),
-    }));
+    const openAiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAiApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
 
+    const configuration = new Configuration({
+      apiKey: openAiApiKey
+    });
+
+    const openai = new OpenAIApi(configuration);
     let contextualMessages = [...messages];
 
     // Only search for relevant documents if knowledge base is enabled
