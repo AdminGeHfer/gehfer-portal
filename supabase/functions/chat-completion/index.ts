@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,19 +18,18 @@ serve(async (req) => {
       model, 
       systemPrompt, 
       useKnowledgeBase, 
-      temperature,
-      maxTokens,
-      topP,
-      searchThreshold,
+      temperature = 0.7,
+      maxTokens = 1000,
+      topP = 1,
+      searchThreshold = 0.4,
       agentId 
     } = await req.json();
 
-    console.log('Chat completion request received:', {
+    console.log('Request received:', {
       messageCount: messages.length,
       model,
-      agentId,
       useKnowledgeBase,
-      searchThreshold
+      agentId
     });
 
     const openAiApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -38,8 +37,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const configuration = new Configuration({ apiKey: openAiApiKey });
-    const openai = new OpenAIApi(configuration);
+    const openai = new OpenAIApi(new Configuration({ apiKey: openAiApiKey }));
     let contextualMessages = [...messages];
 
     if (useKnowledgeBase && agentId) {
@@ -59,12 +57,17 @@ serve(async (req) => {
 
         const embedding = embeddingResponse.data.data[0].embedding;
 
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+        if (!supabaseUrl || !supabaseKey) {
+          throw new Error('Supabase configuration missing');
+        }
+
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         console.log('Searching documents with parameters:', {
-          threshold: searchThreshold || 0.4,
+          threshold: searchThreshold,
           agentId
         });
 
@@ -72,7 +75,7 @@ serve(async (req) => {
           'match_documents',
           {
             query_embedding: embedding,
-            match_threshold: searchThreshold || 0.4,
+            match_threshold: searchThreshold,
             match_count: 5,
             p_agent_id: agentId
           }
