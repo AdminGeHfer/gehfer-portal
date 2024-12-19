@@ -38,19 +38,14 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const configuration = new Configuration({
-      apiKey: openAiApiKey
-    });
-
+    const configuration = new Configuration({ apiKey: openAiApiKey });
     const openai = new OpenAIApi(configuration);
     let contextualMessages = [...messages];
 
-    // Only search for relevant documents if knowledge base is enabled
     if (useKnowledgeBase && agentId) {
       try {
         console.log('Knowledge base enabled, searching for relevant documents');
         
-        // Generate embedding for the last user message
         const lastUserMessage = messages[messages.length - 1].content;
         
         const embeddingResponse = await openai.createEmbedding({
@@ -64,7 +59,6 @@ serve(async (req) => {
 
         const embedding = embeddingResponse.data.data[0].embedding;
 
-        // Initialize Supabase client
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);
@@ -74,7 +68,6 @@ serve(async (req) => {
           agentId
         });
 
-        // Search for relevant documents
         const { data: documents, error: searchError } = await supabase.rpc(
           'match_documents',
           {
@@ -95,13 +88,11 @@ serve(async (req) => {
           similarityScores: documents?.map(d => d.similarity)
         });
 
-        // Prepare context from relevant documents
         if (documents && documents.length > 0) {
           const context = documents
             .map(doc => doc.content)
             .join('\n\n');
 
-          // Add context to system message
           contextualMessages.unshift({
             role: 'system',
             content: `Context from knowledge base:\n${context}\n\n${systemPrompt || ''}`
@@ -117,7 +108,6 @@ serve(async (req) => {
         }
       } catch (error) {
         console.error('Error in document search:', error);
-        // Continue without context if document search fails
         if (systemPrompt) {
           contextualMessages.unshift({
             role: 'system',
@@ -134,7 +124,6 @@ serve(async (req) => {
 
     console.log('Sending completion request with message count:', contextualMessages.length);
 
-    // Get completion from OpenAI
     const completion = await openai.createChatCompletion({
       model: model === 'gpt-4o' ? 'gpt-4' : model,
       messages: contextualMessages,
