@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
 import { BaseRetriever } from "@langchain/core/retrievers";
 import { aiLogger, AILogStage } from "@/lib/logging/aiLoggingService";
-import { CallbackManagerForRetrieverRun } from "@langchain/core/callbacks/manager";
+import { Callbacks, BaseCallbackConfig } from "@langchain/core/callbacks";
 
 interface SearchResult {
   id: string;
@@ -37,7 +37,7 @@ export class EnhancedRetriever extends BaseRetriever {
 
   async getRelevantDocuments(
     query: string,
-    runManager?: CallbackManagerForRetrieverRun
+    config?: Callbacks | BaseCallbackConfig
   ): Promise<Document[]> {
     const startTime = Date.now();
     
