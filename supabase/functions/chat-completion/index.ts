@@ -58,6 +58,10 @@ serve(async (req) => {
           input: lastUserMessage,
         });
 
+        if (!embeddingResponse.data?.data?.[0]?.embedding) {
+          throw new Error('Failed to generate embedding');
+        }
+
         const embedding = embeddingResponse.data.data[0].embedding;
 
         // Initialize Supabase client
@@ -70,7 +74,7 @@ serve(async (req) => {
           agentId
         });
 
-        // Search for relevant documents using the match_documents function
+        // Search for relevant documents
         const { data: documents, error: searchError } = await supabase.rpc(
           'match_documents',
           {
@@ -122,7 +126,6 @@ serve(async (req) => {
         }
       }
     } else if (systemPrompt) {
-      // If no knowledge base but system prompt exists, add it
       contextualMessages.unshift({
         role: 'system',
         content: systemPrompt
@@ -139,6 +142,10 @@ serve(async (req) => {
       max_tokens: maxTokens || 1000,
       top_p: topP || 1,
     });
+
+    if (!completion.data?.choices?.[0]?.message) {
+      throw new Error('Invalid response from OpenAI');
+    }
 
     return new Response(
       JSON.stringify(completion.data),
