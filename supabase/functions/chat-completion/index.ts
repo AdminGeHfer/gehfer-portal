@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { Configuration, OpenAIApi } from "https://esm.sh/openai@3.3.0"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
+import OpenAI from "https://esm.sh/openai@4.24.1"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,9 +37,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const configuration = new Configuration({ apiKey: openAiApiKey });
-    const openai = new OpenAIApi(configuration);
-    
+    const openai = new OpenAI({ apiKey: openAiApiKey });
     let contextualMessages = [...messages];
 
     if (useKnowledgeBase && agentId) {
@@ -49,16 +46,16 @@ serve(async (req) => {
         
         const lastUserMessage = messages[messages.length - 1].content;
         
-        const embeddingResponse = await openai.createEmbedding({
+        const embeddingResponse = await openai.embeddings.create({
           model: "text-embedding-3-small",
           input: lastUserMessage,
         });
 
-        if (!embeddingResponse.data?.data?.[0]?.embedding) {
+        if (!embeddingResponse.data?.[0]?.embedding) {
           throw new Error('Failed to generate embedding');
         }
 
-        const embedding = embeddingResponse.data.data[0].embedding;
+        const embedding = embeddingResponse.data[0].embedding;
 
         const supabaseUrl = Deno.env.get('SUPABASE_URL');
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -67,6 +64,7 @@ serve(async (req) => {
           throw new Error('Supabase configuration missing');
         }
 
+        const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.7.1");
         const supabase = createClient(supabaseUrl, supabaseKey);
 
         console.log('Searching documents with parameters:', {
@@ -130,7 +128,7 @@ serve(async (req) => {
 
     console.log('Sending completion request with message count:', contextualMessages.length);
 
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: model === 'gpt-4o' ? 'gpt-4' : model,
       messages: contextualMessages,
       temperature: temperature || 0.7,
@@ -138,12 +136,12 @@ serve(async (req) => {
       top_p: topP || 1,
     });
 
-    if (!completion.data?.choices?.[0]?.message) {
+    if (!completion.choices?.[0]?.message) {
       throw new Error('Invalid response from OpenAI');
     }
 
     return new Response(
-      JSON.stringify(completion.data),
+      JSON.stringify(completion),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
 
