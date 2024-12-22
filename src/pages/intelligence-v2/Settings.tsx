@@ -1,8 +1,31 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Card } from "@/components/ui/card";
 import { Settings as SettingsIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Settings = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
+        toast({
+          title: "Acesso Restrito",
+          description: "Por favor, faça login para acessar as configurações",
+        });
+        navigate("/login");
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
+
   return (
     <div className="min-h-screen bg-background">
       <Header 
