@@ -1,42 +1,8 @@
-import { Suspense, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Suspense } from "react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Header } from "@/components/layout/Header";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { Chat as LobeChat } from "@/components/intelligence/Chat";
 
 const Chat = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error("Erro ao verificar autenticação:", error);
-        toast({
-          title: "Erro de autenticação",
-          description: "Houve um problema ao verificar sua sessão",
-          variant: "destructive",
-        });
-        navigate("/login");
-        return;
-      }
-
-      if (!session) {
-        toast({
-          title: "Acesso Restrito",
-          description: "Por favor, faça login para continuar",
-        });
-        navigate("/login");
-      }
-    };
-
-    checkAuth();
-  }, [navigate, toast]);
-
   return (
     <div className="min-h-screen bg-background">
       <Header 
@@ -44,10 +10,14 @@ const Chat = () => {
         subtitle="Interface moderna de chat com IA usando Lobe Chat" 
       />
       
-      <main className="flex-1 overflow-hidden">
+      <main className="container mx-auto px-4 py-8">
         <Suspense fallback={<LoadingSpinner />}>
-          <div className="h-[calc(100vh-4rem)]">
-            <LobeChat />
+          <div className="flex flex-col space-y-4">
+            <div className="p-4 bg-primary/10 rounded-lg">
+              <p className="text-center text-muted-foreground">
+                Chat em desenvolvimento. Em breve você poderá interagir com nossos agentes de IA.
+              </p>
+            </div>
           </div>
         </Suspense>
       </main>
