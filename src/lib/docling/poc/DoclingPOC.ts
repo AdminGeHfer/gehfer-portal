@@ -91,6 +91,11 @@ export class DoclingPOC {
     }
   }
 
+  // Convert number[] to PostgreSQL vector format
+  private convertToVectorString(embedding: number[]): string {
+    return `[${embedding.join(',')}]`;
+  }
+
   async processDocument(file: File): Promise<ProcessingMetrics> {
     console.log('Processing document:', file.name);
     
@@ -156,7 +161,7 @@ export class DoclingPOC {
       const chunksToInsert = this.chunks.map(chunk => ({
         document_id: documentData.id,
         content: chunk.content,
-        embedding: chunk.embedding,
+        embedding: chunk.embedding ? this.convertToVectorString(chunk.embedding) : null,
         metadata: chunk.metadata
       }));
 
