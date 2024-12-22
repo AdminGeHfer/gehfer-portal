@@ -1,31 +1,26 @@
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck, Package, Brain, LogOut } from "lucide-react";
+import { ClipboardCheck, Users, Truck, Package, Brain, LogOut, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
-interface ModuleCardProps {
-  title: string;
-  description: string;
-  icon: React.ReactElement;
-  route: string;
-  submodules?: {
-    title: string;
-    route: string;
-    icon: React.ReactElement;
-  }[];
-  isHighlighted?: boolean;
-}
-
 const modules = [
+  {
+    title: "GeHfer Intelligence V2",
+    description: "Nova versão do módulo de Inteligência Artificial com Lobe Chat",
+    icon: <Sparkles className="h-12 w-12 text-primary" />,
+    route: "/intelligence-v2",
+    isHighlighted: true,
+    isNew: true
+  },
   {
     title: "GeHfer Intelligence",
     description: "Central de Inteligência Artificial e Assistentes Virtuais",
     icon: <Brain className="h-12 w-12 text-primary" />,
     route: "/intelligence",
-    isHighlighted: true
+    isHighlighted: false
   },
   {
     title: "Qualidade",

@@ -21,6 +21,7 @@ const Intelligence = lazy(() =>
     return import("./pages/Apps"); // Fallback to Apps page if Intelligence fails to load
   })
 );
+const IntelligenceV2Routes = lazy(() => import("./routes/IntelligenceV2Routes"));
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
@@ -83,6 +84,7 @@ const App = () => (
                               <Routes>
                                 <Route path="/apps" element={<Apps />} />
                                 <Route path="/intelligence/*" element={<Intelligence />} />
+                                <Route path="/intelligence-v2/*" element={<IntelligenceV2Routes />} />
                                 <Route
                                   path="/quality/*"
                                   element={

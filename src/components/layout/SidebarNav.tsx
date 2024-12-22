@@ -13,7 +13,8 @@ import {
   Brain,
   MessageSquare,
   Settings,
-  Building2
+  Building2,
+  Sparkles
 } from "lucide-react";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { useState } from "react";
@@ -72,6 +73,28 @@ export const SidebarNav = () => {
         {
           title: "Configurações",
           href: "/intelligence/settings",
+          icon: <Settings className="h-4 w-4" />,
+        },
+      ],
+    },
+    {
+      title: "Intelligence V2",
+      href: "/intelligence-v2",
+      icon: <Sparkles className="h-5 w-5" />,
+      subModules: [
+        {
+          title: "Hub",
+          href: "/intelligence-v2/hub",
+          icon: <Brain className="h-4 w-4" />,
+        },
+        {
+          title: "Chat",
+          href: "/intelligence-v2/chat",
+          icon: <MessageSquare className="h-4 w-4" />,
+        },
+        {
+          title: "Configurações",
+          href: "/intelligence-v2/settings",
           icon: <Settings className="h-4 w-4" />,
         },
       ],
