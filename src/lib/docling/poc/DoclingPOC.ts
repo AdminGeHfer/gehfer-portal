@@ -27,9 +27,21 @@ interface DocumentChunk {
   };
 }
 
+interface DocumentConverter {
+  convert: (file: File) => Promise<{
+    document: {
+      export_to_markdown: () => string;
+    };
+  }>;
+}
+
+interface DocumentChunker {
+  chunk: (doc: { export_to_markdown: () => string }) => DocumentChunk[];
+}
+
 export class DoclingPOC {
-  private converter: any;
-  private chunker: any;
+  private converter: DocumentConverter;
+  private chunker: DocumentChunker;
   private results: ProcessingMetrics[] = [];
   private chunks: DocumentChunk[] = [];
 
@@ -44,7 +56,7 @@ export class DoclingPOC {
     };
     
     this.chunker = {
-      chunk: (doc: any) => {
+      chunk: (doc: { export_to_markdown: () => string }) => {
         // Simulate realistic chunks based on file content
         const numChunks = Math.floor(Math.random() * 10 + 5);
         return Array(numChunks).fill(null).map((_, index) => ({
@@ -69,7 +81,7 @@ export class DoclingPOC {
       console.log('Document converted successfully');
 
       // Generate chunks
-      const documentChunks = Array.from(this.chunker.chunk(result.document));
+      const documentChunks = this.chunker.chunk(result.document);
       console.log('Generated chunks:', documentChunks.length);
 
       // Store chunks for later saving
