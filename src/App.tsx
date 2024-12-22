@@ -15,13 +15,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Lazy load components
 const Login = lazy(() => import("./features/auth/pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
-const Intelligence = lazy(() => 
-  import("./pages/intelligence/Intelligence").catch(error => {
-    console.error("Error loading Intelligence module:", error);
-    return import("./pages/Apps"); // Fallback to Apps page if Intelligence fails to load
-  })
-);
-const IntelligenceV2Routes = lazy(() => import("./routes/IntelligenceV2Routes"));
+const Intelligence = lazy(() => import("./pages/intelligence/Intelligence"));
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
@@ -84,7 +78,6 @@ const App = () => (
                               <Routes>
                                 <Route path="/apps" element={<Apps />} />
                                 <Route path="/intelligence/*" element={<Intelligence />} />
-                                <Route path="/intelligence-v2/*" element={<IntelligenceV2Routes />} />
                                 <Route
                                   path="/quality/*"
                                   element={
