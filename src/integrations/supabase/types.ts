@@ -778,6 +778,39 @@ export type Database = {
           },
         ]
       }
+      docling_poc_results: {
+        Row: {
+          cpu_usage: number | null
+          created_at: string
+          doc_size: number
+          file: string
+          id: string
+          num_chunks: number
+          processing_time: number
+          ram_usage: number | null
+        }
+        Insert: {
+          cpu_usage?: number | null
+          created_at?: string
+          doc_size: number
+          file: string
+          id?: string
+          num_chunks: number
+          processing_time: number
+          ram_usage?: number | null
+        }
+        Update: {
+          cpu_usage?: number | null
+          created_at?: string
+          doc_size?: number
+          file?: string
+          id?: string
+          num_chunks?: number
+          processing_time?: number
+          ram_usage?: number | null
+        }
+        Relationships: []
+      }
       document_chunks: {
         Row: {
           coherence_score: number | null
