@@ -4,6 +4,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Header } from "@/components/layout/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Chat as LobeChat } from "@/components/intelligence/Chat";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -43,17 +44,10 @@ const Chat = () => {
         subtitle="Interface moderna de chat com IA usando Lobe Chat" 
       />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="flex-1 overflow-hidden">
         <Suspense fallback={<LoadingSpinner />}>
-          <div className="flex flex-col space-y-4">
-            <div className="p-6 bg-card rounded-lg shadow-sm">
-              <h2 className="text-2xl font-semibold mb-4">Bem-vindo ao Lobe Chat</h2>
-              <div className="p-4 bg-primary/10 rounded-lg">
-                <p className="text-center text-muted-foreground">
-                  Chat em desenvolvimento. Em breve você poderá interagir com nossos agentes de IA.
-                </p>
-              </div>
-            </div>
+          <div className="h-[calc(100vh-4rem)]">
+            <LobeChat />
           </div>
         </Suspense>
       </main>
