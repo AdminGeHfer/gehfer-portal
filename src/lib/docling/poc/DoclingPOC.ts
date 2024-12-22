@@ -10,6 +10,15 @@ export interface ProcessingMetrics {
   docSize: number;
 }
 
+interface DoclingPocResult {
+  file: string;
+  processing_time: number;
+  cpu_usage: number | null;
+  ram_usage: number | null;
+  num_chunks: number;
+  doc_size: number;
+}
+
 export class DoclingPOC {
   private converter: any;
   private chunker: any;
@@ -67,9 +76,19 @@ export class DoclingPOC {
 
   async uploadResults() {
     try {
+      // Map results to match database schema
+      const dbResults: DoclingPocResult[] = this.results.map(result => ({
+        file: result.file,
+        processing_time: result.processingTime,
+        cpu_usage: result.cpuUsage || null,
+        ram_usage: result.ramUsage || null,
+        num_chunks: result.numChunks,
+        doc_size: result.docSize
+      }));
+
       const { error } = await supabase
         .from('docling_poc_results')
-        .insert(this.results);
+        .insert(dbResults);
 
       if (error) throw error;
       
