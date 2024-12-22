@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import OpenAI from 'openai';
 
 export interface ProcessingMetrics {
   file: string;
@@ -25,6 +26,7 @@ interface DocumentChunk {
     position: number;
     length: number;
   };
+  embedding?: number[];
 }
 
 interface DocumentConverter {
@@ -44,8 +46,14 @@ export class DoclingPOC {
   private chunker: DocumentChunker;
   private results: ProcessingMetrics[] = [];
   private chunks: DocumentChunk[] = [];
+  private openai: OpenAI;
 
   constructor() {
+    // Initialize OpenAI client
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+
     // Simulated for POC since we can't directly use docling in browser
     this.converter = {
       convert: async (file: File) => ({
@@ -70,6 +78,19 @@ export class DoclingPOC {
     };
   }
 
+  private async generateEmbedding(text: string): Promise<number[]> {
+    try {
+      const response = await this.openai.embeddings.create({
+        input: text,
+        model: "text-embedding-3-small"
+      });
+      return response.data[0].embedding;
+    } catch (error) {
+      console.error('Error generating embedding:', error);
+      throw error;
+    }
+  }
+
   async processDocument(file: File): Promise<ProcessingMetrics> {
     console.log('Processing document:', file.name);
     
@@ -83,6 +104,12 @@ export class DoclingPOC {
       // Generate chunks
       const documentChunks = this.chunker.chunk(result.document);
       console.log('Generated chunks:', documentChunks.length);
+
+      // Generate embeddings for each chunk
+      for (const chunk of documentChunks) {
+        chunk.embedding = await this.generateEmbedding(chunk.content);
+      }
+      console.log('Generated embeddings for all chunks');
 
       // Store chunks for later saving
       this.chunks = this.chunks.concat(documentChunks);
@@ -125,10 +152,11 @@ export class DoclingPOC {
 
       console.log('Document created:', documentData);
 
-      // Then save all chunks
+      // Then save all chunks with their embeddings
       const chunksToInsert = this.chunks.map(chunk => ({
         document_id: documentData.id,
         content: chunk.content,
+        embedding: chunk.embedding,
         metadata: chunk.metadata
       }));
 
