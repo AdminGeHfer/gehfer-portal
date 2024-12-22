@@ -1,23 +1,19 @@
-import { Suspense } from "react";
+import { lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
-// Import components directly instead of using dynamic imports
-import Hub from "./Hub";
-import AIHub from "./AIHub";
-import Chat from "./Chat";
+const Hub = lazy(() => import("./Hub"));
+const DoclingPOC = lazy(() => import("./DoclingPOC"));
+const Chat = lazy(() => import("./Chat"));
 
 const Intelligence = () => {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <Routes>
-        <Route path="/" element={<Hub />} />
-        <Route path="/hub" element={<AIHub />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/chat/:conversationId" element={<Chat />} />
-        <Route path="*" element={<Navigate to="/intelligence" replace />} />
-      </Routes>
-    </Suspense>
+    <Routes>
+      <Route path="/" element={<Navigate to="/intelligence/hub" replace />} />
+      <Route path="/hub" element={<Hub />} />
+      <Route path="/chat" element={<Chat />} />
+      <Route path="/docling-poc" element={<DoclingPOC />} />
+      <Route path="*" element={<Navigate to="/intelligence/hub" replace />} />
+    </Routes>
   );
 };
 
