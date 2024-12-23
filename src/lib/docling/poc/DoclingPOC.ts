@@ -46,15 +46,10 @@ export class DoclingPOC {
   private chunker: DocumentChunker;
   private results: ProcessingMetrics[] = [];
   private chunks: DocumentChunk[] = [];
-  private openai: OpenAI;
+  private openai: OpenAI | null = null;
 
   constructor() {
-    // Initialize OpenAI client with import.meta.env instead of process.env
-    this.openai = new OpenAI({
-      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-    });
-
-    // Simulated for POC since we can't directly use docling in browser
+    // Initialize converter and chunker
     this.converter = {
       convert: async (file: File) => ({
         document: {
@@ -65,7 +60,6 @@ export class DoclingPOC {
     
     this.chunker = {
       chunk: (doc: { export_to_markdown: () => string }) => {
-        // Simulate realistic chunks based on file content
         const numChunks = Math.floor(Math.random() * 10 + 5);
         return Array(numChunks).fill(null).map((_, index) => ({
           content: `Chunk ${index + 1} from document: ${doc.export_to_markdown()}`,
@@ -76,9 +70,40 @@ export class DoclingPOC {
         }));
       }
     };
+
+    // Initialize OpenAI client asynchronously
+    this.initializeOpenAI();
+  }
+
+  private async initializeOpenAI() {
+    try {
+      const { data: secrets, error } = await supabase
+        .from('secrets')
+        .select('value')
+        .eq('name', 'OPENAI_API_KEY')
+        .single();
+
+      if (error) throw error;
+      
+      if (!secrets?.value) {
+        toast.error('OpenAI API key not found. Please add it in the settings.');
+        return;
+      }
+
+      this.openai = new OpenAI({
+        apiKey: secrets.value
+      });
+    } catch (error) {
+      console.error('Error initializing OpenAI:', error);
+      toast.error('Failed to initialize OpenAI client');
+    }
   }
 
   private async generateEmbedding(text: string): Promise<number[]> {
+    if (!this.openai) {
+      throw new Error('OpenAI client not initialized');
+    }
+
     try {
       const response = await this.openai.embeddings.create({
         input: text,
