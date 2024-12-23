@@ -35,6 +35,7 @@ export class OpenAIService {
 
       // Test the API key before proceeding
       try {
+        console.log('Creating OpenAI client with provided key...');
         this.openai = new OpenAI({
           apiKey: secrets.value
         });
@@ -44,10 +45,12 @@ export class OpenAIService {
         
         this.initialized = true;
         console.log('OpenAI service initialized successfully');
+        toast.success('OpenAI service initialized successfully');
         return true;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Invalid OpenAI API key:', error);
-        toast.error('Invalid OpenAI API key. Please check your settings.');
+        const errorMessage = error.response?.data?.error?.message || 'Invalid OpenAI API key. Please check your settings.';
+        toast.error(errorMessage);
         return false;
       }
     } catch (error) {
@@ -60,11 +63,11 @@ export class OpenAIService {
   private async testConnection(): Promise<boolean> {
     try {
       console.log('Testing OpenAI connection...');
-      await this.openai!.embeddings.create({
+      const response = await this.openai!.embeddings.create({
         input: "test",
         model: "text-embedding-3-small"
       });
-      console.log('OpenAI connection test successful');
+      console.log('OpenAI connection test successful:', response);
       return true;
     } catch (error) {
       console.error('OpenAI connection test failed:', error);
