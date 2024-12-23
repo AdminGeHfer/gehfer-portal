@@ -3,20 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { DoclingPOC } from '@/lib/docling/poc/DoclingPOC';
 import { toast } from "sonner";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
 import { InitializationProgress } from './InitializationProgress';
-import { RetryButton } from './RetryButton';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Info } from "lucide-react";
+import { InitializationError } from './components/InitializationError';
+import { ResultsTable } from './components/ResultsTable';
 
 const INITIALIZATION_STAGES = [
   { name: 'Checking authentication...', weight: 20 },
@@ -64,7 +55,7 @@ export function DoclingPOCUI() {
       const initialized = await newPoc.initialize();
       
       if (!initialized) {
-        throw new Error('Failed to initialize POC services. Please check the OpenAI configuration.');
+        throw new Error('Failed to initialize POC services.');
       }
 
       updateProgress('Verifying configuration...', 80);
@@ -79,7 +70,6 @@ export function DoclingPOCUI() {
       console.error('Error initializing POC:', error);
       setError(error.message || 'Failed to initialize document processing');
       setDetailedError(error.stack || 'No detailed error information available');
-      toast.error(error.message || 'Failed to initialize document processing');
       setIsInitialized(false);
       setInitProgress(prevProgress => Math.max(prevProgress - 20, 0));
     }
@@ -133,37 +123,13 @@ export function DoclingPOCUI() {
           />
           
           {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Initialization Error</AlertTitle>
-              <AlertDescription className="mt-2">
-                <div className="space-y-2">
-                  <p>{error}</p>
-                  {detailedError && (
-                    <details className="mt-2 text-sm">
-                      <summary className="cursor-pointer">Technical Details</summary>
-                      <pre className="mt-2 whitespace-pre-wrap text-xs">
-                        {detailedError}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          {initProgress < 100 && initProgress > 0 && (
-            <div className="space-y-2">
-              <RetryButton onRetry={handleRetry} isRetrying={isRetrying} />
-              <Button 
-                variant="outline" 
-                onClick={handleReconfigureKey}
-                className="w-full"
-              >
-                <Info className="mr-2 h-4 w-4" />
-                Reconfigure OpenAI API Key
-              </Button>
-            </div>
+            <InitializationError
+              error={error}
+              detailedError={detailedError}
+              onRetry={handleRetry}
+              onReconfigureKey={handleReconfigureKey}
+              isRetrying={isRetrying}
+            />
           )}
         </div>
       </Card>
@@ -198,31 +164,7 @@ export function DoclingPOCUI() {
           />
         </div>
 
-        {results.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Results</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>File</TableHead>
-                  <TableHead>Processing Time (ms)</TableHead>
-                  <TableHead>Chunks</TableHead>
-                  <TableHead>Doc Size</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {results.map((result, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{result.file}</TableCell>
-                    <TableCell>{result.processingTime.toFixed(2)}</TableCell>
-                    <TableCell>{result.numChunks}</TableCell>
-                    <TableCell>{result.docSize}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        {results.length > 0 && <ResultsTable results={results} />}
       </div>
     </Card>
   );
