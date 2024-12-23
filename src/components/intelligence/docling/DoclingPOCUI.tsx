@@ -12,28 +12,67 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from 'react-router-dom';
+import { InitializationProgress } from './InitializationProgress';
+import { RetryButton } from './RetryButton';
 
 export function DoclingPOCUI() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [poc, setPoc] = useState<DoclingPOC | null>(null);
+  const [initStage, setInitStage] = useState('Checking authentication...');
+  const [initProgress, setInitProgress] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const navigate = useNavigate();
+
+  const initializePOC = async () => {
+    try {
+      setInitProgress(0);
+      setInitStage('Checking authentication...');
+      
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        console.error('Authentication error:', sessionError);
+        toast.error('Please login to access this feature');
+        navigate('/login');
+        return;
+      }
+
+      setInitProgress(30);
+      setInitStage('Creating POC instance...');
+      
+      const newPoc = new DoclingPOC();
+      
+      setInitProgress(60);
+      setInitStage('Initializing services...');
+      
+      const initialized = await newPoc.initialize();
+      if (!initialized) {
+        throw new Error('Failed to initialize POC services');
+      }
+
+      setInitProgress(100);
+      setInitStage('Initialization complete');
+      
+      setPoc(newPoc);
+      setIsInitialized(true);
+    } catch (error: any) {
+      console.error('Error initializing POC:', error);
+      toast.error(error.message || 'Failed to initialize document processing');
+      setIsInitialized(false);
+    }
+  };
 
   useEffect(() => {
-    const initializePOC = async () => {
-      try {
-        const newPoc = new DoclingPOC();
-        await newPoc.initialize();
-        setPoc(newPoc);
-        setIsInitialized(true);
-      } catch (error: any) {
-        console.error('Error initializing POC:', error);
-        toast.error(error.message || 'Failed to initialize document processing');
-      }
-    };
-
     initializePOC();
   }, []);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    await initializePOC();
+    setIsRetrying(false);
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -60,8 +99,11 @@ export function DoclingPOCUI() {
   if (!isInitialized) {
     return (
       <Card className="p-6">
-        <div className="text-center">
-          <p>Initializing document processing...</p>
+        <div className="space-y-4">
+          <InitializationProgress stage={initStage} progress={initProgress} />
+          {initProgress < 100 && initProgress > 0 && (
+            <RetryButton onRetry={handleRetry} isRetrying={isRetrying} />
+          )}
         </div>
       </Card>
     );

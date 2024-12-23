@@ -16,19 +16,33 @@ export class DoclingPOC {
     this.documentService = new DocumentService();
   }
 
-  async initialize() {
+  async initialize(): Promise<boolean> {
     try {
+      console.log('Initializing DoclingPOC...');
+      
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (sessionError) throw sessionError;
-      if (!session) throw new Error('No active session');
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw sessionError;
+      }
+      
+      if (!session) {
+        console.error('No active session');
+        throw new Error('No active session');
+      }
 
+      console.log('Session verified, initializing OpenAI service...');
+      
       const openAIInitialized = await this.openAIService.initialize();
       if (!openAIInitialized) {
+        console.error('Failed to initialize OpenAI service');
         throw new Error('Failed to initialize OpenAI service. Please check your API key.');
       }
 
+      console.log('DoclingPOC initialized successfully');
       this.initialized = true;
+      return true;
     } catch (error: any) {
       console.error('Initialization error:', error);
       throw new Error('Failed to initialize document processing. Please ensure you are logged in and have set up your OpenAI API key.');
@@ -41,6 +55,7 @@ export class DoclingPOC {
 
   async processDocument(file: File): Promise<ProcessingMetrics> {
     if (!this.initialized) {
+      console.error('DoclingPOC not initialized');
       throw new Error('DoclingPOC not initialized. Please wait for initialization to complete.');
     }
 
@@ -50,12 +65,13 @@ export class DoclingPOC {
 
     try {
       const { chunks, docSize } = await this.documentService.processDocument(file);
+      console.log(`Document processed into ${chunks.length} chunks`);
 
       // Generate embeddings for each chunk
       for (const chunk of chunks) {
         chunk.embedding = await this.openAIService.generateEmbedding(chunk.content);
+        console.log(`Generated embedding for chunk ${chunks.indexOf(chunk) + 1}/${chunks.length}`);
       }
-      console.log('Generated embeddings for all chunks');
 
       // Store chunks for later saving
       this.chunks = this.chunks.concat(chunks);
@@ -73,6 +89,7 @@ export class DoclingPOC {
       };
 
       this.results.push(metrics);
+      console.log('Document processing completed:', metrics);
       return metrics;
 
     } catch (error: any) {
@@ -87,6 +104,8 @@ export class DoclingPOC {
     }
 
     try {
+      console.log('Uploading results...');
+      
       // First create a new document entry
       const { data: documentData, error: documentError } = await supabase
         .from('documents')
