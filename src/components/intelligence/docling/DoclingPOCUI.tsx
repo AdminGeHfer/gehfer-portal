@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { DoclingPOC } from '@/lib/docling/poc/DoclingPOC';
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -10,15 +11,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { supabase } from "@/integrations/supabase/client";
 
 export function DoclingPOCUI() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
-  const poc = new DoclingPOC();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [poc, setPoc] = useState<DoclingPOC | null>(null);
+
+  useEffect(() => {
+    const initializePOC = async () => {
+      try {
+        const newPoc = new DoclingPOC();
+        await newPoc.initialize();
+        setPoc(newPoc);
+        setIsInitialized(true);
+      } catch (error: any) {
+        console.error('Error initializing POC:', error);
+        toast.error(error.message || 'Failed to initialize document processing');
+      }
+    };
+
+    initializePOC();
+  }, []);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || !poc) return;
 
     setIsProcessing(true);
     try {
@@ -28,13 +47,25 @@ export function DoclingPOCUI() {
       }
       
       await poc.uploadResults();
+      toast.success('Documents processed successfully');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in POC:', error);
+      toast.error(error.message || 'Error processing documents');
     } finally {
       setIsProcessing(false);
     }
   };
+
+  if (!isInitialized) {
+    return (
+      <Card className="p-6">
+        <div className="text-center">
+          <p>Initializing document processing...</p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">

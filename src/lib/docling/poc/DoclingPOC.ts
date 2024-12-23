@@ -9,15 +9,26 @@ export class DoclingPOC {
   private documentService: DocumentService;
   private results: ProcessingMetrics[] = [];
   private chunks: DocumentChunk[] = [];
+  private initialized: boolean = false;
 
   constructor() {
     this.openAIService = new OpenAIService();
     this.documentService = new DocumentService();
-    this.initializeServices();
   }
 
-  private async initializeServices() {
-    await this.openAIService.initialize();
+  async initialize() {
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) throw sessionError;
+      if (!session) throw new Error('No active session');
+
+      await this.openAIService.initialize();
+      this.initialized = true;
+    } catch (error: any) {
+      console.error('Initialization error:', error);
+      throw new Error('Failed to initialize document processing. Please ensure you are logged in.');
+    }
   }
 
   private convertToVectorString(embedding: number[]): string {
@@ -25,6 +36,10 @@ export class DoclingPOC {
   }
 
   async processDocument(file: File): Promise<ProcessingMetrics> {
+    if (!this.initialized) {
+      throw new Error('DoclingPOC not initialized. Please wait for initialization to complete.');
+    }
+
     console.log('Processing document:', file.name);
     
     const startTime = performance.now();
@@ -56,14 +71,17 @@ export class DoclingPOC {
       this.results.push(metrics);
       return metrics;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing document:', error);
-      toast.error(`Error processing ${file.name}`);
       throw error;
     }
   }
 
   async uploadResults() {
+    if (!this.initialized) {
+      throw new Error('DoclingPOC not initialized. Please wait for initialization to complete.');
+    }
+
     try {
       // First create a new document entry
       const { data: documentData, error: documentError } = await supabase
@@ -110,12 +128,10 @@ export class DoclingPOC {
       if (resultsError) throw resultsError;
       
       console.log('POC results uploaded successfully');
-      toast.success('Document processed and chunks saved successfully');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading results:', error);
-      toast.error('Error saving processing results');
-      throw error;
+      throw new Error('Failed to save processing results: ' + error.message);
     }
   }
 
