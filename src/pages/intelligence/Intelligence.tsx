@@ -1,19 +1,22 @@
-import { lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-
-const Hub = lazy(() => import("./Hub"));
-const DoclingPOC = lazy(() => import("./DoclingPOC"));
-const Chat = lazy(() => import("./Chat"));
+import { Header } from "@/components/Header";
+import Hub from "./Hub";
+import Chat from "./Chat";
+import DoclingPOC from "./DoclingPOC";
 
 const Intelligence = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/intelligence/hub" replace />} />
-      <Route path="/hub" element={<Hub />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/docling-poc" element={<DoclingPOC />} />
-      <Route path="*" element={<Navigate to="/intelligence/hub" replace />} />
-    </Routes>
+    <div className="flex flex-col h-full">
+      <Header title="GeHfer Intelligence" />
+      <div className="flex-1 p-6">
+        <Routes>
+          <Route path="/" element={<Hub />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="docling-poc" element={<DoclingPOC />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
+    </div>
   );
 };
 

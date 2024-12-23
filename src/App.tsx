@@ -78,7 +78,7 @@ const App = () => (
                             <main className="flex-1 overflow-auto w-full">
                               <Routes>
                                 <Route path="/apps" element={<Apps />} />
-                                <Route path="/intelligence" element={<Intelligence />} />
+                                <Route path="/intelligence/*" element={<Intelligence />} />
                                 <Route path="/intelligence/docling-poc" element={<DoclingPOC />} />
                                 <Route
                                   path="/quality/*"
