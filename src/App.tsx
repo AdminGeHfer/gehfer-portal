@@ -15,11 +15,9 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Lazy load components
 const Login = lazy(() => import("./features/auth/pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
-const Intelligence = lazy(() => import("./pages/intelligence/Intelligence").then(module => ({ 
-  default: module.default 
-})));
-const DoclingPOC = lazy(() => import("./pages/intelligence/DoclingPOC").then(module => ({ 
-  default: module.default 
+const Intelligence = lazy(() => import("./pages/intelligence/Intelligence"));
+const DoclingPOC = lazy(() => import("./components/intelligence/docling/DoclingPOCUI").then(module => ({ 
+  default: module.DoclingPOCUI 
 })));
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
@@ -83,7 +81,11 @@ const App = () => (
                               <Routes>
                                 <Route path="/apps" element={<Apps />} />
                                 <Route path="/intelligence" element={<Intelligence />} />
-                                <Route path="/intelligence/docling-poc" element={<DoclingPOC />} />
+                                <Route path="/intelligence/docling-poc" element={
+                                  <Suspense fallback={<LoadingFallback />}>
+                                    <DoclingPOC />
+                                  </Suspense>
+                                } />
                                 <Route
                                   path="/quality/*"
                                   element={
