@@ -15,7 +15,12 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Lazy load components
 const Login = lazy(() => import("./features/auth/pages/Login"));
 const Apps = lazy(() => import("./pages/Apps"));
-const Intelligence = lazy(() => import("./pages/intelligence/Intelligence"));
+const Intelligence = lazy(() => import("./pages/intelligence/Intelligence").then(module => ({ 
+  default: module.default 
+})));
+const DoclingPOC = lazy(() => import("./pages/intelligence/DoclingPOC").then(module => ({ 
+  default: module.default 
+})));
 const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
 const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
 const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
@@ -77,7 +82,8 @@ const App = () => (
                             <main className="flex-1 overflow-auto w-full">
                               <Routes>
                                 <Route path="/apps" element={<Apps />} />
-                                <Route path="/intelligence/*" element={<Intelligence />} />
+                                <Route path="/intelligence" element={<Intelligence />} />
+                                <Route path="/intelligence/docling-poc" element={<DoclingPOC />} />
                                 <Route
                                   path="/quality/*"
                                   element={
