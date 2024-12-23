@@ -49,9 +49,9 @@ export class DoclingPOC {
   private openai: OpenAI;
 
   constructor() {
-    // Initialize OpenAI client
+    // Initialize OpenAI client with import.meta.env instead of process.env
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
     });
 
     // Simulated for POC since we can't directly use docling in browser
@@ -91,7 +91,6 @@ export class DoclingPOC {
     }
   }
 
-  // Convert number[] to PostgreSQL vector format
   private convertToVectorString(embedding: number[]): string {
     return `[${embedding.join(',')}]`;
   }
