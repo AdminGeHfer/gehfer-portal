@@ -28,7 +28,7 @@ export class OpenAIService {
       }
 
       if (!secrets?.value) {
-        console.error('OpenAI API key not found');
+        console.error('OpenAI API key not found in secrets');
         toast.error('OpenAI API key not found. Please add it in settings.');
         return false;
       }
@@ -40,8 +40,21 @@ export class OpenAIService {
           apiKey: secrets.value
         });
         
-        // Test API connection
-        await this.testConnection();
+        // Test API connection with retries
+        let retryCount = 0;
+        while (retryCount < MAX_RETRIES) {
+          try {
+            await this.testConnection();
+            break;
+          } catch (error) {
+            retryCount++;
+            console.log(`Connection test failed, attempt ${retryCount} of ${MAX_RETRIES}`);
+            if (retryCount === MAX_RETRIES) {
+              throw error;
+            }
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          }
+        }
         
         this.initialized = true;
         console.log('OpenAI service initialized successfully');
