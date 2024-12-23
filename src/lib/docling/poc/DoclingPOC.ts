@@ -23,11 +23,15 @@ export class DoclingPOC {
       if (sessionError) throw sessionError;
       if (!session) throw new Error('No active session');
 
-      await this.openAIService.initialize();
+      const openAIInitialized = await this.openAIService.initialize();
+      if (!openAIInitialized) {
+        throw new Error('Failed to initialize OpenAI service. Please check your API key.');
+      }
+
       this.initialized = true;
     } catch (error: any) {
       console.error('Initialization error:', error);
-      throw new Error('Failed to initialize document processing. Please ensure you are logged in.');
+      throw new Error('Failed to initialize document processing. Please ensure you are logged in and have set up your OpenAI API key.');
     }
   }
 
