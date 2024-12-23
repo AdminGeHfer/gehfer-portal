@@ -15,25 +15,39 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
 import { InitializationProgress } from './InitializationProgress';
 import { RetryButton } from './RetryButton';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, Info } from "lucide-react";
+
+const INITIALIZATION_STAGES = [
+  { name: 'Checking authentication...', weight: 20 },
+  { name: 'Creating POC instance...', weight: 20 },
+  { name: 'Initializing OpenAI service...', weight: 40 },
+  { name: 'Verifying configuration...', weight: 20 }
+];
 
 export function DoclingPOCUI() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [poc, setPoc] = useState<DoclingPOC | null>(null);
-  const [initStage, setInitStage] = useState('Checking authentication...');
+  const [initStage, setInitStage] = useState('Starting initialization...');
   const [initProgress, setInitProgress] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detailedError, setDetailedError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const updateProgress = (stageName: string, progress: number) => {
+    setInitStage(stageName);
+    setInitProgress(progress);
+  };
 
   const initializePOC = async () => {
     try {
       setError(null);
+      setDetailedError(null);
       setInitProgress(0);
-      setInitStage('Checking authentication...');
+      updateProgress('Checking authentication...', 0);
       
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
@@ -43,31 +57,31 @@ export function DoclingPOCUI() {
         return;
       }
 
-      setInitProgress(30);
-      setInitStage('Creating POC instance...');
-      
+      updateProgress('Creating POC instance...', 20);
       const newPoc = new DoclingPOC();
       
-      setInitProgress(60);
-      setInitStage('Initializing OpenAI service...');
-      
+      updateProgress('Initializing OpenAI service...', 40);
       const initialized = await newPoc.initialize();
+      
       if (!initialized) {
-        throw new Error('Failed to initialize POC services');
+        throw new Error('Failed to initialize POC services. Please check the OpenAI configuration.');
       }
 
-      setInitProgress(100);
-      setInitStage('Initialization complete');
+      updateProgress('Verifying configuration...', 80);
       
       setPoc(newPoc);
       setIsInitialized(true);
+      setInitProgress(100);
+      updateProgress('Initialization complete', 100);
+      
+      toast.success('POC initialized successfully');
     } catch (error: any) {
       console.error('Error initializing POC:', error);
       setError(error.message || 'Failed to initialize document processing');
+      setDetailedError(error.stack || 'No detailed error information available');
       toast.error(error.message || 'Failed to initialize document processing');
       setIsInitialized(false);
-      // Rollback progress on error
-      setInitProgress(prevProgress => Math.max(prevProgress - 30, 0));
+      setInitProgress(prevProgress => Math.max(prevProgress - 20, 0));
     }
   };
 
@@ -112,12 +126,29 @@ export function DoclingPOCUI() {
     return (
       <Card className="p-6">
         <div className="space-y-4">
-          <InitializationProgress stage={initStage} progress={initProgress} />
+          <InitializationProgress 
+            stage={initStage} 
+            progress={initProgress}
+            stages={INITIALIZATION_STAGES}
+          />
           
           {error && (
             <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertTitle>Initialization Error</AlertTitle>
+              <AlertDescription className="mt-2">
+                <div className="space-y-2">
+                  <p>{error}</p>
+                  {detailedError && (
+                    <details className="mt-2 text-sm">
+                      <summary className="cursor-pointer">Technical Details</summary>
+                      <pre className="mt-2 whitespace-pre-wrap text-xs">
+                        {detailedError}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              </AlertDescription>
             </Alert>
           )}
           
@@ -129,6 +160,7 @@ export function DoclingPOCUI() {
                 onClick={handleReconfigureKey}
                 className="w-full"
               >
+                <Info className="mr-2 h-4 w-4" />
                 Reconfigure OpenAI API Key
               </Button>
             </div>
