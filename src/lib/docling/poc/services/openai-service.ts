@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from "sonner";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -33,17 +33,42 @@ export class OpenAIService {
         return false;
       }
 
-      this.openai = new OpenAI({
-        apiKey: secrets.value
-      });
-      
-      this.initialized = true;
-      console.log('OpenAI service initialized successfully');
-      return true;
+      // Test the API key before proceeding
+      try {
+        this.openai = new OpenAI({
+          apiKey: secrets.value
+        });
+        
+        // Test API connection
+        await this.testConnection();
+        
+        this.initialized = true;
+        console.log('OpenAI service initialized successfully');
+        return true;
+      } catch (error) {
+        console.error('Invalid OpenAI API key:', error);
+        toast.error('Invalid OpenAI API key. Please check your settings.');
+        return false;
+      }
     } catch (error) {
       console.error('Error initializing OpenAI:', error);
       toast.error('Failed to initialize OpenAI client');
       return false;
+    }
+  }
+
+  private async testConnection(): Promise<boolean> {
+    try {
+      console.log('Testing OpenAI connection...');
+      await this.openai!.embeddings.create({
+        input: "test",
+        model: "text-embedding-3-small"
+      });
+      console.log('OpenAI connection test successful');
+      return true;
+    } catch (error) {
+      console.error('OpenAI connection test failed:', error);
+      throw error;
     }
   }
 

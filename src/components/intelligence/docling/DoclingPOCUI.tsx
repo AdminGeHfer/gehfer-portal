@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from 'react-router-dom';
 import { InitializationProgress } from './InitializationProgress';
 import { RetryButton } from './RetryButton';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export function DoclingPOCUI() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -24,10 +26,12 @@ export function DoclingPOCUI() {
   const [initStage, setInitStage] = useState('Checking authentication...');
   const [initProgress, setInitProgress] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const initializePOC = async () => {
     try {
+      setError(null);
       setInitProgress(0);
       setInitStage('Checking authentication...');
       
@@ -45,7 +49,7 @@ export function DoclingPOCUI() {
       const newPoc = new DoclingPOC();
       
       setInitProgress(60);
-      setInitStage('Initializing services...');
+      setInitStage('Initializing OpenAI service...');
       
       const initialized = await newPoc.initialize();
       if (!initialized) {
@@ -59,8 +63,11 @@ export function DoclingPOCUI() {
       setIsInitialized(true);
     } catch (error: any) {
       console.error('Error initializing POC:', error);
+      setError(error.message || 'Failed to initialize document processing');
       toast.error(error.message || 'Failed to initialize document processing');
       setIsInitialized(false);
+      // Rollback progress on error
+      setInitProgress(prevProgress => Math.max(prevProgress - 30, 0));
     }
   };
 
@@ -72,6 +79,11 @@ export function DoclingPOCUI() {
     setIsRetrying(true);
     await initializePOC();
     setIsRetrying(false);
+  };
+
+  const handleReconfigureKey = () => {
+    window.open('https://platform.openai.com/api-keys', '_blank');
+    toast.info('After getting a new API key, please update it in the settings');
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,8 +113,25 @@ export function DoclingPOCUI() {
       <Card className="p-6">
         <div className="space-y-4">
           <InitializationProgress stage={initStage} progress={initProgress} />
+          
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           {initProgress < 100 && initProgress > 0 && (
-            <RetryButton onRetry={handleRetry} isRetrying={isRetrying} />
+            <div className="space-y-2">
+              <RetryButton onRetry={handleRetry} isRetrying={isRetrying} />
+              <Button 
+                variant="outline" 
+                onClick={handleReconfigureKey}
+                className="w-full"
+              >
+                Reconfigure OpenAI API Key
+              </Button>
+            </div>
           )}
         </div>
       </Card>
