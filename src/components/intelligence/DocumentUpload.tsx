@@ -37,7 +37,9 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
             filename: file.name,
             contentType: file.type,
             size: file.size,
-            path: storageData.path
+            path: storageData.path,
+            processor: 'docling',
+            version: '1.0'
           }
         })
         .select()
@@ -55,7 +57,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
 
       if (assocError) throw assocError;
 
-      // Process the document
+      // Process the document using Docling
       const { error: processError } = await supabase.functions.invoke('process-document', {
         body: JSON.stringify({
           documentId: documentData.id,
@@ -65,12 +67,12 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
 
       if (processError) throw processError;
 
-      toast.success("Documento enviado com sucesso");
+      toast.success("Documento processado com sucesso");
       // Reset the input
       event.target.value = '';
     } catch (error: any) {
-      console.error('Error uploading document:', error);
-      toast.error(error.message || "Erro ao enviar documento");
+      console.error('Error processing document:', error);
+      toast.error(error.message || "Erro ao processar documento");
     } finally {
       setIsUploading(false);
     }
@@ -85,7 +87,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
         onClick={() => document.getElementById('file-upload')?.click()}
       >
         <Upload className="h-4 w-4" />
-        {isUploading ? "Enviando..." : "Upload de Documento"}
+        {isUploading ? "Processando..." : "Upload de Documento"}
       </Button>
       <input
         id="file-upload"
