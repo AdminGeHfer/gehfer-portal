@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -78,7 +78,7 @@ export function useConversations() {
       if (error) throw error;
       
       // Invalidate conversations query to trigger refetch
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       
       navigate(`/intelligence/chat/${data.id}`);
     } catch (error: any) {
@@ -87,9 +87,42 @@ export function useConversations() {
     }
   };
 
+  const deleteConversation = async (conversationId: string) => {
+    try {
+      const { error: deleteMessagesError } = await supabase
+        .from('ai_messages')
+        .delete()
+        .eq('conversation_id', conversationId);
+
+      if (deleteMessagesError) throw deleteMessagesError;
+
+      const { error: deleteConversationError } = await supabase
+        .from('ai_conversations')
+        .delete()
+        .eq('id', conversationId);
+
+      if (deleteConversationError) throw deleteConversationError;
+
+      // Immediately remove the conversation from the cache
+      queryClient.setQueryData(['conversations'], (old: any) => 
+        old?.filter((conv: any) => conv.id !== conversationId) || []
+      );
+
+      // Also invalidate to ensure fresh data
+      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+
+      toast.success("Conversa excluída com sucesso");
+      navigate('/intelligence/chat');
+    } catch (error: any) {
+      console.error('Error deleting conversation:', error);
+      toast.error("Erro ao excluir conversa");
+    }
+  };
+
   return {
     conversations,
     isLoading,
-    createNewConversation
+    createNewConversation,
+    deleteConversation
   };
 }

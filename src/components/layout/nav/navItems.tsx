@@ -34,7 +34,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: "GeHfer Intelligence",
-    href: "/intelligence/hub",
+    href: "/intelligence",
     icon: <Brain className="h-5 w-5" />,
     subModules: [
       {
