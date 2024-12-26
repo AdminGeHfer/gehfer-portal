@@ -1,6 +1,6 @@
-import { supabase } from '@/integrations/supabase/client';
-import { ProcessingMetrics, DocumentChunk } from '../types';
-import OpenAI from 'openai';
+import { supabase } from "@/integrations/supabase/client";
+import { ProcessingMetrics, DocumentChunk } from "../types";
+import OpenAI from "openai";
 
 export class DoclingProcessor {
   private openai: OpenAI;
@@ -140,6 +140,7 @@ export class DoclingProcessor {
   }
 
   private async saveMetrics(filename: string, metrics: ProcessingMetrics, chunks: DocumentChunk[]) {
+    // Save document with metrics
     const { data: document, error: docError } = await supabase
       .from('documents')
       .insert({

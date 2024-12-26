@@ -1,4 +1,7 @@
+import { Json } from "@/integrations/supabase/types/json";
+
 export interface ProcessingMetrics {
+  [key: string]: Json;
   processingTime: number;
   chunkCount: number;
   avgCoherence: number;
