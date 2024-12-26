@@ -2,12 +2,13 @@ import { BaseMemory, ChatMessageHistory } from "langchain/memory";
 import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { Message } from "@/types/ai";
 
-interface HierarchicalMemoryConfig {
+export interface HierarchicalMemoryConfig {
   maxTokens?: number;
   compressionThreshold?: number;
   useSemanticCompression?: boolean;
   maxRetries?: number;
   retryDelay?: number;
+  conversationId: string;
 }
 
 export class HierarchicalMemory extends BaseMemory {
@@ -18,8 +19,9 @@ export class HierarchicalMemory extends BaseMemory {
   private useSemanticCompression: boolean;
   private maxRetries: number;
   private retryDelay: number;
+  private conversationId: string;
 
-  constructor(config?: HierarchicalMemoryConfig) {
+  constructor(config: HierarchicalMemoryConfig) {
     super();
     this.shortTermMemory = new ChatMessageHistory();
     this.longTermMemory = new ChatMessageHistory();
@@ -28,6 +30,7 @@ export class HierarchicalMemory extends BaseMemory {
     this.useSemanticCompression = config?.useSemanticCompression || true;
     this.maxRetries = config?.maxRetries || 3;
     this.retryDelay = config?.retryDelay || 1000;
+    this.conversationId = config.conversationId;
   }
 
   get memoryKeys(): string[] {
@@ -64,6 +67,37 @@ export class HierarchicalMemory extends BaseMemory {
       await this.compressMemoryIfNeeded();
     } catch (error) {
       console.error('Error saving context:', error);
+    }
+  }
+
+  async getRelevantHistory(message: string): Promise<Message[]> {
+    try {
+      const shortTermMessages = await this.shortTermMemory.getMessages();
+      const longTermMessages = await this.longTermMemory.getMessages();
+      
+      const relevantLongTerm = await this.filterRelevantMemories(longTermMessages);
+      const combinedHistory = [...relevantLongTerm, ...shortTermMessages];
+      
+      return combinedHistory.map(msg => ({
+        id: crypto.randomUUID(),
+        conversation_id: this.conversationId,
+        role: msg._getType() as 'system' | 'assistant' | 'user',
+        content: msg.content,
+        created_at: new Date().toISOString(),
+      }));
+    } catch (error) {
+      console.error('Error getting relevant history:', error);
+      return [];
+    }
+  }
+
+  async addMemory(message: Message): Promise<void> {
+    try {
+      const aiMessage = new AIMessage(message.content);
+      await this.shortTermMemory.addMessage(aiMessage);
+      await this.compressMemoryIfNeeded();
+    } catch (error) {
+      console.error('Error adding memory:', error);
     }
   }
 

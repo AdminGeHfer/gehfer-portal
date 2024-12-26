@@ -30,7 +30,12 @@ export class EnhancedConversationChain {
       semanticAnalysis: true
     });
 
-    this.memory = new HierarchicalMemory(conversationId);
+    this.memory = new HierarchicalMemory({
+      maxTokens: config.max_tokens,
+      useSemanticCompression: true,
+      conversationId: conversationId
+    });
+    
     this.systemPrompt = config.system_prompt || "You are a helpful AI assistant.";
   }
 
