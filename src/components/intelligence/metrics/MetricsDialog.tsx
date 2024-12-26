@@ -4,6 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { BarChart3 } from "lucide-react";
@@ -26,6 +27,9 @@ export const MetricsDialog = ({ agentId, agentName }: MetricsDialogProps) => {
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Métricas de Qualidade - {agentName}</DialogTitle>
+          <DialogDescription>
+            Visualize e analise as métricas de qualidade do agente de IA
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <AgentMetricsDashboard agentId={agentId} />
