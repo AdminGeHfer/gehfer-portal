@@ -64,7 +64,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
       if (messagesError) throw messagesError;
 
       // Create conversation chain with enhanced features
-      const conversationChain = new EnhancedConversationChain(agent);
+      const conversationChain = new EnhancedConversationChain(agent, conversationId);
 
       // Process message with enhanced context and memory
       const response = await conversationChain.processMessage(content, messages);

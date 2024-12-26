@@ -2,7 +2,7 @@ import { ConversationChain } from "langchain/chains";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { AIAgent } from "@/types/ai/agent";
-import { HierarchicalMemory } from "../memory/hierarchicalMemory";
+import { HierarchicalMemory } from "../memory/HierarchicalMemory";
 import { EnhancedRetriever } from "../rag/enhancedRetrieval";
 
 export const createEnhancedAgentChain = async (

@@ -1,142 +1,150 @@
-import { BaseMemory } from "langchain/memory";
+import { BaseMemory, ChatMessageHistory } from "langchain/memory";
+import { AIMessage, HumanMessage } from "@langchain/core/messages";
 import { Message } from "@/types/ai";
-import { supabase } from "@/integrations/supabase/client";
 
-interface MemoryLevel {
-  content: string;
-  importance: number;
-  timestamp: number;
+interface HierarchicalMemoryConfig {
+  maxTokens?: number;
+  compressionThreshold?: number;
+  useSemanticCompression?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
 }
 
 export class HierarchicalMemory extends BaseMemory {
-  private shortTermMemory: Message[] = [];
-  private longTermMemory: MemoryLevel[] = [];
-  private readonly maxShortTermSize: number;
-  private readonly compressionThreshold: number;
-  private conversationId: string;
+  private shortTermMemory: ChatMessageHistory;
+  private longTermMemory: ChatMessageHistory;
+  private maxTokens: number;
+  private compressionThreshold: number;
+  private useSemanticCompression: boolean;
+  private maxRetries: number;
+  private retryDelay: number;
 
-  constructor(conversationId: string, maxShortTermSize = 10, compressionThreshold = 0.7) {
+  constructor(config?: HierarchicalMemoryConfig) {
     super();
-    this.maxShortTermSize = maxShortTermSize;
-    this.compressionThreshold = compressionThreshold;
-    this.conversationId = conversationId;
+    this.shortTermMemory = new ChatMessageHistory();
+    this.longTermMemory = new ChatMessageHistory();
+    this.maxTokens = config?.maxTokens || 4000;
+    this.compressionThreshold = config?.compressionThreshold || 0.7;
+    this.useSemanticCompression = config?.useSemanticCompression || true;
+    this.maxRetries = config?.maxRetries || 3;
+    this.retryDelay = config?.retryDelay || 1000;
   }
 
-  // Implement required BaseMemory methods
-  get memoryKeys() {
+  get memoryKeys(): string[] {
     return ["chat_history"];
   }
 
-  async loadMemoryVariables(_: object) {
-    return {
-      chat_history: this.shortTermMemory,
-    };
-  }
-
-  async saveContext(inputValues: object, outputValues: object) {
-    const input = (inputValues as any).input;
-    const output = (outputValues as any).output;
-    
-    if (input) {
-      await this.addMemory({
-        id: crypto.randomUUID(),
-        conversation_id: this.conversationId,
-        role: 'user',
-        content: input,
-        created_at: new Date().toISOString()
-      });
-    }
-    
-    if (output) {
-      await this.addMemory({
-        id: crypto.randomUUID(),
-        conversation_id: this.conversationId,
-        role: 'assistant',
-        content: output,
-        created_at: new Date().toISOString()
-      });
-    }
-  }
-
-  async getRelevantHistory(query: string): Promise<Message[]> {
-    console.log('Getting relevant history for query:', query);
-    
-    const relevantMemories = [...this.shortTermMemory];
-    
+  async loadMemoryVariables(): Promise<{ chat_history: string }> {
     try {
-      const { data: longTermData, error } = await supabase
-        .from('ai_memory_buffers')
-        .select('*')
-        .eq('conversation_id', this.conversationId)
-        .order('created_at', { ascending: false })
-        .limit(5);
+      const shortTermMessages = await this.shortTermMemory.getMessages();
+      const longTermMessages = await this.longTermMemory.getMessages();
+      
+      const relevantLongTerm = await this.filterRelevantMemories(longTermMessages);
+      const combinedHistory = [...relevantLongTerm, ...shortTermMessages];
+      
+      return {
+        chat_history: this.formatMessages(combinedHistory)
+      };
+    } catch (error) {
+      console.error('Error loading memory variables:', error);
+      return { chat_history: '' };
+    }
+  }
 
-      if (error) throw error;
+  async saveContext(inputValues: { input: string }, outputValues: { output: string }): Promise<void> {
+    try {
+      const { input } = inputValues;
+      const { output } = outputValues;
 
-      if (longTermData) {
-        const longTermMessages = longTermData.map(item => ({
-          id: crypto.randomUUID(),
-          conversation_id: this.conversationId,
-          role: 'assistant' as const,
-          content: item.content,
-          created_at: item.created_at
-        }));
-        
-        relevantMemories.push(...longTermMessages);
+      await this.withRetry(async () => {
+        await this.shortTermMemory.addMessage(new HumanMessage(input));
+        await this.shortTermMemory.addMessage(new AIMessage(output));
+      });
+
+      await this.compressMemoryIfNeeded();
+    } catch (error) {
+      console.error('Error saving context:', error);
+    }
+  }
+
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
+    let lastError: Error;
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        if (attempt < this.maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt));
+        }
+      }
+    }
+    throw lastError!;
+  }
+
+  private async compressMemoryIfNeeded(): Promise<void> {
+    const messages = await this.shortTermMemory.getMessages();
+    if (this.shouldCompress(messages)) {
+      const compressed = await this.compressMessages(messages);
+      await this.moveToLongTermMemory(compressed);
+      await this.clearShortTermMemory();
+    }
+  }
+
+  private shouldCompress(messages: any[]): boolean {
+    return messages.length > 10;
+  }
+
+  private async compressMessages(messages: any[]): Promise<any[]> {
+    if (!this.useSemanticCompression) {
+      return messages;
+    }
+
+    // Implement semantic compression
+    return messages.reduce((compressed: any[], message: any) => {
+      if (compressed.length === 0) {
+        return [message];
       }
 
-      return this.filterAndRankMemories(relevantMemories, query);
-    } catch (error) {
-      console.error('Error retrieving memory:', error);
-      return this.shortTermMemory;
+      const lastMessage = compressed[compressed.length - 1];
+      const similarity = this.calculateSimilarity(lastMessage.content, message.content);
+
+      if (similarity > this.compressionThreshold) {
+        lastMessage.content += ' ' + message.content;
+        return compressed;
+      }
+
+      return [...compressed, message];
+    }, []);
+  }
+
+  private calculateSimilarity(text1: string, text2: string): number {
+    // Basic similarity calculation
+    const words1 = new Set(text1.toLowerCase().split(' '));
+    const words2 = new Set(text2.toLowerCase().split(' '));
+    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const union = new Set([...words1, ...words2]);
+    return intersection.size / union.size;
+  }
+
+  private async moveToLongTermMemory(messages: any[]): Promise<void> {
+    for (const message of messages) {
+      await this.longTermMemory.addMessage(message);
     }
   }
 
-  private filterAndRankMemories(memories: Message[], query: string): Message[] {
-    return memories
-      .sort((a, b) => {
-        const dateA = new Date(a.created_at);
-        const dateB = new Date(b.created_at);
-        return dateB.getTime() - dateA.getTime();
-      })
-      .slice(0, this.maxShortTermSize);
+  private async clearShortTermMemory(): Promise<void> {
+    this.shortTermMemory = new ChatMessageHistory();
   }
 
-  async addMemory(message: Message): Promise<void> {
-    console.log('Adding memory:', message);
-    
-    this.shortTermMemory.push(message);
-    
-    if (this.shortTermMemory.length > this.maxShortTermSize) {
-      await this.compressAndStore();
-    }
+  private async filterRelevantMemories(messages: any[]): Promise<any[]> {
+    // Implement relevance filtering
+    return messages;
   }
 
-  private async compressAndStore(): Promise<void> {
-    try {
-      const oldestMemories = this.shortTermMemory.slice(0, 5);
-      const compressedContent = oldestMemories
-        .map(m => `${m.role}: ${m.content}`)
-        .join('\n');
-
-      const { error } = await supabase
-        .from('ai_memory_buffers')
-        .insert({
-          content: compressedContent,
-          type: 'summary',
-          conversation_id: this.conversationId,
-          metadata: {
-            compressed_from: oldestMemories.length,
-            timestamp: new Date().toISOString()
-          }
-        });
-
-      if (error) throw error;
-
-      this.shortTermMemory = this.shortTermMemory.slice(5);
-      
-    } catch (error) {
-      console.error('Error compressing memory:', error);
-    }
+  private formatMessages(messages: any[]): string {
+    return messages
+      .map(m => `${m._getType()}: ${m.content}`)
+      .join('\n');
   }
 }
