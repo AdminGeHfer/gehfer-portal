@@ -3,12 +3,14 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { EnhancedKnowledgeBase } from "../rag/EnhancedKnowledgeBase";
+import { HierarchicalMemory } from "../memory/HierarchicalMemory";
 import { Message } from "@/types/ai";
 import { AIAgent } from "@/types/ai/agent";
 
 export class EnhancedConversationChain {
   private model: ChatOpenAI;
   private knowledgeBase: EnhancedKnowledgeBase;
+  private memory: HierarchicalMemory;
   private systemPrompt: string;
 
   constructor(config: AIAgent) {
@@ -26,6 +28,7 @@ export class EnhancedConversationChain {
       semanticAnalysis: true
     });
 
+    this.memory = new HierarchicalMemory();
     this.systemPrompt = config.system_prompt || "You are a helpful AI assistant.";
   }
 
@@ -33,47 +36,54 @@ export class EnhancedConversationChain {
     console.log('Processing message with enhanced conversation chain');
 
     try {
-      // Get relevant documents
+      // Get relevant documents from knowledge base
       const documents = await this.knowledgeBase.getRelevantDocuments(message);
       
-      // Rerank if documents found
-      const rankedDocs = await this.knowledgeBase.rerank(documents, message);
-
-      // Create context from documents
-      const context = rankedDocs
+      // Get relevant memories
+      const relevantMemories = await this.memory.getRelevantHistory(message);
+      
+      // Create context from documents and memories
+      const context = documents
         .map(doc => doc.pageContent)
         .join('\n\n');
 
-      // Create conversation history
-      const formattedHistory = history
+      // Format conversation history including relevant memories
+      const formattedHistory = [...relevantMemories, ...history]
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n');
 
-      // Create prompt template
+      // Create prompt template with enhanced context
       const promptTemplate = PromptTemplate.fromTemplate(`
         ${this.systemPrompt}
 
         Relevant context from knowledge base:
         ${context}
 
-        Previous conversation:
+        Previous conversation and relevant memories:
         ${formattedHistory}
 
+        Current message:
         Human: ${message}
         Assistant: Let me help you with that.
       `);
 
-      // Create chain
+      // Create and execute chain
       const chain = RunnableSequence.from([
         promptTemplate,
         this.model,
         new StringOutputParser()
       ]);
 
-      // Process message
       const response = await chain.invoke({});
+      
+      // Store the new message in memory
+      await this.memory.addMemory({
+        role: 'assistant',
+        content: response,
+        created_at: new Date().toISOString()
+      });
 
-      console.log('Generated response with context from knowledge base');
+      console.log('Generated response with enhanced context and memory');
       
       return response;
 
