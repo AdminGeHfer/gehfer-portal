@@ -813,6 +813,7 @@ export type Database = {
       }
       document_chunks: {
         Row: {
+          chunk_number: number | null
           coherence_score: number | null
           content: string
           created_at: string
@@ -821,11 +822,14 @@ export type Database = {
           embedding: string | null
           id: string
           metadata: Json
+          processing_time: number | null
           semantic_context: string | null
+          token_count: number | null
           topic: string | null
           version_id: string | null
         }
         Insert: {
+          chunk_number?: number | null
           coherence_score?: number | null
           content: string
           created_at?: string
@@ -834,11 +838,14 @@ export type Database = {
           embedding?: string | null
           id?: string
           metadata?: Json
+          processing_time?: number | null
           semantic_context?: string | null
+          token_count?: number | null
           topic?: string | null
           version_id?: string | null
         }
         Update: {
+          chunk_number?: number | null
           coherence_score?: number | null
           content?: string
           created_at?: string
@@ -847,7 +854,9 @@ export type Database = {
           embedding?: string | null
           id?: string
           metadata?: Json
+          processing_time?: number | null
           semantic_context?: string | null
+          token_count?: number | null
           topic?: string | null
           version_id?: string | null
         }
@@ -874,6 +883,77 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      document_processing_metrics: {
+        Row: {
+          avg_coherence: number
+          chunk_count: number
+          created_at: string | null
+          document_id: string | null
+          embedding_time: number | null
+          id: string
+          metadata: Json | null
+          processing_time: number
+          token_count: number | null
+          version: number | null
+        }
+        Insert: {
+          avg_coherence: number
+          chunk_count: number
+          created_at?: string | null
+          document_id?: string | null
+          embedding_time?: number | null
+          id?: string
+          metadata?: Json | null
+          processing_time: number
+          token_count?: number | null
+          version?: number | null
+        }
+        Update: {
+          avg_coherence?: number
+          chunk_count?: number
+          created_at?: string | null
+          document_id?: string | null
+          embedding_time?: number | null
+          id?: string
+          metadata?: Json | null
+          processing_time?: number
+          token_count?: number | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_processing_metrics_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_search_cache: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          query_hash: string
+          results: Json
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          query_hash: string
+          results: Json
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          query_hash?: string
+          results?: Json
+        }
+        Relationships: []
       }
       document_versions: {
         Row: {

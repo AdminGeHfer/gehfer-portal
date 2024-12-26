@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { ProcessingMetrics } from '../types';
+import { ProcessingMetrics, DocumentChunk } from '../types';
 import OpenAI from 'openai';
 
 export class DoclingProcessor {
@@ -10,11 +10,16 @@ export class DoclingProcessor {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
-    this.metrics = new ProcessingMetrics();
+    this.metrics = {
+      processingTime: 0,
+      chunkCount: 0,
+      avgCoherence: 0,
+      tokenCount: 0
+    };
   }
 
   async processDocument(file: File): Promise<{
-    chunks: any[];
+    chunks: DocumentChunk[];
     metrics: ProcessingMetrics;
   }> {
     console.log('Starting document processing:', file.name);
@@ -80,7 +85,7 @@ export class DoclingProcessor {
     return chunks;
   }
 
-  private async processChunk(chunk: string, index: number) {
+  private async processChunk(chunk: string, index: number): Promise<DocumentChunk> {
     const startTime = performance.now();
 
     // Generate embedding
@@ -124,12 +129,17 @@ export class DoclingProcessor {
     return Math.max(0, Math.min(1, 1 - (deviation / avgLength)));
   }
 
+  private calculateAverageCoherence(chunks: DocumentChunk[]): number {
+    if (chunks.length === 0) return 0;
+    return chunks.reduce((sum, chunk) => sum + chunk.metadata.coherence, 0) / chunks.length;
+  }
+
   private async countTokens(text: string): Promise<number> {
     // Simplified token counting
     return text.split(/\s+/).length;
   }
 
-  private async saveMetrics(filename: string, metrics: any, chunks: any[]) {
+  private async saveMetrics(filename: string, metrics: ProcessingMetrics, chunks: DocumentChunk[]) {
     const { data: document, error: docError } = await supabase
       .from('documents')
       .insert({
@@ -142,15 +152,13 @@ export class DoclingProcessor {
     if (docError) throw docError;
 
     // Save processing metrics
-    await supabase
-      .from('document_processing_metrics')
-      .insert({
-        document_id: document.id,
-        processing_time: metrics.processingTime,
-        chunk_count: metrics.chunkCount,
-        avg_coherence: metrics.avgCoherence,
-        token_count: metrics.tokenCount
-      });
+    await supabase.rpc('insert_document_metrics', {
+      p_document_id: document.id,
+      p_processing_time: metrics.processingTime,
+      p_chunk_count: metrics.chunkCount,
+      p_avg_coherence: metrics.avgCoherence,
+      p_token_count: metrics.tokenCount
+    });
 
     // Save chunks
     await supabase
