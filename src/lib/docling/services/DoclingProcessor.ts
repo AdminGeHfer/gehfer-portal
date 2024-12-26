@@ -24,16 +24,25 @@ export class DoclingProcessor {
         .from('secrets')
         .select('value')
         .eq('name', 'OPENAI_API_KEY')
-        .single();
+        .maybeSingle();  // Changed from single() to maybeSingle()
 
       if (error) throw error;
-      if (!secrets?.value) throw new Error("OpenAI API key not found in secrets");
+      if (!secrets?.value) {
+        throw new Error(
+          "OpenAI API key not found in Supabase secrets. Please add it in the project settings."
+        );
+      }
 
       this.openai = new OpenAI({
         apiKey: secrets.value,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error initializing OpenAI:', error);
+      if (error.message.includes('contains 0 rows')) {
+        throw new Error(
+          "OpenAI API key not found in Supabase secrets. Please add it in the project settings."
+        );
+      }
       throw new Error("Failed to initialize OpenAI client. Please ensure the API key is set in Supabase secrets.");
     }
   }
