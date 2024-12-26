@@ -72,14 +72,17 @@ export class EnhancedKnowledgeBase extends BaseRetriever {
 
       console.log(`Found ${documents.length} relevant documents`);
 
-      // Transform to LangChain Document format
-      const transformedDocs = documents.map(doc => new Document({
-        pageContent: doc.content,
-        metadata: {
-          ...doc.metadata,
-          score: doc.similarity
-        }
-      }));
+      // Transform to LangChain Document format with type-safe metadata handling
+      const transformedDocs = documents.map(doc => {
+        const metadata = doc.metadata || {};
+        return new Document({
+          pageContent: doc.content,
+          metadata: {
+            ...metadata,
+            score: doc.similarity
+          }
+        });
+      });
 
       if (this.config.reranking) {
         return await this.rerank(transformedDocs, query);
