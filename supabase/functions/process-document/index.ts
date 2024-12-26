@@ -1,7 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { DoclingProcessor } from "./services/doclingProcessor.ts";
-import { ProcessingMetrics } from "./utils/metrics.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import OpenAI from "https://esm.sh/openai@4.24.1"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,56 +12,122 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const metrics = new ProcessingMetrics();
-  console.log('Starting document processing request');
-
   try {
-    const { documentId, filePath } = await req.json();
-    console.log('Processing document:', { documentId, filePath });
+    const openai = new OpenAI({
+      apiKey: Deno.env.get('OPENAI_API_KEY'),
+    });
 
-    if (!documentId || !filePath) {
-      throw new Error('Missing required fields: documentId or filePath');
+    const formData = await req.formData();
+    const file = formData.get('file');
+    const agentId = formData.get('agentId');
+
+    if (!file) {
+      throw new Error('No file provided');
     }
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const content = await file.text();
+    const chunks = splitIntoChunks(content, 1000, 200);
+    
+    console.log(`Processing ${chunks.length} chunks`);
+    
+    const processedChunks = await Promise.all(
+      chunks.map(async (chunk, index) => {
+        const embedding = await generateEmbedding(openai, chunk);
+        return {
+          content: chunk,
+          embedding,
+          metadata: {
+            position: index,
+            processingTime: Date.now(),
+          }
+        };
+      })
+    );
 
-    // Initialize Docling processor
-    const processor = new DoclingProcessor(metrics);
-    const results = await processor.processDocument(documentId, filePath, supabase);
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    console.log('Document processed successfully:', results);
+    const { data: documentData, error: documentError } = await supabase
+      .from('documents')
+      .insert({
+        metadata: {
+          filename: file.name,
+          contentType: file.type,
+          size: file.size,
+          processor: 'edge-function',
+          version: '1.0'
+        },
+        processed: true
+      })
+      .select()
+      .single();
+
+    if (documentError) throw documentError;
+
+    const { error: chunksError } = await supabase
+      .from('document_chunks')
+      .insert(
+        processedChunks.map(chunk => ({
+          document_id: documentData.id,
+          content: chunk.content,
+          embedding: chunk.embedding,
+          metadata: chunk.metadata
+        }))
+      );
+
+    if (chunksError) throw chunksError;
+
+    if (agentId) {
+      const { error: assocError } = await supabase
+        .from('ai_agent_documents')
+        .insert({
+          agent_id: agentId,
+          document_id: documentData.id
+        });
+
+      if (assocError) throw assocError;
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        results,
-        metrics: metrics.getAllMetrics()
+        documentId: documentData.id,
+        chunksCount: processedChunks.length 
       }),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error) {
-    console.error('Error in document processing:', error);
+    console.error('Error processing document:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message,
-        metrics: metrics.getAllMetrics()
-      }),
+      JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
 });
+
+async function generateEmbedding(openai: OpenAI, text: string) {
+  const response = await openai.embeddings.create({
+    input: text,
+    model: 'text-embedding-3-small'
+  });
+  return response.data[0].embedding;
+}
+
+function splitIntoChunks(text: string, size: number, overlap: number): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+  
+  while (start < text.length) {
+    const end = Math.min(start + size, text.length);
+    chunks.push(text.slice(start, end));
+    start = end - overlap;
+  }
+  
+  return chunks;
+}
