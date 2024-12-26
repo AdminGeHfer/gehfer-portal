@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Trash2, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types/json";
 
 interface Document {
   id: string;
@@ -23,7 +24,7 @@ interface DocumentMetadata {
 
 interface SupabaseDocument {
   id: string;
-  metadata: DocumentMetadata;
+  metadata: Json;
   created_at: string;
 }
 
@@ -34,10 +35,11 @@ interface DocumentResponse {
 
 function isDocumentMetadata(metadata: unknown): metadata is DocumentMetadata {
   if (!metadata || typeof metadata !== 'object') return false;
-  return 'path' in metadata && 
-         'filename' in metadata && 
-         'contentType' in metadata && 
-         'size' in metadata;
+  const m = metadata as Record<string, unknown>;
+  return typeof m.path === 'string' && 
+         typeof m.filename === 'string' && 
+         typeof m.contentType === 'string' && 
+         typeof m.size === 'number';
 }
 
 export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
@@ -70,13 +72,20 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
         const formattedDocs = data
           .filter((item): item is DocumentResponse => 
             item.documents !== null && 
-            item.documents.metadata !== null && 
-            isDocumentMetadata(item.documents.metadata))
-          .map(item => ({
-            id: item.documents.id,
-            filename: item.documents.metadata.filename,
-            created_at: item.documents.created_at
-          }));
+            item.documents.metadata !== null)
+          .map(item => {
+            const metadata = item.documents.metadata;
+            if (!isDocumentMetadata(metadata)) {
+              console.warn('Invalid document metadata:', metadata);
+              return null;
+            }
+            return {
+              id: item.documents.id,
+              filename: metadata.filename,
+              created_at: item.documents.created_at
+            };
+          })
+          .filter((doc): doc is Document => doc !== null);
 
         setDocuments(formattedDocs);
       }
@@ -117,7 +126,6 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
   const downloadDocument = async (documentId: string, filename: string) => {
     try {
-      // First get the document metadata to get the correct path
       const { data: docData, error: docError } = await supabase
         .from('documents')
         .select('metadata')
@@ -137,7 +145,6 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
       if (error) throw error;
 
-      // Create a download link and trigger the download
       const url = window.URL.createObjectURL(data);
       const a = document.createElement('a');
       a.href = url;
