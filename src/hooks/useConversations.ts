@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -112,16 +111,21 @@ export function useConversations() {
 
       if (deleteConversationError) throw deleteConversationError;
 
-      // Update cache immediately
-      queryClient.setQueryData(['conversations'], (old: any) => 
-        (old || []).filter((conv: any) => conv.id !== conversationId)
-      );
+      // Update cache immediately and ensure the UI updates
+      queryClient.setQueryData(['conversations'], (old: Conversation[] | undefined) => {
+        if (!old) return [];
+        return old.filter(conv => conv.id !== conversationId);
+      });
 
-      // Also invalidate to ensure fresh data
-      await queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      // Force a refetch to ensure data consistency
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
 
       toast.success("Conversa excluída com sucesso");
-      navigate('/intelligence/chat');
+      
+      // Navigate only if we're on the deleted conversation's page
+      if (window.location.pathname.includes(conversationId)) {
+        navigate('/intelligence/chat');
+      }
     } catch (error: any) {
       console.error('Error deleting conversation:', error);
       toast.error("Erro ao excluir conversa");
