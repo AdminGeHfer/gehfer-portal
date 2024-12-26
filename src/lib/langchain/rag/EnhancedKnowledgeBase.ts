@@ -13,6 +13,10 @@ interface KnowledgeBaseConfig {
   semanticAnalysis?: boolean;
 }
 
+interface DocumentMetadata {
+  [key: string]: any;
+}
+
 export class EnhancedKnowledgeBase extends BaseRetriever {
   private model: ChatOpenAI;
   private searchThreshold: number;
@@ -74,13 +78,17 @@ export class EnhancedKnowledgeBase extends BaseRetriever {
 
       // Transform to LangChain Document format with type-safe metadata handling
       const transformedDocs = documents.map(doc => {
-        const metadata = doc.metadata || {};
+        const baseMetadata: DocumentMetadata = {
+          score: doc.similarity
+        };
+        
+        // Safely merge the document metadata if it exists
+        const documentMetadata = (doc.metadata || {}) as DocumentMetadata;
+        const mergedMetadata = { ...baseMetadata, ...documentMetadata };
+
         return new Document({
           pageContent: doc.content,
-          metadata: {
-            ...metadata,
-            score: doc.similarity
-          }
+          metadata: mergedMetadata
         });
       });
 
