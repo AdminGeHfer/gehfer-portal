@@ -143,7 +143,13 @@ export class DoclingProcessor {
     const { data: document, error: docError } = await supabase
       .from('documents')
       .insert({
-        metadata: { filename },
+        metadata: { 
+          filename,
+          contentType: 'text/plain',
+          processor: 'docling',
+          version: '2.0',
+          metrics: JSON.stringify(metrics)
+        },
         processed: true
       })
       .select()
@@ -151,29 +157,22 @@ export class DoclingProcessor {
 
     if (docError) throw docError;
 
-    // Save processing metrics
-    await supabase.rpc('insert_document_metrics', {
-      p_document_id: document.id,
-      p_processing_time: metrics.processingTime,
-      p_chunk_count: metrics.chunkCount,
-      p_avg_coherence: metrics.avgCoherence,
-      p_token_count: metrics.tokenCount
-    });
-
     // Save chunks
-    await supabase
+    const chunkRecords = chunks.map((chunk, index) => ({
+      document_id: document.id,
+      content: chunk.content,
+      embedding: JSON.stringify(chunk.embedding),
+      metadata: chunk.metadata,
+      chunk_number: index + 1,
+      token_count: chunk.metadata.tokenCount,
+      processing_time: chunk.metadata.processingTime,
+      coherence_score: chunk.metadata.coherence
+    }));
+
+    const { error: chunksError } = await supabase
       .from('document_chunks')
-      .insert(
-        chunks.map((chunk, index) => ({
-          document_id: document.id,
-          content: chunk.content,
-          embedding: chunk.embedding,
-          metadata: chunk.metadata,
-          chunk_number: index + 1,
-          token_count: chunk.metadata.tokenCount,
-          processing_time: chunk.metadata.processingTime,
-          coherence_score: chunk.metadata.coherence
-        }))
-      );
+      .insert(chunkRecords);
+
+    if (chunksError) throw chunksError;
   }
 }
