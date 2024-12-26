@@ -108,10 +108,22 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
 
   const downloadDocument = async (documentId: string, filename: string) => {
     try {
+      // First get the document metadata to get the correct path
+      const { data: docData, error: docError } = await supabase
+        .from('documents')
+        .select('metadata')
+        .eq('id', documentId)
+        .single();
+
+      if (docError) throw docError;
+      if (!docData?.metadata?.path) {
+        throw new Error('Document path not found');
+      }
+
       const { data, error } = await supabase
         .storage
         .from('documents')
-        .download(`${documentId}/${filename}`);
+        .download(docData.metadata.path);
 
       if (error) throw error;
 
