@@ -3,19 +3,39 @@ import { ProcessingMetrics, DocumentChunk } from "../types";
 import OpenAI from "openai";
 
 export class DoclingProcessor {
-  private openai: OpenAI;
+  private openai: OpenAI | null;
   private metrics: ProcessingMetrics;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-    });
+    this.openai = null;
     this.metrics = {
       processingTime: 0,
       chunkCount: 0,
       avgCoherence: 0,
       tokenCount: 0
     };
+  }
+
+  private async initializeOpenAI() {
+    if (this.openai) return;
+
+    try {
+      const { data: secrets, error } = await supabase
+        .from('secrets')
+        .select('value')
+        .eq('name', 'OPENAI_API_KEY')
+        .single();
+
+      if (error) throw error;
+      if (!secrets?.value) throw new Error("OpenAI API key not found in secrets");
+
+      this.openai = new OpenAI({
+        apiKey: secrets.value,
+      });
+    } catch (error) {
+      console.error('Error initializing OpenAI:', error);
+      throw new Error("Failed to initialize OpenAI client. Please ensure the API key is set in Supabase secrets.");
+    }
   }
 
   async processDocument(file: File): Promise<{
@@ -26,6 +46,9 @@ export class DoclingProcessor {
     const startTime = performance.now();
 
     try {
+      await this.initializeOpenAI();
+      if (!this.openai) throw new Error("OpenAI client not initialized");
+
       // Extract text content
       const content = await this.extractText(file);
       
