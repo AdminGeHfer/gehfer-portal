@@ -3,27 +3,17 @@ import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { AIAgent } from "@/types/ai/agent";
 import { HierarchicalMemory } from "../memory/HierarchicalMemory";
-import { EnhancedRetriever } from "../rag/enhancedRetrieval";
+import { RunnableSequence } from "@langchain/core/runnables";
 
 export const createEnhancedAgentChain = async (
   agent: AIAgent,
   existingMessages: any[] = []
 ) => {
-  // Initialize enhanced memory
+  // Initialize enhanced memory with required conversationId
   const memory = new HierarchicalMemory({
     maxTokens: agent.max_tokens,
-    useSemanticCompression: true
-  });
-
-  // Initialize enhanced retriever
-  const retriever = new EnhancedRetriever({
-    reranking: true,
-    semanticAnalysis: true,
-    dynamicThreshold: true,
-    chunkSize: agent.chunk_size,
-    chunkOverlap: agent.chunk_overlap,
-    searchThreshold: 0.4,
-    maxResults: 5
+    useSemanticCompression: true,
+    conversationId: crypto.randomUUID() // Generate a new conversation ID if none exists
   });
 
   // Initialize language model with agent configuration
