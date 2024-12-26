@@ -38,8 +38,10 @@ export function useConversations() {
 
       return data || [];
     },
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: 1000 * 30, // 30 seconds
     gcTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   const createNewConversation = async () => {
@@ -76,8 +78,13 @@ export function useConversations() {
         .single();
 
       if (error) throw error;
+
+      // Update cache immediately
+      queryClient.setQueryData(['conversations'], (old: any) => 
+        [data, ...(old || [])]
+      );
       
-      // Invalidate conversations query to trigger refetch
+      // Also invalidate to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       
       navigate(`/intelligence/chat/${data.id}`);
@@ -89,6 +96,7 @@ export function useConversations() {
 
   const deleteConversation = async (conversationId: string) => {
     try {
+      // Delete messages first
       const { error: deleteMessagesError } = await supabase
         .from('ai_messages')
         .delete()
@@ -96,6 +104,7 @@ export function useConversations() {
 
       if (deleteMessagesError) throw deleteMessagesError;
 
+      // Then delete the conversation
       const { error: deleteConversationError } = await supabase
         .from('ai_conversations')
         .delete()
@@ -103,9 +112,9 @@ export function useConversations() {
 
       if (deleteConversationError) throw deleteConversationError;
 
-      // Immediately remove the conversation from the cache
+      // Update cache immediately
       queryClient.setQueryData(['conversations'], (old: any) => 
-        old?.filter((conv: any) => conv.id !== conversationId) || []
+        (old || []).filter((conv: any) => conv.id !== conversationId)
       );
 
       // Also invalidate to ensure fresh data
