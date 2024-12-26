@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Trash2, FileText } from "lucide-react";
+import { Trash2, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 
 interface Document {
@@ -106,6 +106,32 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
     }
   };
 
+  const downloadDocument = async (documentId: string, filename: string) => {
+    try {
+      const { data, error } = await supabase
+        .storage
+        .from('documents')
+        .download(`${documentId}/${filename}`);
+
+      if (error) throw error;
+
+      // Create a download link and trigger the download
+      const url = window.URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success("Download iniciado com sucesso");
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      toast.error("Erro ao baixar documento");
+    }
+  };
+
   if (isLoading) {
     return <div>Carregando documentos...</div>;
   }
@@ -126,14 +152,24 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <span>{doc.filename}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => deleteDocument(doc.id)}
-                className="text-destructive hover:text-destructive/90"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => downloadDocument(doc.id, doc.filename)}
+                  className="text-primary hover:text-primary/90"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteDocument(doc.id)}
+                  className="text-destructive hover:text-destructive/90"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
