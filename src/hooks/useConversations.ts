@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Conversation {
   id: string;
@@ -10,112 +11,47 @@ interface Conversation {
 }
 
 export function useConversations() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    let subscription: { unsubscribe: () => void } | null = null;
-
-    const initializeConversations = async () => {
-      try {
-        const { data: session } = await supabase.auth.getSession();
-        
-        if (!session?.session?.user) {
-          console.log('No valid session found, redirecting to login');
-          navigate("/login");
-          return;
-        }
-
-        const userId = session.session.user.id;
-        console.log('Loading conversations for user:', userId);
-
-        await loadConversations(userId);
-        
-        subscription = supabase
-          .channel('ai_conversations')
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'ai_conversations',
-              filter: `user_id=eq.${userId}`,
-            },
-            async () => {
-              await loadConversations(userId);
-            }
-          )
-          .subscribe();
-        
-      } catch (error) {
-        console.error('Error initializing conversations:', error);
-        toast({
-          title: "Error",
-          description: "Failed to initialize conversations",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
+  const { data: conversations = [], isLoading } = useQuery({
+    queryKey: ['conversations'],
+    queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session?.session?.user) {
+        navigate("/login");
+        return [];
       }
-    };
 
-    initializeConversations();
-
-    return () => {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
-  }, [navigate, toast]);
-
-  const loadConversations = async (userId: string) => {
-    if (!userId) {
-      console.error('No user ID provided to loadConversations');
-      return;
-    }
-
-    try {
-      console.log('Fetching conversations for user:', userId);
       const { data, error } = await supabase
         .from('ai_conversations')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', session.session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error loading conversations:', error);
-        throw error;
+        toast.error("Failed to load conversations");
+        return [];
       }
-      
-      console.log('Loaded conversations:', data);
-      setConversations(data || []);
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load conversations",
-        variant: "destructive",
-      });
-    }
-  };
+
+      return data || [];
+    },
+    staleTime: 1000 * 60, // 1 minute
+    cacheTime: 1000 * 60 * 5, // 5 minutes
+  });
 
   const createNewConversation = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
       
       if (!session?.session?.user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to create a conversation",
-          variant: "destructive",
-        });
+        toast.error("You must be logged in to create a conversation");
         navigate("/login");
         return;
       }
 
-      // Get the default agent
       const { data: defaultAgent, error: agentError } = await supabase
         .from('ai_agents')
         .select('id')
@@ -125,11 +61,7 @@ export function useConversations() {
 
       if (agentError) {
         console.error('Error getting default agent:', agentError);
-        toast({
-          title: "Error",
-          description: "Failed to get default agent",
-          variant: "destructive",
-        });
+        toast.error("Failed to get default agent");
         return;
       }
 
@@ -138,21 +70,20 @@ export function useConversations() {
         .insert({
           title: 'Nova Conversa',
           user_id: session.session.user.id,
-          agent_id: defaultAgent.id // Add the agent_id from the default agent
+          agent_id: defaultAgent.id
         })
         .select()
         .single();
 
       if (error) throw error;
       
+      // Invalidate conversations query to trigger refetch
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      
       navigate(`/intelligence/chat/${data.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create new conversation",
-        variant: "destructive",
-      });
+      toast.error("Failed to create new conversation");
     }
   };
 

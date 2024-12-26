@@ -34,7 +34,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: "GeHfer Intelligence",
-    href: "/intelligence",
+    href: "/intelligence/hub",
     icon: <Brain className="h-5 w-5" />,
     subModules: [
       {
@@ -43,14 +43,14 @@ export const navItems: NavItem[] = [
         icon: <Brain className="h-4 w-4" />,
       },
       {
-        title: "Setores",
-        href: "/intelligence/sectors",
-        icon: <Building2 className="h-4 w-4" />,
-      },
-      {
         title: "Chat",
         href: "/intelligence/chat",
         icon: <MessageSquare className="h-4 w-4" />,
+      },
+      {
+        title: "Setores",
+        href: "/intelligence/sectors",
+        icon: <Building2 className="h-4 w-4" />,
       },
       {
         title: "Configurações",
