@@ -43,11 +43,10 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       const { chunks, metrics } = await processor.processDocument(file);
       setProgress(70);
 
-      // Create document record
+      // Create document record with properly serialized metadata
       const { data: documentData, error: documentError } = await supabase
         .from('documents')
         .insert({
-          content: null,
           metadata: {
             filename: file.name,
             contentType: file.type,
@@ -55,8 +54,9 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
             path: storageData.path,
             processor: 'docling',
             version: '2.0',
-            metrics
-          }
+            metrics: JSON.stringify(metrics)
+          },
+          processed: true
         })
         .select()
         .single();
