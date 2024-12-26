@@ -55,9 +55,9 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
       if (agentError) throw agentError;
 
       // Get conversation history
-      const { data: messages, error: messagesError } = await supabase
+      const { data: messages = [], error: messagesError } = await supabase
         .from('ai_messages')
-        .select('role, content, created_at')
+        .select('id, conversation_id, role, content, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 

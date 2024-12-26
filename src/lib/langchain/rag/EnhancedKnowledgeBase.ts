@@ -1,5 +1,5 @@
-import { VectorStore } from "langchain/vectorstores";
-import { Document } from "langchain/document";
+import { VectorStore } from "@langchain/community/vectorstores/base";
+import { Document } from "@langchain/core/documents";
 import { BaseRetriever } from "@langchain/core/retrievers";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
@@ -19,6 +19,8 @@ export class EnhancedKnowledgeBase extends BaseRetriever {
   private searchThreshold: number;
   private maxResults: number;
   private config: KnowledgeBaseConfig;
+  
+  lc_namespace = ["custom", "enhanced_knowledge_base"];
 
   constructor(config: KnowledgeBaseConfig = {}) {
     super();
@@ -31,7 +33,7 @@ export class EnhancedKnowledgeBase extends BaseRetriever {
     });
   }
 
-  async getRelevantDocuments(query: string): Promise<Document[]> {
+  async _getRelevantDocuments(query: string): Promise<Document[]> {
     console.log('Searching knowledge base for:', query);
 
     try {
