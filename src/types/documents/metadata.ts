@@ -1,3 +1,5 @@
+import { Json } from '@/integrations/supabase/types/json';
+
 export interface DocumentMetadata {
   filename: string;
   contentType: string;
@@ -6,6 +8,7 @@ export interface DocumentMetadata {
   version?: string;
   processor?: string;
   chunkCount?: number;
+  [key: string]: string | number | undefined; // Add index signature
 }
 
 export interface Document {
@@ -18,7 +21,7 @@ export interface DocumentResponse {
   document_id: string;
   documents: {
     id: string;
-    metadata: DocumentMetadata;
+    metadata: Json;
     created_at: string;
   };
 }
