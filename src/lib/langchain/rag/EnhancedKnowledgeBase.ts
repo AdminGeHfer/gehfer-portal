@@ -1,6 +1,5 @@
-import { VectorStore } from "@langchain/community/vectorstores/base";
-import { Document } from "@langchain/core/documents";
 import { BaseRetriever } from "@langchain/core/retrievers";
+import { Document } from "@langchain/core/documents";
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
@@ -74,13 +73,19 @@ export class EnhancedKnowledgeBase extends BaseRetriever {
       console.log(`Found ${documents.length} relevant documents`);
 
       // Transform to LangChain Document format
-      return documents.map(doc => new Document({
+      const transformedDocs = documents.map(doc => new Document({
         pageContent: doc.content,
         metadata: {
           ...doc.metadata,
           score: doc.similarity
         }
       }));
+
+      if (this.config.reranking) {
+        return await this.rerank(transformedDocs, query);
+      }
+
+      return transformedDocs;
 
     } catch (error) {
       console.error('Error in knowledge base search:', error);
