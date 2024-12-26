@@ -2,18 +2,16 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "@/types/ai";
-import { truncateMessages } from "@/utils/chatUtils";
-import { useMemory } from "@/hooks/useMemory";
 import { useQueryClient } from "@tanstack/react-query";
+import { EnhancedConversationChain } from "@/lib/langchain/chains/EnhancedConversationChain";
 
 export const useChatLogic = (conversationId: string, model: string, agentId: string | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { initializeMemory } = useMemory(conversationId);
   const queryClient = useQueryClient();
 
   const handleSubmit = async (content: string) => {
-    if (!conversationId || !content.trim()) {
+    if (!conversationId || !content.trim() || !agentId) {
       if (!content.trim()) {
         toast({
           title: "Mensagem vazia",
@@ -24,7 +22,6 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
       return;
     }
 
-    // Create user message object
     const userMessage: Message = {
       id: crypto.randomUUID(),
       conversation_id: conversationId,
@@ -33,72 +30,60 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
       created_at: new Date().toISOString(),
     };
 
-    // Set loading state immediately
     setIsLoading(true);
 
-    // Immediately update the local cache to show the user message
+    // Update local cache immediately
     queryClient.setQueryData(['messages', conversationId], (oldData: Message[] = []) => {
       return [...oldData, userMessage];
     });
 
     try {
-      // Save user message to Supabase
+      // Save user message
       const { error: saveError } = await supabase
         .from('ai_messages')
         .insert(userMessage);
 
       if (saveError) throw saveError;
 
-      // Get existing messages
+      // Get agent configuration
+      const { data: agent, error: agentError } = await supabase
+        .from('ai_agents')
+        .select('*')
+        .eq('id', agentId)
+        .single();
+
+      if (agentError) throw agentError;
+
+      // Get conversation history
       const { data: messages, error: messagesError } = await supabase
         .from('ai_messages')
-        .select('role, content')
+        .select('role, content, created_at')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (messagesError) throw messagesError;
 
-      // Initialize memory
-      const memory = await initializeMemory();
+      // Create conversation chain
+      const conversationChain = new EnhancedConversationChain(agent);
 
-      console.log('Sending request to chat-completion with:', {
-        messages: truncateMessages(
-          [...messages, { role: userMessage.role, content: userMessage.content }],
-          model
-        ),
-        model,
-        agentId,
-      });
+      // Process message
+      const response = await conversationChain.processMessage(content, messages);
 
-      const response = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: truncateMessages(
-            [...messages, { role: userMessage.role, content: userMessage.content }],
-            model
-          ),
-          model,
-          agentId,
-        },
-      });
-
-      if (response.error) {
-        handleErrorResponse(response.error);
-        return;
-      }
-
+      // Create assistant message
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         conversation_id: conversationId,
         role: 'assistant',
-        content: response.data.choices[0].message.content,
+        content: response,
         created_at: new Date().toISOString(),
       };
 
-      // Update local cache immediately with assistant's response
+      // Update local cache
       queryClient.setQueryData(['messages', conversationId], (oldData: Message[] = []) => {
         return [...oldData, assistantMessage];
       });
 
+      // Save assistant message
       const { error: saveAiError } = await supabase
         .from('ai_messages')
         .insert(assistantMessage);
@@ -115,19 +100,6 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleErrorResponse = (error: any) => {
-    if (error.message?.includes('Limite de tokens excedido') ||
-        error.message?.includes('conversa ficou muito longa')) {
-      toast({
-        title: "Limite de mensagens atingido",
-        description: "A conversa ficou muito longa. Por favor, crie uma nova conversa ou use um modelo diferente.",
-        variant: "destructive"
-      });
-      return;
-    }
-    throw error;
   };
 
   return {

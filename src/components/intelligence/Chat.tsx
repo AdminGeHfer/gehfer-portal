@@ -40,7 +40,7 @@ export const Chat = () => {
         isLoading={isLoading}
       />
       
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden bg-gradient-to-b from-background/50 to-background/80 backdrop-blur-xl">
         <MessageList 
           messages={messages} 
           agentId={conversation?.ai_agents?.id || ''} 
@@ -50,7 +50,10 @@ export const Chat = () => {
 
       <div className="border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex flex-col gap-4 py-4">
-          <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
+          <ChatInput 
+            onSubmit={handleSubmit} 
+            isLoading={isLoading} 
+          />
         </div>
       </div>
     </div>
