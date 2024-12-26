@@ -1,49 +1,25 @@
-import { supabase } from "@/integrations/supabase/client";
+import { OpenAIService } from "./OpenAIService";
+import { TextProcessor } from "./TextProcessor";
 import { ProcessingMetrics, DocumentChunk } from "../types";
-import OpenAI from "openai";
 
 export class DoclingProcessor {
-  private openai: OpenAI | null;
-  private metrics: ProcessingMetrics;
+  private openAIService: OpenAIService;
+  private textProcessor: TextProcessor;
+  private initialized: boolean = false;
 
   constructor() {
-    this.openai = null;
-    this.metrics = {
-      processingTime: 0,
-      chunkCount: 0,
-      avgCoherence: 0,
-      tokenCount: 0
-    };
+    this.openAIService = new OpenAIService();
+    this.textProcessor = new TextProcessor();
   }
 
-  private async initializeOpenAI() {
-    if (this.openai) return;
-
+  async initialize(): Promise<boolean> {
     try {
-      const { data: secrets, error } = await supabase
-        .from('secrets')
-        .select('value')
-        .eq('name', 'OPENAI_API_KEY')
-        .maybeSingle();  // Changed from single() to maybeSingle()
-
-      if (error) throw error;
-      if (!secrets?.value) {
-        throw new Error(
-          "OpenAI API key not found in Supabase secrets. Please add it in the project settings."
-        );
-      }
-
-      this.openai = new OpenAI({
-        apiKey: secrets.value,
-      });
-    } catch (error: any) {
-      console.error('Error initializing OpenAI:', error);
-      if (error.message.includes('contains 0 rows')) {
-        throw new Error(
-          "OpenAI API key not found in Supabase secrets. Please add it in the project settings."
-        );
-      }
-      throw new Error("Failed to initialize OpenAI client. Please ensure the API key is set in Supabase secrets.");
+      await this.openAIService.initialize();
+      this.initialized = true;
+      return true;
+    } catch (error) {
+      console.error('Error initializing DoclingProcessor:', error);
+      throw error;
     }
   }
 
@@ -51,34 +27,47 @@ export class DoclingProcessor {
     chunks: DocumentChunk[];
     metrics: ProcessingMetrics;
   }> {
-    console.log('Starting document processing:', file.name);
+    if (!this.initialized) {
+      throw new Error("DoclingProcessor not initialized");
+    }
+
     const startTime = performance.now();
 
     try {
-      await this.initializeOpenAI();
-      if (!this.openai) throw new Error("OpenAI client not initialized");
-
       // Extract text content
-      const content = await this.extractText(file);
+      const content = await this.textProcessor.extractText(file);
       
       // Generate semantic chunks
-      const chunks = await this.generateSemanticChunks(content);
+      const rawChunks = await this.textProcessor.generateSemanticChunks(content);
       
       // Process each chunk
       const processedChunks = await Promise.all(
-        chunks.map((chunk, index) => this.processChunk(chunk, index))
+        rawChunks.map(async (chunk, index) => {
+          const startTime = performance.now();
+          const embedding = await this.openAIService.generateEmbedding(chunk);
+          const coherence = await this.textProcessor.calculateCoherence(chunk);
+          const tokenCount = await this.textProcessor.countTokens(chunk);
+
+          return {
+            content: chunk,
+            embedding,
+            metadata: {
+              chunkNumber: index + 1,
+              coherence,
+              tokenCount,
+              processingTime: performance.now() - startTime
+            }
+          };
+        })
       );
 
       // Calculate metrics
       const metrics = {
         processingTime: performance.now() - startTime,
-        chunkCount: chunks.length,
-        avgCoherence: this.calculateAverageCoherence(processedChunks),
-        tokenCount: await this.countTokens(content)
+        chunkCount: processedChunks.length,
+        avgCoherence: processedChunks.reduce((sum, chunk) => sum + chunk.metadata.coherence, 0) / processedChunks.length,
+        tokenCount: processedChunks.reduce((sum, chunk) => sum + chunk.metadata.tokenCount, 0)
       };
-
-      // Save metrics
-      await this.saveMetrics(file.name, metrics, processedChunks);
 
       return {
         chunks: processedChunks,
@@ -88,124 +77,5 @@ export class DoclingProcessor {
       console.error('Error processing document:', error);
       throw error;
     }
-  }
-
-  private async extractText(file: File): Promise<string> {
-    // Implementation depends on file type
-    const text = await file.text();
-    return text;
-  }
-
-  private async generateSemanticChunks(content: string): Promise<string[]> {
-    const chunks: string[] = [];
-    const sentences = content.split(/[.!?]+/);
-    let currentChunk = '';
-    
-    for (const sentence of sentences) {
-      if (currentChunk.length + sentence.length > 1000) {
-        chunks.push(currentChunk);
-        currentChunk = sentence;
-      } else {
-        currentChunk += sentence;
-      }
-    }
-    
-    if (currentChunk) {
-      chunks.push(currentChunk);
-    }
-
-    return chunks;
-  }
-
-  private async processChunk(chunk: string, index: number): Promise<DocumentChunk> {
-    const startTime = performance.now();
-
-    // Generate embedding
-    const embedding = await this.generateEmbedding(chunk);
-
-    // Calculate coherence
-    const coherence = await this.calculateCoherence(chunk);
-
-    // Count tokens
-    const tokenCount = await this.countTokens(chunk);
-
-    return {
-      content: chunk,
-      embedding,
-      metadata: {
-        chunkNumber: index + 1,
-        coherence,
-        tokenCount,
-        processingTime: performance.now() - startTime
-      }
-    };
-  }
-
-  private async generateEmbedding(text: string): Promise<number[]> {
-    const response = await this.openai.embeddings.create({
-      input: text,
-      model: 'text-embedding-3-small'
-    });
-
-    return response.data[0].embedding;
-  }
-
-  private async calculateCoherence(text: string): Promise<number> {
-    // Simplified coherence calculation
-    const sentences = text.split(/[.!?]+/).filter(Boolean);
-    if (sentences.length <= 1) return 1.0;
-
-    const avgLength = sentences.reduce((sum, s) => sum + s.length, 0) / sentences.length;
-    const deviation = sentences.reduce((sum, s) => sum + Math.abs(s.length - avgLength), 0) / sentences.length;
-    
-    return Math.max(0, Math.min(1, 1 - (deviation / avgLength)));
-  }
-
-  private calculateAverageCoherence(chunks: DocumentChunk[]): number {
-    if (chunks.length === 0) return 0;
-    return chunks.reduce((sum, chunk) => sum + chunk.metadata.coherence, 0) / chunks.length;
-  }
-
-  private async countTokens(text: string): Promise<number> {
-    // Simplified token counting
-    return text.split(/\s+/).length;
-  }
-
-  private async saveMetrics(filename: string, metrics: ProcessingMetrics, chunks: DocumentChunk[]) {
-    // Save document with metrics
-    const { data: document, error: docError } = await supabase
-      .from('documents')
-      .insert({
-        metadata: { 
-          filename,
-          contentType: 'text/plain',
-          processor: 'docling',
-          version: '2.0',
-          metrics: JSON.stringify(metrics)
-        },
-        processed: true
-      })
-      .select()
-      .single();
-
-    if (docError) throw docError;
-
-    // Save chunks
-    const chunkRecords = chunks.map((chunk, index) => ({
-      document_id: document.id,
-      content: chunk.content,
-      embedding: JSON.stringify(chunk.embedding),
-      metadata: chunk.metadata,
-      chunk_number: index + 1,
-      token_count: chunk.metadata.tokenCount,
-      processing_time: chunk.metadata.processingTime,
-      coherence_score: chunk.metadata.coherence
-    }));
-
-    const { error: chunksError } = await supabase
-      .from('document_chunks')
-      .insert(chunkRecords);
-
-    if (chunksError) throw chunksError;
   }
 }
