@@ -13,24 +13,61 @@ export class HierarchicalMemory extends BaseMemory {
   private longTermMemory: MemoryLevel[] = [];
   private readonly maxShortTermSize: number;
   private readonly compressionThreshold: number;
+  private conversationId: string;
 
-  constructor(maxShortTermSize = 10, compressionThreshold = 0.7) {
+  constructor(conversationId: string, maxShortTermSize = 10, compressionThreshold = 0.7) {
     super();
     this.maxShortTermSize = maxShortTermSize;
     this.compressionThreshold = compressionThreshold;
+    this.conversationId = conversationId;
+  }
+
+  // Implement required BaseMemory methods
+  get memoryKeys() {
+    return ["chat_history"];
+  }
+
+  async loadMemoryVariables(_: object) {
+    return {
+      chat_history: this.shortTermMemory,
+    };
+  }
+
+  async saveContext(inputValues: object, outputValues: object) {
+    const input = (inputValues as any).input;
+    const output = (outputValues as any).output;
+    
+    if (input) {
+      await this.addMemory({
+        id: crypto.randomUUID(),
+        conversation_id: this.conversationId,
+        role: 'user',
+        content: input,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    if (output) {
+      await this.addMemory({
+        id: crypto.randomUUID(),
+        conversation_id: this.conversationId,
+        role: 'assistant',
+        content: output,
+        created_at: new Date().toISOString()
+      });
+    }
   }
 
   async getRelevantHistory(query: string): Promise<Message[]> {
     console.log('Getting relevant history for query:', query);
     
-    // Combine short-term and relevant long-term memories
     const relevantMemories = [...this.shortTermMemory];
     
     try {
-      // Get relevant long-term memories from Supabase
       const { data: longTermData, error } = await supabase
         .from('ai_memory_buffers')
         .select('*')
+        .eq('conversation_id', this.conversationId)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -38,6 +75,8 @@ export class HierarchicalMemory extends BaseMemory {
 
       if (longTermData) {
         const longTermMessages = longTermData.map(item => ({
+          id: crypto.randomUUID(),
+          conversation_id: this.conversationId,
           role: 'assistant' as const,
           content: item.content,
           created_at: item.created_at
@@ -85,6 +124,7 @@ export class HierarchicalMemory extends BaseMemory {
         .insert({
           content: compressedContent,
           type: 'summary',
+          conversation_id: this.conversationId,
           metadata: {
             compressed_from: oldestMemories.length,
             timestamp: new Date().toISOString()
@@ -93,7 +133,6 @@ export class HierarchicalMemory extends BaseMemory {
 
       if (error) throw error;
 
-      // Remove compressed memories from short-term
       this.shortTermMemory = this.shortTermMemory.slice(5);
       
     } catch (error) {

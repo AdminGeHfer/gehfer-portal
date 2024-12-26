@@ -12,8 +12,10 @@ export class EnhancedConversationChain {
   private knowledgeBase: EnhancedKnowledgeBase;
   private memory: HierarchicalMemory;
   private systemPrompt: string;
+  private conversationId: string;
 
-  constructor(config: AIAgent) {
+  constructor(config: AIAgent, conversationId: string) {
+    this.conversationId = conversationId;
     this.model = new ChatOpenAI({
       modelName: config.model_id === 'gpt-4o' ? 'gpt-4-turbo-preview' : 'gpt-3.5-turbo',
       temperature: config.temperature,
@@ -28,7 +30,7 @@ export class EnhancedConversationChain {
       semanticAnalysis: true
     });
 
-    this.memory = new HierarchicalMemory();
+    this.memory = new HierarchicalMemory(conversationId);
     this.systemPrompt = config.system_prompt || "You are a helpful AI assistant.";
   }
 
@@ -36,23 +38,17 @@ export class EnhancedConversationChain {
     console.log('Processing message with enhanced conversation chain');
 
     try {
-      // Get relevant documents from knowledge base
       const documents = await this.knowledgeBase.getRelevantDocuments(message);
-      
-      // Get relevant memories
       const relevantMemories = await this.memory.getRelevantHistory(message);
       
-      // Create context from documents and memories
       const context = documents
         .map(doc => doc.pageContent)
         .join('\n\n');
 
-      // Format conversation history including relevant memories
       const formattedHistory = [...relevantMemories, ...history]
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n');
 
-      // Create prompt template with enhanced context
       const promptTemplate = PromptTemplate.fromTemplate(`
         ${this.systemPrompt}
 
@@ -67,7 +63,6 @@ export class EnhancedConversationChain {
         Assistant: Let me help you with that.
       `);
 
-      // Create and execute chain
       const chain = RunnableSequence.from([
         promptTemplate,
         this.model,
@@ -76,13 +71,17 @@ export class EnhancedConversationChain {
 
       const response = await chain.invoke({});
       
-      // Store the new message in memory
-      await this.memory.addMemory({
+      // Create new message with required properties
+      const newMessage: Message = {
+        id: crypto.randomUUID(),
+        conversation_id: this.conversationId,
         role: 'assistant',
         content: response,
         created_at: new Date().toISOString()
-      });
+      };
 
+      await this.memory.addMemory(newMessage);
+      
       console.log('Generated response with enhanced context and memory');
       
       return response;
