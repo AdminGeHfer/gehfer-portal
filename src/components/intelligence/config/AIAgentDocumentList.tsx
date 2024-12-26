@@ -14,20 +14,30 @@ interface AIAgentDocumentListProps {
   agentId: string;
 }
 
+interface DocumentMetadata {
+  filename: string;
+  contentType: string;
+  size: number;
+  path: string;
+}
+
 interface SupabaseDocument {
   id: string;
-  metadata: {
-    filename: string;
-    contentType: string;
-    size: number;
-    path: string;
-  };
+  metadata: DocumentMetadata;
   created_at: string;
 }
 
 interface DocumentResponse {
   document_id: string;
   documents: SupabaseDocument;
+}
+
+function isDocumentMetadata(metadata: unknown): metadata is DocumentMetadata {
+  if (!metadata || typeof metadata !== 'object') return false;
+  return 'path' in metadata && 
+         'filename' in metadata && 
+         'contentType' in metadata && 
+         'size' in metadata;
 }
 
 export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
@@ -60,9 +70,8 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
         const formattedDocs = data
           .filter((item): item is DocumentResponse => 
             item.documents !== null && 
-            typeof item.documents.metadata === 'object' && 
             item.documents.metadata !== null && 
-            'filename' in item.documents.metadata)
+            isDocumentMetadata(item.documents.metadata))
           .map(item => ({
             id: item.documents.id,
             filename: item.documents.metadata.filename,
@@ -116,8 +125,9 @@ export const AIAgentDocumentList = ({ agentId }: AIAgentDocumentListProps) => {
         .single();
 
       if (docError) throw docError;
-      if (!docData?.metadata?.path) {
-        throw new Error('Document path not found');
+      
+      if (!docData?.metadata || !isDocumentMetadata(docData.metadata)) {
+        throw new Error('Invalid document metadata');
       }
 
       const { data, error } = await supabase
