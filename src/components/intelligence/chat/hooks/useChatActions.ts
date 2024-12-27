@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { EnhancedConversationChain } from "@/lib/langchain/chains/EnhancedConversationChain";
+import { Message } from "@/types/ai";
 
 export const useChatActions = (conversationId: string | undefined) => {
   const navigate = useNavigate();
@@ -27,8 +28,17 @@ export const useChatActions = (conversationId: string | undefined) => {
             temperature,
             max_tokens,
             top_p,
+            top_k,
+            stop_sequences,
+            chain_type,
+            memory_type,
+            chunk_size,
+            chunk_overlap,
+            embedding_model,
+            search_type,
             search_threshold,
-            search_type
+            output_format,
+            tools
           )
         `)
         .eq('id', conversationId)
@@ -70,7 +80,7 @@ export const useChatActions = (conversationId: string | undefined) => {
           id: userMessageId,
           conversation_id: conversationId,
           content,
-          role: 'user',
+          role: 'user' as const,
         });
 
       if (messageError) throw messageError;
@@ -85,7 +95,7 @@ export const useChatActions = (conversationId: string | undefined) => {
       const assistantMessage = {
         id: crypto.randomUUID(),
         conversation_id: conversationId,
-        role: 'assistant',
+        role: 'assistant' as const,
         content: response,
         created_at: new Date().toISOString(),
       };

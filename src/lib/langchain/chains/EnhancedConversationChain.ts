@@ -76,7 +76,6 @@ export class EnhancedConversationChain {
 
       const response = await chain.invoke({});
       
-      // Create new message with required properties
       const newMessage: Message = {
         id: crypto.randomUUID(),
         conversation_id: this.conversationId,
