@@ -1,19 +1,9 @@
-/* @ai-optimized
- * version: "2.0"
- * last-update: "2024-03-19"
- * features: [
- *   "knowledge-base",
- *   "error-handling",
- *   "logging"
- * ]
- * checksum: "5e4d3c2b1a"
- */
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { EnhancedConversationChain } from "@/lib/langchain/chains/EnhancedConversationChain";
 
 export const useChatActions = (conversationId: string | undefined) => {
   const navigate = useNavigate();
@@ -85,55 +75,26 @@ export const useChatActions = (conversationId: string | undefined) => {
 
       if (messageError) throw messageError;
 
-      const messages = [
-        ...(existingMessages || []).map(msg => ({
-          role: msg.role,
-          content: msg.content,
-          created_at: msg.created_at
-        })),
-        { 
-          role: 'user', 
-          content, 
-          created_at: new Date().toISOString() 
-        }
-      ];
+      // Create conversation chain with enhanced features
+      const conversationChain = new EnhancedConversationChain(conversation.ai_agents, conversationId);
 
-      console.log('Sending chat completion request with config:', {
-        messages,
-        model: conversation.ai_agents.model_id,
-        systemPrompt: conversation.ai_agents.system_prompt,
-        useKnowledgeBase: conversation.ai_agents.use_knowledge_base,
-        searchThreshold: conversation.ai_agents.search_threshold || 0.3
-      });
+      // Process message with enhanced context and memory
+      const response = await conversationChain.processMessage(content, existingMessages || []);
 
-      const { data: completionData, error: completionError } = await supabase.functions
-        .invoke('chat-completion', {
-          body: {
-            messages,
-            model: conversation.ai_agents.model_id,
-            systemPrompt: conversation.ai_agents.system_prompt,
-            useKnowledgeBase: conversation.ai_agents.use_knowledge_base,
-            temperature: conversation.ai_agents.temperature,
-            maxTokens: conversation.ai_agents.max_tokens,
-            topP: conversation.ai_agents.top_p,
-            searchThreshold: conversation.ai_agents.search_threshold || 0.3,
-            agentId: conversation.ai_agents.id
-          },
-        });
+      // Create assistant message
+      const assistantMessage = {
+        id: crypto.randomUUID(),
+        conversation_id: conversationId,
+        role: 'assistant',
+        content: response,
+        created_at: new Date().toISOString(),
+      };
 
-      if (completionError) throw completionError;
+      const { error: saveAiError } = await supabase
+        .from('ai_messages')
+        .insert(assistantMessage);
 
-      if (completionData?.choices?.[0]?.message?.content) {
-        const { error: aiMessageError } = await supabase
-          .from('ai_messages')
-          .insert({
-            conversation_id: conversationId,
-            content: completionData.choices[0].message.content,
-            role: 'assistant',
-          });
-
-        if (aiMessageError) throw aiMessageError;
-      }
+      if (saveAiError) throw saveAiError;
 
     } catch (error: any) {
       console.error('Error in chat flow:', error);
