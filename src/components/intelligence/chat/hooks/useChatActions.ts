@@ -38,7 +38,11 @@ export const useChatActions = (conversationId: string | undefined) => {
             search_type,
             search_threshold,
             output_format,
-            tools
+            tools,
+            user_id,
+            created_at,
+            updated_at,
+            agent_type
           )
         `)
         .eq('id', conversationId)
