@@ -1,28 +1,20 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { PromptTemplate } from "@langchain/core/prompts";
-import { RunnableSequence } from "@langchain/core/runnables";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { EnhancedKnowledgeBase } from "../rag/EnhancedKnowledgeBase";
-import { HierarchicalMemory } from "../memory/HierarchicalMemory";
 import { Message } from "@/types/ai";
 import { AIAgent } from "@/types/ai/agent";
+import { supabase } from "@/integrations/supabase/client";
+import { EnhancedKnowledgeBase } from "../rag/EnhancedKnowledgeBase";
+import { HierarchicalMemory } from "../memory/HierarchicalMemory";
 
 export class EnhancedConversationChain {
-  private model: ChatOpenAI;
   private knowledgeBase: EnhancedKnowledgeBase;
   private memory: HierarchicalMemory;
   private systemPrompt: string;
   private conversationId: string;
+  private config: AIAgent;
 
   constructor(config: AIAgent, conversationId: string) {
     this.conversationId = conversationId;
-    this.model = new ChatOpenAI({
-      modelName: config.model_id === 'gpt-4o' ? 'gpt-4-turbo-preview' : 'gpt-3.5-turbo',
-      temperature: config.temperature,
-      maxTokens: config.max_tokens,
-      topP: config.top_p,
-    });
-
+    this.config = config;
+    
     this.knowledgeBase = new EnhancedKnowledgeBase({
       searchThreshold: config.search_threshold,
       maxResults: 5,
@@ -54,27 +46,34 @@ export class EnhancedConversationChain {
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n');
 
-      const promptTemplate = PromptTemplate.fromTemplate(`
-        ${this.systemPrompt}
+      // Call the Edge Function instead of direct OpenAI
+      const { data, error } = await supabase.functions.invoke('chat-completion', {
+        body: {
+          messages: [
+            {
+              role: 'system',
+              content: `${this.systemPrompt}\n\nRelevant context from knowledge base:\n${context}\n\nPrevious conversation and relevant memories:\n${formattedHistory}`
+            },
+            {
+              role: 'user',
+              content: message
+            }
+          ],
+          model: this.config.model_id,
+          temperature: this.config.temperature,
+          maxTokens: this.config.max_tokens,
+          topP: this.config.top_p,
+          useKnowledgeBase: this.config.use_knowledge_base,
+          agentId: this.config.id
+        }
+      });
 
-        Relevant context from knowledge base:
-        ${context}
+      if (error) {
+        console.error('Error calling chat-completion function:', error);
+        throw error;
+      }
 
-        Previous conversation and relevant memories:
-        ${formattedHistory}
-
-        Current message:
-        Human: ${message}
-        Assistant: Let me help you with that.
-      `);
-
-      const chain = RunnableSequence.from([
-        promptTemplate,
-        this.model,
-        new StringOutputParser()
-      ]);
-
-      const response = await chain.invoke({});
+      const response = data.choices[0].message.content;
       
       const newMessage: Message = {
         id: crypto.randomUUID(),
