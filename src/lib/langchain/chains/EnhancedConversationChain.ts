@@ -46,7 +46,12 @@ export class EnhancedConversationChain {
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n');
 
-      // Call the Edge Function instead of direct OpenAI
+      console.log('Calling chat-completion function with config:', {
+        model: this.config.model_id,
+        useKnowledgeBase: this.config.use_knowledge_base,
+        agentId: this.config.id
+      });
+
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
@@ -71,6 +76,10 @@ export class EnhancedConversationChain {
       if (error) {
         console.error('Error calling chat-completion function:', error);
         throw error;
+      }
+
+      if (!data?.choices?.[0]?.message?.content) {
+        throw new Error('Invalid response format from chat-completion function');
       }
 
       const response = data.choices[0].message.content;
