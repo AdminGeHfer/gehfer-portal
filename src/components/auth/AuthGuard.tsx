@@ -7,13 +7,30 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        console.log('Token refresh failed, redirecting to login');
+        navigate("/login");
+        return;
+      }
+
       if (!session) {
+        console.log('No session found, redirecting to login');
         navigate("/login");
       }
       setIsLoading(false);
     });
 
+    // Initial session check
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/login");
+      }
+      setIsLoading(false);
+    };
+
+    checkSession();
     return () => subscription.unsubscribe();
   }, [navigate]);
 
