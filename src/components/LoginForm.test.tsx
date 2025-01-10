@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import LoginForm from './LoginForm'
 import { ToastProvider } from '@/components/ui/toast'
+import { act } from 'react-dom/test-utils'
 
 describe('LoginForm', () => {
   console.log('\n🚀 Iniciando suite de testes do LoginForm...')
@@ -75,7 +76,10 @@ describe('LoginForm', () => {
     
     const submitButton = screen.getByRole('button', { name: /entrar/i })
     console.log('Clicando no botão de submit com campos vazios...')
-    fireEvent.click(submitButton)
+    
+    await act(async () => {
+      fireEvent.click(submitButton)
+    })
 
     await waitFor(() => {
       const errorToast = screen.findByText('Por favor, preencha todos os campos');
