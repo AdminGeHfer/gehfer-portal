@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
+    "lint:fix": "eslint --fix src/**/*.{js,jsx,ts,tsx}",
     "coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "vitest": "vitest"
