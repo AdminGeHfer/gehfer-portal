@@ -43,7 +43,6 @@ describe('LoginForm', () => {
     
     expect(emailInput).toBeInTheDocument()
     expect(passwordInput).toBeInTheDocument()
-    console.log('✅ TESTE 1: Passou!')
   })
 
   it('should toggle password visibility', () => {
@@ -52,7 +51,6 @@ describe('LoginForm', () => {
     
     const passwordInput = screen.getByPlaceholderText('Senha') as HTMLInputElement
     const toggleButton = screen.getByTestId('toggle-password')
-
     console.log('Estado inicial do campo senha:', {
       type: passwordInput.type,
       isPassword: passwordInput.type === 'password' ? '✅' : '❌'
@@ -69,7 +67,6 @@ describe('LoginForm', () => {
     })
 
     expect(passwordInput).toHaveAttribute('type', 'text')
-    console.log('✅ TESTE 2: Passou!')
   })
 
   it('should show error toast when submitting empty form', async () => {
@@ -83,6 +80,7 @@ describe('LoginForm', () => {
     await waitFor(() => {
       const errorToast = screen.findByText('Por favor, preencha todos os campos');
       console.log('Toast de erro exibido:', errorToast ? '✅ presente' : '❌ ausente')
+      expect(errorToast).toBeInTheDocument()
       console.log('✅ TESTE 3: Passou!')
     })
   })
