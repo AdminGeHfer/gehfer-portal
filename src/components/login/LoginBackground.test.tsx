@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { describe, it, expect } from 'vitest'
 import { LoginBackground } from './LoginBackground'
 
@@ -10,7 +11,7 @@ describe('LoginBackground', () => {
     const { container } = render(<LoginBackground />)
     
     const gradientBg = container.querySelector('.bg-gradient-to-br')
-    const patternBg = container.querySelector('.bg-\\[url\\(\\\'/pattern\\.png\\\'\\)\\]')
+    const patternBg = container.querySelector('[class*="bg-[url(\'/pattern.png\')]"]')
     
     console.log('Elementos encontrados:', {
       gradient: gradientBg ? 'presente' : 'ausente',

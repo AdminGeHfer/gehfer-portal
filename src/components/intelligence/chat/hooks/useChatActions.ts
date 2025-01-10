@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { EnhancedConversationChain } from "@/lib/langchain/chains/EnhancedConversationChain";
 import { Message } from "@/types/ai";
+import { AIAgent } from "@/types/ai/agent";
 
 export const useChatActions = (conversationId: string | undefined) => {
   const navigate = useNavigate();
@@ -90,7 +91,8 @@ export const useChatActions = (conversationId: string | undefined) => {
       if (messageError) throw messageError;
 
       // Create conversation chain with enhanced features
-      const conversationChain = new EnhancedConversationChain(conversation.ai_agents, conversationId);
+      const agent = conversation.ai_agents as AIAgent;
+      const conversationChain = new EnhancedConversationChain(agent, conversationId);
 
       // Process message with enhanced context and memory
       const response = await conversationChain.processMessage(content, existingMessages || []);

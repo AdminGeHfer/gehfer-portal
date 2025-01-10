@@ -68,7 +68,7 @@ export const compareVersions = async (versionId1: string, versionId2: string) =>
   };
 };
 
-function analyzeDifferences(chunks1: any[], chunks2: any[]) {
+function analyzeDifferences(chunks1: unknown[], chunks2: unknown[]) {
   return {
     totalDiffs: 0,
     coherenceChanges: [],
