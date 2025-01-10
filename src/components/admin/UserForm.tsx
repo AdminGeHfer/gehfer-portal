@@ -109,10 +109,11 @@ export function UserForm({ user, onSuccess }: UserFormProps) {
       if (onSuccess) {
         onSuccess();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const e = error as Error;
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro ao salvar o usuário.",
+        description: e.message || "Ocorreu um erro ao salvar o usuário.",
         variant: "destructive"
       });
     } finally {
