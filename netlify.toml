@@ -1,6 +1,6 @@
 [build]
   command = "npm run build"
-  publish = "/opt/build/repo/dist"
+  publish = "dist"
 
 [[env]]
   NODE_VERSION = "18"
