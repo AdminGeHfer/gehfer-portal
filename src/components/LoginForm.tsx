@@ -61,6 +61,7 @@ const LoginForm = () => {
             />
             <button
               type="button"
+              data-testid="toggle-password"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-3 text-primary hover:text-primary/80 transition-colors"
             >
