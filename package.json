@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "build": "react-scripts build",
     "dev": "vite",
     "test": "vitest",
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
