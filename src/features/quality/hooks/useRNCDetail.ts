@@ -53,7 +53,7 @@ export const useRNCDetail = (id: string) => {
       await queryClient.invalidateQueries({ queryKey: ["rnc", id] });
       setIsEditing(false);
       toast.success("RNC atualizada com sucesso");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao atualizar RNC");
     } finally {
       setIsSaving(false);
@@ -74,7 +74,7 @@ export const useRNCDetail = (id: string) => {
 
       toast.success("RNC excluída com sucesso");
       queryClient.invalidateQueries({ queryKey: ["rncs"] });
-    } catch (error) {
+    } catch {
       toast.error("Erro ao excluir RNC");
     } finally {
       setIsDeleting(false);
@@ -95,12 +95,12 @@ export const useRNCDetail = (id: string) => {
 
       await queryClient.invalidateQueries({ queryKey: ["rnc", id] });
       toast.success("Status atualizado com sucesso");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao atualizar status");
     }
   };
 
-  const handleFieldChange = async (field: keyof RNC, value: any) => {
+  const handleFieldChange = async (field: keyof RNC, value: unknown) => {
     if (!rnc) return;
 
     try {
@@ -113,7 +113,11 @@ export const useRNCDetail = (id: string) => {
 
       await queryClient.invalidateQueries({ queryKey: ["rnc", id] });
     } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Erro ao atualizar ${field}: ${error.message}`);
+      } else {
       toast.error(`Erro ao atualizar ${field}`);
+      }
     }
   };
 
