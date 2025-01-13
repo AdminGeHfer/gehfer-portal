@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +26,7 @@ export const LoginForm = () => {
 
       toast.success("Login realizado com sucesso");
       navigate("/apps");
-    } catch (error: any) {
+    } catch (error) {
       toast.error(error.message || "Erro ao fazer login");
     } finally {
       setLoading(false);

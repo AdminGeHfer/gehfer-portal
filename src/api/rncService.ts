@@ -59,7 +59,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
   
   try {
     sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
-  } catch (e) {
+  } catch {
     console.warn('Cache storage failed, clearing old data');
     sessionStorage.clear();
     sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
