@@ -30,28 +30,30 @@ export function RNCListContainer() {
 
   return (
     <div className="min-h-screen bg-background">
-      <RNCListHeader 
-        onRNCCreated={() => {}} 
-      />
-      
-      <main className="flex-1 p-6">
-        <RNCListFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          statusFilter={statusFilter}
-          onStatusChange={setStatusFilter}
-          departmentFilter={departmentFilter}
-          onDepartmentChange={setDepartmentFilter}
-          priorityFilter={priorityFilter}
-          onPriorityChange={setPriorityFilter}
+      <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <RNCListHeader 
+          onRNCCreated={() => {}} 
         />
+        
+        <div className="space-y-6">
+          <RNCListFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+            departmentFilter={departmentFilter}
+            onDepartmentChange={setDepartmentFilter}
+            priorityFilter={priorityFilter}
+            onPriorityChange={setPriorityFilter}
+          />
 
-        <RNCListTable
-          rncs={filteredRncs}
-          isLoading={isLoading}
-          onRowClick={(id) => navigate(`/quality/rnc/${id}`)}
-        />
-      </main>
+          <RNCListTable
+            rncs={filteredRncs}
+            isLoading={isLoading}
+            onRowClick={(id) => navigate(`/quality/rnc/${id}`)}
+          />
+        </div>
+      </div>
     </div>
   );
 }

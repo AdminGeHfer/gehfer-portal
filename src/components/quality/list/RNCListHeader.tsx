@@ -24,14 +24,14 @@ export const RNCListHeader = ({ onRNCCreated }: RNCListHeaderProps) => {
   };
 
   return (
-    <div className="flex justify-between items-center mb-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground mb-2">Registro de Não Conformidade (RNC)</h1>
+    <div className="mb-8 flex justify-between items-center px-1">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-foreground">Registro de Não Conformidade (RNC)</h1>
         <p className="text-muted-foreground">Gerencie todas as não conformidades registradas</p>
       </div>
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogTrigger asChild>
-          <Button className="bg-[#4318FF] hover:bg-[#3311DD] text-white font-medium">
+          <Button className="bg-[#4318FF] hover:bg-[#3311DD] text-white font-medium ml-auto">
             <Plus className="mr-2 h-4 w-4" />
             Nova RNC
           </Button>
@@ -42,4 +42,4 @@ export const RNCListHeader = ({ onRNCCreated }: RNCListHeaderProps) => {
       </Dialog>
     </div>
   );
-};
+}
