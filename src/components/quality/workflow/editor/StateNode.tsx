@@ -1,3 +1,4 @@
+import React from 'react';
 import { Handle, NodeProps, Position } from 'reactflow';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

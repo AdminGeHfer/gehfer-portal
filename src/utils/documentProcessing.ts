@@ -1,12 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 
-interface ChunkMetadata {
-  position: number;
-  topic: string;
-  coherence_score: number;
-  semantic_context: string;
-}
-
 export const processDocumentWithSemanticChunking = async (
   documentId: string,
   content: string,
@@ -43,7 +36,7 @@ export const processDocumentWithSemanticChunking = async (
     const { error: insertError } = await supabase
       .from('document_chunks')
       .insert(
-        processedChunks.map((chunk: any, index: number) => ({
+        processedChunks.map((chunk, index: number) => ({
           document_id: documentId,
           version_id: versionData.id,
           content: chunk.content,

@@ -1,10 +1,10 @@
+import React from "react";
 import { Label } from "@/components/ui/label";
 import { DocumentUpload } from "../DocumentUpload";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EMBEDDING_MODELS, SEARCH_TYPES } from "./constants";
 import { AIAgentDocumentList } from "./AIAgentDocumentList";
-import { SearchType } from "@/types/ai/agent";
 
 interface AIAgentKnowledgeBaseProps {
   agentId: string;

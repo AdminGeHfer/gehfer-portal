@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentVersionList } from "./DocumentVersionList";
 import { DocumentChunks } from "./DocumentChunks";
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface DocumentDetailsProps {
   documentId: string;

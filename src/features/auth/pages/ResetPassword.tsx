@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ const ResetPassword = () => {
       await supabase.auth.signOut();
       
       navigate("/login");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao resetar senha:", error);
       toast.error(error.message || "Erro ao atualizar senha");
     } finally {

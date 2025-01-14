@@ -1,7 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRNCs } from "@/hooks/useRNCs";
-import { RNCFormData } from "@/types/rnc";
 import { RNCListHeader } from "./RNCListHeader";
 import { RNCListFilters } from "./RNCListFilters";
 import { RNCListTable } from "./RNCListTable";
@@ -13,17 +12,7 @@ export function RNCListContainer() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
-  const { rncs, isLoading, createRNC } = useRNCs();
-
-  const handleSubmit = async (data: RNCFormData) => {
-    try {
-      const result = await createRNC.mutateAsync(data);
-      return result.id;
-    } catch (error) {
-      console.error("Erro ao criar RNC:", error);
-      throw error;
-    }
-  };
+  const { rncs, isLoading } = useRNCs();
 
   const filteredRncs = rncs?.map(transformRNCData).filter((rnc) => {
     const matchesSearch = 

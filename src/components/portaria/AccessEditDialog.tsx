@@ -4,14 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface AccessEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  accessLog: any;
+  accessLog;
 }
 
 export function AccessEditDialog({ open, onOpenChange, accessLog }: AccessEditDialogProps) {
@@ -33,7 +33,7 @@ export function AccessEditDialog({ open, onOpenChange, accessLog }: AccessEditDi
       
       toast.success("Registro atualizado com sucesso!");
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erro ao atualizar registro: " + error.message);
     }
   };

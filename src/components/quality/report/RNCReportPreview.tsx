@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { RNCReport } from "./RNCReport";
 import { generatePDF } from "@/utils/pdfUtils";
 import { RNC } from "@/types/rnc";

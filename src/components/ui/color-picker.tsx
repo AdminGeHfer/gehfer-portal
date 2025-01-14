@@ -1,5 +1,5 @@
+import React from "react";
 import { Input } from "./input";
-import { Label } from "./label";
 
 interface ColorPickerProps {
   color: string;

@@ -5,7 +5,7 @@ export interface AgentTemplate {
   name: string;
   description?: string;
   agentType: AgentType;
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   createdAt: string;
   createdBy?: string;
   isPublic: boolean;

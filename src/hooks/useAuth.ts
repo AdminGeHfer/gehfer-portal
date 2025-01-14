@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 
 interface UseAuthReturn {
-  user: any;
-  profile: any;
+  user;
+  profile;
   isLoading: boolean;
   error: Error | null;
   signOut: () => Promise<void>;
@@ -46,7 +46,7 @@ export function useAuth(): UseAuthReturn {
 
       toast.success("Logout realizado com sucesso");
       navigate("/login");
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erro ao fazer logout");
       console.error("Erro no logout:", error);
     }

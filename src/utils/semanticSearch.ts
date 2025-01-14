@@ -4,7 +4,7 @@ interface SearchResult {
   id: string;
   content: string;
   similarity: number;
-  metadata: any;
+  metadata;
 }
 
 export async function semanticSearch(

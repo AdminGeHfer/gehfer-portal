@@ -3,11 +3,14 @@ import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { AIAgent } from "@/types/ai/agent";
 import { HierarchicalMemory } from "../memory/HierarchicalMemory";
-import { RunnableSequence } from "@langchain/core/runnables";
+
+interface Message {
+  content: string;
+}
 
 export const createEnhancedAgentChain = async (
   agent: AIAgent,
-  existingMessages: any[] = []
+  existingMessages: Message[] = []
 ) => {
   // Initialize enhanced memory with required conversationId
   const memory = new HierarchicalMemory({

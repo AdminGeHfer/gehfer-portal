@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Users, Calendar, ChartBar, Settings } from "lucide-react";
+import React from 'react';
 
 const modules = [
   {

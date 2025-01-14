@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface TestVariant {
   id: string;
   name: string;
-  configuration: any;
+  configuration;
 }
 
 export const getTestVariant = async (userId: string): Promise<TestVariant | null> => {
@@ -54,7 +54,7 @@ export const getTestVariant = async (userId: string): Promise<TestVariant | null
 export const trackTestMetrics = async (
   userId: string,
   variantId: string,
-  metrics: any
+  metrics
 ) => {
   try {
     await supabase

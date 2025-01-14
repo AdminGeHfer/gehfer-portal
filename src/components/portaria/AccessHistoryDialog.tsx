@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -12,7 +13,7 @@ import { AccessEditDialog } from "./AccessEditDialog";
 interface AccessHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  accessLog: any;
+  accessLog;
 }
 
 export function AccessHistoryDialog({ open, onOpenChange, accessLog }: AccessHistoryDialogProps) {

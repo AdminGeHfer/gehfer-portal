@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +57,7 @@ export function ProfileUpload() {
 
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       toast.success("Foto de perfil atualizada com sucesso!");
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erro ao atualizar foto de perfil: " + error.message);
     } finally {
       setUploading(false);

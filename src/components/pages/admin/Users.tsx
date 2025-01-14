@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
-import { UserPlus, Download, Upload, RefreshCw } from "lucide-react";
+import { UserPlus, Download, RefreshCw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { UserForm } from "@/components/admin/UserForm";
 import { useUsers } from "@/hooks/useUsers";
@@ -16,11 +16,23 @@ export default function Users() {
   const [moduleFilter, setModuleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { data: users, isLoading: isLoadingUsers, refetch } = useUsers();
 
-  const filteredUsers = users?.filter(user => {
+  interface LocalUser {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    modules?: string[];
+    active: boolean;
+  }
+  
+  const filteredUsers: LocalUser[] = users?.map(user => ({
+    ...user,
+    role: user.role || 'defaultRole'
+  })).filter(user => {
     const matchesSearch = 
       (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase());
@@ -50,7 +62,7 @@ export default function Users() {
 
       await refetch();
       toast.success("Usuário desativado com sucesso");
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deactivating user:', error);
       toast.error("Erro ao desativar usuário");
     }
@@ -68,7 +80,7 @@ export default function Users() {
 
       await refetch();
       toast.success(`Usuários ${action === 'activate' ? 'ativados' : 'desativados'} com sucesso`);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in bulk action:', error);
       toast.error(`Erro ao ${action === 'activate' ? 'ativar' : 'desativar'} usuários`);
     } finally {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -50,7 +50,7 @@ export function UserForm({ user }: UserFormProps) {
         title: user ? "Usuário atualizado" : "Usuário criado",
         description: `O usuário ${data.name} foi ${user ? "atualizado" : "criado"} com sucesso.`
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Erro",
         description: "Ocorreu um erro ao salvar o usuário.",
@@ -179,8 +179,6 @@ export function UserForm({ user }: UserFormProps) {
 }
 
 const Users = () => {
-  const { toast } = useToast();
-
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Usuários</h1>

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useRBAC } from "@/hooks/useRBAC";
 import { toast } from "sonner";

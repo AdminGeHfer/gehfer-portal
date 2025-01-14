@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       const timestamp = new Date().toISOString().replace(/[^0-9]/g, "");
       const uniqueFilename = `${timestamp}-${file.name}`;
       
-      const { data: storageData, error: storageError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from('documents')
         .upload(`${agentId}/${uniqueFilename}`, file);
 
@@ -40,7 +40,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       formData.append('agentId', agentId);
 
       // Process document using Edge Function
-      const { data, error } = await supabase.functions
+      const { error } = await supabase.functions
         .invoke('process-document', {
           body: formData
         });
@@ -52,7 +52,7 @@ export const DocumentUpload = ({ agentId }: DocumentUploadProps) => {
       
       // Reset the input
       event.target.value = '';
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error processing document:', error);
       toast.error(error.message || "Erro ao processar documento");
     } finally {

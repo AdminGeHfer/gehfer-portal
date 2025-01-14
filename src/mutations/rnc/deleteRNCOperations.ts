@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const handleError = (error: any, operation: string) => {
+const handleError = (error, operation: string) => {
   console.error(`Error in ${operation}:`, error);
   throw error;
 };
@@ -157,7 +157,7 @@ export const deleteRNCRecord = async (id: string) => {
     
     console.log('Successfully deleted RNC and all related records');
     return true;
-  } catch (error: any) {
+  } catch (error) {
     // If RNC not found, return true to indicate it's already deleted
     if (error.message === "RNC not found") {
       console.log('RNC already deleted');

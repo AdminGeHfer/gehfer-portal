@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RNCFormData } from "@/types/rnc";
@@ -14,7 +14,7 @@ interface RNCFormProps {
   mode?: "create" | "edit";
 }
 
-export function RNCFormContainer({ initialData, onSubmit, mode = "create" }: RNCFormProps) {
+export function RNCFormContainer({ initialData}: RNCFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,14 +29,12 @@ export function RNCFormContainer({ initialData, onSubmit, mode = "create" }: RNC
     mode: "onSubmit"
   });
 
-  const handleSubmit = async (data: RNCFormData) => {
+  const handleSubmit = async () => {
     if (isSubmitting) return;
     
     try {
       setIsSubmitting(true);
       setShowValidationErrors(true);
-      
-      const rncId = await onSubmit(data);
       
       toast({
         title: "RNC criada com sucesso",

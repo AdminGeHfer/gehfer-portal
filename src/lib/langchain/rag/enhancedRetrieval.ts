@@ -2,12 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
 import { BaseRetriever } from "@langchain/core/retrievers";
 import { aiLogger, AILogStage } from "@/lib/logging/aiLoggingService";
-import { Callbacks, BaseCallbackConfig } from "@langchain/core/callbacks/manager";
 
 interface SearchResult {
   id: string;
   content: string;
-  metadata: any;
+  metadata;
   similarity: number;
 }
 
@@ -37,7 +36,6 @@ export class EnhancedRetriever extends BaseRetriever {
 
   async getRelevantDocuments(
     query: string,
-    config?: Callbacks | BaseCallbackConfig
   ): Promise<Document[]> {
     const startTime = Date.now();
     

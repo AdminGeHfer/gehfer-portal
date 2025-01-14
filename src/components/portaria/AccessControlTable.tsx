@@ -6,18 +6,28 @@ import { ptBR } from "date-fns/locale";
 import { Eye, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState } from "react";
+import React, { useState } from "react";
 import { ExitConfirmationDialog } from "./ExitConfirmationDialog";
 import { AccessHistoryDialog } from "./AccessHistoryDialog";
 
 interface AccessControlTableProps {
-  accessLogs: any[];
+  accessLogs: {
+    id: string;
+    truck: {
+      plate: string;
+      driver_name: string;
+      transport_company: string;
+    };
+    entry_time: string;
+    exit_time: string | null;
+    operation_status: string | null;
+  }[];
   isLoading: boolean;
-  onViewDetails: (log: any) => void;
+  onViewDetails: (log) => void;
 }
 
-export function AccessControlTable({ accessLogs = [], isLoading, onViewDetails }: AccessControlTableProps) {
-  const [selectedLog, setSelectedLog] = useState<any>(null);
+export function AccessControlTable({ accessLogs = [], isLoading }: AccessControlTableProps) {
+  const [selectedLog, setSelectedLog] = useState(null);
   const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 
@@ -55,12 +65,12 @@ export function AccessControlTable({ accessLogs = [], isLoading, onViewDetails }
     }
   };
 
-  const handleExitClick = (log: any) => {
+  const handleExitClick = (log) => {
     setSelectedLog(log);
     setIsExitDialogOpen(true);
   };
 
-  const handleHistoryClick = (log: any) => {
+  const handleHistoryClick = (log) => {
     setSelectedLog(log);
     setIsHistoryDialogOpen(true);
   };

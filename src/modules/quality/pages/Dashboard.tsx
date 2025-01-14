@@ -1,5 +1,5 @@
 import { Header } from "@/components/layout/Header";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ const Dashboard = () => {
       try {
         const data = await getRNCs();
         setRncs(data);
-      } catch (error) {
+      } catch {
         toast({
           title: "Erro ao carregar RNCs",
           description: "Não foi possível carregar os dados das RNCs.",

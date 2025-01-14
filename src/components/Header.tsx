@@ -1,11 +1,11 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
-import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { NotificationsPopover } from "./notifications/NotificationsPopover";
 import { ProfileUpload } from "./profile/ProfileUpload";
+import React from "react";
 
 interface HeaderProps {
   title?: string;
@@ -13,7 +13,6 @@ interface HeaderProps {
 
 export function Header({ title = "Portal GeHfer" }: HeaderProps) {
   const { theme, setTheme } = useTheme();
-  const { signOut } = useAuth();
 
   const { data: user } = useQuery({
     queryKey: ['user'],

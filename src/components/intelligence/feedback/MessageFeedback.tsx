@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import React from "react";
 
 interface MessageFeedbackProps {
   messageId: string;

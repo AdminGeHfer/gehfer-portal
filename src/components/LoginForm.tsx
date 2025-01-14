@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import React, { useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +61,7 @@ const LoginForm = (): JSX.Element => {
             />
             <button
               type="button"
+              data-testid="toggle-password"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-3 text-primary hover:text-primary/80 transition-colors"
             >

@@ -19,7 +19,7 @@ export const handleCNPJChange = (
   e: ChangeEvent<HTMLInputElement>,
   onChange: (value: string) => void
 ) => {
-  let value = e.target.value;
+  const value = e.target.value;
   
   // Store cursor position
   const cursorPosition = e.target.selectionStart;

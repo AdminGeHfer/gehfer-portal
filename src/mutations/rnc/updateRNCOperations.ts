@@ -44,7 +44,7 @@ export const updateRNCRecord = async (id: string, updatedData: Partial<RNC>) => 
       await updateRNCContact(id, updatedData.contact);
     }
     return true;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Update operation failed:", error);
     throw new Error(error.message || "Failed to update RNC");
   }

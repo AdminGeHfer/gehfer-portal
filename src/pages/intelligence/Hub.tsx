@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { useNavigate } from "react-router-dom";
+import React from 'react';
 
 interface AIModule {
   title: string;

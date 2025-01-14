@@ -6,7 +6,7 @@ export interface AILogEvent {
   agent_id: string;
   conversation_id: string;
   stage: AILogStage;
-  details: Record<string, any>;
+  details: Record<string, null>;
   metadata: {
     user_id: string;
     model_id: string;

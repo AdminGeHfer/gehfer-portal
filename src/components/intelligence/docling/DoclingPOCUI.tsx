@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { DoclingPOC } from '@/lib/docling/poc/DoclingPOC';
@@ -18,7 +18,7 @@ const INITIALIZATION_STAGES = [
 
 export function DoclingPOCUI() {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [poc, setPoc] = useState<DoclingPOC | null>(null);
   const [initStage, setInitStage] = useState('Starting initialization...');
@@ -66,7 +66,7 @@ export function DoclingPOCUI() {
       updateProgress('Initialization complete', 100);
       
       toast.success('POC initialized successfully');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error initializing POC:', error);
       setError(error.message || 'Failed to initialize document processing');
       setDetailedError(error.stack || 'No detailed error information available');
@@ -104,7 +104,7 @@ export function DoclingPOCUI() {
       await poc.uploadResults();
       toast.success('Documents processed successfully');
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in POC:', error);
       toast.error(error.message || 'Error processing documents');
     } finally {

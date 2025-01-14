@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Brain, Network, GitBranch } from "lucide-react";
 import { AgentType } from "@/types/ai/agent-types";

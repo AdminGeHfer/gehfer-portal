@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Truck } from "@/types/truck";
 import { api } from "./api/portariaApi";
@@ -33,7 +32,7 @@ export function usePortariaTrucks() {
       await api.updateTruckOperation(truckId, newQueue);
       queryClient.invalidateQueries({ queryKey: ["trucks"] });
       toast.success("Caminhão movido com sucesso!");
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erro ao mover caminhão: " + error.message);
     }
   };
@@ -43,7 +42,7 @@ export function usePortariaTrucks() {
       await api.finishOperation(truckId);
       queryClient.invalidateQueries({ queryKey: ["trucks"] });
       toast.success("Operação finalizada com sucesso!");
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Erro ao finalizar operação: " + error.message);
     }
   };

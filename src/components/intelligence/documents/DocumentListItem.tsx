@@ -1,6 +1,7 @@
 import { Document } from "@/types/documents/metadata";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Trash2 } from "lucide-react";
+import React from "react";
 
 interface DocumentListItemProps {
   document: Document;

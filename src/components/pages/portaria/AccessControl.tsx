@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
 import { RegisterTruckDialog } from "@/components/portaria/RegisterTruckDialog";
 import { AccessDetailsDialog } from "@/components/portaria/AccessDetailsDialog";
 import { AccessControlMetrics } from "@/components/portaria/AccessControlMetrics";
@@ -13,7 +13,7 @@ import { usePortariaRealtime } from "@/hooks/usePortariaRealtime";
 const AccessControl = () => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [selectedLog, setSelectedLog] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const { data: accessLogs, isLoading } = useQuery({
@@ -60,7 +60,7 @@ const AccessControl = () => {
   // Enable real-time updates
   usePortariaRealtime();
 
-  const handleViewDetails = (log: any) => {
+  const handleViewDetails = (log) => {
     setSelectedLog(log);
     setIsDetailsOpen(true);
   };

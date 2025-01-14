@@ -1,3 +1,4 @@
+import React from "react";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 

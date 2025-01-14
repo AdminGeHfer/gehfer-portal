@@ -17,10 +17,14 @@ import { AIAgent } from "@/types/ai/agent";
 import { EnhancedRetriever } from "../rag/enhancedRetrieval";
 import { RunnableSequence } from "@langchain/core/runnables";
 
+interface Message {
+  content: string;
+}
+
 export const createAgentChain = async (
   agent: AIAgent,
-  memory: any,
-  previousMessages: any[] = []
+  memory,
+  previousMessages: Message[] = []
 ) => {
   console.log('[AgentChain] Creating agent chain with config:', {
     model: agent.model_id,
@@ -69,19 +73,19 @@ export const createAgentChain = async (
     
     const retrieverChain = RunnableSequence.from([
       {
-        input: (input: any) => input.input,
-        chat_history: (input: any) => input.chat_history,
+        input: (input) => input.input,
+        chat_history: (input) => input.chat_history,
       },
       {
-        context: async (input: any) => {
+        context: async (input) => {
           console.log('[AgentChain] Retrieving context for:', input.input);
           const docs = await retriever.getRelevantDocuments(input.input);
           const context = docs.map(doc => doc.pageContent).join('\n\n');
           console.log('[AgentChain] Retrieved context:', context.substring(0, 200) + '...');
           return context;
         },
-        chat_history: (input: any) => input.chat_history,
-        input: (input: any) => input.input,
+        chat_history: (input) => input.chat_history,
+        input: (input) => input.input,
       },
     ]);
 
@@ -89,7 +93,7 @@ export const createAgentChain = async (
       llm: model,
       memory,
       prompt,
-      // @ts-ignore - Type issues with latest LangChain version
+      // @ts-expect-error - Type issues with latest LangChain version
       retriever: retrieverChain,
     });
   } else {

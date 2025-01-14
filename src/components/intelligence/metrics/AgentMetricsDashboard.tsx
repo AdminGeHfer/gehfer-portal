@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -8,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/ui/chart";
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 interface MetricData {
   metric_type: string;

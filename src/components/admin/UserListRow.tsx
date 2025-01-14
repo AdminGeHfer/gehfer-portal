@@ -1,12 +1,13 @@
+import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { UserListActions } from "./UserListActions";
 
 interface UserListRowProps {
-  user: any;
-  onEdit: (user: any) => void;
-  onDelete: (user: any) => void;
-  onResetPassword: (user: any) => void;
+  user;
+  onEdit: (user) => void;
+  onDelete: (user) => void;
+  onResetPassword: (user) => void;
   onSendPasswordReset: (email: string) => void;
 }
 

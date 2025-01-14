@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";

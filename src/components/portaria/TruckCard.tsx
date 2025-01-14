@@ -1,3 +1,4 @@
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Truck } from "@/types/truck";
 import { useDrag } from "react-dnd";

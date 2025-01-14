@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import React from "react";
 
 const formSchema = z.object({
   internal_code: z.string().min(1, "Código interno é obrigatório"),

@@ -1,4 +1,4 @@
-import { useState, useRef, KeyboardEvent } from "react";
+import React, { useState, useRef, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, X } from "lucide-react";

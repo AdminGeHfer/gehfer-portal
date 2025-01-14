@@ -1,4 +1,4 @@
-import { useState, useRef, KeyboardEvent } from "react";
+import React, { useState, useRef, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, X } from "lucide-react";
@@ -9,7 +9,7 @@ interface ChatInputProps {
   isLoading: boolean;
 }
 
-export const ChatInput = ({ onSubmit, onFileUpload, isLoading }: ChatInputProps) => {
+export const ChatInput = ({ onSubmit, isLoading }: ChatInputProps) => {
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 

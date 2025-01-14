@@ -79,7 +79,7 @@ export const useUpdateRNC = (
     onError: (error: Error) => {
       toast.error("Erro ao atualizar RNC: " + error.message);
       if (options?.onError) {
-        options.onError(error, null as any, null as any);
+        options.onError(error, null, null);
       }
     },
   });

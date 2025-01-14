@@ -1,3 +1,4 @@
+import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -57,7 +58,7 @@ export function RNCComments({ rncId, onCommentAdded }: RNCCommentsProps) {
     },
   });
 
-  const handleDelete = async (commentId: string, createdBy: string) => {
+  const handleDelete = async (commentId: string) => {
     try {
       const { error } = await supabase
         .from("rnc_events")
@@ -122,7 +123,7 @@ export function RNCComments({ rncId, onCommentAdded }: RNCCommentsProps) {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6"
-                            onClick={() => handleDelete(comment.id, comment.created_by)}
+                            onClick={() => handleDelete(comment.id)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>

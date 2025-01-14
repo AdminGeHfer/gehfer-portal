@@ -2,12 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
-[build.environment]
+[[env]]
   NODE_VERSION = "18"
+
+[[env]]
   NPM_FLAGS = "--legacy-peer-deps"
 
-# Uncomment if you need to handle SPA routing
-# [[redirects]]
-#   from = "/*"
-#   to = "/index.html"
-#   status = 200
+[[env]]
+  REVIEW_ID = ""

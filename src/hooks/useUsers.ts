@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface User {
+  role: string;
   id: string;
   name: string | null;
   email: string | null;

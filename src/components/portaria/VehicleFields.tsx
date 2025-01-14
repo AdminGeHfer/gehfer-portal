@@ -1,11 +1,12 @@
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface VehicleFieldsProps {
-  register: any;
-  setValue: any;
-  watch: any;
+  register;
+  setValue;
+  watch;
 }
 
 export function VehicleFields({ register, setValue, watch }: VehicleFieldsProps) {

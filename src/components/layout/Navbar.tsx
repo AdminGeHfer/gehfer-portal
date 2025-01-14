@@ -4,7 +4,7 @@ import { LogOut, Menu } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export function Navbar() {
   const navigate = useNavigate();

@@ -1,9 +1,9 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { RNCForm } from "@/components/quality/RNCForm";
 import { useState } from "react";
-import { RNCFormData } from "@/types/rnc";
 
 interface RNCListHeaderProps {
   onRNCCreated: () => void;
@@ -12,7 +12,7 @@ interface RNCListHeaderProps {
 export const RNCListHeader = ({ onRNCCreated }: RNCListHeaderProps) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const handleSubmit = async (data: RNCFormData) => {
+  const handleSubmit = async () => {
     try {
       setIsFormOpen(false);
       onRNCCreated();

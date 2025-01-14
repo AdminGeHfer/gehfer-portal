@@ -18,12 +18,17 @@ export function useAgentList() {
         return;
       }
 
-      let { data: userAgents, error: userAgentsError } = await supabase
+      let userAgents;
+      const { data: userAgentsData, error: userAgentsError } = await supabase
         .from('ai_agents')
         .select('*')
         .eq('user_id', session.session.user.id);
 
+      if (isLoading) throw isLoading;
+
       if (userAgentsError) throw userAgentsError;
+
+      userAgents = userAgentsData;
 
       if (!userAgents || userAgents.length === 0) {
         const defaultAgent = {

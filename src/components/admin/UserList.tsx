@@ -5,18 +5,18 @@ import { Mail, UserCog, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface UserListProps {
-  users: any[];
+  users: { id: string; name: string; email: string; role: string; modules?: string[]; active: boolean }[];
   isLoading: boolean;
-  onEdit: (user: any) => void;
+  onEdit: (user) => void;
   onDelete: (userId: string) => Promise<void>;
 }
 
 export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) {
   const { toast } = useToast();
-  const [userToDelete, setUserToDelete] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const handleResetPassword = async (email: string) => {
     try {
@@ -26,7 +26,7 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
         title: "Email enviado",
         description: "Um email de redefinição de senha foi enviado"
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erro",
         description: error.message,
@@ -44,7 +44,7 @@ export function UserList({ users, isLoading, onEdit, onDelete }: UserListProps) 
         title: "Usuário desativado",
         description: "O usuário foi desativado com sucesso"
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erro",
         description: error.message,

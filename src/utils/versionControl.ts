@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
 
 export const getDocumentVersions = async (documentId: string) => {
   const { data, error } = await supabase
@@ -64,11 +63,11 @@ export const compareVersions = async (versionId1: string, versionId2: string) =>
   return {
     chunks1,
     chunks2,
-    differences: analyzeDifferences(chunks1, chunks2)
+    differences: analyzeDifferences()
   };
 };
 
-function analyzeDifferences(chunks1: any[], chunks2: any[]) {
+function analyzeDifferences() {
   return {
     totalDiffs: 0,
     coherenceChanges: [],

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import React from 'react';
 
 const modules = [
   {
@@ -52,7 +53,7 @@ const Apps = () => {
       await signOut();
       toast.success("Logout realizado com sucesso");
       navigate("/login");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao fazer logout");
     }
   };

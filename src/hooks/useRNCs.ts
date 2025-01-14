@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { RNCFormData, DepartmentEnum } from "@/types/rnc";
+import { RNCFormData } from "@/types/rnc";
 import { toast } from "sonner";
 
 export const useRNCs = () => {
@@ -122,7 +122,7 @@ export const useRNCs = () => {
       queryClient.invalidateQueries({ queryKey: ["rncs"] });
       toast.success("RNC criada com sucesso!");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error("Erro ao criar RNC:", error);
       toast.error(`Erro ao criar RNC: ${error.message}`);
     },

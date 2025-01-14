@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { useQuery } from "@tanstack/react-query";
+import React from "react";
 
 const TopBar = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const TopBar = () => {
       await supabase.auth.signOut();
       toast.success("Logout realizado com sucesso");
       navigate("/login");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao fazer logout");
     }
   };

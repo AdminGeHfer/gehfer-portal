@@ -1,15 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useForm } from "react-hook-form";
 import { usePortariaTrucks } from "@/hooks/usePortariaTrucks";
-import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { MileageFields } from "./MileageFields";
 import { VehicleFields } from "./VehicleFields";
 import { OperationFields } from "./OperationFields";
 
@@ -52,7 +47,7 @@ export function RegisterTruckDialog({ open, onOpenChange }: RegisterTruckDialogP
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data) => {
     if (activeTab === "vehicle") {
       setActiveTab("operation");
       return;
@@ -70,7 +65,7 @@ export function RegisterTruckDialog({ open, onOpenChange }: RegisterTruckDialogP
       reset();
       onOpenChange(false);
       toast.success("Caminhão registrado com sucesso!");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao registrar caminhão");
     } finally {
       setIsLoading(false);

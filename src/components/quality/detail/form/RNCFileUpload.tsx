@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 import { Upload, X } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 interface RNCFileUploadProps {
@@ -29,7 +29,7 @@ export const RNCFileUpload = ({ form }: RNCFileUploadProps) => {
     <FormField
       control={form.control}
       name="attachments"
-      render={({ field: { onChange, value, ...field } }) => (
+      render={({ field: {...field } }) => (
         <FormItem>
           <FormLabel>Anexos</FormLabel>
           <div className="border-2 border-dashed border-border rounded-lg p-8 text-center bg-muted/50">
@@ -40,7 +40,9 @@ export const RNCFileUpload = ({ form }: RNCFileUploadProps) => {
               className="hidden"
               id="file-upload"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-              {...field}
+              onBlur={field.onBlur}
+              name={field.name}
+              ref={field.ref}
             />
             <label 
               htmlFor="file-upload" 

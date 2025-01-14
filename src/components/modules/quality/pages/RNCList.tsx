@@ -1,7 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { RNC, RNCFormData } from "@/types/rnc";
 import { RNCListHeader } from "@/components/quality/list/RNCListHeader";

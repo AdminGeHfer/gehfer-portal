@@ -1,3 +1,4 @@
+import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
 import { RNC } from "@/types/rnc";

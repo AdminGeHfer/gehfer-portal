@@ -1,8 +1,6 @@
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Header } from "@/components/layout/Header";
-import { RNCDetailHeader } from "@/components/quality/detail/RNCDetailHeader";
-import { RNCDetailContent } from "@/components/quality/detail/RNCDetailContent";
-import { RNCDetailActions } from "@/components/quality/detail/RNCDetailActions";
+import React from 'react';
 
 export interface RNCDetailLayoutProps {
   rnc: RNC;
@@ -14,7 +12,7 @@ export interface RNCDetailLayoutProps {
   onDelete: () => void;
   onGeneratePDF: () => void;
   onWhatsApp: () => void;
-  onFieldChange: (field: keyof RNC, value: any) => void;
+  onFieldChange: (field: keyof RNC, value: unknown) => void;
   setIsDeleteDialogOpen: (open: boolean) => void;
   isDeleting: boolean;
   canEdit: boolean;
@@ -25,20 +23,6 @@ export interface RNCDetailLayoutProps {
 
 export function RNCDetailLayout({
   rnc,
-  isEditing,
-  isGeneratingPDF,
-  isDeleteDialogOpen,
-  onEdit,
-  onSave,
-  onDelete,
-  onGeneratePDF,
-  onWhatsApp,
-  setIsDeleteDialogOpen,
-  isDeleting,
-  canEdit,
-  onRefresh,
-  onStatusChange,
-  onFieldChange,
   children
 }: RNCDetailLayoutProps) {
   return (

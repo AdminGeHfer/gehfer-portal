@@ -8,7 +8,7 @@ interface Document {
   content: string | null;
   processed: boolean;
   created_at: string;
-  metadata: any;
+  metadata;
 }
 
 interface AgentDocument {
@@ -68,7 +68,7 @@ export function useDocuments(agentId: string) {
       queryClient.invalidateQueries({ queryKey: ['documents', agentId] });
       toast.success("Documento removido com sucesso");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Error deleting document:', error);
       toast.error("Erro ao remover documento");
     }

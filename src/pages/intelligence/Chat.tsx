@@ -2,6 +2,7 @@ import { ConversationList } from "@/components/intelligence/ConversationList";
 import { Chat as ChatComponent } from "@/components/intelligence/Chat";
 import { Header } from "@/components/layout/Header";
 import { useParams } from "react-router-dom";
+import React from 'react';
 
 const Chat = () => {
   const { conversationId } = useParams();

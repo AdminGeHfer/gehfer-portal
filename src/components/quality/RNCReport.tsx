@@ -1,3 +1,4 @@
+import React from "react";
 import { RNC } from "@/types/rnc";
 
 interface RNCReportProps {
