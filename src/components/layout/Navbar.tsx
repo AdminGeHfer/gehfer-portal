@@ -34,7 +34,6 @@ export function Navbar() {
     <>
       <Button variant="ghost" onClick={() => navigate("/quality/dashboard")}>Dashboard</Button>
       <Button variant="ghost" onClick={() => navigate("/quality/rnc")}>RNCs</Button>
-      <Button variant="ghost" onClick={() => navigate("/admin/users")}>Administração</Button>
     </>
   );
 

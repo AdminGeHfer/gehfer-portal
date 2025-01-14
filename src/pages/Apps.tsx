@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck, Package, Brain, LogOut } from "lucide-react";
+import { ClipboardCheck, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -9,13 +9,6 @@ import React from 'react';
 
 const modules = [
   {
-    title: "GeHfer Intelligence",
-    description: "Central de Inteligência Artificial e Assistentes Virtuais",
-    icon: <Brain className="h-12 w-12 text-primary" />,
-    route: "/intelligence",
-    isHighlighted: false
-  },
-  {
     title: "Qualidade",
     description: "Gestão de qualidade e controle de processos",
     icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
@@ -23,24 +16,6 @@ const modules = [
     submodules: [
       { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> }
     ]
-  },
-  {
-    title: "Administração",
-    description: "Ferramentas para gerenciar sua equipe e recursos",
-    icon: <Users className="h-12 w-12 text-primary" />,
-    route: "/admin/users"
-  },
-  {
-    title: "Portaria",
-    description: "Gestão de filas e controle de acesso",
-    icon: <Truck className="h-12 w-12 text-primary" />,
-    route: "/portaria/acesso"
-  },
-  {
-    title: "Cadastros",
-    description: "Gerenciamento de produtos e outros cadastros",
-    icon: <Package className="h-12 w-12 text-primary" />,
-    route: "/admin/products"
   }
 ];
 
@@ -95,12 +70,10 @@ const Apps = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={module.isHighlighted ? 'md:col-span-2' : ''}
+                className=''
               >
                 <Card 
-                  className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20 ${
-                    module.isHighlighted ? 'ring-2 ring-primary/50' : ''
-                  }`}
+                  className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20"
                   onClick={() => navigate(module.route)}
                 >
                   <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
