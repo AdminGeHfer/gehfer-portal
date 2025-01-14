@@ -1,36 +1,36 @@
-import { Truck } from "@/types/truck";
+import { Operation, TachographRecord, Truck, TruckFormData } from "@/types/truck";
 
-export const transformTruckData = (accessLogs: any[], operations: any[]): Truck[] => {
+export const transformTruckData = (accessLogs: unknown[], operations: unknown[]): Truck[] => {
   const transformedTrucks = [
-    ...accessLogs.map((log: any) => ({
+    ...accessLogs.map((log: {truck: Truck, truck_transform: TruckFormData, entry_time: string, notes: string | null, purpose: string}) => ({
       id: log.truck.id,
       plate: log.truck.plate,
-      driver: log.truck.driver_name,
-      type: log.truck.truck_type,
+      driver: log.truck_transform.driver_name,
+      type: log.truck_transform.truck_type,
       company: log.truck.company,
       status: "waiting" as const,
       queue: "waiting",
       entryTime: log.entry_time,
-      transportCompany: log.truck.transport_company,
+      transportCompany: log.truck_transform.transport_company,
       notes: log.notes,
       operationType: log.purpose as "loading" | "unloading" | "both"
     })),
-    ...operations.map((op: any) => ({
+    ...operations.map((op: {tachograph: TachographRecord, truck: Truck, truck_transform: TruckFormData, operation: Operation}) => ({
       id: op.truck.id,
       plate: op.truck.plate,
-      driver: op.truck.driver_name,
-      type: op.truck.truck_type,
+      driver: op.truck_transform.driver_name,
+      type: op.truck_transform.truck_type,
       company: op.truck.company,
-      status: op.status as "waiting" | "in_process" | "completed",
-      queue: op.bay_number ? `baia${op.bay_number}` : "waiting",
-      entryTime: op.entry_time,
-      transportCompany: op.truck.transport_company,
-      notes: op.notes,
-      operationType: op.operation_type as "loading" | "unloading" | "both",
+      status: op.operation.status as "waiting" | "in_process" | "completed",
+      queue: op.operation.bay_number ? `baia${op.operation.bay_number}` : "waiting",
+      entryTime: op.operation.entry_time,
+      transportCompany: op.truck_transform.transport_company,
+      notes: op.operation.notes,
+      operationType: op.truck_transform.operation_type as "loading" | "unloading" | "both",
       weights: {
-        gross: op.initial_weight,
-        tare: op.final_weight,
-        net: op.net_weight
+        gross: op.operation.initial_weight,
+        tare: op.operation.final_weight,
+        net: op.operation.net_weight
       },
       kilometers: op.tachograph?.[0]?.mileage
     }))

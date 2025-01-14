@@ -45,7 +45,7 @@ export interface RNCDetailContentProps {
   isEditing: boolean;
   onRefresh: () => Promise<void>;
   onStatusChange: (status: WorkflowStatusEnum) => Promise<void>;
-  onFieldChange: (field: keyof RNC, value: any) => void;
+  onFieldChange: (field: keyof RNC, value: unknown) => void;
 }
 
 export interface RNCDetailActionsProps {

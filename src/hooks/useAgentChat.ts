@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -53,7 +52,7 @@ export function useAgentChat() {
       }
 
       navigate(`/intelligence/chat/${conversation.id}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error starting chat:', error);
       toast({
         title: "Error",
