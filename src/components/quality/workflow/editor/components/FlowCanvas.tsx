@@ -1,3 +1,4 @@
+import React from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -19,8 +20,8 @@ const nodeTypes = {
 interface FlowCanvasProps {
   nodes: Node[];
   edges: Edge[];
-  onNodesChange: (changes: any) => void;
-  onEdgesChange: (changes: any) => void;
+  onNodesChange: (changes) => void;
+  onEdgesChange: (changes) => void;
   onConnect: (connection: Connection | Edge) => void;
   onNodeClick: NodeMouseHandler;
   onEdgeClick: EdgeMouseHandler;

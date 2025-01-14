@@ -1,3 +1,4 @@
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -38,10 +39,10 @@ export function DocumentVersionList({ documentId, onVersionChange }: DocumentVer
       return (data || []).map(version => ({
         ...version,
         metadata: version.metadata ? {
-          chunks_count: (version.metadata as any).chunks_count || 0,
-          avg_coherence: (version.metadata as any).avg_coherence || 0,
-          processed_at: (version.metadata as any).processed_at,
-          processor_version: (version.metadata as any).processor_version
+          chunks_count: (version.metadata as { chunks_count: number }).chunks_count || 0,
+          avg_coherence: (version.metadata as { avg_coherence: number }).avg_coherence || 0,
+          processed_at: (version.metadata as { processed_at?: string }).processed_at,
+          processor_version: (version.metadata as { processor_version?: string }).processor_version
         } : null
       })) as DocumentVersion[];
     }

@@ -14,13 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { AIAgentSettings } from "./AIAgentSettings";
 import { MetricsDialog } from "../metrics/MetricsDialog";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 
 interface AIAgentCardProps {
   agent: AIAgent;
   onStartChat: (agentId: string) => void;
-  onSaveConfiguration: (agentId: string, config: any) => void;
+  onSaveConfiguration: (agentId: string, config) => void;
   onDelete: (agentId: string) => Promise<void>;
 }
 

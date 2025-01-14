@@ -1,3 +1,4 @@
+import React from "react";
 import { RNC } from "@/types/rnc";
 import { RNCDetailForm } from "./RNCDetailForm";
 
@@ -6,14 +7,12 @@ interface RNCDetailContentProps {
   isEditing: boolean;
   onRefresh: () => Promise<void>;
   onStatusChange: (status: string) => Promise<void>;
-  onFieldChange: (field: keyof RNC, value: any) => void;
+  onFieldChange: (field: keyof RNC, value) => void;
 }
 
 export function RNCDetailContent({
   rnc,
   isEditing,
-  onRefresh,
-  onStatusChange,
   onFieldChange,
 }: RNCDetailContentProps) {
   return (

@@ -1,27 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Node, Edge } from "reactflow";
-import { WorkflowStatusEnum } from "@/types/rnc";
-
-interface WorkflowState {
-  id: string;
-  label: string;
-  state_type: WorkflowStatusEnum;
-  position_x: number;
-  position_y: number;
-  assigned_to?: string;
-  send_email?: boolean;
-  email_template?: string;
-}
-
-interface WorkflowData {
-  template: {
-    id: string;
-  };
-  states: WorkflowState[];
-  transitions: any[];
-}
+import { Node } from "reactflow";
 
 export function useWorkflowData() {
   const queryClient = useQueryClient();
@@ -57,7 +37,7 @@ export function useWorkflowData() {
     }
   });
 
-  const handleSave = async (nodes: Node[], edges: Edge[]) => {
+  const handleSave = async (nodes: Node[]) => {
     if (!workflow?.template.id) return;
 
     try {

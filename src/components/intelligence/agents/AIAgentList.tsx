@@ -1,10 +1,11 @@
+import React from "react";
 import { AIAgent } from "@/types/ai/agent";
 import { AIAgentCard } from "@/components/intelligence/agents/AIAgentCard";
 
 interface AIAgentListProps {
   agents: AIAgent[];
   onStartChat: (agentId: string) => void;
-  onSaveConfiguration: (agentId: string, config: any) => void;
+  onSaveConfiguration: (agentId: string, config) => void;
   onDelete: (agentId: string) => Promise<void>;
 }
 

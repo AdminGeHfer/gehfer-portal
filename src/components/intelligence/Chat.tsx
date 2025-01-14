@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams } from "react-router-dom";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./chat/MessageList";

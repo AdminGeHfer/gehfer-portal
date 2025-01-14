@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Package, FilePdf, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";
 import { RNC } from "@/types/rnc";
@@ -29,8 +30,6 @@ export const RNCDetailHeader = ({
   onGeneratePDF,
   onWhatsApp,
   canEdit,
-  onStatusChange,
-  onRefresh,
   setIsDeleteDialogOpen,
   isDeleteDialogOpen,
   isDeleting

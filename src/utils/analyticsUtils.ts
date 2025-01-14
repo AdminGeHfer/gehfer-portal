@@ -14,7 +14,7 @@ interface LogConfiguration {
 
 export const logSearchQuery = async (
   query: string,
-  results: any[],
+  results,
   agentId?: string
 ) => {
   try {
@@ -35,7 +35,7 @@ export const logSearchQuery = async (
   }
 };
 
-export const getSearchAnalytics = async (agentId?: string): Promise<SearchAnalytics> => {
+export const getSearchAnalytics = async (): Promise<SearchAnalytics> => {
   const { data: logs, error } = await supabase
     .from('ai_agent_logs')
     .select('*')
@@ -49,7 +49,7 @@ export const getSearchAnalytics = async (agentId?: string): Promise<SearchAnalyt
     if (!log.configuration || typeof log.configuration !== 'object') return 0;
     
     // Type guard to check if the configuration has the required properties
-    const isLogConfig = (config: any): config is LogConfiguration => {
+    const isLogConfig = (config): config is LogConfiguration => {
       return (
         'averageSimilarity' in config &&
         typeof config.averageSimilarity === 'number'

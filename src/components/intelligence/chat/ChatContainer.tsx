@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { ChatInput } from "./ChatInput";
 import { ChatHeader } from "./ChatHeader";
 import { useChatLogic } from "@/hooks/useChatLogic";
 import { useFileUpload } from "@/hooks/useFileUpload";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 export const ChatContainer = () => {
   const { conversationId } = useParams();
@@ -17,7 +17,6 @@ export const ChatContainer = () => {
   const [agentId, setAgentId] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['messages', conversationId],
@@ -72,7 +71,7 @@ export const ChatContainer = () => {
           setModel(conversation.ai_agents.model_id);
         }
       }
-    } catch (error: any) {
+    } catch {
       toast({
         title: "Erro ao carregar detalhes da conversa",
         description: "Não foi possível carregar as configurações do assistente",
@@ -106,7 +105,7 @@ export const ChatContainer = () => {
       });
 
       navigate('/intelligence/chat');
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erro ao excluir conversa",
         description: error.message,

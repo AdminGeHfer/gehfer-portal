@@ -1,6 +1,8 @@
+import React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getWorkflowStatusLabel } from "@/utils/workflow";
+import { WorkflowStatusEnum } from "@/types/rnc";
 
 export type TimelineEventType = "creation" | "update" | "status" | "comment" | "assignment";
 
@@ -43,8 +45,8 @@ export const TimelineEvent = ({ event, userName }: TimelineEventProps) => {
     if (event.type === "status") {
       const match = description.match(/de (.*) para (.*)/);
       if (match) {
-        const fromStatus = getWorkflowStatusLabel(match[1] as any);
-        const toStatus = getWorkflowStatusLabel(match[2] as any);
+        const fromStatus = getWorkflowStatusLabel(match[1] as WorkflowStatusEnum);
+        const toStatus = getWorkflowStatusLabel(match[2] as WorkflowStatusEnum);
         return `de ${fromStatus} para ${toStatus}`;
       }
     }

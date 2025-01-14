@@ -1,10 +1,10 @@
 import { RNC } from "@/types/rnc";
 
-export const transformRNCData = (data: any): RNC => {
+export const transformRNCData = (data): RNC => {
   return {
     ...data,
     contact: data.contact[0] || { name: "", phone: "", email: "" },
-    timeline: data.events.map((event: any) => ({
+    timeline: data.events.map((event) => ({
       id: event.id,
       date: event.created_at,
       title: event.title,

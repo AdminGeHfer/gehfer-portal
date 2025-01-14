@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Document } from "@/types/documents/metadata";
 import { DocumentListItem } from "@/components/intelligence/documents/DocumentListItem";
 import { useDocumentOperations } from "@/hooks/useDocumentOperations";

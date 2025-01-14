@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { TruckQueue } from "@/components/portaria/TruckQueue";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RegisterTruckDialog } from "@/components/portaria/RegisterTruckDialog";
-import { useState } from "react";
+import React, { useState } from "react";
 import { usePortariaTrucks } from "@/hooks/usePortariaTrucks";
 import { Truck, Clock, AlertCircle, ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 const PortariaList = () => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { trucks, moveTruck, optimizeQueues } = usePortariaTrucks();
+  const { trucks, optimizeQueues } = usePortariaTrucks();
 
   const trucksInOperation = trucks.filter(truck => truck.status === "in_process");
   const waitingTrucks = trucks.filter(t => t.status === "waiting");

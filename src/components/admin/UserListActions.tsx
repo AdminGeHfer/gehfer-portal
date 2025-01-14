@@ -1,11 +1,12 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Mail, UserCog, Trash2, Key } from "lucide-react";
 
 interface UserListActionsProps {
-  user: any;
-  onEdit: (user: any) => void;
-  onDelete: (user: any) => void;
-  onResetPassword: (user: any) => void;
+  user;
+  onEdit: (user) => void;
+  onDelete: (user) => void;
+  onResetPassword: (user) => void;
   onSendPasswordReset: (email: string) => void;
 }
 

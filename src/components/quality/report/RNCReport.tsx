@@ -1,7 +1,7 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { RNCTimeline } from "../RNCTimeline";
 
 interface RNCReportProps {

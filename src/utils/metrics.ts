@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 export interface ChatMetrics {
   responseTime: number;
@@ -9,7 +10,7 @@ export interface ChatMetrics {
     accuracy: number;
     confidence: number;
   };
-  [key: string]: any; // Add index signature to make it compatible with Json type
+  [key: string]: number | boolean | string | object; // Add index signature to make it compatible with Json type
 }
 
 export const trackMetrics = async (
@@ -22,7 +23,7 @@ export const trackMetrics = async (
       .insert({
         conversation_id: conversationId,
         event_type: 'metrics',
-        configuration: metrics as any // Type assertion needed for Supabase
+        configuration: metrics as unknown as Json // Type assertion needed for Supabase
       });
 
     if (error) throw error;
@@ -41,8 +42,8 @@ export const analyzeMetrics = async (conversationId: string) => {
 
     if (error) throw error;
 
-    return data.reduce((acc: any, curr: any) => {
-      const metrics = curr.configuration;
+    return data.reduce((acc: { [key: string]: number }, curr: { configuration: Json }) => {
+      const metrics = curr.configuration as ChatMetrics;
       return {
         avgResponseTime: (acc.avgResponseTime || 0) + metrics.responseTime / data.length,
         contextRetention: (acc.contextRetention || 0) + (metrics.contextMaintained ? 1 : 0) / data.length,

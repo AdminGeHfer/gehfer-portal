@@ -1,3 +1,4 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -7,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 interface ExitConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  accessLog: any;
+  accessLog;
   onConfirm: () => void;
 }
 

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface SearchResult {
   id: string;
   content: string;
-  metadata: any;
+  metadata;
   similarity: number;
 }
 

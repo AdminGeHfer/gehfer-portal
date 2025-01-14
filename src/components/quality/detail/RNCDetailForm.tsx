@@ -11,7 +11,7 @@ import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
 import { RNCAttachments } from "./RNCAttachments";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
@@ -37,7 +37,7 @@ const formSchema = z.object({
 interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
-  onFieldChange: (field: keyof RNC, value: any) => void;
+  onFieldChange: (field: keyof RNC, value) => void;
   onSave?: () => Promise<void>;
 }
 

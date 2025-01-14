@@ -1,5 +1,5 @@
+import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Truck } from "@/types/truck";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Scale, Truck as TruckIcon } from "lucide-react";
@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 interface AccessDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  accessLog: any;
+  accessLog;
 }
 
 export function AccessDetailsDialog({ open, onOpenChange, accessLog }: AccessDetailsDialogProps) {

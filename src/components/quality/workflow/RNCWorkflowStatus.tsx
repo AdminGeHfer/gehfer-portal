@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkflowStatusEnum } from "@/types/rnc";
@@ -107,7 +107,7 @@ export function RNCWorkflowStatus({
       await onRefresh();
       
       toast.success("Status atualizado com sucesso");
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status");
     } finally {

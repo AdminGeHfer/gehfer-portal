@@ -1,12 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { RNCTimeline } from "../RNCTimeline";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { FilePdf, WhatsappLogo } from "@phosphor-icons/react";
-import { toast } from "sonner";
 import { RNCReportPreview } from "../report/RNCReportPreview";
 import { RNCDetailForm } from "./RNCDetailForm";
 import { RNCDetailActions } from "./RNCDetailActions";
@@ -18,15 +15,13 @@ export function RNCDetailContainer() {
   const { id } = useParams();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing] = useState(false);
   const [transitionNotes, setTransitionNotes] = useState("");
 
   const {
     rnc,
     isLoading,
-    handleStatusChange,
     handleFieldChange,
-    handleRefresh,
     handleEdit,
     handleSave,
   } = useRNCDetail(id!);

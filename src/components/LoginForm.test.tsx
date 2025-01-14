@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import LoginForm from './LoginForm'
 import { ToastProvider } from '@/components/ui/toast'
 import { act } from 'react-dom/test-utils'
+import React from 'react';
 
 describe('LoginForm', () => {
   console.log('\n🚀 Iniciando suite de testes do LoginForm...')

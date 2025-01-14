@@ -1,19 +1,12 @@
+import React from "react";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { format } from "date-fns";
-import { FileIcon, ImageIcon } from "lucide-react";
 
 interface RNCPrintLayoutProps {
   rnc: RNC;
 }
 
 export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif'].includes(extension || '')) {
-      return <ImageIcon className="h-4 w-4" />;
-    }
-    return <FileIcon className="h-4 w-4" />;
-  };
 
   const comments = rnc.timeline
     .filter(event => event.type === 'comment')
@@ -159,7 +152,7 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
                   <time className="text-xs text-gray-500">{event.date}</time>
                   <p className="text-gray-600 mt-1">{event.description}</p>
                   {event.comment && (
-                    <p className="text-gray-600 mt-1 italic">"{event.comment}"</p>
+                    <p className="text-gray-600 mt-1 italic">&quot;{event.comment}&quot;</p>
                   )}
                 </div>
               </div>

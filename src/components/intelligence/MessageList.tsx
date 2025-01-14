@@ -2,7 +2,7 @@ import { Message } from "@/types/ai";
 import { motion } from "framer-motion";
 import { MessageSquare, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 interface MessageListProps {
   messages: Message[];

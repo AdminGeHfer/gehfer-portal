@@ -82,7 +82,7 @@ export class HierarchicalMemory extends BaseMemory {
         id: crypto.randomUUID(),
         conversation_id: this.conversationId,
         role: msg._getType() as 'system' | 'assistant' | 'user',
-        content: msg.content,
+        content: msg.content.toString(),
         created_at: new Date().toISOString(),
       }));
     } catch (error) {
@@ -125,23 +125,23 @@ export class HierarchicalMemory extends BaseMemory {
     }
   }
 
-  private shouldCompress(messages: any[]): boolean {
+  private shouldCompress(messages: AIMessage[] | HumanMessage[]): boolean {
     return messages.length > 10;
   }
 
-  private async compressMessages(messages: any[]): Promise<any[]> {
+  private async compressMessages(messages: (AIMessage | HumanMessage)[]): Promise<(AIMessage | HumanMessage)[]> {
     if (!this.useSemanticCompression) {
       return messages;
     }
 
     // Implement semantic compression
-    return messages.reduce((compressed: any[], message) => {
+    return messages.reduce((compressed: (AIMessage | HumanMessage)[], message) => {
       if (compressed.length === 0) {
         return [message];
       }
 
       const lastMessage = compressed[compressed.length - 1];
-      const similarity = this.calculateSimilarity(lastMessage.content, message.content);
+      const similarity = this.calculateSimilarity(lastMessage.content.toString(), message.content.toString());
 
       if (similarity > this.compressionThreshold) {
         lastMessage.content += ' ' + message.content;
@@ -161,7 +161,7 @@ export class HierarchicalMemory extends BaseMemory {
     return intersection.size / union.size;
   }
 
-  private async moveToLongTermMemory(messages: any[]): Promise<void> {
+  private async moveToLongTermMemory(messages: (AIMessage | HumanMessage)[]): Promise<void> {
     for (const message of messages) {
       await this.longTermMemory.addMessage(message);
     }
@@ -171,12 +171,12 @@ export class HierarchicalMemory extends BaseMemory {
     this.shortTermMemory = new ChatMessageHistory();
   }
 
-  private async filterRelevantMemories(messages: any[]): Promise<any[]> {
+  private async filterRelevantMemories(messages: (AIMessage | HumanMessage)[]): Promise<(AIMessage | HumanMessage)[]> {
     // Implement relevance filtering
     return messages;
   }
 
-  private formatMessages(messages: any[]): string {
+  private formatMessages(messages: (AIMessage | HumanMessage)[]): string {
     return messages
       .map(m => `${m._getType()}: ${m.content}`)
       .join('\n');

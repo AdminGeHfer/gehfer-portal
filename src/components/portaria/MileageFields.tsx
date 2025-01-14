@@ -1,9 +1,10 @@
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileUploadField } from "./FileUploadField";
 
 interface MileageFieldsProps {
-  register: any;
+  register;
   initialKmPhoto: File | null;
   finalKmPhoto: File | null;
   onInitialPhotoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

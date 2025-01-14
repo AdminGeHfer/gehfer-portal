@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RNCForm } from "@/components/quality/RNCForm";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useRNCs } from "@/hooks/useRNCs";
 import { RNCStatusBadge } from "@/components/molecules/RNCStatusBadge";

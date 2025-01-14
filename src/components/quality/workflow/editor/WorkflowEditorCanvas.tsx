@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ReactFlowProvider, useNodesState, useEdgesState, Connection, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toast } from 'sonner';
@@ -19,7 +19,7 @@ export function WorkflowEditorCanvas() {
 
   useEffect(() => {
     if (workflow) {
-      const flowNodes = workflow.states.map((state: any) => ({
+      const flowNodes = workflow.states.map((state) => ({
         id: state.id,
         type: 'stateNode',
         position: { x: state.position_x, y: state.position_y },
@@ -36,7 +36,7 @@ export function WorkflowEditorCanvas() {
         draggable: true,
       }));
 
-      const flowEdges = workflow.transitions.map((transition: any) => ({
+      const flowEdges = workflow.transitions.map((transition) => ({
         id: transition.id,
         source: transition.from_state_id,
         target: transition.to_state_id,
@@ -50,7 +50,7 @@ export function WorkflowEditorCanvas() {
     }
   }, [workflow, setNodes, setEdges]);
 
-  const handleStateUpdate = async (stateId: string, updates: any) => {
+  const handleStateUpdate = async (stateId: string, updates) => {
     try {
       const { error } = await supabase
         .from('workflow_states')

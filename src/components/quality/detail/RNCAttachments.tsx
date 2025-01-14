@@ -1,3 +1,4 @@
+import React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FileIcon, Download, Trash2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,7 +19,7 @@ interface RNCAttachmentsProps {
   onUploadComplete?: () => void;
 }
 
-export function RNCAttachments({ rncId, canEdit = false, onUploadComplete }: RNCAttachmentsProps) {
+export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) {
   const queryClient = useQueryClient();
   
   const { data: attachments, isLoading } = useQuery({
@@ -70,7 +71,7 @@ export function RNCAttachments({ rncId, canEdit = false, onUploadComplete }: RNC
       document.body.removeChild(a);
       
       toast.success("Download iniciado com sucesso");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error downloading file:", error);
       toast.error(`Erro ao baixar arquivo: ${error.message}`);
     }
@@ -101,7 +102,7 @@ export function RNCAttachments({ rncId, canEdit = false, onUploadComplete }: RNC
 
       toast.success("Arquivo excluído com sucesso");
       queryClient.invalidateQueries({ queryKey: ["rnc-attachments", rncId] });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting attachment:", error);
       toast.error(`Erro ao excluir arquivo: ${error.message}`);
     }

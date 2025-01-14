@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { RNC } from "@/types/rnc";
 import { Printer, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";
@@ -16,12 +17,10 @@ interface RNCDetailActionsProps {
 }
 
 export function RNCDetailActions({
-  rnc,
   canEdit,
   isEditing,
   onEdit,
   onSave,
-  onDelete,
   onPrint,
   onWhatsApp,
   setIsDeleteDialogOpen,

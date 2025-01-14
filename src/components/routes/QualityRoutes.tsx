@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import React, { lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 const RNCList = lazy(() => import("@/pages/quality/RNCList"));
