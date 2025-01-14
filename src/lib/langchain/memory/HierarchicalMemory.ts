@@ -70,7 +70,7 @@ export class HierarchicalMemory extends BaseMemory {
     }
   }
 
-  async getRelevantHistory(message: string): Promise<Message[]> {
+  async getRelevantHistory(): Promise<Message[]> {
     try {
       const shortTermMessages = await this.shortTermMemory.getMessages();
       const longTermMessages = await this.longTermMemory.getMessages();
@@ -106,7 +106,7 @@ export class HierarchicalMemory extends BaseMemory {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
         return await operation();
-      } catch (error: any) {
+      } catch (error) {
         lastError = error;
         if (attempt < this.maxRetries) {
           await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt));
@@ -135,7 +135,7 @@ export class HierarchicalMemory extends BaseMemory {
     }
 
     // Implement semantic compression
-    return messages.reduce((compressed: any[], message: any) => {
+    return messages.reduce((compressed: any[], message) => {
       if (compressed.length === 0) {
         return [message];
       }

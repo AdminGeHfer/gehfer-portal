@@ -24,7 +24,7 @@ export class OpenAIService {
       });
 
       return this.openai;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error initializing OpenAI:', error);
       if (error.message.includes('contains 0 rows')) {
         throw new Error(

@@ -90,7 +90,7 @@ export const useChatLogic = (conversationId: string, model: string, agentId: str
 
       if (saveAiError) throw saveAiError;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error in chat flow:', error);
       toast({
         title: "Erro ao enviar mensagem",

@@ -8,7 +8,7 @@ import { AIAgent } from "@/types/ai/agent";
 export class BaseAgent {
   private llm: ChatOpenAI;
   private memory: BufferMemory;
-  private chain: any;
+  private chain;
   private config: AIAgent;
 
   constructor(config: AIAgent, messages: Message[] = []) {

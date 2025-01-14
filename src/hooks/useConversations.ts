@@ -79,7 +79,7 @@ export function useConversations() {
       if (error) throw error;
 
       // Update cache immediately
-      queryClient.setQueryData(['conversations'], (old: any) => 
+      queryClient.setQueryData(['conversations'], (old: Conversation[]) => 
         [data, ...(old || [])]
       );
       
@@ -87,7 +87,7 @@ export function useConversations() {
       await queryClient.invalidateQueries({ queryKey: ['conversations'] });
       
       navigate(`/intelligence/chat/${data.id}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error creating conversation:', error);
       toast.error("Failed to create new conversation");
     }
@@ -126,7 +126,7 @@ export function useConversations() {
       if (window.location.pathname.includes(conversationId)) {
         navigate('/intelligence/chat');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting conversation:', error);
       toast.error("Erro ao excluir conversa");
     }

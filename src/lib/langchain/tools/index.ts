@@ -9,7 +9,7 @@ export const createToolsForAgent = (agent: AIAgent) => {
       new DynamicTool({
         name: "search_rnc",
         description: "Search for RNC (Non-Conformity Report) information",
-        func: async (query: string) => {
+        func: async () => {
           // Implement RNC search logic here
           return "RNC search functionality will be implemented here";
         },
@@ -22,7 +22,7 @@ export const createToolsForAgent = (agent: AIAgent) => {
       new DynamicTool({
         name: "analyze_quality",
         description: "Analyze quality metrics and provide insights",
-        func: async (input: string) => {
+        func: async () => {
           // Implement quality analysis logic here
           return "Quality analysis functionality will be implemented here";
         },

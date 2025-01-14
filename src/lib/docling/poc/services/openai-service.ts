@@ -1,5 +1,4 @@
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000;
@@ -22,7 +21,7 @@ export class OpenAIService {
       this.initialized = true;
       console.log('OpenAI service initialized successfully');
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error('OpenAI service initialization failed:', error);
       throw new Error('Failed to initialize OpenAI service. Please check your API key.');
     }
@@ -48,7 +47,7 @@ export class OpenAIService {
 
       console.log('Embedding generated successfully');
       return data.embedding;
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Error generating embedding (attempt ${retryCount + 1}):`, error);
       
       if (retryCount < MAX_RETRIES) {

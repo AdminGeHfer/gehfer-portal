@@ -33,7 +33,7 @@ export const useFileUpload = (onSubmit: (content: string) => Promise<void>) => {
         description: "O arquivo foi enviado com sucesso."
       });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading file:', error);
       toast({
         title: "Erro ao enviar arquivo",

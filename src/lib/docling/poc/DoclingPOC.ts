@@ -1,5 +1,4 @@
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { ProcessingMetrics, DocumentChunk } from './types';
 import { OpenAIService } from './services/openai-service';
 import { DocumentService } from './services/document-service';
@@ -43,7 +42,7 @@ export class DoclingPOC {
       console.log('DoclingPOC initialized successfully');
       this.initialized = true;
       return true;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Initialization error:', error);
       throw new Error('Failed to initialize document processing. Please ensure you are logged in and have set up your OpenAI API key.');
     }
@@ -92,7 +91,7 @@ export class DoclingPOC {
       console.log('Document processing completed:', metrics);
       return metrics;
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error processing document:', error);
       throw error;
     }
@@ -152,7 +151,7 @@ export class DoclingPOC {
       
       console.log('POC results uploaded successfully');
       
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading results:', error);
       throw new Error('Failed to save processing results: ' + error.message);
     }
