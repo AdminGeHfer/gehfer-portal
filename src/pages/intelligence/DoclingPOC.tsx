@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DoclingPOCUI } from "@/components/intelligence/docling/DoclingPOCUI";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +21,7 @@ const DoclingPOC = () => {
           navigate("/login");
           return;
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error("Auth error:", error);
         toast.error("Authentication error. Please try logging in again.");
         navigate("/login");

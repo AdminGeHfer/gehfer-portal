@@ -1,5 +1,4 @@
 import { createMachine } from 'xstate';
-import { WorkflowStatusEnum } from '@/types/rnc';
 
 export type RNCWorkflowEvent =
   | { type: 'START_ANALYSIS' }

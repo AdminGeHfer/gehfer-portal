@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Filter, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RNCForm } from "@/components/quality/RNCForm";
-import { useState } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { RNCFormData } from "@/types/rnc";

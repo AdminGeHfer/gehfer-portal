@@ -1,3 +1,4 @@
+import React from 'react';
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { Header } from "@/components/layout/Header";
 import { Card } from "@/components/ui/card";
