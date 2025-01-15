@@ -111,13 +111,16 @@ const Apps = () => {
       </main>
 
       <footer className="fixed bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
-        <div className="container mx-auto flex justify-between items-center text-sm text-muted-foreground">
-          <span>© 2024 GeHfer. Todos os direitos reservados.</span>
-          <div className="flex gap-4">
-            <Button variant="ghost" size="sm">Sobre</Button>
-            <Button variant="ghost" size="sm">Ajuda</Button>
-            <span>v1.0.0</span>
-          </div>
+        <div className="flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Sobre </a>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Ajuda </a>
+          </Button>
         </div>
       </footer>
     </div>
