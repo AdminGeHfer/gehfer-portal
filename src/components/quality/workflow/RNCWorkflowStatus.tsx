@@ -1,10 +1,10 @@
+import * as React from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkflowStatusEnum } from "@/types/rnc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { RefetchOptions } from "@tanstack/react-query";
 import { WorkflowStatusBadge } from "./status/WorkflowStatusBadge";
 import { WorkflowTransitionForm } from "./status/WorkflowTransitionForm";
 
@@ -12,7 +12,7 @@ interface RNCWorkflowStatusProps {
   rncId: string;
   currentStatus: WorkflowStatusEnum;
   onStatusChange: (newStatus: WorkflowStatusEnum) => Promise<void>;
-  onRefresh: (options?: RefetchOptions) => Promise<void>;
+  onRefresh: () => Promise<void>;
 }
 
 export function RNCWorkflowStatus({ 
@@ -117,7 +117,7 @@ export function RNCWorkflowStatus({
 
   if (isLoading) {
     return (
-      <Card className="w-full max-w-[600px] mx-auto px-2">
+      <Card className="w-full max-w-[600px] mx-auto px-2 bg-background">
         <CardHeader className="px-3">
           <CardTitle>Status do Workflow</CardTitle>
         </CardHeader>
@@ -131,7 +131,7 @@ export function RNCWorkflowStatus({
   const nextStates = getNextStates();
 
   return (
-    <Card className="w-full max-w-[600px] mx-auto px-2">
+    <Card className="w-full max-w-[600px] mx-auto px-2 bg-background">
       <CardHeader className="px-3">
         <CardTitle>Status do Workflow</CardTitle>
       </CardHeader>
