@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { AIAgent } from "@/types/ai/agent";
 import { AIAgentCard } from "@/components/intelligence/agents/AIAgentCard";
 

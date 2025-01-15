@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
