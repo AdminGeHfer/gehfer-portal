@@ -1,12 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Document } from "langchain/document";
 import { BaseRetriever } from "@langchain/core/retrievers";
-import { aiLogger, AILogStage } from "@/lib/logging/aiLoggingService";
+import { aiLogger } from "@/lib/logging/aiLoggingService";
 
 interface SearchResult {
   id: string;
   content: string;
-  metadata;
+  metadata: any;
   similarity: number;
 }
 
@@ -34,16 +34,14 @@ export class EnhancedRetriever extends BaseRetriever {
     this.config = config;
   }
 
-  async getRelevantDocuments(
-    query: string,
-  ): Promise<Document[]> {
+  async getRelevantDocuments(query: string): Promise<Document[]> {
     const startTime = Date.now();
     
     try {
       console.log('EnhancedRetriever: Generating embedding for query:', query);
       
-      await aiLogger.logEvent({
-        stage: AILogStage.QUERY_PROCESSING,
+      await aiLogger.log({
+        stage: 'QUERY_PROCESSING',
         details: {
           query,
           threshold: this.searchThreshold,
@@ -71,8 +69,8 @@ export class EnhancedRetriever extends BaseRetriever {
       const { data } = await embeddingResponse.json();
       const embedding = data[0].embedding;
 
-      await aiLogger.logEvent({
-        stage: AILogStage.EMBEDDING_GENERATION,
+      await aiLogger.log({
+        stage: 'EMBEDDING_GENERATION',
         details: {
           success: true,
           dimensions: embedding.length,
@@ -96,8 +94,8 @@ export class EnhancedRetriever extends BaseRetriever {
 
       const searchTime = Date.now() - startTime;
       
-      await aiLogger.logEvent({
-        stage: AILogStage.DOCUMENT_MATCHING,
+      await aiLogger.log({
+        stage: 'DOCUMENT_MATCHING',
         details: {
           documentsFound: documents?.length || 0,
           searchTimeMs: searchTime,
@@ -130,8 +128,8 @@ export class EnhancedRetriever extends BaseRetriever {
     } catch (error) {
       console.error('EnhancedRetriever: Error in getRelevantDocuments:', error);
       
-      await aiLogger.logEvent({
-        stage: AILogStage.DOCUMENT_MATCHING,
+      await aiLogger.log({
+        stage: 'DOCUMENT_MATCHING',
         details: {
           error: error.message,
           searchTimeMs: Date.now() - startTime,

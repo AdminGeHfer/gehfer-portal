@@ -50,7 +50,7 @@ export function WorkflowEditorCanvas() {
     }
   }, [workflow, setNodes, setEdges]);
 
-  const handleStateUpdate = async (stateId: string, updates) => {
+  const handleStateUpdate = async (stateId: string, updates: any) => {
     try {
       const { error } = await supabase
         .from('workflow_states')
@@ -132,13 +132,11 @@ export function WorkflowEditorCanvas() {
     if (!selectedNode) return;
 
     try {
-      // First delete transitions
       await supabase
         .from('workflow_transitions')
         .delete()
         .or(`from_state_id.eq.${selectedNode},to_state_id.eq.${selectedNode}`);
 
-      // Then delete the state
       const { error } = await supabase
         .from('workflow_states')
         .delete()
@@ -177,7 +175,7 @@ export function WorkflowEditorCanvas() {
             onNodeClick={(_, node) => setSelectedNode(node.id)}
             onEdgeClick={(_, edge) => setSelectedEdge(edge.id)}
             onAddState={() => setIsAddingState(true)}
-            onSave={() => handleSave(nodes, edges)}
+            onSave={() => handleSave(nodes)}
             onDelete={handleDeleteNode}
             onDeleteEdge={handleDeleteEdge}
             selectedNode={selectedNode}
