@@ -36,7 +36,7 @@ export class EnhancedConversationChain {
 
     try {
       const documents = await this.knowledgeBase.getRelevantDocuments(message);
-      const relevantMemories = await this.memory.getRelevantHistory(message);
+      const relevantMemories = await this.memory.getRelevantHistory();
       
       const context = documents
         .map(doc => doc.pageContent)
