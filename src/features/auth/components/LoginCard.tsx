@@ -92,6 +92,7 @@ export const LoginCard = () => {
                   loading_button_label: "Entrando...",
                   email_input_placeholder: "seu@email.com",
                   password_input_placeholder: "Sua senha",
+                  invalid_credentials_error: "Email ou senha incorretos",
                 },
                 sign_up: {
                   email_label: 'Email',
