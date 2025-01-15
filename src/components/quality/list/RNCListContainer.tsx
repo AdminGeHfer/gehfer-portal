@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import { useRNCs } from "@/hooks/useRNCs";
 import { RNCListHeader } from "./RNCListHeader";

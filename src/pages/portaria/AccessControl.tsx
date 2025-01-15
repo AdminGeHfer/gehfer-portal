@@ -1,7 +1,8 @@
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { RegisterTruckDialog } from "@/components/portaria/RegisterTruckDialog";
 import { AccessDetailsDialog } from "@/components/portaria/AccessDetailsDialog";
 import { AccessControlMetrics } from "@/components/portaria/AccessControlMetrics";

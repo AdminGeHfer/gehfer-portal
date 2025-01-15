@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { AIAgentSettings } from "./AIAgentSettings";
 import { MetricsDialog } from "../metrics/MetricsDialog";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { toast } from "sonner";
 
 interface AIAgentCardProps {
