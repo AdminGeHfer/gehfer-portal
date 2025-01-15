@@ -19,6 +19,7 @@ const LoginForm = (): JSX.Element => {
       toast({
         title: "Login realizado com sucesso!",
         description: "Bem-vindo ao sistema The Four",
+        className: "bg-background text-foreground border-border",
       });
       navigate('/app');
     } else {
@@ -26,6 +27,7 @@ const LoginForm = (): JSX.Element => {
         variant: "destructive",
         title: "Erro ao fazer login",
         description: "Por favor, preencha todos os campos",
+        className: "bg-destructive/10 dark:bg-destructive/20 border-destructive/50 text-destructive dark:text-destructive-foreground",
       });
     }
   };
@@ -46,7 +48,7 @@ const LoginForm = (): JSX.Element => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12 pl-10 bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-primary focus:ring-primary transition-all"
+              className="h-12 pl-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary transition-all"
             />
           </div>
 
@@ -57,7 +59,7 @@ const LoginForm = (): JSX.Element => {
               placeholder="Senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-12 pl-10 pr-10 bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 focus:border-primary focus:ring-primary transition-all"
+              className="h-12 pl-10 pr-10 bg-background border-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary transition-all"
             />
             <button
               type="button"
@@ -81,7 +83,7 @@ const LoginForm = (): JSX.Element => {
         >
           <Button 
             type="submit" 
-            className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-primary/25"
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-primary/25"
           >
             Entrar
           </Button>
