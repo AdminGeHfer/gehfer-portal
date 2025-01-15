@@ -26,7 +26,6 @@ const Apps = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      toast.success("Logout realizado com sucesso");
       navigate("/login");
     } catch {
       toast.error("Erro ao fazer logout");
