@@ -36,6 +36,10 @@ class AILoggingService {
     return AILoggingService.instance;
   }
 
+  public log(message: { stage: string, details }): void {
+    console.log(JSON.stringify(message, null, 2));
+}
+
   async logEvent(event: Partial<AILogEvent>) {
     try {
       const finalEvent: AILogEvent = {

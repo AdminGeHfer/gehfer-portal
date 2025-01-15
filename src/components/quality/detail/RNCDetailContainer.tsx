@@ -69,12 +69,10 @@ export function RNCDetailContainer() {
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto py-6 space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/quality/rnc" label="Voltar para RNCs" />
-        </div>
         <div className="flex items-center justify-between">
+          <BackButton to="/quality/rnc" label="Voltar para RNCs" />
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-semibold">
+            <h1 className="text-2xl font-semibold text-foreground">
               RNC #{rnc.rnc_number}
             </h1>
             <RNCStatusBadge status={rnc.workflow_status} />
@@ -102,15 +100,15 @@ export function RNCDetailContainer() {
               onSave={handleSave}
             />
 
-            <div className="bg-white rounded-lg border shadow-sm p-6">
-              <h2 className="text-lg font-semibold mb-4">Histórico do Workflow</h2>
+            <div className="bg-background rounded-lg border border-border shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Histórico do Workflow</h2>
               <RNCTimeline rncId={rnc.id} />
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="bg-white rounded-lg border shadow-sm p-6">
-              <h2 className="text-lg font-semibold mb-4">Status do Workflow</h2>
+            <div className="bg-background rounded-lg border border-border shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Status do Workflow</h2>
               <div className="space-y-4">
                 <RNCStatusBadge status={rnc.workflow_status} />
                 <Textarea

@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import * as React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ReactFlowProvider, useNodesState, useEdgesState, Connection, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { toast } from 'sonner';
@@ -50,7 +51,7 @@ export function WorkflowEditorCanvas() {
     }
   }, [workflow, setNodes, setEdges]);
 
-  const handleStateUpdate = async (stateId: string, updates: any) => {
+  const handleStateUpdate = async (stateId: string, updates) => {
     try {
       const { error } = await supabase
         .from('workflow_states')
