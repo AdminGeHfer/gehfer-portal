@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 
 export const LoginCard = () => {
   const { theme } = useTheme();
-  const redirectTo = window.location.origin + '/apps';
+  // Fix the redirectTo URL format by ensuring no trailing colon
+  const redirectTo = `${window.location.origin}/apps`;
 
   return (
     <motion.div 
