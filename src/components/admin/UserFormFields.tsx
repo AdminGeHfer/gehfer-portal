@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { UseFormReturn } from "react-hook-form";
 import { Role } from "@/hooks/useRBAC";
-import React from "react";
+import * as React from "react";
 
 interface UserFormFieldsProps {
   form: UseFormReturn;

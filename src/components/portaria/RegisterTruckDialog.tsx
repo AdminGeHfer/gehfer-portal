@@ -2,7 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { usePortariaTrucks } from "@/hooks/usePortariaTrucks";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { VehicleFields } from "./VehicleFields";

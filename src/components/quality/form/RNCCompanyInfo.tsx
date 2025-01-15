@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import {
   FormField,
   FormItem,
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 import { handleCNPJChange, formatCNPJ } from "@/utils/masks";
+import Subtitle from "@/components/quality/form/Subtitle";
 
 interface RNCCompanyInfoProps {
   form: UseFormReturn<RNCFormData>;
@@ -41,7 +42,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
         name="cnpj"
         render={({ field: { onChange, value, ...field }, fieldState }) => (
           <FormItem>
-            <FormLabel className="required-field">CNPJ</FormLabel>
+            <FormLabel>CNPJ</FormLabel>
             <FormControl>
               <Input 
                 placeholder="00.000.000/0000-00"
@@ -89,6 +90,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
           </FormItem>
         )}
       />
+    <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </div>
   );
 };

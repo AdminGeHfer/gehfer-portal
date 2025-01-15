@@ -9,7 +9,7 @@ import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck, Clock, AlertCircle } from "lucide-react";
-import React from 'react';
+import * as React from "react";
 
 const PendingDeliveries = () => {
   const navigate = useNavigate();

@@ -11,7 +11,8 @@ import { RNCContactInfo } from "./form/RNCContactInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
 import { RNCAttachments } from "./RNCAttachments";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({

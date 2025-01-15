@@ -1,20 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ClipboardCheck, Users, Truck, Package, Brain, LogOut } from "lucide-react";
+import { ClipboardCheck, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import React from 'react';
+import * as React from "react";
 
 const modules = [
-  {
-    title: "GeHfer Intelligence",
-    description: "Central de Inteligência Artificial e Assistentes Virtuais",
-    icon: <Brain className="h-12 w-12 text-primary" />,
-    route: "/intelligence",
-    isHighlighted: false
-  },
   {
     title: "Qualidade",
     description: "Gestão de qualidade e controle de processos",
@@ -23,24 +16,6 @@ const modules = [
     submodules: [
       { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> }
     ]
-  },
-  {
-    title: "Administração",
-    description: "Ferramentas para gerenciar sua equipe e recursos",
-    icon: <Users className="h-12 w-12 text-primary" />,
-    route: "/admin/users"
-  },
-  {
-    title: "Portaria",
-    description: "Gestão de filas e controle de acesso",
-    icon: <Truck className="h-12 w-12 text-primary" />,
-    route: "/portaria/acesso"
-  },
-  {
-    title: "Cadastros",
-    description: "Gerenciamento de produtos e outros cadastros",
-    icon: <Package className="h-12 w-12 text-primary" />,
-    route: "/admin/products"
   }
 ];
 
@@ -51,7 +26,6 @@ const Apps = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      toast.success("Logout realizado com sucesso");
       navigate("/login");
     } catch {
       toast.error("Erro ao fazer logout");
@@ -74,8 +48,8 @@ const Apps = () => {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-7xl mx-auto">
+      <main className="px-6 py-8">
+        <div className="max-w-7xl">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -95,12 +69,10 @@ const Apps = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={module.isHighlighted ? 'md:col-span-2' : ''}
+                className=''
               >
                 <Card 
-                  className={`group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20 ${
-                    module.isHighlighted ? 'ring-2 ring-primary/50' : ''
-                  }`}
+                  className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:shadow-primary/20 backdrop-blur-sm bg-card/50 border-primary/20"
                   onClick={() => navigate(module.route)}
                 >
                   <div className="bg-primary/5 p-8 flex justify-center items-center group-hover:bg-primary/10 transition-colors">
@@ -138,13 +110,16 @@ const Apps = () => {
       </main>
 
       <footer className="fixed bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
-        <div className="container mx-auto flex justify-between items-center text-sm text-muted-foreground">
-          <span>© 2024 GeHfer. Todos os direitos reservados.</span>
-          <div className="flex gap-4">
-            <Button variant="ghost" size="sm">Sobre</Button>
-            <Button variant="ghost" size="sm">Ajuda</Button>
-            <span>v1.0.0</span>
-          </div>
+        <div className="flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Sobre </a>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Ajuda </a>
+          </Button>
         </div>
       </footer>
     </div>

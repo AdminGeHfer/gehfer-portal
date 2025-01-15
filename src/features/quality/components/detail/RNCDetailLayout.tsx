@@ -1,6 +1,6 @@
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Header } from "@/components/layout/Header";
-import React from 'react';
+import * as React from "react";
 
 export interface RNCDetailLayoutProps {
   rnc: RNC;

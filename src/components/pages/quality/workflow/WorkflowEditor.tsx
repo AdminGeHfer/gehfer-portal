@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WorkflowEditorCanvas } from "@/components/quality/workflow/editor/WorkflowEditorCanvas";

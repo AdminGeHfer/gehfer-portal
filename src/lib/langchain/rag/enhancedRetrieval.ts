@@ -6,7 +6,7 @@ import { aiLogger } from "@/lib/logging/aiLoggingService";
 interface SearchResult {
   id: string;
   content: string;
-  metadata: any;
+  metadata;
   similarity: number;
 }
 

@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { DocumentUpload } from "../DocumentUpload";
 import { Input } from "@/components/ui/input";

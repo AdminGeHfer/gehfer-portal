@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
-import React from 'react';
+import * as React from "react";
 
 const Intelligence = () => {
   return (

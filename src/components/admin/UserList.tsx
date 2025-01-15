@@ -5,7 +5,8 @@ import { Mail, UserCog, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 
 interface UserListProps {
   users: { id: string; name: string; email: string; role: string; modules?: string[]; active: boolean }[];

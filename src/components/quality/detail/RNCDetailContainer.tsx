@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRNCDetail } from "@/hooks/useRNCDetail";
 import { RNCTimeline } from "../RNCTimeline";
@@ -9,6 +10,7 @@ import { RNCDetailForm } from "./RNCDetailForm";
 import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDeleteDialog } from "./RNCDeleteDialog";
 import { useDeleteRNC } from "@/components/mutations/rncMutations";
+import { BackButton } from "@/components/atoms/BackButton";
 
 export function RNCDetailContainer() {
   const navigate = useNavigate();
@@ -68,6 +70,7 @@ export function RNCDetailContainer() {
     <div className="min-h-screen bg-background">
       <main className="container mx-auto py-6 space-y-6">
         <div className="flex items-center justify-between">
+          <BackButton to="/quality/rnc" label="Voltar para RNCs" />
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-semibold text-foreground">
               RNC #{rnc.rnc_number}

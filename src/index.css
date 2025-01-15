@@ -87,3 +87,11 @@
     transform: rotate(360deg);
   }
 }
+
+.required-field::after {
+  content: "*";
+  margin-left: 0.25rem;
+  font-size: 1.3rem;
+  color: skyblue;
+  /* @apply text-destructive font-normal; */
+}

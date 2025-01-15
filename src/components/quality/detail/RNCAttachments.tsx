@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { FileIcon, Download, Trash2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

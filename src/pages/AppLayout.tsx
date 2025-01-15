@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import TopBar from "@/components/TopBar";
-import React from 'react';
+import * as React from "react";
 
 const AppLayout = () => {
   return (

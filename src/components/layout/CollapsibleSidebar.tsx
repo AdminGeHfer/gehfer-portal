@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
@@ -16,22 +16,23 @@ export function CollapsibleSidebar({ children }: SidebarProps) {
 
   if (isMobile) {
     return (
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="fixed left-4 top-4 z-40 lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-[280px] p-0">
-          <nav className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
-            {children}
-          </nav>
-        </SheetContent>
-      </Sheet>
+      <div className="h-50% w-18 bg-background border-b flex items-center px-4">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="fixed left-4 top-4 z-40 lg:hidden">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] p-0">
+            <nav className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
+              {children}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
     );
   }
 
@@ -45,7 +46,7 @@ export function CollapsibleSidebar({ children }: SidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-3 top-6 z-30 hidden h-6 w-6 rounded-full border bg-background lg:flex"
+        className="absolute -right-3 top-6 z-30 hidden h-7 w-7 rounded-full border bg-background lg:flex"
         onClick={toggleSidebar}
       >
         {isCollapsed ? (

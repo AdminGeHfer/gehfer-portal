@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import React from 'react';
+import * as React from "react";
 
 const Confirmation = () => {
   const location = useLocation();

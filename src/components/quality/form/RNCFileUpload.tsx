@@ -3,7 +3,8 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 import { Upload, X } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 
 interface RNCFileUploadProps {

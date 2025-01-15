@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from "react";
 import { Panel } from 'reactflow';
 import { Button } from "@/components/ui/button";
 import { Plus, Save, Trash2 } from 'lucide-react';
