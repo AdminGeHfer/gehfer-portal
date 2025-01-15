@@ -119,7 +119,10 @@
 
 .required-field::after {
   content: "*";
-  @apply text-destructive font-normal;
+  margin-left: 0.25rem;
+  font-size: 1.3rem;
+  color: skyblue;
+  /* @apply text-destructive font-normal; */
 }
 
 .dark .form-message {
