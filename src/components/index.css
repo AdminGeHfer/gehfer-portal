@@ -118,7 +118,7 @@
 }
 
 .required-field::after {
-  content: " *";
+  content: "*";
   @apply text-destructive font-normal;
 }
 
