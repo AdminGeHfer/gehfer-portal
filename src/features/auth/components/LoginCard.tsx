@@ -91,9 +91,7 @@ export const LoginCard = () => {
                   loading_button_label: "Entrando...",
                   email_input_placeholder: "seu@email.com",
                   password_input_placeholder: "Sua senha",
-                  email_input_error: "Email inválido",
-                  password_input_error: "Senha inválida",
-                  invalid_credentials_error: "Email ou senha incorretos", // Here's where we customize the error message
+                  invalid_credentials_error: "Email ou senha incorretos",
                 },
               },
             }}
