@@ -78,7 +78,7 @@ export const LoginCard = () => {
                 button: 'w-full font-sans bg-gradient-to-r from-gray-600 to-gray-700 dark:from-[#233554] dark:to-[#112240] hover:from-gray-700 hover:to-gray-800 dark:hover:from-[#112240] dark:hover:to-[#233554] text-white dark:text-primary-foreground transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
                 input: 'font-sans backdrop-blur-sm bg-white/50 dark:bg-background/50 border-gray-200/50 dark:border-border/50 focus:border-gray-400 dark:focus:border-[#233554] transition-all duration-300',
                 label: 'font-sans text-gray-700 dark:text-gray-300',
-                message: 'text-red-500 dark:text-red-400',
+                message: 'text-destructive dark:text-destructive-foreground', // This line handles the error message styling
               },
             }}
             providers={[]}
