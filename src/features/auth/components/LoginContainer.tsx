@@ -9,7 +9,7 @@ export const LoginContainer = () => {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
       <LoginBackground />
       
       <Button
@@ -25,7 +25,7 @@ export const LoginContainer = () => {
         )}
       </Button>
 
-      <div className="w-full max-w-md relative z-10 mt-16">
+      <div className="w-full max-w-md relative z-10">
         <div className="backdrop-blur-md bg-white/90 dark:bg-background/80 border border-gray-200/50 dark:border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl overflow-hidden p-6 space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold">
