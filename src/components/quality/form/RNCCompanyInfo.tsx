@@ -41,7 +41,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
         name="cnpj"
         render={({ field: { onChange, value, ...field }, fieldState }) => (
           <FormItem>
-            <FormLabel className="required-field">CNPJ</FormLabel>
+            <FormLabel>CNPJ</FormLabel>
             <FormControl>
               <Input 
                 placeholder="00.000.000/0000-00"

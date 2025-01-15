@@ -55,7 +55,7 @@ export const RNCContactInfo = ({ form, showErrors = false }: RNCContactInfoProps
         name="contact.email"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel className="required-field">Email</FormLabel>
+            <FormLabel>Email</FormLabel>
             <FormControl>
               <Input 
                 type="email" 
