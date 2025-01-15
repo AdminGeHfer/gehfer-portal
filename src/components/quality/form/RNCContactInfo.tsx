@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
+import Subtitle from "@/components/quality/form/Subtitle";
 
 interface RNCContactInfoProps {
   form: UseFormReturn<RNCFormData>;
@@ -67,6 +68,7 @@ export const RNCContactInfo = ({ form, showErrors = false }: RNCContactInfoProps
           </FormItem>
         )}
       />
+    <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </div>
   );
 };

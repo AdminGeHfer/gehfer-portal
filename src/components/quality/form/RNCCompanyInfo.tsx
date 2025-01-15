@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 import { handleCNPJChange, formatCNPJ } from "@/utils/masks";
+import Subtitle from "@/components/quality/form/Subtitle";
 
 interface RNCCompanyInfoProps {
   form: UseFormReturn<RNCFormData>;
@@ -89,6 +90,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
           </FormItem>
         )}
       />
+    <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </div>
   );
 };
