@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { WorkflowStatusEnum } from "@/types/rnc";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { WorkflowStatusBadge } from "./status/WorkflowStatusBadge";
 import { WorkflowTransitionForm } from "./status/WorkflowTransitionForm";
 
@@ -20,8 +21,8 @@ export function RNCWorkflowStatus({
   onRefresh 
 }: RNCWorkflowStatusProps) {
   const [isUpdating, setIsUpdating] = useState(false);
-
   const queryClient = useQueryClient();
+
   const { data: workflow, isLoading } = useQuery({
     queryKey: ['workflow-template', 'default'],
     queryFn: async () => {
