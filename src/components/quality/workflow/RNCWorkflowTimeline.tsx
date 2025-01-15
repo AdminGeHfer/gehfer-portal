@@ -50,7 +50,7 @@ export function RNCWorkflowTimeline({ rncId }: RNCWorkflowTimelineProps) {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-background">
         <CardHeader>
           <CardTitle>Histórico do Workflow</CardTitle>
         </CardHeader>
@@ -63,7 +63,7 @@ export function RNCWorkflowTimeline({ rncId }: RNCWorkflowTimelineProps) {
 
   if (!transitions?.length) {
     return (
-      <Card>
+      <Card className="bg-background">
         <CardHeader>
           <CardTitle>Histórico do Workflow</CardTitle>
         </CardHeader>
@@ -77,7 +77,7 @@ export function RNCWorkflowTimeline({ rncId }: RNCWorkflowTimelineProps) {
   }
 
   return (
-    <Card>
+    <Card className="bg-background">
       <CardHeader>
         <CardTitle>Histórico do Workflow</CardTitle>
       </CardHeader>
