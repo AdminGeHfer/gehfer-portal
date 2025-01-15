@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 
 export const LoginCard = () => {
   const { theme } = useTheme();
+  const redirectTo = window.location.origin + '/apps';
 
   return (
     <motion.div 
@@ -58,6 +59,7 @@ export const LoginCard = () => {
 
           <Auth
             supabaseClient={supabase}
+            redirectTo={redirectTo}
             appearance={{
               theme: ThemeSupa,
               variables: {
