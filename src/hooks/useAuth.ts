@@ -43,7 +43,8 @@ export function useAuth(): UseAuthReturn {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-
+      
+      // Single toast notification here
       toast.success("Logout realizado com sucesso");
       navigate("/login");
     } catch (error) {
