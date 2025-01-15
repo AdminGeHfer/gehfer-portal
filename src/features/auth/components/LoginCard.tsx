@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +78,7 @@ export const LoginCard = () => {
                 button: 'w-full font-sans bg-gradient-to-r from-gray-600 to-gray-700 dark:from-[#233554] dark:to-[#112240] hover:from-gray-700 hover:to-gray-800 dark:hover:from-[#112240] dark:hover:to-[#233554] text-white dark:text-primary-foreground transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5',
                 input: 'font-sans backdrop-blur-sm bg-white/50 dark:bg-background/50 border-gray-200/50 dark:border-border/50 focus:border-gray-400 dark:focus:border-[#233554] transition-all duration-300',
                 label: 'font-sans text-gray-700 dark:text-gray-300',
-                message: 'text-red-500 dark:text-red-400',
+                message: 'bg-destructive/10 dark:bg-destructive/20 text-destructive dark:text-destructive-foreground p-2 rounded-md border border-destructive/20 dark:border-destructive/30',
               },
             }}
             providers={[]}
@@ -88,14 +88,32 @@ export const LoginCard = () => {
                   email_label: "Email",
                   password_label: "Senha",
                   button_label: "Entrar",
+                  link_text: "Já tenho uma conta",
                   loading_button_label: "Entrando...",
                   email_input_placeholder: "seu@email.com",
                   password_input_placeholder: "Sua senha",
                 },
+                sign_up: {
+                  email_label: 'Email',
+                  email_input_placeholder: "novo@email.com",
+                  password_label: 'Senha',
+                  password_input_placeholder: "Sua senha",
+                  button_label: 'Cadastrar',
+                  link_text: 'Não possui conta?',
+                },
+                forgotten_password: {
+                  link_text: 'Esqueceu a senha?',
+                  email_label: 'Email',
+                  email_input_placeholder: "seu@email.com",
+                  button_label: 'Enviar',
+                },
+                error: {
+                  invalid_credentials: 'Credenciais inválidas',
+                },
               },
             }}
             view="sign_in"
-            showLinks={false}
+            showLinks={true}
           />
         </div>
       </div>
