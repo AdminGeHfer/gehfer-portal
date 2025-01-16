@@ -10,7 +10,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      jsxImportSource: '@vitejs/plugin-react-swc'
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react'
     }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
