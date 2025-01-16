@@ -72,10 +72,6 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
               <p>{getStatusLabel(rnc.workflow_status)}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Prioridade</p>
-              <p>{rnc.priority}</p>
-            </div>
-            <div>
               <p className="text-sm text-gray-500">Departamento</p>
               <p>{rnc.department}</p>
             </div>

@@ -17,7 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
   description: z.string().min(1, "A descrição é obrigatória"),
-  priority: z.enum(["low", "medium", "high"]),
   type: z.enum(["client", "supplier"]),
   department: z.enum(["Expedição", "Logistica", "Comercial", "Qualidade", "Produção"]),
   contact: z.object({
@@ -51,7 +50,6 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: rnc.description,
-      priority: rnc.priority,
       type: rnc.type,
       department: rnc.department,
       contact: rnc.contact,

@@ -10,8 +10,6 @@ interface RNCListFiltersProps {
   onStatusChange: (value: string) => void;
   departmentFilter: string;
   onDepartmentChange: (value: string) => void;
-  priorityFilter: string;
-  onPriorityChange: (value: string) => void;
 }
 
 export const RNCListFilters = ({

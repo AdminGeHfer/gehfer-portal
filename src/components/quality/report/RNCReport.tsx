@@ -21,15 +21,6 @@ export function RNCReport({ rnc }: RNCReportProps) {
     return labels[status];
   };
 
-  const getPriorityLabel = (priority: string) => {
-    const labels: Record<string, string> = {
-      low: "Baixa",
-      medium: "Média",
-      high: "Alta"
-    };
-    return labels[priority] || priority;
-  };
-
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       client: "Cliente",
@@ -88,10 +79,6 @@ export function RNCReport({ rnc }: RNCReportProps) {
             <div>
               <h3 className="font-semibold">Status</h3>
               <p>{getStatusLabel(rnc.workflow_status)}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Prioridade</h3>
-              <p>{getPriorityLabel(rnc.priority)}</p>
             </div>
             <div>
               <h3 className="font-semibold">Tipo</h3>

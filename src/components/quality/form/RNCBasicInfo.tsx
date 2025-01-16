@@ -89,29 +89,6 @@ export const RNCBasicInfo = ({ form, showErrors = false }: RNCBasicInfoProps) =>
           </FormItem>
         )}
       />
-
-      <FormField
-        control={form.control}
-        name="priority"
-        render={({ field, fieldState }) => (
-          <FormItem>
-            <FormLabel className="required-field">Prioridade</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a prioridade" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="low">Baixa</SelectItem>
-                <SelectItem value="medium">Média</SelectItem>
-                <SelectItem value="high">Alta</SelectItem>
-              </SelectContent>
-            </Select>
-            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
-          </FormItem>
-        )}
-      />
     <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </div>
   );

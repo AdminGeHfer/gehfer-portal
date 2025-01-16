@@ -90,29 +90,6 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
           </FormItem>
         )}
       />
-
-      <FormField
-        control={form.control}
-        name="priority"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Prioridade</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a prioridade" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="low">Baixa</SelectItem>
-                <SelectItem value="medium">Média</SelectItem>
-                <SelectItem value="high">Alta</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </div>
   );
 };
