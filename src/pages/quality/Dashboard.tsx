@@ -1,6 +1,5 @@
 import React from 'react';
 import { KpiCard } from "@/components/dashboard/KpiCard";
-import { Header } from "@/components/layout/Header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, Clock, FileCheck2, FileX2, Sun, Moon, LogOut } from "lucide-react";
@@ -73,7 +72,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex h-16 items-center justify-between px-6 border-b">
+      <div className="flex h-16 items-center justify-between px-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <h1 className="text-2xl font-semibold">Dashboard de Qualidade</h1>
         <div className="flex items-center gap-2">
           <Button
