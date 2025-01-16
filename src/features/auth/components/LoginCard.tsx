@@ -91,8 +91,7 @@ export const LoginCard = () => {
                   link_text: "Já tenho uma conta",
                   loading_button_label: "Entrando...",
                   email_input_placeholder: "seu@email.com",
-                  password_input_placeholder: "Sua senha",
-                  invalid_credentials_error: "Email ou senha incorretos",
+                  password_input_placeholder: "Sua senha"
                 },
                 sign_up: {
                   email_label: 'Email',
@@ -107,9 +106,6 @@ export const LoginCard = () => {
                   email_label: 'Email',
                   email_input_placeholder: "seu@email.com",
                   button_label: 'Enviar',
-                },
-                error: {
-                  invalid_credentials: 'Credenciais inválidas',
                 },
               },
             }}
