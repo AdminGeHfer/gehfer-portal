@@ -1,36 +1,44 @@
-export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
+export type DepartmentEnum = "logistics" | "quality" | "financial";
+export type RNCTypeEnum = "company_complaint" | "supplier" | "dispatch" | "logistics" | "deputy" | "driver" | "financial" | "commercial" | "financial_agreement";
 export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
 export interface RNC {
   id: string;
+  rnc_number: number;
+  company_code: string;
+  company: string;
+  cnpj: string;
+  type: RNCTypeEnum;
+  product: string;
   description: string;
-  workflow_status: WorkflowStatusEnum;
-  priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
+  responsible: string;
+  days_left: number;
+  weight: number;
+  korp: string;
+  nfv: string;
+  nfd: string;
+  collected_at?: string;
+  closed_at?: string;
+  city: string;
+  conclusion: string;
   department: DepartmentEnum;
+  assigned_at?: string;
+  workflow_status: WorkflowStatusEnum;
+  assigned_to?: string;
+  assigned_by?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
   contact: {
     name: string;
     phone: string;
     email: string;
   };
-  company: string;
-  cnpj: string;
-  order_number?: string;
-  return_number?: string;
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
-  assigned_to?: string;
-  assigned_by?: string;
-  assigned_at?: string;
   attachments?: File[];
   timeline: TimelineEvent[];
-  resolution?: string;
-  rnc_number?: number;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
-  created_by: string;
   title?: string;
   canEdit?: boolean;
 }
@@ -47,21 +55,20 @@ export interface TimelineEvent {
 
 export interface RNCFormData {
   id?: string;
+  company: string;
+  cnpj?: string;
+  korp: string;
+  nfd?: string;
   description: string;
-  priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
   department: DepartmentEnum;
+  type: RNCTypeEnum;
+  attachments?: File[];
   contact: {
     name: string;
     phone: string;
     email: string;
   };
-  company: string;
-  cnpj: string;
-  order_number?: string;
-  return_number?: string;
   workflow_status: WorkflowStatusEnum;
   assignedTo?: string;
-  attachments?: File[];
   resolution?: string;
 }
