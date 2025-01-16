@@ -62,7 +62,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
         name="order_number"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Nº do Pedido</FormLabel>
+            <FormLabel className="required-field">Nº do Pedido</FormLabel>
             <FormControl>
               <Input 
                 placeholder="Digite o número do pedido" 
