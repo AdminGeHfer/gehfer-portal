@@ -1538,84 +1538,60 @@ export type Database = {
           assigned_at: string | null
           assigned_by: string | null
           assigned_to: string | null
-          city: string | null
           closed_at: string | null
           cnpj: string
-          collected_at: string | null
           company: string
-          company_code: string
-          conclusion: string | null
           created_at: string
           created_by: string
-          days_left: number | null
           department: string
           description: string
           id: string
-          korp: string | null
-          nfd: string | null
-          nfv: string | null
-          product: string | null
-          responsible: string | null
+          order_number: string | null
+          priority: string
+          return_number: string | null
           rnc_number: number | null
-          type: Database["public"]["Enums"]["rnc_type_enum"]
+          type: string
           updated_at: string
-          weight: number | null
           workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Insert: {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
-          city?: string | null
           closed_at?: string | null
           cnpj: string
-          collected_at?: string | null
           company: string
-          company_code?: string
-          conclusion?: string | null
           created_at?: string
           created_by: string
-          days_left?: number | null
           department?: string
           description: string
           id?: string
-          korp?: string | null
-          nfd?: string | null
-          nfv?: string | null
-          product?: string | null
-          responsible?: string | null
+          order_number?: string | null
+          priority?: string
+          return_number?: string | null
           rnc_number?: number | null
-          type?: Database["public"]["Enums"]["rnc_type_enum"]
+          type: string
           updated_at?: string
-          weight?: number | null
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Update: {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
-          city?: string | null
           closed_at?: string | null
           cnpj?: string
-          collected_at?: string | null
           company?: string
-          company_code?: string
-          conclusion?: string | null
           created_at?: string
           created_by?: string
-          days_left?: number | null
           department?: string
           description?: string
           id?: string
-          korp?: string | null
-          nfd?: string | null
-          nfv?: string | null
-          product?: string | null
-          responsible?: string | null
+          order_number?: string | null
+          priority?: string
+          return_number?: string | null
           rnc_number?: number | null
-          type?: Database["public"]["Enums"]["rnc_type_enum"]
+          type?: string
           updated_at?: string
-          weight?: number | null
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Relationships: [
@@ -2266,17 +2242,6 @@ export type Database = {
       memory_type_enum: "buffer" | "window" | "summary"
       message_role: "system" | "assistant" | "user"
       output_format_enum: "text" | "structured" | "markdown"
-      rnc_department_enum: "logistics" | "quality" | "financial"
-      rnc_type_enum:
-        | "company_complaint"
-        | "supplier"
-        | "dispatch"
-        | "logistics"
-        | "deputy"
-        | "driver"
-        | "financial"
-        | "commercial"
-        | "financial_agreement"
       rnc_workflow_status_enum:
         | "open"
         | "analysis"
