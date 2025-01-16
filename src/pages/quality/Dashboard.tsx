@@ -2,30 +2,13 @@ import React from 'react';
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { Header } from "@/components/layout/Header";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ClipboardList, Clock, FileCheck2, FileX2, Sun, Moon, LogOut } from "lucide-react";
+import { ClipboardList, Clock, FileCheck2, FileX2 } from "lucide-react";
 import { useRNCs } from "@/hooks/useRNCs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useTheme } from "next-themes";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const Dashboard = () => {
   const { rncs, isLoading, getDashboardStats } = useRNCs();
   const stats = getDashboardStats();
-  const { theme, setTheme } = useTheme();
-  const navigate = useNavigate();
-
-  const signOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success("Logout realizado com sucesso");
-      navigate("/login");
-    } catch {
-      toast.error("Erro ao fazer logout");
-    }
-  };
 
   const kpis = [
     {
@@ -73,32 +56,14 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="flex h-16 items-center justify-between px-6 border-b">
-        <h1 className="text-2xl font-semibold">Dashboard de Qualidade</h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={signOut}
-            className="text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
+      <Header title="Dashboard de Qualidade" />
       
       <main className="flex-1 p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold mb-2">Dashboard de Qualidade</h1>
+          <p className="text-muted-foreground">Visão geral das RNCs</p>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
           {kpis.map((kpi, index) => (
             <KpiCard
