@@ -88,15 +88,29 @@ export const LoginCard = () => {
                   email_label: "Email",
                   password_label: "Senha",
                   button_label: "Entrar",
+                  link_text: "Já tenho uma conta",
                   loading_button_label: "Entrando...",
                   email_input_placeholder: "seu@email.com",
+                  password_input_placeholder: "Sua senha"
+                },
+                sign_up: {
+                  email_label: 'Email',
+                  email_input_placeholder: "novo@email.com",
+                  password_label: 'Senha',
                   password_input_placeholder: "Sua senha",
-                  invalid_credentials_error: "Email ou senha incorretos",
+                  button_label: 'Cadastrar',
+                  link_text: 'Não possui conta?',
+                },
+                forgotten_password: {
+                  link_text: 'Esqueceu a senha?',
+                  email_label: 'Email',
+                  email_input_placeholder: "seu@email.com",
+                  button_label: 'Enviar',
                 },
               },
             }}
             view="sign_in"
-            showLinks={false}
+            showLinks={true}
           />
         </div>
       </div>

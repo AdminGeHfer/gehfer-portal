@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { RNC } from "@/types/rnc";
 import { Printer, WhatsappLogo, Trash, PencilSimple } from "@phosphor-icons/react";

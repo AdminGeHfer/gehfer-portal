@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { RNCFormContainer } from "./form/RNCFormContainer";
 import { RNCFormData } from "@/types/rnc";
 

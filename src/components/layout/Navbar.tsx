@@ -1,40 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Menu } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import React, { useState } from "react";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import * as React from "react";
 
 export function Navbar() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      toast({
-        title: "Erro ao fazer logout",
-        description: error.message,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso",
-    });
-    navigate("/login");
-  };
 
   const NavLinks = () => (
     <>
       <Button variant="ghost" onClick={() => navigate("/quality/dashboard")}>Dashboard</Button>
       <Button variant="ghost" onClick={() => navigate("/quality/rnc")}>RNCs</Button>
-      <Button variant="ghost" onClick={() => navigate("/admin/users")}>Administração</Button>
     </>
   );
 
@@ -75,7 +55,7 @@ export function Navbar() {
 
             <Button 
               variant="outline" 
-              onClick={handleLogout}
+              onClick={signOut}
               className="flex items-center gap-2 hover:bg-destructive hover:text-destructive-foreground"
             >
               <LogOut className="h-4 w-4" />

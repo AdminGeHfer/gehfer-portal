@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { SplitSquareHorizontal, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import React from "react";
+import * as React from "react";
 
 interface DocumentChunksProps {
   documentId: string;

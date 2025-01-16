@@ -1,8 +1,7 @@
 import { Home, Users, Calendar, PieChart, LogOut } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Logo from "./Logo";
-import React from "react";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 
 const Sidebar = () => {
   const navigate = useNavigate();

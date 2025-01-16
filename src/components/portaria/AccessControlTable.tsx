@@ -6,7 +6,8 @@ import { ptBR } from "date-fns/locale";
 import { Eye, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 import { ExitConfirmationDialog } from "./ExitConfirmationDialog";
 import { AccessHistoryDialog } from "./AccessHistoryDialog";
 

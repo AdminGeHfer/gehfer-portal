@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import {
   FormField,
   FormItem,
@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
+import Subtitle from "@/components/quality/form/Subtitle";
 
 interface RNCContactInfoProps {
   form: UseFormReturn<RNCFormData>;
@@ -55,7 +56,7 @@ export const RNCContactInfo = ({ form, showErrors = false }: RNCContactInfoProps
         name="contact.email"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel className="required-field">Email</FormLabel>
+            <FormLabel>Email</FormLabel>
             <FormControl>
               <Input 
                 type="email" 
@@ -67,6 +68,7 @@ export const RNCContactInfo = ({ form, showErrors = false }: RNCContactInfoProps
           </FormItem>
         )}
       />
+    <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </div>
   );
 };

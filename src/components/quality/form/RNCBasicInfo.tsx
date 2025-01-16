@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import {
   FormField,
   FormItem,
@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Subtitle from "@/components/quality/form/Subtitle";
 
 interface RNCBasicInfoProps {
   form: UseFormReturn<RNCFormData>;
@@ -111,6 +112,7 @@ export const RNCBasicInfo = ({ form, showErrors = false }: RNCBasicInfoProps) =>
           </FormItem>
         )}
       />
+    <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </div>
   );
 };

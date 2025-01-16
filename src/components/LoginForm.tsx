@@ -1,4 +1,5 @@
-import React, { useState, type FormEvent } from 'react';
+import * as React from 'react';
+import { useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

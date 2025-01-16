@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Truck, Clock, FileCheck } from "lucide-react";
-import React from "react";
+import * as React from "react";
 
 interface AccessControlMetricsProps {
   accessLogs: { exit_time: string | null; created_at: string }[];

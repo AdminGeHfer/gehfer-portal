@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 

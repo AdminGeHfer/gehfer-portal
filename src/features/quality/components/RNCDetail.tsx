@@ -1,7 +1,8 @@
 import { useRNCDetail } from "../hooks/useRNCDetail";
 import { RNCDetailLayout } from "./detail/RNCDetailLayout";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import React, { useState } from "react";
+import { useState } from "react";
+import * as React from "react";
 
 interface RNCDetailProps {
   id: string;

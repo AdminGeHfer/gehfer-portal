@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -23,7 +23,7 @@ export function Sidebar({ children, className }: SidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-3 top-6 z-30 hidden h-6 w-6 rounded-full border bg-background lg:flex"
+        className="absolute -right-3 top-6 z-30 hidden h-7 w-7 rounded-full border bg-background lg:flex"
         onClick={toggleSidebar}
       >
         {isCollapsed ? (

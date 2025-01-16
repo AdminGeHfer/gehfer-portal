@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { LoginForm } from "./LoginForm";
 import { LoginBackground } from "./LoginBackground";
 import { Button } from "@/components/ui/button";
