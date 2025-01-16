@@ -17,13 +17,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    commonjsOptions: {
-      include: [],
-    },
-  },
   optimizeDeps: {
-    disabled: false,
-    include: ['@vitejs/plugin-react-swc']
+    exclude: ['@vitejs/plugin-react-swc']
   },
 }));
