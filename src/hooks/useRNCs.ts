@@ -34,8 +34,8 @@ export const useRNCs = () => {
 
     const total = rncs.length;
     const open = rncs.filter(rnc => rnc.workflow_status === 'open').length;
-    const inProgress = rncs.filter(rnc => ['analysis', 'resolution'].includes(rnc.workflow_status)).length;
-    const closed = rncs.filter(rnc => rnc.workflow_status === 'closed').length;
+    const inProgress = rncs.filter(rnc => ['analysis', 'resolution', 'closing'].includes(rnc.workflow_status)).length;
+    const closed = rncs.filter(rnc => ['closed', 'solved'].includes(rnc.workflow_status)).length;
 
     const closedRncs = rncs.filter(rnc => rnc.closed_at);
     const totalResolutionTime = closedRncs.reduce((acc, rnc) => {
@@ -66,15 +66,20 @@ export const useRNCs = () => {
       const { data: rnc, error: rncError } = await supabase
         .from("rncs")
         .insert({
-          description: data.description,
-          workflow_status: "open",
-          priority: data.priority,
-          type: data.type,
-          department: data.department,
+          company_code: data.company_code,
           company: data.company,
           cnpj: data.cnpj,
-          order_number: data.order_number,
-          return_number: data.return_number,
+          type: data.type,
+          product: data.product,
+          description: data.description,
+          weight: data.weight,
+          korp: data.korp,
+          nfd: data.nfd,
+          nfv: data.nfv,
+          department: data.department,
+          conclusion: data.conclusion,
+          workflow_status: "open",
+          assigned_to: user.user.email,
           created_by: user.user.id,
         })
         .select()

@@ -13,9 +13,9 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
       open: "Aberto",
       analysis: "Em Análise",
       resolution: "Em Resolução",
-      solved: "Solucionado",
       closing: "Em Fechamento",
-      closed: "Encerrado"
+      closed: "Encerrado",
+      solved: "Solucionado"
     };
     return labels[status];
   };
@@ -39,6 +39,10 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4">
           <div>
+            <p className="text-sm text-gray-500">Código do Cliente</p>
+            <p>{rnc.company_code}</p>
+          </div>
+          <div>
             <p className="text-sm text-gray-500">Razão Social</p>
             <p>{rnc.company}</p>
           </div>
@@ -47,12 +51,20 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
             <p>{rnc.cnpj}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Nº do Pedido</p>
-            <p>{rnc.order_number || "N/A"}</p>
+            <p className="text-sm text-gray-500">Produto</p>
+            <p>{rnc.product}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Nº do Pedido KORP</p>
+            <p>{rnc.korp || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Nº da Nota de Venda</p>
+            <p>{rnc.nfv || "N/A"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Nº da Devolução</p>
-            <p>{rnc.return_number || "N/A"}</p>
+            <p>{rnc.nfd || "N/A"}</p>
           </div>
         </CardContent>
       </Card>
@@ -78,7 +90,23 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
           </div>
           <div>
             <p className="text-sm text-gray-500">Descrição</p>
-            <p className="whitespace-pre-wrap">{rnc.description}</p>
+            <p>{rnc.description}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Responsável</p>
+            <p>{rnc.responsible}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Dias</p>
+            <p>{rnc.days_left}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Cidade</p>
+            <p>{rnc.city}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Conclusão</p>
+            <p>{rnc.conclusion}</p>
           </div>
         </CardContent>
       </Card>
@@ -99,10 +127,6 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
           <div>
             <p className="text-sm text-gray-500">Email</p>
             <p>{rnc.contact.email}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Departamento</p>
-            <p>{rnc.department}</p>
           </div>
         </CardContent>
       </Card>

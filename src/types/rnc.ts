@@ -55,20 +55,24 @@ export interface TimelineEvent {
 
 export interface RNCFormData {
   id?: string;
+  company_code: string;
   company: string;
   cnpj?: string;
+  type: RNCTypeEnum;
+  product: string;
+  description: string;
+  weight: number;
   korp: string;
   nfd?: string;
-  description: string;
+  nfv?: string;
   department: DepartmentEnum;
-  type: RNCTypeEnum;
-  attachments?: File[];
   contact: {
     name: string;
     phone: string;
-    email: string;
+    email?: string;
   };
+  attachments?: File[];
+  conclusion?: string;
   workflow_status: WorkflowStatusEnum;
   assignedTo?: string;
-  resolution?: string;
 }

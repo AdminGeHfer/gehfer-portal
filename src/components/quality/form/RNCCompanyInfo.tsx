@@ -25,6 +25,23 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
         name="company"
         render={({ field, fieldState }) => (
           <FormItem>
+            <FormLabel className="required-field">Código do Cliente</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Código do Cliente (KORP)" 
+                {...field} 
+              />
+            </FormControl>
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field, fieldState }) => (
+          <FormItem>
             <FormLabel className="required-field">Razão Social</FormLabel>
             <FormControl>
               <Input 
@@ -59,13 +76,13 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
 
       <FormField
         control={form.control}
-        name="order_number"
+        name="company"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel className="required-field">Nº do Pedido</FormLabel>
+            <FormLabel className="required-field">Produto</FormLabel>
             <FormControl>
               <Input 
-                placeholder="Digite o número do pedido" 
+                placeholder="Produto" 
                 {...field} 
               />
             </FormControl>
@@ -76,13 +93,47 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
 
       <FormField
         control={form.control}
-        name="return_number"
+        name="company"
         render={({ field, fieldState }) => (
           <FormItem>
-            <FormLabel>Nº da Devolução</FormLabel>
+            <FormLabel className="required-field">KORP</FormLabel>
             <FormControl>
               <Input 
-                placeholder="Digite o número da devolução" 
+                placeholder="Número do pedido (KORP)" 
+                {...field} 
+              />
+            </FormControl>
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel>NFV</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Número da Nota de Venda" 
+                {...field} 
+              />
+            </FormControl>
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel>NFD</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Número da Nota de Devolução" 
                 {...field} 
               />
             </FormControl>

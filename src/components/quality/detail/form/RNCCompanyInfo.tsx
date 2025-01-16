@@ -24,6 +24,24 @@ export const RNCCompanyInfo = ({ form, isEditing = false }: RNCCompanyInfoProps)
         name="company"
         render={({ field }) => (
           <FormItem>
+            <FormLabel className="required-field">Código do Cliente</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Código do Cliente (KORP)" 
+                {...field} 
+                disabled={!isEditing}
+              />
+            </FormControl>
+            <FormMessage className="form-message" />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field }) => (
+          <FormItem>
             <FormLabel className="required-field">Razão Social</FormLabel>
             <FormControl>
               <Input 
@@ -60,13 +78,13 @@ export const RNCCompanyInfo = ({ form, isEditing = false }: RNCCompanyInfoProps)
 
       <FormField
         control={form.control}
-        name="order_number"
+        name="company"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nº do Pedido</FormLabel>
+            <FormLabel className="required-field">Produto</FormLabel>
             <FormControl>
               <Input 
-                placeholder="Digite o número do pedido" 
+                placeholder="Produto" 
                 {...field} 
                 disabled={!isEditing}
               />
@@ -78,13 +96,49 @@ export const RNCCompanyInfo = ({ form, isEditing = false }: RNCCompanyInfoProps)
 
       <FormField
         control={form.control}
-        name="return_number"
+        name="company"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Nº da Devolução</FormLabel>
+            <FormLabel className="required-field">KORP</FormLabel>
             <FormControl>
               <Input 
-                placeholder="Digite o número da devolução" 
+                placeholder="Número do pedido (KORP)" 
+                {...field} 
+                disabled={!isEditing}
+              />
+            </FormControl>
+            <FormMessage className="form-message" />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="required-field">NFV</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Número da Nota de Venda" 
+                {...field} 
+                disabled={!isEditing}
+              />
+            </FormControl>
+            <FormMessage className="form-message" />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="required-field">NFD</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Número da Nota de Devolução" 
                 {...field} 
                 disabled={!isEditing}
               />

@@ -16,22 +16,26 @@ import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formSchema = z.object({
+  company_code: z.string().min(1, "O código da empresa é obrigatório"),
+  company: z.string().min(1, "O nome da empresa é obrigatória"),
+  cnpj: z.union([z.string().nullable(), z.string().regex(/^[0,9]{2}\.[0,9]{3}\.[0,9]{3}\/[0,9]{4}-[0,9]{2}$/, "CNPJ inválido")]).optional().transform(e => e === "" ? undefined : e),
+  type: z.enum(["company_complaint", "supplier", "dispatch", "logistics", "deputy", "driver", "financial", "commercial", "financial_agreement"]).default("company_complaint"),
+  product: z.string().min(1, "O produto é obrigatório"),
   description: z.string().min(1, "A descrição é obrigatória"),
-  type: z.enum(["client", "supplier"]),
-  department: z.enum(["Expedição", "Logistica", "Comercial", "Qualidade", "Produção"]),
+  weight: z.number().min(0, "O peso deve ser maior que 0"),
+  korp: z.string().min(1, "O número do pedido é obrigatório"),
+  nfd: z.string().optional(),
+  nfv: z.string().optional(),
+  department: z.enum(["logistics", "quality", "financial"]).default("logistics"),
   contact: z.object({
     name: z.string().min(1, "O nome do contato é obrigatório"),
-    phone: z.string().min(1, "O telefone é obrigatório"),
-    email: z.string().email("Email inválido"),
+    phone: z.string().regex(/^[(]{0,1}[0-9]{1,2}[)]{0,1}\s[0-9]{4,5}-[0-9]{4}$/, "Telefone inválido"),
+    email: z.union([z.string().nullable(), z.string().email("Email inválido")]).optional().transform(e => e === "" ? undefined : e),
   }),
-  order_number: z.string().optional(),
-  return_number: z.string().optional(),
-  company: z.string().min(1, "A empresa é obrigatória"),
-  cnpj: z.string().min(14, "CNPJ inválido").max(14),
-  workflow_status: z.enum(["open", "in_progress", "closed"]).default("open"),
-  assignedTo: z.string().optional(),
   attachments: z.array(z.instanceof(File)).optional(),
-  resolution: z.string().optional(),
+  conclusion: z.string().optional(),
+  workflow_status: z.enum(["open", "analysis", "resolution", "solved", "closing", "closed"]).default("open"),
+  assignedTo: z.string().optional(),
 });
 
 interface RNCDetailFormProps {
@@ -49,17 +53,22 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
   const form = useForm<RNCFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      description: rnc.description,
-      type: rnc.type,
-      department: rnc.department,
-      contact: rnc.contact,
+      company_code: rnc.company_code,
       company: rnc.company,
       cnpj: rnc.cnpj,
-      order_number: rnc.order_number,
-      return_number: rnc.return_number,
+      type: rnc.type,
+      product: rnc.product,
+      description: rnc.description,
+      weight: rnc.weight,
+      korp: rnc.korp,
+      nfd: rnc.nfd,
+      nfv: rnc.nfv,
+      department: rnc.department,
+      contact: rnc.contact,
+      attachments: rnc.attachments,
+      conclusion: rnc.conclusion,
       workflow_status: rnc.workflow_status,
       assignedTo: rnc.assignedTo,
-      resolution: rnc.resolution,
     },
   });
 
