@@ -9,7 +9,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    react(),
+    react({
+      jsxRuntime: 'automatic',
+      jsxImportSource: 'react'
+    }),
     mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
@@ -23,7 +26,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    disabled: false,
     include: ['@vitejs/plugin-react-swc']
   },
 }));
