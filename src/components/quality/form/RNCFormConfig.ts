@@ -25,20 +25,20 @@ export const formSchema = z.object({
 });
 
 export const defaultValues: RNCFormData = {
-  company_code: "abc",
-  company: "abc",
+  company_code: "",
+  company: "",
   cnpj: "",
   type: "company_complaint",
-  product: "abc",
-  description: "abc",
+  product: "",
+  description: "",
   weight: 1,
-  korp: "abc",
+  korp: "",
   nfd: "",
   nfv: "",
   department: "logistics",
   contact: {
-    name: "abc",
-    phone: "abc",
+    name: "",
+    phone: "",
     email: "",
   },
   attachments: [],

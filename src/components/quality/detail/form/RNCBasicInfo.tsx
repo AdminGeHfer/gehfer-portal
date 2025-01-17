@@ -27,18 +27,28 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="description"
+        name="type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Descrição</FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="Descreva detalhadamente a não conformidade"
-                className="min-h-[100px]"
-                {...field}
-                disabled={!isEditing}
-              />
-            </FormControl>
+            <FormLabel>Tipo</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="company_complaint">Reclamação do Cliente</SelectItem>
+                <SelectItem value="supplier">Fornecedor</SelectItem>
+                <SelectItem value="dispatch">Expedição</SelectItem>
+                <SelectItem value="logistics">Logística</SelectItem>
+                <SelectItem value="deputy">Representante</SelectItem>
+                <SelectItem value="driver">Motorista</SelectItem>
+                <SelectItem value="financial">Financeiro</SelectItem>
+                <SelectItem value="commercial">Comercial</SelectItem>
+                <SelectItem value="financial_agreement">Acordo Financeiro</SelectItem>
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}
@@ -57,11 +67,9 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="Expedição">Expedição</SelectItem>
-                <SelectItem value="Logistica">Logística</SelectItem>
-                <SelectItem value="Comercial">Comercial</SelectItem>
-                <SelectItem value="Qualidade">Qualidade</SelectItem>
-                <SelectItem value="Produção">Produção</SelectItem>
+                <SelectItem value="logistics">Logística</SelectItem>
+                <SelectItem value="quality">Qualidade</SelectItem>
+                <SelectItem value="financial">Financeiro</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -71,21 +79,18 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
 
       <FormField
         control={form.control}
-        name="type"
+        name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tipo</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="client">Cliente</SelectItem>
-                <SelectItem value="supplier">Fornecedor</SelectItem>
-              </SelectContent>
-            </Select>
+            <FormLabel>Descrição</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Descreva detalhadamente a não conformidade"
+                className="min-h-[100px]"
+                {...field}
+                disabled={!isEditing}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}

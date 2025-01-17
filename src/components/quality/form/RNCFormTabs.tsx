@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RNCBasicInfo } from "./RNCBasicInfo";
 import { RNCCompanyInfo } from "./RNCCompanyInfo";
 import { RNCContactInfo } from "./RNCContactInfo";
+import { RNCOrderInfo } from "./RNCOrderInfo";
 import { RNCFileUpload } from "./RNCFileUpload";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
@@ -17,9 +18,10 @@ interface RNCFormTabsProps {
 export function RNCFormTabs({ activeTab, onTabChange, form, showValidationErrors }: RNCFormTabsProps) {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="grid w-full grid-cols-3 mb-6">
+      <TabsList className="grid w-full grid-cols-4 mb-6">
         <TabsTrigger value="company">Empresa</TabsTrigger>
         <TabsTrigger value="details">Detalhes</TabsTrigger>
+        <TabsTrigger value="order">Pedido</TabsTrigger>
         <TabsTrigger value="contact">Contato</TabsTrigger>
       </TabsList>
 
@@ -33,6 +35,12 @@ export function RNCFormTabs({ activeTab, onTabChange, form, showValidationErrors
         <div className="grid gap-6">
           <RNCBasicInfo form={form} showErrors={showValidationErrors} />
           <RNCFileUpload form={form} showErrors={showValidationErrors} />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="order" className="space-y-6">
+        <div className="grid gap-6">
+          <RNCOrderInfo form={form} showErrors={showValidationErrors} />
         </div>
       </TabsContent>
 

@@ -22,7 +22,7 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="company"
+        name="company_code"
         render={({ field, fieldState }) => (
           <FormItem>
             <FormLabel className="required-field">Código do Cliente</FormLabel>
@@ -67,74 +67,6 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
                 onChange={(e) => handleCNPJChange(e, onChange)}
                 maxLength={18}
                 {...field}
-              />
-            </FormControl>
-            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="company"
-        render={({ field, fieldState }) => (
-          <FormItem>
-            <FormLabel className="required-field">Produto</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Produto" 
-                {...field} 
-              />
-            </FormControl>
-            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="company"
-        render={({ field, fieldState }) => (
-          <FormItem>
-            <FormLabel className="required-field">KORP</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Número do pedido (KORP)" 
-                {...field} 
-              />
-            </FormControl>
-            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="company"
-        render={({ field, fieldState }) => (
-          <FormItem>
-            <FormLabel>NFV</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Número da Nota de Venda" 
-                {...field} 
-              />
-            </FormControl>
-            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="company"
-        render={({ field, fieldState }) => (
-          <FormItem>
-            <FormLabel>NFD</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Número da Nota de Devolução" 
-                {...field} 
               />
             </FormControl>
             {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}

@@ -69,22 +69,6 @@ export function RNCReport({ rnc }: RNCReportProps) {
               <h3 className="font-semibold">CNPJ</h3>
               <p>{rnc.cnpj || "N/A"}</p>
             </div>
-            <div>
-              <h3 className="font-semibold">Produto</h3>
-              <p>{rnc.product || "N/A"}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Nº do Pedido KORP</h3>
-              <p>{rnc.korp || "N/A"}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Nº da Nota de Venda</h3>
-              <p>{rnc.nfv || "N/A"}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Nº da Devolução</h3>
-              <p>{rnc.nfd || "N/A"}</p>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -107,26 +91,38 @@ export function RNCReport({ rnc }: RNCReportProps) {
               <h3 className="font-semibold">Departamento</h3>
               <p>{rnc.department}</p>
             </div>
-            <div>
-              <h3 className="font-semibold">Descrição</h3>
-              <p>{rnc.description}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Responsável</h3>
-              <p>{rnc.responsible}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Dias</h3>
-              <p>{rnc.days_left}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Cidade</h3>
-              <p>{rnc.city}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Conclusão</h3>
-              <p>{rnc.conclusion}</p>
-            </div>
+          </div>
+          <div>
+            <h3 className="font-semibold">Produto</h3>
+            <p>{rnc.product.product || "N/A"}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">Nº do Pedido KORP</h3>
+            <p>{rnc.korp || "N/A"}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">Nº da Nota de Venda</h3>
+            <p>{rnc.nfv || "N/A"}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">Nº da Devolução</h3>
+            <p>{rnc.nfd || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Responsável</p>
+            <p>{rnc.responsible}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Dias</p>
+            <p>{rnc.days_left}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Cidade</p>
+            <p>{rnc.city}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Conclusão</p>
+            <p>{rnc.conclusion}</p>
           </div>
         </CardContent>
       </Card>

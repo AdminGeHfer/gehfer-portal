@@ -50,22 +50,6 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
             <p className="text-sm text-gray-500">CNPJ</p>
             <p>{rnc.cnpj}</p>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">Produto</p>
-            <p>{rnc.product}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Nº do Pedido KORP</p>
-            <p>{rnc.korp || "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Nº da Nota de Venda</p>
-            <p>{rnc.nfv || "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Nº da Devolução</p>
-            <p>{rnc.nfd || "N/A"}</p>
-          </div>
         </CardContent>
       </Card>
 
@@ -91,6 +75,22 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
           <div>
             <p className="text-sm text-gray-500">Descrição</p>
             <p>{rnc.description}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Produto</p>
+            <p>{rnc.product.product}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Nº do Pedido KORP</p>
+            <p>{rnc.korp || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Nº da Nota de Venda</p>
+            <p>{rnc.nfv || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Nº da Devolução</p>
+            <p>{rnc.nfd || "N/A"}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Responsável</p>

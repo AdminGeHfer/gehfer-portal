@@ -9,11 +9,9 @@ export interface RNC {
   company: string;
   cnpj: string;
   type: RNCTypeEnum;
-  product: string;
   description: string;
   responsible: string;
   days_left: number;
-  weight: number;
   korp: string;
   nfv: string;
   nfd: string;
@@ -29,6 +27,10 @@ export interface RNC {
   created_by: string;
   created_at: string;
   updated_at: string;
+  product: {
+    product: string;
+    weight: number;
+  }
   contact: {
     name: string;
     phone: string;
@@ -59,13 +61,15 @@ export interface RNCFormData {
   company: string;
   cnpj?: string;
   type: RNCTypeEnum;
-  product: string;
   description: string;
-  weight: number;
   korp: string;
   nfd?: string;
   nfv?: string;
   department: DepartmentEnum;
+  product: {
+    product: string;
+    weight: number
+  }
   contact: {
     name: string;
     phone: string;
