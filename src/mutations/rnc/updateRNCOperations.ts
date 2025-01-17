@@ -5,20 +5,47 @@ const updateRNCData = async (id: string, updatedData: Partial<RNC>) => {
   const { error: rncError } = await supabase
     .from("rncs")
     .update({
-      description: updatedData.description,
-      workflow_status: updatedData.workflow_status,
-      priority: updatedData.priority,
-      type: updatedData.type,
-      department: updatedData.department,
+      rnc_number: updatedData.rnc_number,
+      company_code: updatedData.company_code,
       company: updatedData.company,
       cnpj: updatedData.cnpj,
-      order_number: updatedData.order_number,
-      return_number: updatedData.return_number,
+      type: updatedData.type,
+      description: updatedData.description,
+      responsible: updatedData.responsible,
+      days_left: updatedData.days_left,
+      korp: updatedData.korp,
+      nfv: updatedData.nfv,
+      nfd: updatedData.nfd,
+      collected_at: updatedData.collected_at,
+      closed_at: updatedData.closed_at,
+      city: updatedData.city,
+      conclusion: updatedData.conclusion,
+      department: updatedData.department,
+      assigned_at: updatedData.assigned_at,
+      workflow_status: updatedData.workflow_status,
+      assigned_to: updatedData.assigned_to,
+      assigned_by: updatedData.assigned_by,
+      created_by: updatedData.created_by,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);
 
   if (rncError) throw rncError;
+};
+
+const updateRNCProduct = async (id: string, product: RNC['product']) => {
+  if (!product) return;
+
+  const { error: productError } = await supabase
+    .from("rnc_products")
+    .update({
+      product: product.product,
+      weight: product.weight,
+      rnc_id: id
+    })
+    .eq("rnc_id", id);
+
+  if (productError) throw productError;
 };
 
 const updateRNCContact = async (id: string, contact: RNC['contact']) => {
@@ -42,6 +69,10 @@ export const updateRNCRecord = async (id: string, updatedData: Partial<RNC>) => 
     await updateRNCData(id, updatedData);
     if (updatedData.contact) {
       await updateRNCContact(id, updatedData.contact);
+    }
+
+    if (updateRNCData.products) {
+      await updateRNCProduct(id, updatedData.products);
     }
     return true;
   } catch (error) {

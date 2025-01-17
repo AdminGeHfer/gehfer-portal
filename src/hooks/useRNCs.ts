@@ -13,6 +13,7 @@ export const useRNCs = () => {
         .from("rncs")
         .select(`
           *,
+          products:rnc_products(*),
           contact:rnc_contacts(*),
           events:rnc_events(*)
         `)
@@ -70,9 +71,7 @@ export const useRNCs = () => {
           company: data.company,
           cnpj: data.cnpj,
           type: data.type,
-          product: data.product,
           description: data.description,
-          weight: data.weight,
           korp: data.korp,
           nfd: data.nfd,
           nfv: data.nfv,
@@ -88,6 +87,20 @@ export const useRNCs = () => {
       if (rncError) {
         console.error('Error creating RNC:', rncError);
         throw rncError;
+      }
+
+      // Then, create the products
+      const { error: productsError } = await supabase
+        .from("rnc_products")
+        .insert({
+          rnc_id: rnc.id,
+          product: data.products.product,
+          weight: data.products.weight,
+        });
+
+      if (productsError) {
+        console.error('Error creating products:', productsError);
+        throw productsError;
       }
 
       // Then, create the contact

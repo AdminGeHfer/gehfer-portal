@@ -41,6 +41,7 @@ export interface RNC {
 export interface RNCProduct {
   product: string;
   weight: number;
+  rnc_id?: string;
 }
 
 export interface RNCContact {
