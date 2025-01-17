@@ -1,13 +1,13 @@
 import * as React from "react";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { format } from "date-fns";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 interface RNCPrintLayoutProps {
   rnc: RNC;
 }
 
 export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
-
   const comments = rnc.timeline
     .filter(event => event.type === 'comment')
     .map(event => ({
@@ -90,10 +90,35 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
               <p className="text-sm text-gray-500">Descrição</p>
               <p>{rnc.description}</p>
             </div>
+
+            {/* Products Table */}
             <div>
-              <p className="text-sm text-gray-500">Produto</p>
-              <p>{rnc.product.product}</p>
+              <p className="text-sm text-gray-500 mb-2">Produtos</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Peso (kg)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.isArray(rnc.products) ? (
+                    rnc.products.map((product, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{product.product}</TableCell>
+                        <TableCell>{product.weight}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell>{'N/A'}</TableCell>
+                      <TableCell>{'N/A'}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
+
             <div>
               <p className="text-sm text-gray-500">Nº do Pedido KORP</p>
               <p>{rnc.korp || "N/A"}</p>
