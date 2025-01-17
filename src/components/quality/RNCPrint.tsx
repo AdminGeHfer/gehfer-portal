@@ -78,7 +78,7 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
           </div>
           <div>
             <p className="text-sm text-gray-500">Produto</p>
-            <p>{rnc.product.product}</p>
+            <p>{rnc.product}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Nº do Pedido KORP</p>

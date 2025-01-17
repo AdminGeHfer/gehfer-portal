@@ -27,10 +27,10 @@ export interface RNC {
   created_by: string;
   created_at: string;
   updated_at: string;
-  product: {
+  products: {
     product: string;
     weight: number;
-  }
+  }[];
   contact: {
     name: string;
     phone: string;
@@ -66,10 +66,10 @@ export interface RNCFormData {
   nfd?: string;
   nfv?: string;
   department: DepartmentEnum;
-  product: {
+  products: {
     product: string;
     weight: number
-  }
+  }[];
   contact: {
     name: string;
     phone: string;
