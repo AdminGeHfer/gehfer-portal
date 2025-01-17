@@ -46,7 +46,7 @@ export const RNCListTable = ({ rncs, onRowClick, isLoading }: RNCListTableProps)
                 <RNCStatusBadge status={rnc.workflow_status} />
               </TableCell>
               <TableCell className="text-center">
-                {format(new Date(rnc.created_at), "dd/MM/yyyy")}
+                {format(new Date(rnc.assigned_at), "dd/MM/yyyy")}
               </TableCell>
             </TableRow>
           ))}
