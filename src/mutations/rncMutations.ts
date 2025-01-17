@@ -1,41 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
-import { RNC } from "@/types/rnc";
+import { RNC, RNCFormData } from "@/types/rnc";
 import { toast } from "sonner";
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
+
+type RNCTypeEnum = "company_complaint" | "supplier" | "dispatch" | "logistics" | "deputy" | "driver" | "financial" | "commercial" | "financial_agreement";
 
 export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   return useMutation({
     mutationFn: async () => {
-      // First delete related records
-      const { error: contactsError } = await supabase
-        .from("rnc_contacts")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (contactsError) throw contactsError;
-
+      // First delete products
       const { error: productsError } = await supabase
         .from("rnc_products")
         .delete()
         .eq("rnc_id", id);
-      
+
       if (productsError) throw productsError;
 
-      const { error: eventsError } = await supabase
-        .from("rnc_events")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (eventsError) throw eventsError;
-
-      const { error: attachmentsError } = await supabase
-        .from("rnc_attachments")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (attachmentsError) throw attachmentsError;
-
-      // Finally delete the RNC
+      // Then delete the RNC
       const { error } = await supabase
         .from("rncs")
         .delete()
@@ -50,16 +31,13 @@ export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   });
 };
 
-type UpdateRNCMutationOptions = Omit<
-  UseMutationOptions<void, Error, Partial<RNC>, unknown>,
-  'mutationFn'
->;
-
-export const useUpdateRNC = (id: string, options?: UpdateRNCMutationOptions) => {
+export const useUpdateRNC = (
+  id: string,
+  options?: Partial<UseMutationOptions<void, Error, Partial<RNC>>>
+) => {
   return useMutation({
     mutationFn: async (updatedData: Partial<RNC>) => {
-      console.log("Updating RNC with data:", updatedData);
-      
+      // Update RNC
       const { error: rncError } = await supabase
         .from("rncs")
         .update({
@@ -67,7 +45,7 @@ export const useUpdateRNC = (id: string, options?: UpdateRNCMutationOptions) => 
           company_code: updatedData.company_code,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
-          type: updatedData.type,
+          type: updatedData.type as RNCTypeEnum,
           description: updatedData.description,
           responsible: updatedData.responsible,
           days_left: updatedData.days_left,
@@ -88,51 +66,103 @@ export const useUpdateRNC = (id: string, options?: UpdateRNCMutationOptions) => 
         })
         .eq("id", id);
 
-      if (rncError) {
-        console.error("Error updating RNC:", rncError);
-        throw rncError;
-      }
+      if (rncError) throw rncError;
 
-      if (updatedData.products && updatedData.products.length > 0) {
-        const { error: productsError } = await supabase
-          .from('rnc_products')
-          .insert(
-            updatedData.products.map(product => ({
-              rnc_id: product.rnc_id,
-              product: product.product,
-              weight: product.weight
-            }))
-          );
-  
-        if (productsError) throw productsError;
-      }
-
-      if (updatedData.contact) {
-        const { error: contactError } = await supabase
-          .from("rnc_contacts")
-          .update({
-            name: updatedData.contact.name,
-            phone: updatedData.contact.phone,
-            email: updatedData.contact.email,
-            rnc_id: id
-          })
+      // Handle products update if provided
+      if (updatedData.products) {
+        // Delete existing products
+        const { error: deleteError } = await supabase
+          .from("rnc_products")
+          .delete()
           .eq("rnc_id", id);
 
-        if (contactError) {
-          console.error("Error updating contact:", contactError);
-          throw contactError;
+        if (deleteError) throw deleteError;
+
+        // Insert new products
+        if (updatedData.products.length > 0) {
+          const { error: productsError } = await supabase
+            .from("rnc_products")
+            .insert(
+              updatedData.products.map(product => ({
+                rnc_id: id,
+                product: product.product,
+                weight: product.weight
+              }))
+            );
+
+          if (productsError) throw productsError;
         }
       }
     },
     ...options,
     onSuccess: (data, variables, context) => {
+      toast.success("RNC atualizada com sucesso");
       if (options?.onSuccess) {
         options.onSuccess(data, variables, context);
       }
     },
-    onError: (error: Error, variables, context) => {
+    onError: (error: Error) => {
+      toast.error("Erro ao atualizar RNC: " + error.message);
       if (options?.onError) {
-        options.onError(error, variables, context);
+        options.onError(error, null, null);
+      }
+    },
+  });
+};
+
+export const useCreateRNC = (options?: Partial<UseMutationOptions<string, Error, RNCFormData>>) => {
+  return useMutation({
+    mutationFn: async (data: RNCFormData) => {
+      const { data: rnc, error: rncError } = await supabase
+        .from("rncs")
+        .insert({
+          company_code: data.company_code,
+          company: data.company,
+          cnpj: data.cnpj,
+          type: data.type as RNCTypeEnum,
+          description: data.description,
+          responsible: (await supabase.auth.getUser()).data.user?.email,
+          korp: data.korp,
+          nfv: data.nfv,
+          nfd: data.nfd,
+          conclusion: data.conclusion,
+          department: data.department,
+          workflow_status: data.workflow_status,
+          assignedTo: data.assignedTo,
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .select()
+        .single();
+
+      if (rncError) throw rncError;
+
+      if (data.products?.length > 0) {
+        const { error: productsError } = await supabase
+          .from("rnc_products")
+          .insert(
+            data.products.map(product => ({
+              rnc_id: rnc.id,
+              product: product.product,
+              weight: product.weight
+            }))
+          );
+
+        if (productsError) throw productsError;
+      }
+
+      return rnc.id;
+    },
+    ...options,
+    onSuccess: (data, variables, context) => {
+      toast.success("RNC criada com sucesso");
+      if (options?.onSuccess) {
+        options.onSuccess(data, variables, context);
+      }
+    },
+    onError: (error: Error) => {
+      toast.error("Erro ao criar RNC: " + error.message);
+      if (options?.onError) {
+        options.onError(error, null, null);
       }
     },
   });

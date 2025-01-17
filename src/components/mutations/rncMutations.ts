@@ -63,6 +63,20 @@ export const useUpdateRNC = (
         throw rncError;
       }
 
+      if (updatedData.products?.length > 0) {
+        const { error: productsError } = await supabase
+          .from("rnc_products")
+          .insert(
+            updatedData.products.map(product => ({
+              rnc_id: updatedData.id,
+              product: product.product,
+              weight: product.weight
+            }))
+          );
+
+        if (productsError) throw productsError;
+      }
+
       if (updatedData.contact) {
         const { error: contactError } = await supabase
           .from("rnc_contacts")

@@ -91,12 +91,14 @@ export const useRNCs = () => {
 
       // Then, create the products
       const { error: productsError } = await supabase
-        .from("rnc_products")
-        .insert({
+      .from("rnc_products")
+      .insert(
+        data.products.map(product => ({
           rnc_id: rnc.id,
-          product: data.products.product,
-          weight: data.products.weight,
-        });
+          product: product.product,
+          weight: product.weight
+        }))
+      );
 
       if (productsError) {
         console.error('Error creating products:', productsError);

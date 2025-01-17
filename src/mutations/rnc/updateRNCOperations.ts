@@ -1,11 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { RNC } from "@/types/rnc";
 
+// Update function signature to include products
 const updateRNCData = async (id: string, updatedData: Partial<RNC>) => {
   const { error: rncError } = await supabase
     .from("rncs")
     .update({
-      rnc_number: updatedData.rnc_number,
       company_code: updatedData.company_code,
       company: updatedData.company,
       cnpj: updatedData.cnpj,
@@ -31,21 +31,32 @@ const updateRNCData = async (id: string, updatedData: Partial<RNC>) => {
     .eq("id", id);
 
   if (rncError) throw rncError;
-};
 
-const updateRNCProduct = async (id: string, product: RNC['product']) => {
-  if (!product) return;
+  // Handle products if provided
+  if (updatedData.products) {
+    // First delete existing products
+    const { error: deleteError } = await supabase
+      .from("rnc_products")
+      .delete()
+      .eq("rnc_id", id);
 
-  const { error: productError } = await supabase
-    .from("rnc_products")
-    .update({
-      product: product.product,
-      weight: product.weight,
-      rnc_id: id
-    })
-    .eq("rnc_id", id);
+    if (deleteError) throw deleteError;
 
-  if (productError) throw productError;
+    // Then insert new products if any
+    if (updatedData.products.length > 0) {
+      const { error: productsError } = await supabase
+        .from("rnc_products")
+        .insert(
+          updatedData.products.map(product => ({
+            rnc_id: id,
+            product: product.product,
+            weight: product.weight
+          }))
+        );
+
+      if (productsError) throw productsError;
+    }
+  }
 };
 
 const updateRNCContact = async (id: string, contact: RNC['contact']) => {
@@ -69,10 +80,6 @@ export const updateRNCRecord = async (id: string, updatedData: Partial<RNC>) => 
     await updateRNCData(id, updatedData);
     if (updatedData.contact) {
       await updateRNCContact(id, updatedData.contact);
-    }
-
-    if (updateRNCData.products) {
-      await updateRNCProduct(id, updatedData.products);
     }
     return true;
   } catch (error) {
