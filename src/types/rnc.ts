@@ -27,7 +27,7 @@ export interface RNC {
   created_by: string;
   created_at: string;
   updated_at: string;
-  products: RNCProduct[];
+  products?: RNCProduct[];
   contact: RNCContact;
   assignedTo?: string;
   assignedBy?: string;
@@ -39,9 +39,11 @@ export interface RNC {
 }
 
 export interface RNCProduct {
+  id?: string;
+  rnc_id: string;
   product: string;
   weight: number;
-  rnc_id?: string;
+  created_at?: string;
 }
 
 export interface RNCContact {
@@ -71,7 +73,7 @@ export interface RNCFormData {
   nfd?: string;
   nfv?: string;
   department: DepartmentEnum;
-  products: RNCProduct[];
+  products?: RNCProduct[];
   contact: RNCContact;
   attachments?: File[];
   conclusion?: string;
