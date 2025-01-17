@@ -1,6 +1,7 @@
 import * as React from "react";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { format } from "date-fns";
 
 interface RNCPrintProps {
@@ -76,10 +77,28 @@ export function RNCPrint({ rnc }: RNCPrintProps) {
             <p className="text-sm text-gray-500">Descrição</p>
             <p>{rnc.description}</p>
           </div>
+          
+          {/* Products Table */}
           <div>
-            <p className="text-sm text-gray-500">Produto</p>
-            <p>{rnc.product}</p>
+            <p className="text-sm text-gray-500 mb-2">Produtos</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Peso (kg)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rnc.products?.map((product, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{product.product}</TableCell>
+                    <TableCell>{product.weight}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
+
           <div>
             <p className="text-sm text-gray-500">Nº do Pedido KORP</p>
             <p>{rnc.korp || "N/A"}</p>
