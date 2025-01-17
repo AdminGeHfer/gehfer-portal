@@ -1482,41 +1482,6 @@ export type Database = {
           },
         ]
       }
-      rnc_products: {
-        Row: {
-          created_at: string
-          id: string
-          product: string | null
-          rnc_id: string | null
-          updated_at: string | null
-          weight: number | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          product?: string | null
-          rnc_id?: string | null
-          updated_at?: string | null
-          weight?: number | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          product?: string | null
-          rnc_id?: string | null
-          updated_at?: string | null
-          weight?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rnc_products_rnc_id_fkey"
-            columns: ["rnc_id"]
-            isOneToOne: false
-            referencedRelation: "rncs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       rnc_workflow_transitions: {
         Row: {
           created_at: string
@@ -1589,10 +1554,12 @@ export type Database = {
           korp: string | null
           nfd: string | null
           nfv: string | null
+          product: string | null
           responsible: string | null
           rnc_number: number | null
           type: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at: string
+          weight: number | null
           workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Insert: {
@@ -1615,10 +1582,12 @@ export type Database = {
           korp?: string | null
           nfd?: string | null
           nfv?: string | null
+          product?: string | null
           responsible?: string | null
           rnc_number?: number | null
           type?: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at?: string
+          weight?: number | null
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Update: {
@@ -1641,10 +1610,12 @@ export type Database = {
           korp?: string | null
           nfd?: string | null
           nfv?: string | null
+          product?: string | null
           responsible?: string | null
           rnc_number?: number | null
           type?: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at?: string
+          weight?: number | null
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
         Relationships: [
