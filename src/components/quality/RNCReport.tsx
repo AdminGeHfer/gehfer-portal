@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { format } from "date-fns";
 import { RNCTimeline } from "@/components/quality/RNCTimeline";
@@ -92,10 +93,35 @@ export function RNCReport({ rnc }: RNCReportProps) {
               <p>{rnc.department}</p>
             </div>
           </div>
-          <div>
-            <h3 className="font-semibold">Produto</h3>
-            <p>{rnc.product.product || "N/A"}</p>
+
+          {/* Products Table */}
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2">Produtos</h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Peso (kg)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.isArray(rnc.products) ? (
+                  rnc.products.map((product, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{product.product}</TableCell>
+                      <TableCell>{product.weight}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell>{'N/A'}</TableCell>
+                    <TableCell>{'N/A'}</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
+
           <div>
             <h3 className="font-semibold">Nº do Pedido KORP</h3>
             <p>{rnc.korp || "N/A"}</p>
