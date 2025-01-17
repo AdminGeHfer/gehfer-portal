@@ -27,15 +27,8 @@ export interface RNC {
   created_by: string;
   created_at: string;
   updated_at: string;
-  products: {
-    product: string;
-    weight: number;
-  }[];
-  contact: {
-    name: string;
-    phone: string;
-    email: string;
-  };
+  products: RNCProduct[];
+  contact: RNCContact;
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
@@ -43,6 +36,17 @@ export interface RNC {
   timeline: TimelineEvent[];
   title?: string;
   canEdit?: boolean;
+}
+
+export interface RNCProduct {
+  product: string;
+  weight: number;
+}
+
+export interface RNCContact {
+  name: string;
+  phone: string;
+  email?: string;
 }
 
 export interface TimelineEvent {
@@ -66,15 +70,8 @@ export interface RNCFormData {
   nfd?: string;
   nfv?: string;
   department: DepartmentEnum;
-  products: {
-    product: string;
-    weight: number
-  }[];
-  contact: {
-    name: string;
-    phone: string;
-    email?: string;
-  };
+  products: RNCProduct[];
+  contact: RNCContact;
   attachments?: File[];
   conclusion?: string;
   workflow_status: WorkflowStatusEnum;
