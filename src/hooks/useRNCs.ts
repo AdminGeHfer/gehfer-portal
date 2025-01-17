@@ -14,12 +14,102 @@ export const useRNCs = () => {
         .select(`
           *,
           contact:rnc_contacts(*),
-          events:rnc_events(*)
+          events:rnc_events(*),
+          products:rnc_products(*)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const createRNC = useMutation({
+    mutationFn: async (data: RNCFormData) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Usuário não autenticado");
+
+      // Create RNC
+      const { data: rnc, error: rncError } = await supabase
+        .from("rncs")
+        .insert({
+          description: data.description,
+          workflow_status: "open",
+          priority: data.priority,
+          type: data.type,
+          department: data.department,
+          company: data.company,
+          cnpj: data.cnpj,
+          order_number: data.order_number,
+          return_number: data.return_number,
+          created_by: user.user.id,
+        })
+        .select()
+        .single();
+
+      if (rncError) {
+        console.error('Error creating RNC:', rncError);
+        throw rncError;
+      }
+
+      // Create contact
+      const { error: contactError } = await supabase
+        .from("rnc_contacts")
+        .insert({
+          rnc_id: rnc.id,
+          name: data.contact.name,
+          phone: data.contact.phone,
+          email: data.contact.email,
+        });
+
+      if (contactError) {
+        console.error('Error creating contact:', contactError);
+        throw contactError;
+      }
+
+      // Create products if provided
+      if (data.products && data.products.length > 0) {
+        const { error: productsError } = await supabase
+          .from("rnc_products")
+          .insert(
+            data.products.map(product => ({
+              rnc_id: rnc.id,
+              product: product.name,
+              weight: product.weight
+            }))
+          );
+
+        if (productsError) {
+          console.error('Error creating products:', productsError);
+          throw productsError;
+        }
+      }
+
+      // Create initial event
+      const { error: eventError } = await supabase
+        .from("rnc_events")
+        .insert({
+          rnc_id: rnc.id,
+          title: "RNC Criada",
+          description: "RNC foi registrada no sistema",
+          type: "creation",
+          created_by: user.user.id,
+        });
+
+      if (eventError) {
+        console.error('Error creating event:', eventError);
+        throw eventError;
+      }
+
+      return rnc;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rncs"] });
+      toast.success("RNC criada com sucesso!");
+    },
+    onError: (error) => {
+      console.error("Erro ao criar RNC:", error);
+      toast.error(`Erro ao criar RNC: ${error.message}`);
     },
   });
 
@@ -56,77 +146,6 @@ export const useRNCs = () => {
       averageResolutionTime
     };
   };
-
-  const createRNC = useMutation({
-    mutationFn: async (data: RNCFormData) => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
-
-      // First, create the RNC
-      const { data: rnc, error: rncError } = await supabase
-        .from("rncs")
-        .insert({
-          description: data.description,
-          workflow_status: "open",
-          priority: data.priority,
-          type: data.type,
-          department: data.department,
-          company: data.company,
-          cnpj: data.cnpj,
-          order_number: data.order_number,
-          return_number: data.return_number,
-          created_by: user.user.id,
-        })
-        .select()
-        .single();
-
-      if (rncError) {
-        console.error('Error creating RNC:', rncError);
-        throw rncError;
-      }
-
-      // Then, create the contact
-      const { error: contactError } = await supabase
-        .from("rnc_contacts")
-        .insert({
-          rnc_id: rnc.id,
-          name: data.contact.name,
-          phone: data.contact.phone,
-          email: data.contact.email,
-        });
-
-      if (contactError) {
-        console.error('Error creating contact:', contactError);
-        throw contactError;
-      }
-
-      // Finally, create the initial event
-      const { error: eventError } = await supabase
-        .from("rnc_events")
-        .insert({
-          rnc_id: rnc.id,
-          title: "RNC Criada",
-          description: "RNC foi registrada no sistema",
-          type: "creation",
-          created_by: user.user.id,
-        });
-
-      if (eventError) {
-        console.error('Error creating event:', eventError);
-        throw eventError;
-      }
-
-      return rnc;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rncs"] });
-      toast.success("RNC criada com sucesso!");
-    },
-    onError: (error) => {
-      console.error("Erro ao criar RNC:", error);
-      toast.error(`Erro ao criar RNC: ${error.message}`);
-    },
-  });
 
   return {
     rncs,

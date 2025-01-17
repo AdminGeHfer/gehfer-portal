@@ -1,12 +1,13 @@
 export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
 export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
+export type RNCTypeEnum = "company_complaint" | "supplier" | "dispatch" | "logistics" | "deputy" | "driver" | "financial" | "commercial" | "financial_agreement";
 
 export interface RNC {
   id: string;
   description: string;
   workflow_status: WorkflowStatusEnum;
   priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
+  type: RNCTypeEnum;
   department: DepartmentEnum;
   contact: {
     name: string;
@@ -20,9 +21,7 @@ export interface RNC {
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
-  assigned_to?: string;
-  assigned_by?: string;
-  assigned_at?: string;
+  products?: RNCProduct[];
   attachments?: File[];
   timeline: TimelineEvent[];
   resolution?: string;
@@ -30,9 +29,13 @@ export interface RNC {
   created_at: string;
   updated_at: string;
   closed_at?: string;
-  created_by: string;
   title?: string;
   canEdit?: boolean;
+}
+
+export interface RNCProduct {
+  name: string;
+  weight: number;
 }
 
 export interface TimelineEvent {
@@ -49,7 +52,7 @@ export interface RNCFormData {
   id?: string;
   description: string;
   priority: "low" | "medium" | "high";
-  type: "client" | "supplier";
+  type: RNCTypeEnum;
   department: DepartmentEnum;
   contact: {
     name: string;
@@ -62,6 +65,7 @@ export interface RNCFormData {
   return_number?: string;
   workflow_status: WorkflowStatusEnum;
   assignedTo?: string;
+  products?: RNCProduct[];
   attachments?: File[];
   resolution?: string;
 }
