@@ -16,7 +16,8 @@ export function RNCFormNavigation({ activeTab, setActiveTab, isSubmitting }: RNC
         variant="outline"
         onClick={() => {
           if (activeTab === "details") setActiveTab("company");
-          if (activeTab === "contact") setActiveTab("details");
+          if (activeTab === "order") setActiveTab("details");
+          if (activeTab === "contact") setActiveTab("order");
         }}
         className="w-32"
         disabled={activeTab === "company" || isSubmitting}
@@ -29,7 +30,8 @@ export function RNCFormNavigation({ activeTab, setActiveTab, isSubmitting }: RNC
           type="button"
           onClick={() => {
             if (activeTab === "company") setActiveTab("details");
-            if (activeTab === "details") setActiveTab("contact");
+            if (activeTab === "details") setActiveTab("order");
+            if (activeTab === "order") setActiveTab("contact");
           }}
           className="w-32"
           disabled={isSubmitting}

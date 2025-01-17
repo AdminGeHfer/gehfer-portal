@@ -13,6 +13,10 @@ export const formSchema = z.object({
   nfd: z.string().optional(),
   nfv: z.string().optional(),
   department: z.enum(["logistics", "quality", "financial"]).default("logistics"),
+  products: z.object({
+    product: z.string().min(1, "O produto é obrigatório"),
+    weight: z.number().min(0, "O peso deve ser maior que 0"),
+  }),
   contact: z.object({
     name: z.string().min(1, "O nome do contato é obrigatório"),
     phone: z.string().regex(/^[(]{0,1}[0-9]{1,2}[)]{0,1}\s[0-9]{4,5}-[0-9]{4}$/, "Telefone inválido"),
@@ -29,9 +33,13 @@ export const defaultValues: RNCFormData = {
   company: "",
   cnpj: "",
   type: "company_complaint",
-  product: "",
+  products: [
+    {
+      product: "",
+      weight: 0,
+    },
+  ],
   description: "",
-  weight: 1,
   korp: "",
   nfd: "",
   nfv: "",
