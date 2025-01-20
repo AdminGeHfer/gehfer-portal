@@ -25,46 +25,12 @@ export const useRNCs = () => {
     },
   });
 
-  const getDashboardStats = () => {
-    if (!rncs) return {
-      total: 0,
-      open: 0,
-      inProgress: 0,
-      closed: 0,
-      averageResolutionTime: 0
-    };
-
-    const total = rncs.length;
-    const open = rncs.filter(rnc => rnc.workflow_status === 'open').length;
-    const inProgress = rncs.filter(rnc => ['analysis', 'resolution', 'closing'].includes(rnc.workflow_status)).length;
-    const closed = rncs.filter(rnc => ['closed', 'solved'].includes(rnc.workflow_status)).length;
-
-    const closedRncs = rncs.filter(rnc => rnc.closed_at);
-    const totalResolutionTime = closedRncs.reduce((acc, rnc) => {
-      const start = new Date(rnc.created_at);
-      const end = new Date(rnc.closed_at!);
-      return acc + (end.getTime() - start.getTime());
-    }, 0);
-
-    const averageResolutionTime = closedRncs.length > 0 
-      ? Math.round(totalResolutionTime / closedRncs.length / (1000 * 60 * 60 * 24)) 
-      : 0;
-
-    return {
-      total,
-      open,
-      inProgress,
-      closed,
-      averageResolutionTime
-    };
-  };
-
   const createRNC = useMutation({
     mutationFn: async (data: RNCFormData) => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Usuário não autenticado");
 
-      // Create RNC
+      // Create RNC with default status
       const { data: rnc, error: rncError } = await supabase
         .from("rncs")
         .insert({
@@ -79,7 +45,7 @@ export const useRNCs = () => {
           department: data.department,
           conclusion: data.conclusion,
           workflow_status: "open",
-          assigned_to: user.user.email,
+          status: "not_created", // Set default status
           created_by: user.user.id,
         })
         .select()
@@ -88,37 +54,6 @@ export const useRNCs = () => {
       if (rncError) {
         console.error('Error creating RNC:', rncError);
         throw rncError;
-      }
-
-      // Then, create the products
-      const { error: productsError } = await supabase
-      .from("rnc_products")
-      .insert(
-        data.products.map(product => ({
-          rnc_id: rnc.id,
-          product: product.product,
-          weight: product.weight
-        }))
-      );
-
-      if (productsError) {
-        console.error('Error creating products:', productsError);
-        throw productsError;
-      }
-
-      // Then, create the contact
-      const { error: contactError } = await supabase
-        .from("rnc_contacts")
-        .insert({
-          rnc_id: rnc.id,
-          name: data.contact.name,
-          phone: data.contact.phone,
-          email: data.contact.email,
-        });
-
-      if (contactError) {
-        console.error('Error creating contact:', contactError);
-        throw contactError;
       }
 
       // Create products if provided
@@ -136,6 +71,23 @@ export const useRNCs = () => {
         if (productsError) {
           console.error('Error creating products:', productsError);
           throw productsError;
+        }
+      }
+
+      // Create contact
+      if (data.contact) {
+        const { error: contactError } = await supabase
+          .from("rnc_contacts")
+          .insert({
+            rnc_id: rnc.id,
+            name: data.contact.name,
+            phone: data.contact.phone,
+            email: data.contact.email,
+          });
+
+        if (contactError) {
+          console.error('Error creating contact:', contactError);
+          throw contactError;
         }
       }
 
@@ -171,6 +123,5 @@ export const useRNCs = () => {
     rncs,
     isLoading,
     createRNC,
-    getDashboardStats
   };
 };

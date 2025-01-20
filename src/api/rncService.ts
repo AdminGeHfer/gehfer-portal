@@ -37,6 +37,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
       department,
       assigned_at,
       workflow_status,
+      status,
       assigned_to,
       assigned_by,
       created_by,
@@ -59,18 +60,19 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
   const transformedData = data.map(transformRNCData);
   
-  // Update cache with compression
-  const compressedData = JSON.stringify({
-    data: transformedData,
-    timestamp: Date.now()
-  });
-  
+  // Update cache
   try {
-    sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
+    sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
+      data: transformedData,
+      timestamp: Date.now()
+    }));
   } catch {
     console.warn('Cache storage failed, clearing old data');
     sessionStorage.clear();
-    sessionStorage.setItem(RNC_CACHE_KEY, compressedData);
+    sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
+      data: transformedData,
+      timestamp: Date.now()
+    }));
   }
 
   return transformedData;
