@@ -1570,19 +1570,26 @@ export type Database = {
           assigned_at: string | null
           assigned_by: string | null
           assigned_to: string | null
+          city: string | null
           closed_at: string | null
           cnpj: string
+          collected_at: string | null
           company: string
+          company_code: string
+          conclusion: string | null
           created_at: string
           created_by: string
+          days_left: number | null
           department: string
           description: string
           id: string
-          order_number: string | null
-          priority: string
-          return_number: string | null
+          korp: string | null
+          nfd: string | null
+          nfv: string | null
+          responsible: string | null
           rnc_number: number | null
-          type: string
+          status: Database["public"]["Enums"]["rnc_status_enum"]
+          type: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at: string
           workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
@@ -1590,19 +1597,26 @@ export type Database = {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
+          city?: string | null
           closed_at?: string | null
           cnpj: string
+          collected_at?: string | null
           company: string
+          company_code?: string
+          conclusion?: string | null
           created_at?: string
           created_by: string
+          days_left?: number | null
           department?: string
           description: string
           id?: string
-          order_number?: string | null
-          priority?: string
-          return_number?: string | null
+          korp?: string | null
+          nfd?: string | null
+          nfv?: string | null
+          responsible?: string | null
           rnc_number?: number | null
-          type: string
+          status?: Database["public"]["Enums"]["rnc_status_enum"]
+          type?: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at?: string
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
@@ -1610,19 +1624,26 @@ export type Database = {
           assigned_at?: string | null
           assigned_by?: string | null
           assigned_to?: string | null
+          city?: string | null
           closed_at?: string | null
           cnpj?: string
+          collected_at?: string | null
           company?: string
+          company_code?: string
+          conclusion?: string | null
           created_at?: string
           created_by?: string
+          days_left?: number | null
           department?: string
           description?: string
           id?: string
-          order_number?: string | null
-          priority?: string
-          return_number?: string | null
+          korp?: string | null
+          nfd?: string | null
+          nfv?: string | null
+          responsible?: string | null
           rnc_number?: number | null
-          type?: string
+          status?: Database["public"]["Enums"]["rnc_status_enum"]
+          type?: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at?: string
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
         }
@@ -2193,6 +2214,24 @@ export type Database = {
               similarity: number
             }[]
           }
+      postgres_fdw_disconnect: {
+        Args: {
+          "": string
+        }
+        Returns: boolean
+      }
+      postgres_fdw_disconnect_all: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      postgres_fdw_get_connections: {
+        Args: Record<PropertyKey, never>
+        Returns: Record<string, unknown>[]
+      }
+      postgres_fdw_handler: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
       rollback_document_version: {
         Args: {
           p_version_id: string
@@ -2274,6 +2313,23 @@ export type Database = {
       memory_type_enum: "buffer" | "window" | "summary"
       message_role: "system" | "assistant" | "user"
       output_format_enum: "text" | "structured" | "markdown"
+      rnc_department_enum: "logistics" | "quality" | "financial"
+      rnc_status_enum:
+        | "not_created"
+        | "pending"
+        | "canceled"
+        | "collect"
+        | "concluded"
+      rnc_type_enum:
+        | "company_complaint"
+        | "supplier"
+        | "dispatch"
+        | "logistics"
+        | "deputy"
+        | "driver"
+        | "financial"
+        | "commercial"
+        | "financial_agreement"
       rnc_workflow_status_enum:
         | "open"
         | "analysis"

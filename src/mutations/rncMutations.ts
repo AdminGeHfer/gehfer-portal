@@ -93,6 +93,8 @@ export const useUpdateRNC = (
           if (productsError) throw productsError;
         }
       }
+
+      return rnc.id;
     },
     ...options,
     onSuccess: (data, variables, context) => {
