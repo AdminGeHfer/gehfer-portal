@@ -9,6 +9,7 @@ import { RNCListHeader } from "@/components/quality/list/RNCListHeader";
 import { RNCListFilters } from "@/components/quality/list/RNCListFilters";
 import { RNCListTable } from "@/components/quality/list/RNCListTable";
 import { useRNCs } from "@/hooks/useRNCs";
+import { transformRNCData } from "@/utils/rncTransform";
 
 const RNCList = () => {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ const RNCList = () => {
     }
   };
 
-  const filteredRncs = rncs?.filter((rnc) => {
+  const filteredRncs = rncs?.map(transformRNCData).filter((rnc) => {
     const matchesSearch = 
       searchTerm === "" ||
       rnc.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
