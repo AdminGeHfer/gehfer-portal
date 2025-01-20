@@ -39,9 +39,20 @@ export const useRNCDetail = (id: string) => {
         return null;
       }
 
-      // Check if user can edit this RNC
-      const canEdit = isAdmin || isManager || (userData.user && data.created_by === userData.user.id);
-      console.log("User permissions:", { isAdmin, isManager, userId: userData.user?.id, createdBy: data.created_by, canEdit });
+      // Usuário pode editar se for admin, manager, criador da RNC, ou se a RNC não estiver solucionada
+      const canEdit = isAdmin || 
+                     isManager || 
+                     (userData.user && data.created_by === userData.user.id) ||
+                     data.workflow_status !== 'solved';
+
+      console.log("User permissions:", { 
+        isAdmin, 
+        isManager, 
+        userId: userData.user?.id, 
+        createdBy: data.created_by, 
+        status: data.workflow_status,
+        canEdit 
+      });
 
       return { ...transformRNCData(data), canEdit };
     },
@@ -55,10 +66,10 @@ export const useRNCDetail = (id: string) => {
       return;
     }
 
-    // Verificar se o status é "concluded"
-    if (rnc.status == "concluded") {
-      console.log('Edit denied - RNC is in concluded status');
-      toast.error("Apenas RNCs com status diferente de 'Concluído' podem ser editadas");
+    // Verificar se o status é "solved"
+    if (rnc.workflow_status === "solved") {
+      console.log('Edit denied - RNC is in solved status');
+      toast.error("RNCs com status 'Solucionado' não podem ser editadas");
       return;
     }
 

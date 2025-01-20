@@ -37,60 +37,19 @@ export const deleteNotifications = async (id: string) => {
   }
 };
 
-export const deleteCollectionData = async (id: string) => {
+export const deleteProducts = async (id: string) => {
   try {
-    console.log('Attempting to delete collection data for RNC:', id);
-    
-    // First get all collections for this RNC
-    const { data: collections, error: collectionsError } = await supabase
-      .from("collection_requests")
-      .select("id")
+    console.log('Attempting to delete products for RNC:', id);
+    const { error } = await supabase
+      .from("rnc_products")
+      .delete()
       .eq("rnc_id", id);
-
-    if (collectionsError) throw collectionsError;
-
-    if (collections && collections.length > 0) {
-      // Delete all evidence records first
-      for (const collection of collections) {
-        const { error: evidenceError } = await supabase
-          .from("collection_evidence")
-          .delete()
-          .eq("collection_id", collection.id);
-        
-        if (evidenceError) {
-          console.error(`Error deleting evidence for collection ${collection.id}:`, evidenceError);
-          throw evidenceError;
-        }
-      }
-
-      // Then delete all return items
-      for (const collection of collections) {
-        const { error: returnItemsError } = await supabase
-          .from("return_items")
-          .delete()
-          .eq("collection_id", collection.id);
-        
-        if (returnItemsError) {
-          console.error(`Error deleting return items for collection ${collection.id}:`, returnItemsError);
-          throw returnItemsError;
-        }
-      }
-
-      // Finally delete the collections themselves
-      const { error: collectionsDeleteError } = await supabase
-        .from("collection_requests")
-        .delete()
-        .eq("rnc_id", id);
-      
-      if (collectionsDeleteError) {
-        console.error('Error deleting collections:', collectionsDeleteError);
-        throw collectionsDeleteError;
-      }
-    }
-
+    
+    if (error) throw error;
+    console.log('Successfully deleted products');
     return true;
   } catch (error) {
-    handleError(error, 'deleteCollectionData');
+    handleError(error, 'deleteProducts');
   }
 };
 
@@ -106,21 +65,6 @@ export const deleteContacts = async (id: string) => {
     return true;
   } catch (error) {
     handleError(error, 'deleteContacts');
-  }
-};
-
-export const deleteProducts = async (id: string) => {
-  try {
-    console.log('Attempting to delete products for RNC:', id);
-    const { error } = await supabase
-      .from("rnc_products")
-      .delete()
-      .eq("rnc_id", id);
-    
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    handleError(error, 'deleteProducts');
   }
 };
 
@@ -156,10 +100,9 @@ export const deleteRNCRecord = async (id: string) => {
     }
     
     // Delete in order of dependencies
+    await deleteProducts(id); // Primeiro deletar produtos
     await deleteWorkflowTransitions(id);
     await deleteNotifications(id);
-    await deleteCollectionData(id);
-    await deleteProducts(id);
     await deleteContacts(id);
     await deleteEvents(id);
     
