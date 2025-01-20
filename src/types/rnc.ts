@@ -1,41 +1,61 @@
-export type DepartmentEnum = "Expedição" | "Logistica" | "Comercial" | "Qualidade" | "Produção";
+export type DepartmentEnum = "logistics" | "quality" | "financial";
+export type RNCTypeEnum = "company_complaint" | "supplier" | "dispatch" | "logistics" | "deputy" | "driver" | "financial" | "commercial" | "financial_agreement";
 export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 export type RNCTypeEnum = "company_complaint" | "supplier" | "dispatch" | "logistics" | "deputy" | "driver" | "financial" | "commercial" | "financial_agreement";
 
 export interface RNC {
   id: string;
-  description: string;
-  workflow_status: WorkflowStatusEnum;
-  priority: "low" | "medium" | "high";
-  type: RNCTypeEnum;
-  department: DepartmentEnum;
-  contact: {
-    name: string;
-    phone: string;
-    email: string;
-  };
+  rnc_number: number;
+  company_code: string;
   company: string;
   cnpj: string;
-  order_number?: string;
-  return_number?: string;
+  type: RNCTypeEnum;
+  description: string;
+  responsible: string;
+  days_left: number;
+  korp: string;
+  nfv: string;
+  nfd: string;
+  collected_at?: string;
+  closed_at?: string;
+  city: string;
+  conclusion: string;
+  department: DepartmentEnum;
+  assigned_at?: string;
+  workflow_status: WorkflowStatusEnum;
+  assigned_to?: string;
+  assigned_by?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  products?: RNCProduct[];
+  contact: RNCContact;
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
-  products?: RNCProduct[];
   attachments?: File[];
   timeline: TimelineEvent[];
-  resolution?: string;
-  rnc_number?: number;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
   title?: string;
   canEdit?: boolean;
 }
 
 export interface RNCProduct {
-  name: string;
+  id?: string;
+  rnc_id: string;
+  product: string;
   weight: number;
+  created_at?: string;
+}
+
+export interface RNCFormProduct {
+  product: string;
+  weight: number;
+}
+
+export interface RNCContact {
+  name: string;
+  phone: string;
+  email?: string;
 }
 
 export interface TimelineEvent {
@@ -50,22 +70,19 @@ export interface TimelineEvent {
 
 export interface RNCFormData {
   id?: string;
-  description: string;
-  priority: "low" | "medium" | "high";
-  type: RNCTypeEnum;
-  department: DepartmentEnum;
-  contact: {
-    name: string;
-    phone: string;
-    email: string;
-  };
+  company_code: string;
   company: string;
-  cnpj: string;
-  order_number?: string;
-  return_number?: string;
+  cnpj?: string;
+  type: RNCTypeEnum;
+  description: string;
+  korp: string;
+  nfd?: string;
+  nfv?: string;
+  department: DepartmentEnum;
+  products?: RNCFormProduct[];
+  contact: RNCContact;
+  attachments?: File[];
+  conclusion?: string;
   workflow_status: WorkflowStatusEnum;
   assignedTo?: string;
-  products?: RNCProduct[];
-  attachments?: File[];
-  resolution?: string;
 }

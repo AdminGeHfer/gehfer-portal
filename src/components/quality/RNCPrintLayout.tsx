@@ -1,13 +1,13 @@
 import * as React from "react";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { format } from "date-fns";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 interface RNCPrintLayoutProps {
   rnc: RNC;
 }
 
 export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
-
   const comments = rnc.timeline
     .filter(event => event.type === 'comment')
     .map(event => ({
@@ -20,9 +20,9 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
       open: "Aberto",
       analysis: "Em Análise",
       resolution: "Em Resolução",
-      solved: "Solucionado",
       closing: "Em Fechamento",
-      closed: "Encerrado"
+      closed: "Encerrado",
+      solved: "Solucionado"
     };
     return labels[status];
   };
@@ -53,11 +53,15 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="font-medium text-gray-500">Razão Social</p>
+                <p className="text-sm text-gray-500">Código do Cliente</p>
+                <p>{rnc.company_code}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Razão Social</p>
                 <p>{rnc.company}</p>
               </div>
               <div>
-                <p className="font-medium text-gray-500">CNPJ</p>
+                <p className="text-sm text-gray-500">CNPJ</p>
                 <p>{rnc.cnpj}</p>
               </div>
             </div>
@@ -70,25 +74,78 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="font-medium text-gray-500">Tipo</p>
+                <p className="text-sm text-gray-500">Tipo</p>
                 <p>{rnc.type}</p>
               </div>
               <div>
-                <p className="font-medium text-gray-500">Nº do Pedido</p>
-                <p>{rnc.order_number || "N/A"}</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-500">Nº da Devolução</p>
-                <p>{rnc.return_number || "N/A"}</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-500">Status</p>
+                <p className="text-sm text-gray-500">Status</p>
                 <p>{getStatusLabel(rnc.workflow_status)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Departamento</p>
+                <p>{rnc.department}</p>
               </div>
             </div>
             <div>
-              <p className="font-medium text-gray-500">Descrição</p>
+              <p className="text-sm text-gray-500">Descrição</p>
               <p>{rnc.description}</p>
+            </div>
+
+            {/* Products Table */}
+            <div>
+              <p className="text-sm text-gray-500 mb-2">Produtos</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Peso (kg)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.isArray(rnc.products) ? (
+                    rnc.products.map((product, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{product.product}</TableCell>
+                        <TableCell>{product.weight}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell>{'N/A'}</TableCell>
+                      <TableCell>{'N/A'}</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Nº do Pedido KORP</p>
+              <p>{rnc.korp || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Nº da Nota de Venda</p>
+              <p>{rnc.nfv || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Nº da Devolução</p>
+              <p>{rnc.nfd || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Responsável</p>
+              <p>{rnc.responsible}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Dias</p>
+              <p>{rnc.days_left}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Cidade</p>
+              <p>{rnc.city}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">Conclusão</p>
+              <p>{rnc.conclusion}</p>
             </div>
           </section>
 
@@ -126,10 +183,6 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
               <div>
                 <p className="font-medium text-gray-500">Email</p>
                 <p>{rnc.contact.email}</p>
-              </div>
-              <div>
-                <p className="font-medium text-gray-500">Departamento</p>
-                <p>{rnc.department}</p>
               </div>
             </div>
           </section>

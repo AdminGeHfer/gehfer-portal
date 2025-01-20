@@ -12,7 +12,6 @@ export function RNCListContainer() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
   const { rncs, isLoading } = useRNCs();
 
   const filteredRncs = rncs?.map(transformRNCData).filter((rnc) => {
@@ -24,9 +23,8 @@ export function RNCListContainer() {
     
     const matchesStatus = statusFilter === "all" || rnc.workflow_status === statusFilter;
     const matchesDepartment = departmentFilter === "all" || rnc.department === departmentFilter;
-    const matchesPriority = priorityFilter === "all" || rnc.priority === priorityFilter;
 
-    return matchesSearch && matchesStatus && matchesDepartment && matchesPriority;
+    return matchesSearch && matchesStatus && matchesDepartment;
   }) || [];
 
   return (
@@ -42,8 +40,6 @@ export function RNCListContainer() {
             onStatusChange={setStatusFilter}
             departmentFilter={departmentFilter}
             onDepartmentChange={setDepartmentFilter}
-            priorityFilter={priorityFilter}
-            onPriorityChange={setPriorityFilter}
           />
           <RNCListTable rncs={filteredRncs} isLoading={isLoading} onRowClick={(id) => navigate(`/quality/rnc/${id}`)}/>
         </div>

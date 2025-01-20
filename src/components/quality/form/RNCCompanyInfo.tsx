@@ -22,6 +22,23 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
     <div className="space-y-4">
       <FormField
         control={form.control}
+        name="company_code"
+        render={({ field, fieldState }) => (
+          <FormItem>
+            <FormLabel className="required-field">Código do Cliente</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Código do Cliente (KORP)" 
+                {...field} 
+              />
+            </FormControl>
+            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
         name="company"
         render={({ field, fieldState }) => (
           <FormItem>
@@ -50,40 +67,6 @@ export const RNCCompanyInfo = ({ form, showErrors = false }: RNCCompanyInfoProps
                 onChange={(e) => handleCNPJChange(e, onChange)}
                 maxLength={18}
                 {...field}
-              />
-            </FormControl>
-            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="order_number"
-        render={({ field, fieldState }) => (
-          <FormItem>
-            <FormLabel>Nº do Pedido</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Digite o número do pedido" 
-                {...field} 
-              />
-            </FormControl>
-            {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="return_number"
-        render={({ field, fieldState }) => (
-          <FormItem>
-            <FormLabel>Nº da Devolução</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Digite o número da devolução" 
-                {...field} 
               />
             </FormControl>
             {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}

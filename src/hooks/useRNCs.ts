@@ -13,6 +13,7 @@ export const useRNCs = () => {
         .from("rncs")
         .select(`
           *,
+          products:rnc_products(*),
           contact:rnc_contacts(*),
           events:rnc_events(*),
           products:rnc_products(*)
@@ -24,6 +25,40 @@ export const useRNCs = () => {
     },
   });
 
+  const getDashboardStats = () => {
+    if (!rncs) return {
+      total: 0,
+      open: 0,
+      inProgress: 0,
+      closed: 0,
+      averageResolutionTime: 0
+    };
+
+    const total = rncs.length;
+    const open = rncs.filter(rnc => rnc.workflow_status === 'open').length;
+    const inProgress = rncs.filter(rnc => ['analysis', 'resolution', 'closing'].includes(rnc.workflow_status)).length;
+    const closed = rncs.filter(rnc => ['closed', 'solved'].includes(rnc.workflow_status)).length;
+
+    const closedRncs = rncs.filter(rnc => rnc.closed_at);
+    const totalResolutionTime = closedRncs.reduce((acc, rnc) => {
+      const start = new Date(rnc.created_at);
+      const end = new Date(rnc.closed_at!);
+      return acc + (end.getTime() - start.getTime());
+    }, 0);
+
+    const averageResolutionTime = closedRncs.length > 0 
+      ? Math.round(totalResolutionTime / closedRncs.length / (1000 * 60 * 60 * 24)) 
+      : 0;
+
+    return {
+      total,
+      open,
+      inProgress,
+      closed,
+      averageResolutionTime
+    };
+  };
+
   const createRNC = useMutation({
     mutationFn: async (data: RNCFormData) => {
       const { data: user } = await supabase.auth.getUser();
@@ -33,15 +68,18 @@ export const useRNCs = () => {
       const { data: rnc, error: rncError } = await supabase
         .from("rncs")
         .insert({
-          description: data.description,
-          workflow_status: "open",
-          priority: data.priority,
-          type: data.type,
-          department: data.department,
+          company_code: data.company_code,
           company: data.company,
           cnpj: data.cnpj,
-          order_number: data.order_number,
-          return_number: data.return_number,
+          type: data.type,
+          description: data.description,
+          korp: data.korp,
+          nfd: data.nfd,
+          nfv: data.nfv,
+          department: data.department,
+          conclusion: data.conclusion,
+          workflow_status: "open",
+          assigned_to: user.user.email,
           created_by: user.user.id,
         })
         .select()
@@ -52,7 +90,23 @@ export const useRNCs = () => {
         throw rncError;
       }
 
-      // Create contact
+      // Then, create the products
+      const { error: productsError } = await supabase
+      .from("rnc_products")
+      .insert(
+        data.products.map(product => ({
+          rnc_id: rnc.id,
+          product: product.product,
+          weight: product.weight
+        }))
+      );
+
+      if (productsError) {
+        console.error('Error creating products:', productsError);
+        throw productsError;
+      }
+
+      // Then, create the contact
       const { error: contactError } = await supabase
         .from("rnc_contacts")
         .insert({
@@ -74,7 +128,7 @@ export const useRNCs = () => {
           .insert(
             data.products.map(product => ({
               rnc_id: rnc.id,
-              product: product.name,
+              product: product.product,
               weight: product.weight
             }))
           );
@@ -112,40 +166,6 @@ export const useRNCs = () => {
       toast.error(`Erro ao criar RNC: ${error.message}`);
     },
   });
-
-  const getDashboardStats = () => {
-    if (!rncs) return {
-      total: 0,
-      open: 0,
-      inProgress: 0,
-      closed: 0,
-      averageResolutionTime: 0
-    };
-
-    const total = rncs.length;
-    const open = rncs.filter(rnc => rnc.workflow_status === 'open').length;
-    const inProgress = rncs.filter(rnc => ['analysis', 'resolution'].includes(rnc.workflow_status)).length;
-    const closed = rncs.filter(rnc => rnc.workflow_status === 'closed').length;
-
-    const closedRncs = rncs.filter(rnc => rnc.closed_at);
-    const totalResolutionTime = closedRncs.reduce((acc, rnc) => {
-      const start = new Date(rnc.created_at);
-      const end = new Date(rnc.closed_at!);
-      return acc + (end.getTime() - start.getTime());
-    }, 0);
-
-    const averageResolutionTime = closedRncs.length > 0 
-      ? Math.round(totalResolutionTime / closedRncs.length / (1000 * 60 * 60 * 24)) 
-      : 0;
-
-    return {
-      total,
-      open,
-      inProgress,
-      closed,
-      averageResolutionTime
-    };
-  };
 
   return {
     rncs,

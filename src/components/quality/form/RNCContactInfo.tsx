@@ -43,7 +43,7 @@ export const RNCContactInfo = ({ form, showErrors = false }: RNCContactInfoProps
             <FormLabel className="required-field">Telefone</FormLabel>
             <FormControl>
               <Input 
-                placeholder="Digite o telefone" 
+                placeholder="Digite o telefone (Ex: (19) 91234-5678)" 
                 {...field} 
               />
             </FormControl>

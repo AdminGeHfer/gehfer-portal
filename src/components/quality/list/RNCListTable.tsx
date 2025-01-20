@@ -25,12 +25,11 @@ export const RNCListTable = ({ rncs, onRowClick, isLoading }: RNCListTableProps)
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent border-b border-gray-200 dark:border-gray-700">
-            <TableHead className="w-[100px] font-medium">Número</TableHead>
-            <TableHead className="font-medium">Empresa</TableHead>
-            <TableHead className="w-[150px] font-medium">Departamento</TableHead>
-            <TableHead className="w-[150px] font-medium">Status</TableHead>
-            <TableHead className="w-[120px] font-medium">Prioridade</TableHead>
-            <TableHead className="w-[120px] font-medium text-right">Data</TableHead>
+            <TableHead className="w-[100px] font-medium text-center">Número</TableHead>
+            <TableHead className="font-medium text-center">Empresa</TableHead>
+            <TableHead className="w-[150px] font-medium text-center">Departamento</TableHead>
+            <TableHead className="w-[150px] font-medium text-center">Status</TableHead>
+            <TableHead className="w-[120px] font-medium text-center">Data</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -40,25 +39,14 @@ export const RNCListTable = ({ rncs, onRowClick, isLoading }: RNCListTableProps)
               className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50"
               onClick={() => onRowClick(rnc.id)}
             >
-              <TableCell className="font-medium">#{rnc.rnc_number}</TableCell>
-              <TableCell className="max-w-[300px] truncate">{rnc.company}</TableCell>
-              <TableCell>{rnc.department}</TableCell>
-              <TableCell>
+              <TableCell className="font-medium text-center">#{rnc.rnc_number}</TableCell>
+              <TableCell className="max-w-[300px] truncate text-center">{rnc.company}</TableCell>
+              <TableCell className="text-center">{rnc.department}</TableCell>
+              <TableCell className="text-center">
                 <RNCStatusBadge status={rnc.workflow_status} />
               </TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                  rnc.priority === "high"
-                    ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                    : rnc.priority === "medium"
-                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                    : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                }`}>
-                  {rnc.priority === "high" ? "Alta" : rnc.priority === "medium" ? "Média" : "Baixa"}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                {format(new Date(rnc.created_at), "dd/MM/yyyy")}
+              <TableCell className="text-center">
+                {format(new Date(rnc.assigned_at), "dd/MM/yyyy")}
               </TableCell>
             </TableRow>
           ))}

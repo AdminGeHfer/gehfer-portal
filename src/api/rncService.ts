@@ -19,24 +19,32 @@ export const getRNCs = async (): Promise<RNC[]> => {
     .from('rncs')
     .select(`
       id,
-      description,
-      workflow_status,
-      priority,
-      type,
-      department,
+      rnc_number,
+      company_code,
       company,
       cnpj,
-      order_number,
-      return_number,
+      type,
+      description,
+      responsible,
+      days_left,
+      korp,
+      nfv,
+      nfd,
+      collected_at,
+      closed_at,
+      city,
+      conclusion,
+      department,
+      assigned_at,
+      workflow_status,
       assigned_to,
       assigned_by,
-      assigned_at,
-      rnc_number,
+      created_by,
       created_at,
       updated_at,
-      closed_at,
+      product:rnc_products(product, weight),
       contact:rnc_contacts(name, phone, email),
-      events:rnc_events(id, created_at, title, description, type, created_by, comment)
+      events:rnc_events(id, created_at, created_by, title, description, type)
     `)
     .order('created_at', { ascending: false });
 
@@ -74,6 +82,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
       .from('rncs')
       .select(`
         *,
+        product:rnc_products(*),
         contact:rnc_contacts(*),
         events:rnc_events(*)
       `)

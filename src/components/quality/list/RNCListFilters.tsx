@@ -10,8 +10,6 @@ interface RNCListFiltersProps {
   onStatusChange: (value: string) => void;
   departmentFilter: string;
   onDepartmentChange: (value: string) => void;
-  priorityFilter: string;
-  onPriorityChange: (value: string) => void;
 }
 
 export const RNCListFilters = ({
@@ -21,15 +19,13 @@ export const RNCListFilters = ({
   onStatusChange,
   departmentFilter,
   onDepartmentChange,
-  priorityFilter,
-  onPriorityChange,
 }: RNCListFiltersProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Buscar RNCs..." 
+          placeholder="Buscar RNCs (Empresa, Número, ...)" 
           className="pl-10 bg-white dark:bg-gray-800" 
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -59,17 +55,6 @@ export const RNCListFilters = ({
           <SelectItem value="Logistica">Logística</SelectItem>
           <SelectItem value="Comercial">Comercial</SelectItem>
           <SelectItem value="Qualidade">Qualidade</SelectItem>
-        </SelectContent>
-      </Select>
-      <Select value={priorityFilter} onValueChange={onPriorityChange}>
-        <SelectTrigger className="bg-white dark:bg-gray-800">
-          <SelectValue placeholder="Todas as Prioridades" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Todas as Prioridades</SelectItem>
-          <SelectItem value="low">Baixa</SelectItem>
-          <SelectItem value="medium">Média</SelectItem>
-          <SelectItem value="high">Alta</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { RNC, RNCFormData, RNCTypeEnum } from "@/types/rnc";
+import { RNC, RNCFormData } from "@/types/rnc";
 import { toast } from "sonner";
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
+
+type RNCTypeEnum = "company_complaint" | "supplier" | "dispatch" | "logistics" | "deputy" | "driver" | "financial" | "commercial" | "financial_agreement";
 
 export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   return useMutation({
@@ -14,15 +16,7 @@ export const useDeleteRNC = (id: string, onSuccess: () => void) => {
 
       if (productsError) throw productsError;
 
-      // Then delete contacts
-      const { error: contactError } = await supabase
-        .from("rnc_contacts")
-        .delete()
-        .eq("rnc_id", id);
-
-      if (contactError) throw contactError;
-
-      // Finally delete the RNC
+      // Then delete the RNC
       const { error } = await supabase
         .from("rncs")
         .delete()
@@ -47,15 +41,27 @@ export const useUpdateRNC = (
       const { error: rncError } = await supabase
         .from("rncs")
         .update({
-          description: updatedData.description,
-          workflow_status: updatedData.workflow_status,
-          priority: updatedData.priority,
-          type: updatedData.type,
-          department: updatedData.department,
+          rnc_number: updatedData.rnc_number,
+          company_code: updatedData.company_code,
           company: updatedData.company,
           cnpj: updatedData.cnpj,
-          order_number: updatedData.order_number,
-          return_number: updatedData.return_number,
+          type: updatedData.type as RNCTypeEnum,
+          description: updatedData.description,
+          responsible: updatedData.responsible,
+          days_left: updatedData.days_left,
+          korp: updatedData.korp,
+          nfv: updatedData.nfv,
+          nfd: updatedData.nfd,
+          collected_at: updatedData.collected_at,
+          closed_at: updatedData.closed_at,
+          city: updatedData.city,
+          conclusion: updatedData.conclusion,
+          department: updatedData.department,
+          assigned_at: updatedData.assigned_at,
+          workflow_status: updatedData.workflow_status,
+          assigned_to: updatedData.assigned_to,
+          assigned_by: updatedData.assigned_by,
+          created_by: updatedData.created_by,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
@@ -79,7 +85,7 @@ export const useUpdateRNC = (
             .insert(
               updatedData.products.map(product => ({
                 rnc_id: id,
-                product: product.name,
+                product: product.product,
                 weight: product.weight
               }))
             );
@@ -88,19 +94,7 @@ export const useUpdateRNC = (
         }
       }
 
-      // Update contact if provided
-      if (updatedData.contact) {
-        const { error: contactError } = await supabase
-          .from("rnc_contacts")
-          .update({
-            name: updatedData.contact.name,
-            phone: updatedData.contact.phone,
-            email: updatedData.contact.email,
-          })
-          .eq("rnc_id", id);
-
-        if (contactError) throw contactError;
-      }
+      return rnc.id;
     },
     ...options,
     onSuccess: (data, variables, context) => {
@@ -121,49 +115,36 @@ export const useUpdateRNC = (
 export const useCreateRNC = (options?: Partial<UseMutationOptions<string, Error, RNCFormData>>) => {
   return useMutation({
     mutationFn: async (data: RNCFormData) => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
-
-      // Create RNC
       const { data: rnc, error: rncError } = await supabase
         .from("rncs")
         .insert({
-          description: data.description,
-          workflow_status: "open",
-          priority: data.priority,
-          type: data.type,
-          department: data.department,
+          company_code: data.company_code,
           company: data.company,
           cnpj: data.cnpj,
-          order_number: data.order_number,
-          return_number: data.return_number,
-          created_by: user.user.id
+          type: data.type as RNCTypeEnum,
+          description: data.description,
+          responsible: (await supabase.auth.getUser()).data.user?.email,
+          korp: data.korp,
+          nfv: data.nfv,
+          nfd: data.nfd,
+          conclusion: data.conclusion,
+          department: data.department,
+          workflow_status: data.workflow_status,
+          assignedTo: data.assignedTo,
+          created_by: (await supabase.auth.getUser()).data.user?.id
         })
         .select()
         .single();
 
       if (rncError) throw rncError;
 
-      // Create contact
-      const { error: contactError } = await supabase
-        .from("rnc_contacts")
-        .insert({
-          rnc_id: rnc.id,
-          name: data.contact.name,
-          phone: data.contact.phone,
-          email: data.contact.email,
-        });
-
-      if (contactError) throw contactError;
-
-      // Create products if provided
       if (data.products?.length > 0) {
         const { error: productsError } = await supabase
           .from("rnc_products")
           .insert(
             data.products.map(product => ({
               rnc_id: rnc.id,
-              product: product.name,
+              product: product.product,
               weight: product.weight
             }))
           );

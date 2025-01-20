@@ -24,6 +24,24 @@ export const RNCCompanyInfo = ({ form, isEditing = false }: RNCCompanyInfoProps)
         name="company"
         render={({ field }) => (
           <FormItem>
+            <FormLabel className="required-field">Código do Cliente</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Código do Cliente (KORP)" 
+                {...field} 
+                disabled={!isEditing}
+              />
+            </FormControl>
+            <FormMessage className="form-message" />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="company"
+        render={({ field }) => (
+          <FormItem>
             <FormLabel className="required-field">Razão Social</FormLabel>
             <FormControl>
               <Input 
@@ -51,42 +69,6 @@ export const RNCCompanyInfo = ({ form, isEditing = false }: RNCCompanyInfoProps)
                 maxLength={18}
                 disabled={!isEditing}
                 {...field}
-              />
-            </FormControl>
-            <FormMessage className="form-message" />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="order_number"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Nº do Pedido</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Digite o número do pedido" 
-                {...field} 
-                disabled={!isEditing}
-              />
-            </FormControl>
-            <FormMessage className="form-message" />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="return_number"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Nº da Devolução</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="Digite o número da devolução" 
-                {...field} 
-                disabled={!isEditing}
               />
             </FormControl>
             <FormMessage className="form-message" />

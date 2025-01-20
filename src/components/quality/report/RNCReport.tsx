@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { format } from "date-fns";
 import { RNCTimeline } from "../RNCTimeline";
@@ -19,15 +20,6 @@ export function RNCReport({ rnc }: RNCReportProps) {
       closed: "Encerrado"
     };
     return labels[status];
-  };
-
-  const getPriorityLabel = (priority: string) => {
-    const labels: Record<string, string> = {
-      low: "Baixa",
-      medium: "Média",
-      high: "Alta"
-    };
-    return labels[priority] || priority;
   };
 
   const getTypeLabel = (type: string) => {
@@ -60,20 +52,16 @@ export function RNCReport({ rnc }: RNCReportProps) {
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <h3 className="font-semibold">Código do Cliente</h3>
+              <p>{rnc.company_code || "N/A"}</p>
+            </div>
+            <div>
               <h3 className="font-semibold">Razão Social</h3>
               <p>{rnc.company}</p>
             </div>
             <div>
               <h3 className="font-semibold">CNPJ</h3>
               <p>{rnc.cnpj}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Nº do Pedido</h3>
-              <p>{rnc.order_number || "N/A"}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Nº da Devolução</h3>
-              <p>{rnc.return_number || "N/A"}</p>
             </div>
           </div>
         </CardContent>
@@ -86,25 +74,71 @@ export function RNCReport({ rnc }: RNCReportProps) {
         <CardContent>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <h3 className="font-semibold">Status</h3>
-              <p>{getStatusLabel(rnc.workflow_status)}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Prioridade</h3>
-              <p>{getPriorityLabel(rnc.priority)}</p>
-            </div>
-            <div>
               <h3 className="font-semibold">Tipo</h3>
               <p>{getTypeLabel(rnc.type)}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold">Status</h3>
+              <p>{getStatusLabel(rnc.workflow_status)}</p>
             </div>
             <div>
               <h3 className="font-semibold">Departamento</h3>
               <p>{rnc.department}</p>
             </div>
           </div>
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2">Produtos</h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>Peso (kg)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.isArray(rnc.products) ? (
+                  rnc.products.map((product, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{product.product}</TableCell>
+                      <TableCell>{product.weight}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell>{'N/A'}</TableCell>
+                    <TableCell>{'N/A'}</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
           <div>
-            <h3 className="font-semibold mb-2">Descrição</h3>
-            <p className="whitespace-pre-wrap">{rnc.description}</p>
+            <h3 className="font-semibold">Nº do Pedido KORP</h3>
+            <p>{rnc.korp || "N/A"}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">Nº da Nota de Venda</h3>
+            <p>{rnc.nfv || "N/A"}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">Nº da Devolução</h3>
+            <p>{rnc.nfd || "N/A"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Responsável</p>
+            <p>{rnc.responsible}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Dias</p>
+            <p>{rnc.days_left}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Cidade</p>
+            <p>{rnc.city}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Conclusão</p>
+            <p>{rnc.conclusion}</p>
           </div>
         </CardContent>
       </Card>
