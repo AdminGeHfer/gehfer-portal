@@ -1,11 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNCFormData } from "@/types/rnc";
 import { toast } from "sonner";
 
 export const useRNCs = () => {
-  const queryClient = useQueryClient();
-
   const { data: rncs, isLoading } = useQuery({
     queryKey: ["rncs"],
     queryFn: async () => {
@@ -15,8 +13,7 @@ export const useRNCs = () => {
           *,
           products:rnc_products(*),
           contact:rnc_contacts(*),
-          events:rnc_events(*),
-          products:rnc_products(*)
+          events:rnc_events(*)
         `)
         .order("created_at", { ascending: false });
 
@@ -24,6 +21,40 @@ export const useRNCs = () => {
       return data;
     },
   });
+
+  const getDashboardStats = () => {
+    if (!rncs) return {
+      total: 0,
+      open: 0,
+      inProgress: 0,
+      closed: 0,
+      averageResolutionTime: 0
+    };
+
+    const total = rncs.length;
+    const open = rncs.filter(rnc => rnc.workflow_status === 'open').length;
+    const inProgress = rncs.filter(rnc => ['analysis', 'resolution', 'closing'].includes(rnc.workflow_status)).length;
+    const closed = rncs.filter(rnc => ['closed', 'solved'].includes(rnc.workflow_status)).length;
+
+    const closedRncs = rncs.filter(rnc => rnc.closed_at);
+    const totalResolutionTime = closedRncs.reduce((acc, rnc) => {
+      const start = new Date(rnc.created_at);
+      const end = new Date(rnc.closed_at!);
+      return acc + (end.getTime() - start.getTime());
+    }, 0);
+
+    const averageResolutionTime = closedRncs.length > 0 
+      ? Math.round(totalResolutionTime / closedRncs.length / (1000 * 60 * 60 * 24)) 
+      : 0;
+
+    return {
+      total,
+      open,
+      inProgress,
+      closed,
+      averageResolutionTime
+    };
+  };
 
   const createRNC = useMutation({
     mutationFn: async (data: RNCFormData) => {
@@ -110,10 +141,9 @@ export const useRNCs = () => {
       return rnc;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rncs"] });
       toast.success("RNC criada com sucesso!");
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error("Erro ao criar RNC:", error);
       toast.error(`Erro ao criar RNC: ${error.message}`);
     },
@@ -123,5 +153,6 @@ export const useRNCs = () => {
     rncs,
     isLoading,
     createRNC,
+    getDashboardStats
   };
 };
