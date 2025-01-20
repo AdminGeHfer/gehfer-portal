@@ -15,7 +15,7 @@ interface RNCFormProps {
   mode?: "create" | "edit";
 }
 
-export function RNCFormContainer({ initialData}: RNCFormProps) {
+export function RNCFormContainer({ initialData, onSubmit }: RNCFormProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,17 +30,23 @@ export function RNCFormContainer({ initialData}: RNCFormProps) {
     mode: "onSubmit"
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (formData: RNCFormData) => {
     if (isSubmitting) return;
     
     try {
+      console.log("Form submission started with data:", formData);
       setIsSubmitting(true);
       setShowValidationErrors(true);
+      
+      const result = await onSubmit(formData);
+      console.log("Form submission successful, RNC ID:", result);
       
       toast({
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
+      
+      return result;
     } catch (error) {
       console.error('Error in RNC submission:', error);
       toast({
@@ -48,6 +54,7 @@ export function RNCFormContainer({ initialData}: RNCFormProps) {
         description: "Ocorreu um erro ao tentar processar a RNC.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
