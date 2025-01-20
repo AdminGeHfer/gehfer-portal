@@ -30,7 +30,11 @@ export function RNCDetailActions({
   const handleEditClick = () => {
     console.log('Edit button clicked for RNC:', rnc.id);
     console.log('Current edit permission:', canEdit);
-    onEdit();
+    if (isEditing) {
+      onSave();
+    } else {
+      onEdit();
+    }
   };
 
   const handleDeleteClick = () => {

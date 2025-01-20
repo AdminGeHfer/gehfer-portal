@@ -21,10 +21,10 @@ const formSchema = z.object({
   company: z.string().min(1, "O nome da empresa é obrigatória"),
   cnpj: z.union([z.string().nullable(), z.string().regex(/^[0,9]{2}\.[0,9]{3}\.[0,9]{3}\/[0,9]{4}-[0,9]{2}$/, "CNPJ inválido")]).optional().transform(e => e === "" ? undefined : e),
   type: z.enum(["company_complaint", "supplier", "dispatch", "logistics", "deputy", "driver", "financial", "commercial", "financial_agreement"]).default("company_complaint"),
-  products: z.object({
+  products: z.array(z.object({
     product: z.string().min(1, "O produto é obrigatório"),
     weight: z.number().min(0, "O peso deve ser maior que 0"),
-  }),
+  })).optional(),
   description: z.string().min(1, "A descrição é obrigatória"),
   weight: z.number().min(0, "O peso deve ser maior que 0"),
   korp: z.string().min(1, "O número do pedido é obrigatório"),
@@ -45,7 +45,7 @@ const formSchema = z.object({
 interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
-  onFieldChange: (field: keyof RNC, value) => void;
+  onFieldChange: (field: keyof RNC, value: any) => void;
   onSave?: () => Promise<void>;
 }
 
