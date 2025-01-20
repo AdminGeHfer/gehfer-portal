@@ -7,9 +7,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     let isMounted = true;
+    let retryTimeout: NodeJS.Timeout;
 
     // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -46,12 +49,21 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         if (sessionError) {
           console.error('Error checking session:', sessionError);
           setError(sessionError);
-          toast.error("Erro ao verificar sessão. Tentando reconectar...");
           
-          // Retry after a short delay
-          setTimeout(checkSession, 2000);
+          if (retryCount < MAX_RETRIES) {
+            console.log(`Retrying session check (${retryCount + 1}/${MAX_RETRIES})...`);
+            setRetryCount(prev => prev + 1);
+            retryTimeout = setTimeout(checkSession, 2000 * (retryCount + 1)); // Exponential backoff
+            return;
+          } else {
+            toast.error("Não foi possível conectar ao servidor. Por favor, tente novamente mais tarde.");
+            navigate("/login");
+          }
           return;
         }
+
+        // Reset retry count on successful connection
+        setRetryCount(0);
 
         if (!session) {
           console.log('No active session found');
@@ -65,10 +77,15 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         if (err instanceof Error) {
           setError(err);
         }
-        toast.error("Erro inesperado ao verificar sessão. Tentando reconectar...");
         
-        // Retry after a short delay
-        setTimeout(checkSession, 2000);
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying after error (${retryCount + 1}/${MAX_RETRIES})...`);
+          setRetryCount(prev => prev + 1);
+          retryTimeout = setTimeout(checkSession, 2000 * (retryCount + 1));
+        } else {
+          toast.error("Erro de conexão persistente. Por favor, verifique sua conexão com a internet.");
+          navigate("/login");
+        }
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -80,16 +97,19 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false;
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, retryCount]);
 
-  if (error) {
+  if (error && retryCount < MAX_RETRIES) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="text-center space-y-4">
           <h2 className="text-xl font-semibold text-red-600">Erro de Conexão</h2>
-          <p className="text-gray-600">Tentando reconectar ao servidor...</p>
+          <p className="text-gray-600">Tentando reconectar ao servidor... ({retryCount + 1}/{MAX_RETRIES})</p>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
         </div>
       </div>
