@@ -27,10 +27,10 @@ export function RNCListContainer() {
     return matchesSearch && matchesStatus && matchesDepartment;
   }) || [];
 
-  const handleRNCCreated = async (data: RNCFormData) => {
+  const handleRNCCreated = async (data: RNCFormData): Promise<void> => {
     try {
       await createRNC.mutateAsync(data);
-      setIsFormOpen(false); // Close the dialog after successful creation
+      setIsFormOpen(false);
     } catch (error) {
       console.error('Error creating RNC:', error);
     }
@@ -47,23 +47,18 @@ export function RNCListContainer() {
       
         <div className="space-y-6">
           <RNCListFilters
-            search={searchTerm}
+            searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            status={statusFilter}
+            statusFilter={statusFilter}
             onStatusChange={setStatusFilter}
-            department={departmentFilter}
+            departmentFilter={departmentFilter}
             onDepartmentChange={setDepartmentFilter}
-            onClearFilters={() => {
-              setSearchTerm("");
-              setStatusFilter("all");
-              setDepartmentFilter("all");
-            }}
           />
           
           <RNCListTable
             rncs={filteredRncs}
             isLoading={isLoading}
-            onRNCClick={(id) => navigate(`/quality/rnc/${id}`)}
+            onRowClick={(id) => navigate(`/quality/rnc/${id}`)}
           />
         </div>
       </div>

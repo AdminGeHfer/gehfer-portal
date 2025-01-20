@@ -15,6 +15,7 @@ const RNCList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleSubmit = async (data: RNCFormData): Promise<void> => {
     try {
@@ -24,6 +25,7 @@ const RNCList = () => {
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
       });
+      setIsFormOpen(false);
     } catch (error) {
       toast({
         title: "Erro ao criar RNC",
@@ -120,7 +122,11 @@ const RNCList = () => {
         </aside>
 
         <main className="flex-1 p-6">
-          <RNCListHeader onRNCCreated={handleSubmit} />
+          <RNCListHeader 
+            onRNCCreated={handleSubmit} 
+            isFormOpen={isFormOpen}
+            setIsFormOpen={setIsFormOpen}
+          />
           
           <RNCListFilters
             searchTerm={searchTerm}
@@ -134,6 +140,7 @@ const RNCList = () => {
           <RNCListTable
             rncs={mockRncs}
             onRowClick={(id) => navigate(`/quality/rnc/${id}`)}
+            isLoading={false}
           />
         </main>
       </div>
