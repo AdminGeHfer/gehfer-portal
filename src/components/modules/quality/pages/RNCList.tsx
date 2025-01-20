@@ -60,8 +60,7 @@ const RNCList = () => {
         <aside className="w-64 border-r bg-white dark:bg-gray-800">
           <div className="p-4">
             <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10"
+              className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10 variant-ghost"
               onClick={() => navigate("/apps")}
             >
               Voltar para Apps
@@ -69,15 +68,13 @@ const RNCList = () => {
           </div>
           <nav className="space-y-1 p-2">
             <Button
-              variant="ghost"
               className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-primary/10"
               onClick={() => navigate("/quality/dashboard")}
             >
               Dashboard
             </Button>
             <Button
-              variant="secondary"
-              className="w-full justify-start bg-primary/10 text-primary hover:bg-primary/20"
+              className="w-full justify-start bg-primary/10 text-primary hover:bg-primary/20 secondary"
             >
               RNCs
             </Button>

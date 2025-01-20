@@ -21,6 +21,21 @@
     "noImplicitAny": false,
     "noFallthroughCasesInSwitch": false,
 
+    /* Source Maps */
+    "typeRoots": ["./node_modules/@types"],
+    "types": [
+      "aria-query",
+      "babel__core",
+      "cookie",
+      "node",
+      "node-fetch",
+      "phoenix",
+      "prop-types",
+      "react",
+      "react-dom",
+      "react-input-mask"
+    ],
+
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
