@@ -109,6 +109,21 @@ export const deleteContacts = async (id: string) => {
   }
 };
 
+export const deleteProducts = async (id: string) => {
+  try {
+    console.log('Attempting to delete products for RNC:', id);
+    const { error } = await supabase
+      .from("rnc_products")
+      .delete()
+      .eq("rnc_id", id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    handleError(error, 'deleteProducts');
+  }
+};
+
 export const deleteEvents = async (id: string) => {
   try {
     console.log('Attempting to delete events for RNC:', id);
@@ -144,6 +159,7 @@ export const deleteRNCRecord = async (id: string) => {
     await deleteWorkflowTransitions(id);
     await deleteNotifications(id);
     await deleteCollectionData(id);
+    await deleteProducts(id); // Adicionado para deletar produtos primeiro
     await deleteContacts(id);
     await deleteEvents(id);
     

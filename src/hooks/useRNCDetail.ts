@@ -54,6 +54,14 @@ export const useRNCDetail = (id: string) => {
       toast.error("Você não tem permissão para editar esta RNC");
       return;
     }
+
+    // Verificar se o status é "open"
+    if (rnc.workflow_status !== "open") {
+      console.log('Edit denied - RNC is not in open status');
+      toast.error("Apenas RNCs com status 'Aberto' podem ser editadas");
+      return;
+    }
+
     console.log('Edit permission granted');
     setIsEditing(true);
   };
