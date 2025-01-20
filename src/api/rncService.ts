@@ -80,6 +80,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
 export const getRNCById = async (id: string): Promise<RNC | null> => {
   try {
+    console.log('Fetching RNC details for ID:', id);
     const { data, error } = await supabase
       .from('rncs')
       .select(`
@@ -101,6 +102,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
       return null;
     }
 
+    console.log('RNC data fetched:', data);
     return transformRNCData(data);
   } catch (error) {
     console.error('Error in getRNCById:', error);
