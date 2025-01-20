@@ -1,5 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+type RNCRelatedTable = 
+  | "rnc_products"
+  | "rnc_contacts"
+  | "rnc_events"
+  | "rnc_workflow_transitions"
+  | "notifications"
+  | "rncs";
+
 interface DeleteOperationResult {
   success: boolean;
   error?: Error;
@@ -7,7 +15,7 @@ interface DeleteOperationResult {
 
 class RNCDeleteOperations {
   private static async executeDelete(
-    tableName: string,
+    tableName: RNCRelatedTable,
     rncId: string
   ): Promise<DeleteOperationResult> {
     try {
