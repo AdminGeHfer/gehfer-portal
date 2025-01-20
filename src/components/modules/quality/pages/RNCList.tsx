@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import * as React from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { RNC, RNCFormData } from "@/types/rnc";
+import { RNCFormData } from "@/types/rnc";
 import { RNCListHeader } from "@/components/quality/list/RNCListHeader";
 import { RNCListFilters } from "@/components/quality/list/RNCListFilters";
 import { RNCListTable } from "@/components/quality/list/RNCListTable";

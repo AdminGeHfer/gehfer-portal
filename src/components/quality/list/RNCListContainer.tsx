@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RNCListHeader } from "./RNCListHeader";
@@ -27,13 +28,15 @@ export function RNCListContainer() {
     return matchesSearch && matchesStatus && matchesDepartment;
   }) || [];
 
-  const handleRNCCreated = async (data: RNCFormData): Promise<void> => {
+  const handleRNCCreated = async (data: RNCFormData): Promise<string> => {
     try {
       await createRNC.mutateAsync(data);
       setIsFormOpen(false);
     } catch (error) {
       console.error('Error creating RNC:', error);
+      return `Error: ${error.message}`;
     }
+    return `Success: RNC created successfully!`;
   };
 
   return (
