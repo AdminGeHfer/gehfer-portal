@@ -60,7 +60,8 @@ const RNCList = () => {
       korp: "KORP123",
       nfv: "NFV123",
       nfd: "NFD123",
-      city: "São Paulo"
+      city: "São Paulo",
+      conclusion: "Pending"
     },
     {
       id: "2",
@@ -68,10 +69,9 @@ const RNCList = () => {
       description: "Material fora das especificações",
       title: "Material fora das especificações",
       company: "BORTOLON",
-      department: "Qualidade",
+      department: "quality",
       workflow_status: "solved",
-      priority: "medium",
-      type: "client",
+      type: "company_complaint",
       contact: {
         name: "Maria Santos",
         phone: "11988888888",
@@ -80,8 +80,10 @@ const RNCList = () => {
       cnpj: "98765432109876",
       created_at: "2024-03-05T00:00:00.000Z",
       updated_at: "2024-03-05T00:00:00.000Z",
-      created_by: "user-2", // Added missing required field
-      timeline: []
+      created_by: "user-2",
+      timeline: [],
+      conclusion: "Resolved",
+      company_code: "456"
     }
   ];
 

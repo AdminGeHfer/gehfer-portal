@@ -1,7 +1,7 @@
-import { DepartmentEnum, WorkflowStatusEnum } from "@/types/rnc";
+import { DepartmentEnum, WorkflowStatusEnum, RNCTypeEnum } from "@/types/rnc";
 
 export const validateDepartment = (department: string): DepartmentEnum => {
-  switch (department) {
+  switch (department?.toLowerCase()) {
     case "logistics":
       return "logistics";
     case "quality":
@@ -29,19 +29,6 @@ export const validateWorkflowStatus = (status: string): WorkflowStatusEnum => {
       return "closed";
     default:
       return "open";
-  }
-};
-
-export const validatePriority = (priority: string): "low" | "medium" | "high" => {
-  switch (priority?.toLowerCase()) {
-    case "low":
-      return "low";
-    case "medium":
-      return "medium";
-    case "high":
-      return "high";
-    default:
-      return "medium";
   }
 };
 

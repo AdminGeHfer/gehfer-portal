@@ -8,7 +8,7 @@ interface UseRNCSearchProps {
 export const useRNCSearch = ({ rncs }: UseRNCSearchProps) => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<WorkflowStatusEnum | "all">("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
 
   const filteredRNCs = useMemo(() => {
     return rncs.filter((rnc) => {
@@ -20,17 +20,17 @@ export const useRNCSearch = ({ rncs }: UseRNCSearchProps) => {
       const matchesStatus =
         statusFilter === "all" || rnc.workflow_status === statusFilter;
 
-      const matchesPriority =
-        priorityFilter === "all" || rnc.priority === priorityFilter;
+      const matchesDepartment =
+        departmentFilter === "all" || rnc.department === departmentFilter;
 
-      return matchesSearch && matchesStatus && matchesPriority;
+      return matchesSearch && matchesStatus && matchesDepartment;
     });
-  }, [rncs, search, statusFilter, priorityFilter]);
+  }, [rncs, search, statusFilter, departmentFilter]);
 
   const clearFilters = useCallback(() => {
     setSearch("");
     setStatusFilter("all");
-    setPriorityFilter("all");
+    setDepartmentFilter("all");
   }, []);
 
   return {
@@ -38,8 +38,8 @@ export const useRNCSearch = ({ rncs }: UseRNCSearchProps) => {
     setSearch,
     statusFilter,
     setStatusFilter,
-    priorityFilter,
-    setPriorityFilter,
+    departmentFilter,
+    setDepartmentFilter,
     filteredRNCs,
     clearFilters,
   };

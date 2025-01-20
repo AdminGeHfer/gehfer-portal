@@ -15,57 +15,39 @@ export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" |
 
 export interface RNC {
   id: string;
-  rnc_number: number;
-  company_code: string;
+  description: string;
+  workflow_status: WorkflowStatusEnum;
+  type: RNCTypeEnum;
+  department: DepartmentEnum;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
   company: string;
   cnpj: string;
-  type: RNCTypeEnum;
-  description: string;
-  responsible: string;
-  days_left: number;
-  korp: string;
-  nfv: string;
-  nfd: string;
-  collected_at?: string;
-  closed_at?: string;
-  city: string;
-  conclusion: string;
-  department: DepartmentEnum;
-  assigned_at?: string;
-  workflow_status: WorkflowStatusEnum;
-  assigned_to?: string;
-  assigned_by?: string;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  products?: RNCProduct[];
-  contact: RNCContact;
+  orderNumber?: string;
+  returnNumber?: string;
   assignedTo?: string;
   assignedBy?: string;
   assignedAt?: string;
   attachments?: File[];
   timeline: TimelineEvent[];
+  resolution?: string;
+  rnc_number?: number;
+  created_at: string;
+  updated_at: string;
+  closed_at?: string;
   title?: string;
   canEdit?: boolean;
-}
-
-export interface RNCProduct {
-  id?: string;
-  rnc_id: string;
-  product: string;
-  weight: number;
-  created_at?: string;
-}
-
-export interface RNCFormProduct {
-  product: string;
-  weight: number;
-}
-
-export interface RNCContact {
-  name: string;
-  phone: string;
-  email?: string;
+  conclusion: string;
+  company_code: string;
+  responsible?: string;
+  days_left?: number;
+  korp?: string;
+  nfv?: string;
+  nfd?: string;
+  city?: string;
 }
 
 export interface TimelineEvent {
@@ -80,19 +62,21 @@ export interface TimelineEvent {
 
 export interface RNCFormData {
   id?: string;
-  company_code: string;
-  company: string;
-  cnpj?: string;
-  type: RNCTypeEnum;
   description: string;
-  korp: string;
-  nfd?: string;
-  nfv?: string;
+  type: RNCTypeEnum;
   department: DepartmentEnum;
-  products?: RNCFormProduct[];
-  contact: RNCContact;
-  attachments?: File[];
-  conclusion?: string;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  company: string;
+  cnpj: string;
+  orderNumber?: string;
+  returnNumber?: string;
   workflow_status: WorkflowStatusEnum;
   assignedTo?: string;
+  attachments?: File[];
+  resolution?: string;
+  conclusion?: string;
 }
