@@ -17,10 +17,12 @@ export default defineConfig({
         '**/*.config.*',
         '**/index.tsx',
       ],
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80
+      thresholds: {
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80
+      }
     },
   },
   resolve: {
