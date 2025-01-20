@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -5,7 +6,7 @@ import { RNCForm } from "@/components/quality/RNCForm";
 import { RNCFormData } from "@/types/rnc";
 
 interface RNCListHeaderProps {
-  onRNCCreated: (data: RNCFormData) => Promise<void>;
+  onRNCCreated: (data: RNCFormData) => Promise<string>;
   isFormOpen: boolean;
   setIsFormOpen: (open: boolean) => void;
 }
