@@ -8,6 +8,7 @@ import * as z from "zod";
 import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
+import { RNCOrderInfo } from "./form/RNCOrderInfo";
 import { RNCFileUpload } from "./form/RNCFileUpload";
 import { RNCAttachments } from "./RNCAttachments";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -109,9 +110,10 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="company">Empresa</TabsTrigger>
           <TabsTrigger value="details">Detalhes</TabsTrigger>
+          <TabsTrigger value="order">Pedido</TabsTrigger>
           <TabsTrigger value="contact">Contato</TabsTrigger>
         </TabsList>
 
@@ -131,6 +133,12 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
               </div>
             </TabsContent>
 
+            <TabsContent value="order" className="space-y-6">
+              <div className="grid gap-6">
+                <RNCOrderInfo form={form} isEditing={isEditing} />
+              </div>
+            </TabsContent>
+
             <TabsContent value="contact" className="space-y-6">
               <div className="grid gap-6">
                 <RNCContactInfo form={form} isEditing={isEditing} />
@@ -144,7 +152,8 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
                   variant="outline"
                   onClick={() => {
                     if (activeTab === "details") setActiveTab("company");
-                    if (activeTab === "contact") setActiveTab("details");
+                    if (activeTab === "order") setActiveTab("details");
+                    if (activeTab === "contact") setActiveTab("order");
                   }}
                   className="w-32"
                   disabled={activeTab === "company" || isSubmitting}
@@ -157,7 +166,8 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
                     type="button"
                     onClick={() => {
                       if (activeTab === "company") setActiveTab("details");
-                      if (activeTab === "details") setActiveTab("contact");
+                      if (activeTab === "details") setActiveTab("order");
+                      if (activeTab === "order") setActiveTab("contact");
                     }}
                     className="w-32"
                     disabled={isSubmitting}
