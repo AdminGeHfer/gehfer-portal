@@ -159,7 +159,7 @@ export const deleteRNCRecord = async (id: string) => {
     await deleteWorkflowTransitions(id);
     await deleteNotifications(id);
     await deleteCollectionData(id);
-    await deleteProducts(id); // Adicionado para deletar produtos primeiro
+    await deleteProducts(id);
     await deleteContacts(id);
     await deleteEvents(id);
     

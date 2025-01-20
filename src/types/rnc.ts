@@ -12,6 +12,7 @@ export type RNCTypeEnum =
   "financial_agreement";
 
 export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
+export type StatusEnum = "not_created" | "pending" | "canceled" | "collect" | "concluded";
 
 export interface RNCProduct {
   product: string;
@@ -29,6 +30,7 @@ export interface RNC {
   id: string;
   description: string;
   workflow_status: WorkflowStatusEnum;
+  status: StatusEnum;
   type: RNCTypeEnum;
   department: DepartmentEnum;
   contact: RNCContact;

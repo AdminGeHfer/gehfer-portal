@@ -55,10 +55,10 @@ export const useRNCDetail = (id: string) => {
       return;
     }
 
-    // Verificar se o status é "open"
-    if (rnc.workflow_status !== "open") {
-      console.log('Edit denied - RNC is not in open status');
-      toast.error("Apenas RNCs com status 'Aberto' podem ser editadas");
+    // Verificar se o status é "concluded"
+    if (rnc.status == "concluded") {
+      console.log('Edit denied - RNC is in concluded status');
+      toast.error("Apenas RNCs com status diferente de 'Concluído' podem ser editadas");
       return;
     }
 
