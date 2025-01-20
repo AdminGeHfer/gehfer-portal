@@ -30,6 +30,9 @@ export const useUpdateRNC = (
 ) => {
   return useMutation<void, Error, Partial<RNC>>({
     mutationFn: async (updatedData: Partial<RNC>) => {
+      console.log('Starting RNC update with data:', updatedData);
+
+      // First update the RNC
       const { error: rncError } = await supabase
         .from("rncs")
         .update({
@@ -63,20 +66,37 @@ export const useUpdateRNC = (
         throw rncError;
       }
 
-      if (updatedData.products?.length > 0) {
+      // Then handle products if they exist
+      if (updatedData.products && updatedData.products.length > 0) {
+        // First delete existing products
+        const { error: deleteError } = await supabase
+          .from("rnc_products")
+          .delete()
+          .eq("rnc_id", id);
+
+        if (deleteError) {
+          console.error("Error deleting existing products:", deleteError);
+          throw deleteError;
+        }
+
+        // Then insert new products
         const { error: productsError } = await supabase
           .from("rnc_products")
           .insert(
             updatedData.products.map(product => ({
-              rnc_id: updatedData.id,
+              rnc_id: id,
               product: product.product,
               weight: product.weight
             }))
           );
 
-        if (productsError) throw productsError;
+        if (productsError) {
+          console.error("Error inserting new products:", productsError);
+          throw productsError;
+        }
       }
 
+      // Finally handle contact if it exists
       if (updatedData.contact) {
         const { error: contactError } = await supabase
           .from("rnc_contacts")

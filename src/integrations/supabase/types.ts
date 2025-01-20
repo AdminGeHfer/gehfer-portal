@@ -1484,26 +1484,29 @@ export type Database = {
       }
       rnc_products: {
         Row: {
-          id: string;
-          rnc_id: string;
-          product: string;
-          weight: number;
-          created_at: string;
-        };
+          created_at: string
+          id: string
+          product: string | null
+          rnc_id: string | null
+          updated_at: string | null
+          weight: number | null
+        }
         Insert: {
-          id?: string;
-          rnc_id: string;
-          product: string;
-          weight: number;
-          created_at?: string;
-        };
+          created_at?: string
+          id?: string
+          product?: string | null
+          rnc_id?: string | null
+          updated_at?: string | null
+          weight?: number | null
+        }
         Update: {
-          id?: string;
-          rnc_id?: string;
-          product?: string;
-          weight?: number;
-          created_at?: string;
-        };
+          created_at?: string
+          id?: string
+          product?: string | null
+          rnc_id?: string | null
+          updated_at?: string | null
+          weight?: number | null
+        }
         Relationships: [
           {
             foreignKeyName: "rnc_products_rnc_id_fkey"
@@ -1512,8 +1515,8 @@ export type Database = {
             referencedRelation: "rncs"
             referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       rnc_workflow_transitions: {
         Row: {
           created_at: string
