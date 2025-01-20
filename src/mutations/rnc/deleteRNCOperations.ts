@@ -23,7 +23,7 @@ class RNCDeleteOperations {
       const { error } = await supabase
         .from(tableName)
         .delete()
-        .eq("rnc_id", rncId);
+        .eq(tableName === "rncs" ? "id" : "rnc_id", rncId);
 
       if (error) {
         console.error(`Error deleting from ${tableName}:`, error);
@@ -39,6 +39,21 @@ class RNCDeleteOperations {
         error: error instanceof Error ? error : new Error(`Failed to delete from ${tableName}`) 
       };
     }
+  }
+
+  private static async checkForRelatedProducts(rncId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from("rnc_products")
+      .select("id")
+      .eq("rnc_id", rncId)
+      .limit(1);
+
+    if (error) {
+      console.error("Error checking for related products:", error);
+      return false;
+    }
+
+    return data && data.length > 0;
   }
 
   static async deleteProducts(rncId: string): Promise<DeleteOperationResult> {
@@ -64,6 +79,17 @@ class RNCDeleteOperations {
   static async deleteRNC(rncId: string): Promise<DeleteOperationResult> {
     try {
       console.log('Attempting to delete RNC:', rncId);
+      
+      // First check if there are any related products
+      const hasProducts = await this.checkForRelatedProducts(rncId);
+      if (hasProducts) {
+        // If there are products, delete them first
+        const productsResult = await this.deleteProducts(rncId);
+        if (!productsResult.success) {
+          return productsResult;
+        }
+      }
+
       const { error } = await supabase
         .from("rncs")
         .delete()
