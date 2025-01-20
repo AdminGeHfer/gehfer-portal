@@ -1,113 +1,105 @@
 import { supabase } from "@/integrations/supabase/client";
 
-const handleError = (error: any, operation: string) => {
-  console.error(`Error in ${operation}:`, error);
-  throw error;
-};
+interface DeleteOperationResult {
+  success: boolean;
+  error?: Error;
+}
 
-export const deleteRNCProducts = async (id: string) => {
-  try {
-    console.log('Attempting to delete products for RNC:', id);
-    const { error } = await supabase
-      .from("rnc_products")
-      .delete()
-      .eq("rnc_id", id);
-    
-    if (error) throw error;
-    console.log('Successfully deleted products');
-    return true;
-  } catch (error) {
-    handleError(error, 'deleteRNCProducts');
+class RNCDeleteOperations {
+  private static async executeDelete(
+    tableName: string,
+    rncId: string
+  ): Promise<DeleteOperationResult> {
+    try {
+      console.log(`Attempting to delete records from ${tableName} for RNC:`, rncId);
+      const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .eq("rnc_id", rncId);
+
+      if (error) {
+        console.error(`Error deleting from ${tableName}:`, error);
+        return { success: false, error: error };
+      }
+
+      console.log(`Successfully deleted records from ${tableName}`);
+      return { success: true };
+    } catch (error) {
+      console.error(`Error in ${tableName} deletion:`, error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error : new Error(`Failed to delete from ${tableName}`) 
+      };
+    }
   }
-};
 
-export const deleteRNCContacts = async (id: string) => {
-  try {
-    console.log('Attempting to delete contacts for RNC:', id);
-    const { error } = await supabase
-      .from("rnc_contacts")
-      .delete()
-      .eq("rnc_id", id);
-    
-    if (error) throw error;
-    console.log('Successfully deleted contacts');
-    return true;
-  } catch (error) {
-    handleError(error, 'deleteRNCContacts');
+  static async deleteProducts(rncId: string): Promise<DeleteOperationResult> {
+    return this.executeDelete("rnc_products", rncId);
   }
-};
 
-export const deleteRNCEvents = async (id: string) => {
-  try {
-    console.log('Attempting to delete events for RNC:', id);
-    const { error } = await supabase
-      .from("rnc_events")
-      .delete()
-      .eq("rnc_id", id);
-    
-    if (error) throw error;
-    console.log('Successfully deleted events');
-    return true;
-  } catch (error) {
-    handleError(error, 'deleteRNCEvents');
+  static async deleteContacts(rncId: string): Promise<DeleteOperationResult> {
+    return this.executeDelete("rnc_contacts", rncId);
   }
-};
 
-export const deleteRNCWorkflowTransitions = async (id: string) => {
-  try {
-    console.log('Attempting to delete workflow transitions for RNC:', id);
-    const { error } = await supabase
-      .from("rnc_workflow_transitions")
-      .delete()
-      .eq("rnc_id", id);
-    
-    if (error) throw error;
-    console.log('Successfully deleted workflow transitions');
-    return true;
-  } catch (error) {
-    handleError(error, 'deleteRNCWorkflowTransitions');
+  static async deleteEvents(rncId: string): Promise<DeleteOperationResult> {
+    return this.executeDelete("rnc_events", rncId);
   }
-};
 
-export const deleteRNCNotifications = async (id: string) => {
-  try {
-    console.log('Attempting to delete notifications for RNC:', id);
-    const { error } = await supabase
-      .from("notifications")
-      .delete()
-      .eq("rnc_id", id);
-    
-    if (error) throw error;
-    console.log('Successfully deleted notifications');
-    return true;
-  } catch (error) {
-    handleError(error, 'deleteRNCNotifications');
+  static async deleteWorkflowTransitions(rncId: string): Promise<DeleteOperationResult> {
+    return this.executeDelete("rnc_workflow_transitions", rncId);
   }
-};
 
-export const deleteRNCRecord = async (id: string) => {
-  try {
-    console.log('Starting RNC deletion process for ID:', id);
-    
-    // Delete all related records in the correct order
-    await deleteRNCProducts(id);
-    await deleteRNCContacts(id);
-    await deleteRNCEvents(id);
-    await deleteRNCWorkflowTransitions(id);
-    await deleteRNCNotifications(id);
-    
-    // Finally delete the RNC itself
-    const { error } = await supabase
-      .from("rncs")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
-    
-    console.log('Successfully deleted RNC and all related records');
-    return true;
-  } catch (error) {
-    console.error('Error in deleteRNCRecord:', error);
-    throw error;
+  static async deleteNotifications(rncId: string): Promise<DeleteOperationResult> {
+    return this.executeDelete("notifications", rncId);
   }
-};
+
+  static async deleteRNC(rncId: string): Promise<DeleteOperationResult> {
+    try {
+      console.log('Attempting to delete RNC:', rncId);
+      const { error } = await supabase
+        .from("rncs")
+        .delete()
+        .eq("id", rncId);
+
+      if (error) {
+        console.error('Error deleting RNC:', error);
+        return { success: false, error: error };
+      }
+
+      console.log('Successfully deleted RNC');
+      return { success: true };
+    } catch (error) {
+      console.error('Error in RNC deletion:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error : new Error('Failed to delete RNC') 
+      };
+    }
+  }
+}
+
+export async function deleteRNCRecord(id: string): Promise<boolean> {
+  console.log('Starting RNC deletion process for ID:', id);
+
+  // Define deletion order
+  const deletionOperations = [
+    { name: 'products', operation: () => RNCDeleteOperations.deleteProducts(id) },
+    { name: 'contacts', operation: () => RNCDeleteOperations.deleteContacts(id) },
+    { name: 'events', operation: () => RNCDeleteOperations.deleteEvents(id) },
+    { name: 'workflow transitions', operation: () => RNCDeleteOperations.deleteWorkflowTransitions(id) },
+    { name: 'notifications', operation: () => RNCDeleteOperations.deleteNotifications(id) },
+    { name: 'RNC', operation: () => RNCDeleteOperations.deleteRNC(id) }
+  ];
+
+  // Execute deletions in sequence
+  for (const { name, operation } of deletionOperations) {
+    const result = await operation();
+    if (!result.success) {
+      console.error(`Failed to delete ${name}:`, result.error);
+      throw result.error;
+    }
+  }
+
+  console.log('Successfully completed all deletion operations');
+  return true;
+}
