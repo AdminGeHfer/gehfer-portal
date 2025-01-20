@@ -77,7 +77,7 @@ export const RNCListTable = ({ rncs, onRowClick, isLoading }: RNCListTableProps)
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <RNCStatusBadge status={rnc.workflow_status} />
+                  <RNCStatusBadge status={rnc.status} />
                 </TableCell>
                 <TableCell className="text-center">
                   {rnc.assigned_at ? format(new Date(rnc.assigned_at), "dd/MM/yyyy") : "-"}

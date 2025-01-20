@@ -6,34 +6,30 @@ interface RNCStatusBadgeProps {
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  open: {
-    label: "Aberto",
+  not_created: {
+    label: "Não Criado",
+    className: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+  },
+  canceled: {
+    label: "Cancelado",
+    className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+  },
+  pending: {
+    label: "Pendente",
     className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
   },
-  analysis: {
-    label: "Em Análise",
-    className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-  },
-  resolution: {
-    label: "Em Resolução",
-    className: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
-  },
-  solved: {
-    label: "Solucionado",
+  concluded: {
+    label: "Concluído",
     className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
   },
-  closing: {
-    label: "Em Fechamento",
-    className: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
-  },
-  closed: {
-    label: "Encerrado",
-    className: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
+  collect: {
+    label: "Em Coleta",
+    className: "bg-lime-100 text-lime-800 dark:bg-lime-900/30 dark:text-lime-400"
   }
 };
 
 export const RNCStatusBadge = ({ status }: RNCStatusBadgeProps) => {
-  const config = statusConfig[status] || statusConfig.open;
+  const config = statusConfig[status] || statusConfig.not_created;
   
   return (
     <Badge 
