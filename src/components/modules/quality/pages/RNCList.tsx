@@ -17,7 +17,7 @@ const RNCList = () => {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const handleSubmit = async (data: RNCFormData): Promise<void> => {
+  const handleSubmit = async (data: RNCFormData): Promise<string> => {
     try {
       // TODO: Implement API integration
       console.log('Creating RNC:', data);
@@ -26,12 +26,14 @@ const RNCList = () => {
         description: "A RNC foi registrada no sistema.",
       });
       setIsFormOpen(false);
+      return "success";
     } catch (error) {
       toast({
         title: "Erro ao criar RNC",
         description: "Não foi possível criar a RNC.",
         variant: "destructive",
       });
+      return `${error}`;
       throw error;
     }
   };
