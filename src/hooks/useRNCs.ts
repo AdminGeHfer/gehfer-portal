@@ -1,9 +1,11 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNCFormData } from "@/types/rnc";
 import { toast } from "sonner";
 
 export const useRNCs = () => {
+  const queryClient = useQueryClient();
+
   const { data: rncs, isLoading } = useQuery({
     queryKey: ["rncs"],
     queryFn: async () => {
@@ -76,7 +78,7 @@ export const useRNCs = () => {
           department: data.department,
           conclusion: data.conclusion,
           workflow_status: "open",
-          status: "not_created", // Set default status
+          status: "not_created",
           created_by: user.user.id,
         })
         .select()
@@ -105,7 +107,7 @@ export const useRNCs = () => {
         }
       }
 
-      // Create contact
+      // Create contact if provided
       if (data.contact) {
         const { error: contactError } = await supabase
           .from("rnc_contacts")
@@ -141,6 +143,7 @@ export const useRNCs = () => {
       return rnc;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rncs"] });
       toast.success("RNC criada com sucesso!");
     },
     onError: (error: Error) => {

@@ -1,12 +1,11 @@
 import { useState } from "react";
-import * as React from "react";
 import { useNavigate } from "react-router-dom";
-import { useRNCs } from "@/hooks/useRNCs";
 import { RNCListHeader } from "./RNCListHeader";
 import { RNCListFilters } from "./RNCListFilters";
 import { RNCListTable } from "./RNCListTable";
 import { transformRNCData } from "@/utils/rncTransform";
 import { RNCFormData } from "@/types/rnc";
+import { useRNCs } from "@/hooks/useRNCs";
 
 export function RNCListContainer() {
   const navigate = useNavigate();
@@ -14,12 +13,12 @@ export function RNCListContainer() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const { rncs, isLoading, createRNC } = useRNCs();
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const filteredRncs = rncs?.map(transformRNCData).filter((rnc) => {
     const matchesSearch = 
       searchTerm === "" ||
       rnc.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rnc.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
       rnc.rnc_number?.toString().includes(searchTerm);
     
     const matchesStatus = statusFilter === "all" || rnc.workflow_status === statusFilter;
@@ -29,24 +28,43 @@ export function RNCListContainer() {
   }) || [];
 
   const handleRNCCreated = async (data: RNCFormData) => {
-    await createRNC.mutateAsync(data);
+    try {
+      await createRNC.mutateAsync(data);
+      setIsFormOpen(false); // Close the dialog after successful creation
+    } catch (error) {
+      console.error('Error creating RNC:', error);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <RNCListHeader onRNCCreated={handleRNCCreated}/>
+        <RNCListHeader 
+          onRNCCreated={handleRNCCreated}
+          isFormOpen={isFormOpen}
+          setIsFormOpen={setIsFormOpen}
+        />
       
         <div className="space-y-6">
           <RNCListFilters
-            searchTerm={searchTerm}
+            search={searchTerm}
             onSearchChange={setSearchTerm}
-            statusFilter={statusFilter}
+            status={statusFilter}
             onStatusChange={setStatusFilter}
-            departmentFilter={departmentFilter}
+            department={departmentFilter}
             onDepartmentChange={setDepartmentFilter}
+            onClearFilters={() => {
+              setSearchTerm("");
+              setStatusFilter("all");
+              setDepartmentFilter("all");
+            }}
           />
-          <RNCListTable rncs={filteredRncs} isLoading={isLoading} onRowClick={(id) => navigate(`/quality/rnc/${id}`)}/>
+          
+          <RNCListTable
+            rncs={filteredRncs}
+            isLoading={isLoading}
+            onRNCClick={(id) => navigate(`/quality/rnc/${id}`)}
+          />
         </div>
       </div>
     </div>
