@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { getRNCs } from "@/api/rncService";
+import { getRNCs } from "@/api/rnc";
 import { RNC } from "@/types/rnc";
 
 const Dashboard = () => {
