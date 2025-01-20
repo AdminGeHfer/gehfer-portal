@@ -1591,6 +1591,7 @@ export type Database = {
           nfv: string | null
           responsible: string | null
           rnc_number: number | null
+          status: Database["public"]["Enums"]["rnc_status_enum"]
           type: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at: string
           workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
@@ -1617,6 +1618,7 @@ export type Database = {
           nfv?: string | null
           responsible?: string | null
           rnc_number?: number | null
+          status?: Database["public"]["Enums"]["rnc_status_enum"]
           type?: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at?: string
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
@@ -1643,6 +1645,7 @@ export type Database = {
           nfv?: string | null
           responsible?: string | null
           rnc_number?: number | null
+          status?: Database["public"]["Enums"]["rnc_status_enum"]
           type?: Database["public"]["Enums"]["rnc_type_enum"]
           updated_at?: string
           workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
@@ -2214,6 +2217,24 @@ export type Database = {
               similarity: number
             }[]
           }
+      postgres_fdw_disconnect: {
+        Args: {
+          "": string
+        }
+        Returns: boolean
+      }
+      postgres_fdw_disconnect_all: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      postgres_fdw_get_connections: {
+        Args: Record<PropertyKey, never>
+        Returns: Record<string, unknown>[]
+      }
+      postgres_fdw_handler: {
+        Args: Record<PropertyKey, never>
+        Returns: unknown
+      }
       rollback_document_version: {
         Args: {
           p_version_id: string
@@ -2296,6 +2317,12 @@ export type Database = {
       message_role: "system" | "assistant" | "user"
       output_format_enum: "text" | "structured" | "markdown"
       rnc_department_enum: "logistics" | "quality" | "financial"
+      rnc_status_enum:
+        | "not_created"
+        | "pending"
+        | "canceled"
+        | "collect"
+        | "concluded"
       rnc_type_enum:
         | "company_complaint"
         | "supplier"
