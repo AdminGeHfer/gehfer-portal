@@ -43,7 +43,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
       created_by,
       created_at,
       updated_at,
-      product:rnc_products(product, weight),
+      products:rnc_products(id, product, weight),
       contact:rnc_contacts(name, phone, email),
       events:rnc_events(id, created_at, created_by, title, description, type)
     `)
@@ -84,7 +84,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
       .from('rncs')
       .select(`
         *,
-        product:rnc_products(*),
+        products:rnc_products(id, product, weight),
         contact:rnc_contacts(*),
         events:rnc_events(*)
       `)

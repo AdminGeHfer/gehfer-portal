@@ -3,6 +3,7 @@ import { RNC } from "@/types/rnc";
 export const transformRNCData = (data): RNC => {
   return {
     ...data,
+    products: data.products || [],
     contact: data.contact[0] || { name: "", phone: "", email: "" },
     timeline: data.events.map((event) => ({
       id: event.id,
