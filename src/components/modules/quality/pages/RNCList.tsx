@@ -33,7 +33,6 @@ const RNCList = () => {
         description: "Não foi possível criar a RNC.",
         variant: "destructive",
       });
-      return `${error}`;
       throw error;
     }
   };
