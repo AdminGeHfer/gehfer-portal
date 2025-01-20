@@ -8,6 +8,7 @@ import { RNC, RNCFormData } from "@/types/rnc";
 import { RNCListHeader } from "@/components/quality/list/RNCListHeader";
 import { RNCListFilters } from "@/components/quality/list/RNCListFilters";
 import { RNCListTable } from "@/components/quality/list/RNCListTable";
+import { useRNCs } from "@/hooks/useRNCs";
 
 const RNCList = () => {
   const navigate = useNavigate();
@@ -16,11 +17,11 @@ const RNCList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { createRNC, rncs, isLoading } = useRNCs();
 
   const handleSubmit = async (data: RNCFormData): Promise<string> => {
     try {
-      // TODO: Implement API integration
-      console.log('Creating RNC:', data);
+      await createRNC.mutateAsync(data);
       toast({
         title: "RNC criada com sucesso",
         description: "A RNC foi registrada no sistema.",
@@ -28,6 +29,7 @@ const RNCList = () => {
       setIsFormOpen(false);
       return "success";
     } catch (error) {
+      console.error('Error creating RNC:', error);
       toast({
         title: "Erro ao criar RNC",
         description: "Não foi possível criar a RNC.",
@@ -37,58 +39,17 @@ const RNCList = () => {
     }
   };
 
-  const mockRncs: RNC[] = [
-    {
-      id: "1",
-      rnc_number: 67,
-      description: "Produto entregue com defeito",
-      title: "Produto entregue com defeito",
-      company: "PX COMERCIO DE FERRO E ACO PNTALENSE LTDA",
-      department: "quality",
-      workflow_status: "resolution",
-      type: "company_complaint",
-      contact: {
-        name: "João Silva",
-        phone: "11999999999",
-        email: "joao@example.com"
-      },
-      cnpj: "12345678901234",
-      created_at: "2024-03-09T00:00:00.000Z",
-      updated_at: "2024-03-09T00:00:00.000Z",
-      created_by: "user-1",
-      timeline: [],
-      company_code: "123",
-      responsible: "John Doe",
-      days_left: 5,
-      korp: "KORP123",
-      nfv: "NFV123",
-      nfd: "NFD123",
-      city: "São Paulo",
-      conclusion: "Pending"
-    },
-    {
-      id: "2",
-      rnc_number: 66,
-      description: "Material fora das especificações",
-      title: "Material fora das especificações",
-      company: "BORTOLON",
-      department: "quality",
-      workflow_status: "solved",
-      type: "company_complaint",
-      contact: {
-        name: "Maria Santos",
-        phone: "11988888888",
-        email: "maria@example.com"
-      },
-      cnpj: "98765432109876",
-      created_at: "2024-03-05T00:00:00.000Z",
-      updated_at: "2024-03-05T00:00:00.000Z",
-      created_by: "user-2",
-      timeline: [],
-      conclusion: "Resolved",
-      company_code: "456"
-    }
-  ];
+  const filteredRncs = rncs?.filter((rnc) => {
+    const matchesSearch = 
+      searchTerm === "" ||
+      rnc.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      rnc.rnc_number?.toString().includes(searchTerm);
+    
+    const matchesStatus = statusFilter === "all" || rnc.workflow_status === statusFilter;
+    const matchesDepartment = departmentFilter === "all" || rnc.department === departmentFilter;
+
+    return matchesSearch && matchesStatus && matchesDepartment;
+  }) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -124,7 +85,7 @@ const RNCList = () => {
 
         <main className="flex-1 p-6">
           <RNCListHeader 
-            onRNCCreated={handleSubmit} 
+            onRNCCreated={handleSubmit}
             isFormOpen={isFormOpen}
             setIsFormOpen={setIsFormOpen}
           />
@@ -139,9 +100,9 @@ const RNCList = () => {
           />
 
           <RNCListTable
-            rncs={mockRncs}
+            rncs={filteredRncs}
             onRowClick={(id) => navigate(`/quality/rnc/${id}`)}
-            isLoading={false}
+            isLoading={isLoading}
           />
         </main>
       </div>
