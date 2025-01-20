@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { RNCForm } from "@/components/quality/RNCForm";
+import { RNCFormData } from "@/types/rnc";
 import { useState } from "react";
 
 interface RNCListHeaderProps {
-  onRNCCreated: () => void;
+  onRNCCreated: (data: RNCFormData) => Promise<void>;
 }
 
 export const RNCListHeader = ({ onRNCCreated }: RNCListHeaderProps) => {
@@ -15,7 +16,17 @@ export const RNCListHeader = ({ onRNCCreated }: RNCListHeaderProps) => {
   const handleSubmit = async () => {
     try {
       setIsFormOpen(false);
-      onRNCCreated();
+      const formData: RNCFormData = {
+        description: "",
+        type: "logistics",
+        department: "quality",
+        contact: undefined,
+        company: "",
+        company_code: "",
+        cnpj: "",
+        workflow_status: "open"
+      };
+      await onRNCCreated(formData);
       return "success";
     } catch (error) {
       console.error("Error creating RNC:", error);
