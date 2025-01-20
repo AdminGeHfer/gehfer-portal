@@ -102,7 +102,7 @@ export const deleteRNCRecord = async (id: string) => {
     // Delete in order of dependencies
     await deleteWorkflowTransitions(id);
     await deleteNotifications(id);
-    await deleteProducts(id);
+    await deleteProducts(id);  // Movido para antes da deleção da RNC
     await deleteContacts(id);
     await deleteEvents(id);
     
