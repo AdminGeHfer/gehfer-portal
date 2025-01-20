@@ -128,7 +128,7 @@ export const useRNCs = () => {
           .insert(
             data.products.map(product => ({
               rnc_id: rnc.id,
-              product: product.name,
+              product: product.product,
               weight: product.weight
             }))
           );
@@ -166,40 +166,6 @@ export const useRNCs = () => {
       toast.error(`Erro ao criar RNC: ${error.message}`);
     },
   });
-
-  const getDashboardStats = () => {
-    if (!rncs) return {
-      total: 0,
-      open: 0,
-      inProgress: 0,
-      closed: 0,
-      averageResolutionTime: 0
-    };
-
-    const total = rncs.length;
-    const open = rncs.filter(rnc => rnc.workflow_status === 'open').length;
-    const inProgress = rncs.filter(rnc => ['analysis', 'resolution'].includes(rnc.workflow_status)).length;
-    const closed = rncs.filter(rnc => rnc.workflow_status === 'closed').length;
-
-    const closedRncs = rncs.filter(rnc => rnc.closed_at);
-    const totalResolutionTime = closedRncs.reduce((acc, rnc) => {
-      const start = new Date(rnc.created_at);
-      const end = new Date(rnc.closed_at!);
-      return acc + (end.getTime() - start.getTime());
-    }, 0);
-
-    const averageResolutionTime = closedRncs.length > 0 
-      ? Math.round(totalResolutionTime / closedRncs.length / (1000 * 60 * 60 * 24)) 
-      : 0;
-
-    return {
-      total,
-      open,
-      inProgress,
-      closed,
-      averageResolutionTime
-    };
-  };
 
   return {
     rncs,
