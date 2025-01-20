@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +11,7 @@ import { SidebarProvider } from "./contexts/SidebarContext";
 import { CollapsibleSidebar } from "./components/layout/CollapsibleSidebar";
 import { SidebarNav } from "./components/layout/SidebarNav";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Lazy load components
 const Login = lazy(() => import("./features/auth/pages/Login"));
@@ -53,79 +54,110 @@ const ProtectedRoute = ({ children, module, action = "read" }: ProtectedRoutePro
   </AuthGuard>
 );
 
-const App = () => (
-  <BrowserRouter>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <TooltipProvider>
-          <SidebarProvider>
-            <div className="min-h-screen bg-background">
-              <Toaster />
-              <Sonner />
-              <Suspense fallback={<LoadingFallback />}>
-                <div className="flex min-h-screen">
-                  <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route
-                      path="/*"
-                      element={
-                        <ProtectedRoute module="any">
-                          <>
-                            <CollapsibleSidebar>
-                              <SidebarNav />
-                            </CollapsibleSidebar>
-                            <main className="flex-1 overflow-auto w-full">
-                              <Routes>
-                                <Route path="/apps" element={<Apps />} />
-                                <Route
-                                  path="/intelligence/*"
-                                  element={
-                                    <ProtectedRoute module="intelligence">
-                                      <IntelligenceRoutes />
-                                    </ProtectedRoute>
-                                  }
-                                />
-                                <Route
-                                  path="/quality/*"
-                                  element={
-                                    <ProtectedRoute module="quality">
-                                      <QualityRoutes />
-                                    </ProtectedRoute>
-                                  }
-                                />
-                                <Route
-                                  path="/admin/*"
-                                  element={
-                                    <ProtectedRoute module="admin">
-                                      <AdminRoutes />
-                                    </ProtectedRoute>
-                                  }
-                                />
-                                <Route
-                                  path="/portaria/*"
-                                  element={
-                                    <ProtectedRoute module="portaria">
-                                      <PortariaRoutes />
-                                    </ProtectedRoute>
-                                  }
-                                />
-                                <Route path="/" element={<Navigate to="/apps" replace />} />
-                                <Route path="*" element={<Navigate to="/apps" replace />} />
-                              </Routes>
-                            </main>
-                          </>
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Routes>
-                </div>
-              </Suspense>
-            </div>
-          </SidebarProvider>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
-  </BrowserRouter>
-);
+const App = () => {
+  useEffect(() => {
+    // Log initial session
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      if (error) console.error('Session error:', error);
+    };
+    
+    checkSession();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event);
+      console.log('New session:', session);
+      
+      if (event === 'SIGNED_IN') {
+        console.log('User signed in:', session?.user);
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  return (
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <TooltipProvider>
+            <SidebarProvider>
+              <div className="min-h-screen bg-background">
+                <Toaster />
+                <Sonner />
+                <Suspense fallback={<LoadingFallback />}>
+                  <div className="flex min-h-screen">
+                    <Routes>
+                      <Route path="/login" element={<Login />} />
+                      <Route
+                        path="/*"
+                        element={
+                          <ProtectedRoute module="any">
+                            <>
+                              <CollapsibleSidebar>
+                                <SidebarNav />
+                              </CollapsibleSidebar>
+                              <main className="flex-1 overflow-auto w-full">
+                                <Routes>
+                                  <Route path="/apps" element={<Apps />} />
+                                  <Route
+                                    path="/intelligence/*"
+                                    element={
+                                      <ProtectedRoute module="intelligence">
+                                        <IntelligenceRoutes />
+                                      </ProtectedRoute>
+                                    }
+                                  />
+                                  <Route
+                                    path="/quality/*"
+                                    element={
+                                      <ProtectedRoute module="quality">
+                                        <QualityRoutes />
+                                      </ProtectedRoute>
+                                    }
+                                  />
+                                  <Route
+                                    path="/admin/*"
+                                    element={
+                                      <ProtectedRoute module="admin">
+                                        <AdminRoutes />
+                                      </ProtectedRoute>
+                                    }
+                                  />
+                                  <Route
+                                    path="/portaria/*"
+                                    element={
+                                      <ProtectedRoute module="portaria">
+                                        <PortariaRoutes />
+                                      </ProtectedRoute>
+                                    }
+                                  />
+                                  <Route path="/" element={<Navigate to="/apps" replace />} />
+                                  <Route path="*" element={<Navigate to="/apps" replace />} />
+                                </Routes>
+                              </main>
+                            </>
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Routes>
+                  </div>
+                </Suspense>
+              </div>
+            </SidebarProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
+  );
+};
 
 export default App;
