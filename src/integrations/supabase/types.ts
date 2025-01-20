@@ -1407,21 +1407,21 @@ export type Database = {
       }
       rnc_contacts: {
         Row: {
-          email: string
+          email: string | null
           id: string
           name: string
           phone: string
           rnc_id: string
         }
         Insert: {
-          email: string
+          email?: string | null
           id?: string
           name: string
           phone: string
           rnc_id: string
         }
         Update: {
-          email?: string
+          email?: string | null
           id?: string
           name?: string
           phone?: string

@@ -17,6 +17,7 @@ interface RNCDetailActionsProps {
 }
 
 export function RNCDetailActions({
+  rnc,
   canEdit,
   isEditing,
   onEdit,
@@ -26,6 +27,18 @@ export function RNCDetailActions({
   setIsDeleteDialogOpen,
   isDeleting
 }: RNCDetailActionsProps) {
+  const handleEditClick = () => {
+    console.log('Edit button clicked for RNC:', rnc.id);
+    console.log('Current edit permission:', canEdit);
+    onEdit();
+  };
+
+  const handleDeleteClick = () => {
+    console.log('Delete button clicked for RNC:', rnc.id);
+    console.log('Current edit permission:', canEdit);
+    setIsDeleteDialogOpen(true);
+  };
+
   return (
     <div className="flex gap-2 animate-fade-in">
       <Button 
@@ -49,7 +62,7 @@ export function RNCDetailActions({
           <Button 
             variant={isEditing ? "default" : "outline"}
             className={isEditing ? "" : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"}
-            onClick={isEditing ? onSave : onEdit}
+            onClick={handleEditClick}
           >
             <PencilSimple className="mr-2 h-4 w-4" />
             {isEditing ? "Salvar" : "Editar"}
@@ -57,7 +70,7 @@ export function RNCDetailActions({
           <Button 
             variant="outline" 
             className="text-destructive hover:text-destructive-foreground hover:bg-destructive/90 bg-white dark:bg-gray-800"
-            onClick={() => setIsDeleteDialogOpen(true)}
+            onClick={handleDeleteClick}
             disabled={isDeleting}
           >
             <Trash className="mr-2 h-4 w-4" />
