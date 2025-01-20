@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginForm = (): JSX.Element => {
   const [email, setEmail] = useState<string>('');
@@ -15,14 +16,56 @@ const LoginForm = (): JSX.Element => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    console.log('Login attempt started with email:', email);
     
     if (email && password) {
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo ao sistema The Four",
-      });
-      navigate('/app');
+      try {
+        console.log('Attempting to sign in with Supabase...');
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          console.error('Supabase login error:', error);
+          toast({
+            variant: "destructive",
+            title: "Erro ao fazer login",
+            description: error.message,
+          });
+          return;
+        }
+
+        console.log('Login successful:', data);
+        
+        // Get user profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else {
+          console.log('User profile:', profile);
+        }
+
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo ao sistema The Four",
+        });
+        navigate('/app');
+      } catch (error) {
+        console.error('Unexpected error during login:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao fazer login",
+          description: "Ocorreu um erro inesperado",
+        });
+      }
     } else {
+      console.log('Login validation failed - missing email or password');
       toast({
         variant: "destructive",
         title: "Erro ao fazer login",
