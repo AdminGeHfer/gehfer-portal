@@ -65,7 +65,9 @@ const RNCList = () => {
               <DialogHeader>
                 <DialogTitle>Nova RNC</DialogTitle>
               </DialogHeader>
-              <RNCForm onSubmit={handleSubmit} />
+              {isFormOpen && (
+                <RNCForm onSubmit={handleSubmit} />
+              )}
             </DialogContent>
           </Dialog>
         </div>
