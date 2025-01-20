@@ -3,7 +3,11 @@ import { RNC } from "@/types/rnc";
 export const transformRNCData = (data): RNC => {
   return {
     ...data,
-    products: data.products || [],
+    products: Array.isArray(data.products) ? data.products.map(p => ({
+      id: p.id,
+      product: p.product,
+      weight: p.weight
+    })) : [],
     contact: data.contact[0] || { name: "", phone: "", email: "" },
     timeline: data.events.map((event) => ({
       id: event.id,
