@@ -30,13 +30,13 @@ export function RNCListContainer() {
 
   const handleRNCCreated = async (data: RNCFormData): Promise<string> => {
     try {
-      await createRNC.mutateAsync(data);
+      const result = await createRNC.mutateAsync(data);
       setIsFormOpen(false);
+      return result.id; // Return the ID as required by the type
     } catch (error) {
       console.error('Error creating RNC:', error);
-      return `Error: ${error.message}`;
+      throw error;
     }
-    return `Success: RNC created successfully!`;
   };
 
   return (
