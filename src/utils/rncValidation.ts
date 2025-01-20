@@ -2,18 +2,14 @@ import { DepartmentEnum, WorkflowStatusEnum } from "@/types/rnc";
 
 export const validateDepartment = (department: string): DepartmentEnum => {
   switch (department) {
-    case "Expedição":
-      return "Expedição";
-    case "Logistica":
-      return "Logistica";
-    case "Comercial":
-      return "Comercial";
-    case "Qualidade":
-      return "Qualidade";
-    case "Produção":
-      return "Produção";
+    case "logistics":
+      return "logistics";
+    case "quality":
+      return "quality";
+    case "financial":
+      return "financial";
     default:
-      return "Qualidade";
+      return "quality";
   }
 };
 
@@ -49,13 +45,27 @@ export const validatePriority = (priority: string): "low" | "medium" | "high" =>
   }
 };
 
-export const validateType = (type: string): "client" | "supplier" => {
+export const validateType = (type: string): RNCTypeEnum => {
   switch (type?.toLowerCase()) {
-    case "client":
-      return "client";
+    case "company_complaint":
+      return "company_complaint";
     case "supplier":
       return "supplier";
+    case "dispatch":
+      return "dispatch";
+    case "logistics":
+      return "logistics";
+    case "deputy":
+      return "deputy";
+    case "driver":
+      return "driver";
+    case "financial":
+      return "financial";
+    case "commercial":
+      return "commercial";
+    case "financial_agreement":
+      return "financial_agreement";
     default:
-      return "client";
+      return "company_complaint";
   }
 };

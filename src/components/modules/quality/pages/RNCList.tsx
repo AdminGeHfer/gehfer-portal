@@ -15,7 +15,6 @@ const RNCList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
 
   const handleSubmit = async (data: RNCFormData): Promise<void> => {
     try {
@@ -42,10 +41,9 @@ const RNCList = () => {
       description: "Produto entregue com defeito",
       title: "Produto entregue com defeito",
       company: "PX COMERCIO DE FERRO E ACO PNTALENSE LTDA",
-      department: "Qualidade",
+      department: "quality",
       workflow_status: "resolution",
-      priority: "medium",
-      type: "client",
+      type: "company_complaint",
       contact: {
         name: "João Silva",
         phone: "11999999999",
@@ -54,8 +52,15 @@ const RNCList = () => {
       cnpj: "12345678901234",
       created_at: "2024-03-09T00:00:00.000Z",
       updated_at: "2024-03-09T00:00:00.000Z",
-      created_by: "user-1", // Added missing required field
-      timeline: []
+      created_by: "user-1",
+      timeline: [],
+      company_code: "123",
+      responsible: "John Doe",
+      days_left: 5,
+      korp: "KORP123",
+      nfv: "NFV123",
+      nfd: "NFD123",
+      city: "São Paulo"
     },
     {
       id: "2",
@@ -113,7 +118,7 @@ const RNCList = () => {
         </aside>
 
         <main className="flex-1 p-6">
-          <RNCListHeader onRNCCreated={() => handleSubmit} />
+          <RNCListHeader onRNCCreated={handleSubmit} />
           
           <RNCListFilters
             searchTerm={searchTerm}
@@ -122,8 +127,6 @@ const RNCList = () => {
             onStatusChange={setStatusFilter}
             departmentFilter={departmentFilter}
             onDepartmentChange={setDepartmentFilter}
-            priorityFilter={priorityFilter}
-            onPriorityChange={setPriorityFilter}
           />
 
           <RNCListTable
