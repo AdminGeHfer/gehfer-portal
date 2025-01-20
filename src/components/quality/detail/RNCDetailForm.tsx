@@ -38,7 +38,7 @@ const formSchema = z.object({
   attachments: z.array(z.instanceof(File)).optional(),
   conclusion: z.string().optional(),
   workflow_status: z.enum(["open", "analysis", "resolution", "solved", "closing", "closed"]).default("open"),
-  assignedTo: z.string().optional(),
+  assigned_to: z.string().optional(),
 });
 
 interface RNCDetailFormProps {
@@ -70,7 +70,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
       attachments: rnc.attachments,
       conclusion: rnc.conclusion,
       workflow_status: rnc.workflow_status,
-      assignedTo: rnc.assignedTo,
+      assigned_to: rnc.assigned_to,
     },
   });
 
