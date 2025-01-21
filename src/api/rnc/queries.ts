@@ -44,7 +44,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
         created_by,
         created_at,
         updated_at,
-        products:rnc_products(product, weight),
+        products:rnc_products(id, rnc_id, product, weight),
         contact:rnc_contacts(name, phone, email),
         events:rnc_events(id, created_at, created_by, title, description, type)
       `)
@@ -61,7 +61,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     }
 
     const transformedData = rncs.map(transformRNCData);
-    console.log("Transformed RNC data (query 1st):", transformedData);
+    console.log("[Vite] Transformed RNC data (list):", transformedData);
 
     sessionStorage.setItem(
       RNC_CACHE_KEY,
@@ -77,7 +77,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
 export const getRNCById = async (id: string): Promise<RNC | null> => {
   try {
-    console.log("Fetching RNC details for ID:", id);
+    console.log("[Vite] Fetching RNC details for ID:", id);
     
     const { data, error } = await supabase
       .from("rncs")
@@ -107,7 +107,7 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
         created_by,
         created_at,
         updated_at,
-        products:rnc_products(product, weight),
+        products:rnc_products(id, rnc_id, product, weight),
         contact:rnc_contacts(name, phone, email),
         events:rnc_events(id, created_at, created_by, title, description, type)
       `)
@@ -115,21 +115,21 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
       .maybeSingle();
 
     if (error) {
-      console.error("Error fetching RNC by ID:", error);
+      console.error("[Vite] Error fetching RNC by ID:", error);
       throw error;
     }
 
     if (!data) {
-      console.log(`No RNC found with ID: ${id}`);
+      console.log(`[Vite] No RNC found with ID: ${id}`);
       return null;
     }
 
-    console.log("Raw RNC data (query):", data);
+    console.log("[Vite] Raw RNC data (detail):", data);
     const transformedData = transformRNCData(data);
-    console.log("Transformed RNC data (query 2nd):", transformedData);
+    console.log("[Vite] Transformed RNC data (detail):", transformedData);
     return transformedData;
   } catch (error) {
-    console.error("Error in getRNCById:", error);
+    console.error("[Vite] Error in getRNCById:", error);
     throw error;
   }
 };
