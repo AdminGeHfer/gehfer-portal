@@ -67,6 +67,7 @@ export function RNCDetailActions({
             variant={isEditing ? "default" : "outline"}
             className={isEditing ? "" : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"}
             onClick={handleEditClick}
+            disabled={isEditing}
           >
             <PencilSimple className="mr-2 h-4 w-4" />
             {isEditing ? "Salvar" : "Editar"}

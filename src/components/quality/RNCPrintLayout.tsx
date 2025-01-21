@@ -1,5 +1,5 @@
 import * as React from "react";
-import { RNC, WorkflowStatusEnum } from "@/types/rnc";
+import { RNC, WorkflowStatusEnum, DepartmentEnum } from "@/types/rnc";
 import { format } from "date-fns";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
@@ -25,6 +25,15 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
       solved: "Solucionado"
     };
     return labels[status];
+  };
+
+  const getDepartmentLabel = (department: string) => {
+    const labels: Record<DepartmentEnum, string> = {
+      logistics: "Logística",
+      quality: "Qualidade",
+      financial: "Financeiro"
+    };
+    return labels[department];
   };
 
   return (
@@ -83,7 +92,7 @@ export function RNCPrintLayout({ rnc }: RNCPrintLayoutProps) {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Departamento</p>
-                <p>{rnc.department}</p>
+                <p>{getDepartmentLabel(rnc.department)}</p>
               </div>
             </div>
             <div>
