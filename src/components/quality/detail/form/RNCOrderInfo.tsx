@@ -28,7 +28,7 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
   const canEdit = isEditing && (status === "pending" || status === "collect");
   const canAddProducts = canEdit;
 
-  console.log("Products in form:", fields); // Debug log
+  console.log("Products in form:", fields);
 
   return (
     <div className="space-y-4">
@@ -51,7 +51,12 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => append({ product: "", weight: 0 })}
+                    onClick={() => append({ 
+                      id: crypto.randomUUID(),
+                      rnc_id: form.getValues().id || crypto.randomUUID(),
+                      product: "", 
+                      weight: 0 
+                    })}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Adicionar Produto
