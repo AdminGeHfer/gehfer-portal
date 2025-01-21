@@ -2,72 +2,88 @@ import * as React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
+import { Trash, Plus } from "lucide-react";
+import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 
 interface ProductsTableProps {
-  fields: UseFormReturn<RNCFormData>;
-  canEdit: boolean;
   form: UseFormReturn<RNCFormData>;
-  onRemove: (index: number) => void;
+  canEdit: boolean;
 }
 
-export function ProductsTable({ fields, canEdit, form, onRemove }: ProductsTableProps) {
-  if (!fields || fields.length === 0) {
-    return (
-      <div className="text-center py-4 text-muted-foreground">
-        Nenhum produto foi encontrado
-      </div>
-    );
-  }
+export function ProductsTable({ form, canEdit }: ProductsTableProps) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "products",
+  });
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Produto</TableHead>
-          <TableHead>Peso (kg)</TableHead>
-          {canEdit && <TableHead className="w-[100px]">Ações</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {fields.map((field, index) => (
-          <TableRow key={index}>
-            <TableCell>
-              <Input
-                {...form.register(`products.${index}.product`)}
-                defaultValue={field.product}
-                placeholder="Nome do produto"
-                disabled={!canEdit}
-              />
-            </TableCell>
-            <TableCell>
-              <Input
-                type="number"
-                {...form.register(`products.${index}.weight`, {
-                  valueAsNumber: true,
-                })}
-                defaultValue={field.weight}
-                placeholder="Peso em kg"
-                disabled={!canEdit}
-              />
-            </TableCell>
-            {canEdit && (
-              <TableCell>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRemove(index)}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            )}
+    <div className="space-y-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Produto</TableHead>
+            <TableHead>Peso (kg)</TableHead>
+            {canEdit && <TableHead className="w-[100px]">Ações</TableHead>}
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {fields.length > 0 ? (
+            fields.map((field, index) => (
+              <TableRow key={field.id}>
+                <TableCell>
+                  <Input
+                    {...form.register(`products.${index}.product`)}
+                    placeholder="Nome do produto"
+                    defaultValue={field.product || ""}
+                    disabled={!canEdit}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    {...form.register(`products.${index}.weight`, {
+                      valueAsNumber: true,
+                    })}
+                    placeholder="Peso em kg"
+                    defaultValue={field.weight || 0}
+                    disabled={!canEdit}
+                  />
+                </TableCell>
+                {canEdit && (
+                  <TableCell>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => remove(index)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={canEdit ? 3 : 2} className="text-center">
+                Nenhum produto foi encontrado
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      {canEdit && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => append({ product: "", weight: 0 })}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Adicionar Produto
+        </Button>
+      )}
+    </div>
   );
 }
