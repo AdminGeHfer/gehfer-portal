@@ -12,6 +12,7 @@ import { RNCDeleteDialog } from "./RNCDeleteDialog";
 import { useDeleteRNC } from "@/components/mutations/rncMutations";
 import { BackButton } from "@/components/atoms/BackButton";
 import { WorkflowStatusBadge } from "@/components/quality/workflow/status/WorkflowStatusBadge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export function RNCDetailContainer() {
   const navigate = useNavigate();
@@ -100,6 +101,35 @@ export function RNCDetailContainer() {
               onFieldChange={handleFieldChange}
               onSave={handleSave}
             />
+
+            {/* Products Table */}
+            <div className="bg-background rounded-lg border border-border shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">Produtos</h2>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>Peso (kg)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rnc.products && rnc.products.length > 0 ? (
+                    rnc.products.map((product, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{product.product}</TableCell>
+                        <TableCell>{product.weight}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center text-muted-foreground">
+                        Nenhum produto cadastrado
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
             <div className="bg-background rounded-lg border border-border shadow-sm p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Histórico do Workflow</h2>
