@@ -11,8 +11,8 @@ export type RNCTypeEnum =
   "commercial" | 
   "financial_agreement";
 
-export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 export type StatusEnum = "not_created" | "pending" | "canceled" | "collect" | "concluded";
+export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
 export interface RNCProduct {
   product: string;

@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { WorkflowStatusEnum } from "@/types/rnc";
-import { getStatusLabel } from "@/types/workflow";
 
 interface WorkflowStatusBadgeProps {
   status: WorkflowStatusEnum;
@@ -20,19 +19,19 @@ export function WorkflowStatusBadge({ status }: WorkflowStatusBadgeProps) {
       },
       resolution: {
         label: "Em Resolução",
-        className: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100"
+        className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
       },
       solved: {
-        label: "Solucionado",
-        className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+        label: "Resolvido",
+        className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
       },
       closing: {
-        label: "Em Fechamento",
-        className: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100"
+        label: "Fechando",
+        className: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-100"
       },
       closed: {
-        label: "Encerrado",
-        className: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100"
+        label: "Fechado",
+        className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
       }
     };
 
