@@ -83,6 +83,7 @@ export interface RNCFormData {
   korp?: string;
   nfv?: string;
   nfd?: string;
+  responsible?: string;
 }
 
 export interface TimelineEvent {

@@ -4,12 +4,10 @@ import { TimelineEvent, TimelineEventData } from "./TimelineEvent";
 
 interface TimelineListProps {
   events: TimelineEventData[];
-  getUserName: (userId: string) => string;
-  getInitials: (name: string) => string;
   isLoading?: boolean;
 }
 
-export function TimelineList({ events, getUserName, isLoading }: TimelineListProps) {
+export function TimelineList({ events, isLoading }: TimelineListProps) {
   if (isLoading) {
     return (
       <Card>
@@ -51,7 +49,7 @@ export function TimelineList({ events, getUserName, isLoading }: TimelineListPro
             <div key={event.id} className="relative">
               <TimelineEvent
                 event={event}
-                userName={event.userName || getUserName(event.userId)}
+                userName={event.userName}
               />
               {events.indexOf(event) !== events.length - 1 && (
                 <div className="absolute left-4 top-8 bottom-0 w-0.5 -translate-x-1/2 bg-border" />
