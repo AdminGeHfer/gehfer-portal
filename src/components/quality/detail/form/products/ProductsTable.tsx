@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { RNCFormData } from "@/types/rnc";
+import { RNCFormData, RNCProduct } from "@/types/rnc";
 
 interface ProductsTableProps {
-  fields: any[];
+  fields: RNCProduct[];
   canEdit: boolean;
   form: UseFormReturn<RNCFormData>;
   onRemove: (index: number) => void;
@@ -34,39 +34,44 @@ export function ProductsTable({ fields, canEdit, form, onRemove }: ProductsTable
         </TableRow>
       </TableHeader>
       <TableBody>
-        {fields.map((field, index) => (
-          <TableRow key={field.id}>
-            <TableCell>
-              <Input
-                {...form.register(`products.${index}.product`)}
-                placeholder="Nome do produto"
-                disabled={!canEdit}
-              />
-            </TableCell>
-            <TableCell>
-              <Input
-                type="number"
-                {...form.register(`products.${index}.weight`, {
-                  valueAsNumber: true,
-                })}
-                placeholder="Peso em kg"
-                disabled={!canEdit}
-              />
-            </TableCell>
-            {canEdit && (
+        {fields.map((field, index) => {
+          const product = form.getValues(`products`).find(p => p.id === field.id);
+          return (
+            <TableRow key={field.id}>
               <TableCell>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onRemove(index)}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
+                <Input
+                  {...form.register(`products.${index}.product`)}
+                  defaultValue={product?.product}
+                  placeholder="Nome do produto"
+                  disabled={!canEdit}
+                />
               </TableCell>
-            )}
-          </TableRow>
-        ))}
+              <TableCell>
+                <Input
+                  type="number"
+                  {...form.register(`products.${index}.weight`, {
+                    valueAsNumber: true,
+                  })}
+                  defaultValue={product?.weight}
+                  placeholder="Peso em kg"
+                  disabled={!canEdit}
+                />
+              </TableCell>
+              {canEdit && (
+                <TableCell>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onRemove(index)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              )}
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

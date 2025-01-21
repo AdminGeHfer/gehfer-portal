@@ -15,6 +15,8 @@ export type StatusEnum = "not_created" | "pending" | "canceled" | "collect" | "c
 export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" | "closing" | "closed";
 
 export interface RNCProduct {
+  id: string;
+  rnc_id: string;
   product: string;
   weight: number;
 }
