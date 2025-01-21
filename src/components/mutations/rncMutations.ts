@@ -3,6 +3,7 @@ import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
 import { UseMutationOptions, useMutation } from "@tanstack/react-query";
 import { deleteRNCRecord } from "@/mutations/rnc/deleteRNCOperations";
+import { updateRNCRecord } from "@/mutations/rnc/updateRNCOperations";
 
 export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   return useMutation({
@@ -31,87 +32,9 @@ export const useUpdateRNC = (
   return useMutation<void, Error, Partial<RNC>>({
     mutationFn: async (updatedData: Partial<RNC>) => {
       console.log('Starting RNC update with data:', updatedData);
-
-      // First update the RNC
-      const { error: rncError } = await supabase
-        .from("rncs")
-        .update({
-          rnc_number: updatedData.rnc_number,
-          company_code: updatedData.company_code,
-          company: updatedData.company,
-          cnpj: updatedData.cnpj,
-          type: updatedData.type,
-          description: updatedData.description,
-          responsible: updatedData.responsible,
-          days_left: updatedData.days_left,
-          korp: updatedData.korp,
-          nfv: updatedData.nfv,
-          nfd: updatedData.nfd,
-          collected_at: updatedData.collected_at,
-          closed_at: updatedData.closed_at,
-          city: updatedData.city,
-          conclusion: updatedData.conclusion,
-          department: updatedData.department,
-          assigned_at: updatedData.assigned_at,
-          workflow_status: updatedData.workflow_status,
-          assigned_to: updatedData.assigned_to,
-          assigned_by: updatedData.assigned_by,
-          created_by: updatedData.created_by,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
-
-      if (rncError) {
-        console.error("Error updating RNC:", rncError);
-        throw rncError;
-      }
-
-      // Then handle products if they exist
-      if (updatedData.products && updatedData.products.length > 0) {
-        // First delete existing products
-        const { error: deleteError } = await supabase
-          .from("rnc_products")
-          .delete()
-          .eq("rnc_id", id);
-
-        if (deleteError) {
-          console.error("Error deleting existing products:", deleteError);
-          throw deleteError;
-        }
-
-        // Then insert new products
-        const { error: productsError } = await supabase
-          .from("rnc_products")
-          .insert(
-            updatedData.products.map(product => ({
-              rnc_id: id,
-              product: product.product,
-              weight: product.weight
-            }))
-          );
-
-        if (productsError) {
-          console.error("Error inserting new products:", productsError);
-          throw productsError;
-        }
-      }
-
-      // Finally handle contact if it exists
-      if (updatedData.contact) {
-        const { error: contactError } = await supabase
-          .from("rnc_contacts")
-          .update({
-            name: updatedData.contact.name,
-            phone: updatedData.contact.phone,
-            email: updatedData.contact.email,
-            rnc_id: id
-          })
-          .eq("rnc_id", id);
-
-        if (contactError) {
-          console.error("Error updating contact:", contactError);
-          throw contactError;
-        }
+      const success = await updateRNCRecord(id, updatedData);
+      if (!success) {
+        throw new Error('Failed to update RNC');
       }
     },
     ...options,
@@ -122,6 +45,7 @@ export const useUpdateRNC = (
       }
     },
     onError: (error: Error) => {
+      console.error('Error in useUpdateRNC:', error);
       toast.error("Erro ao atualizar RNC: " + error.message);
       if (options?.onError) {
         options.onError(error, null, null);

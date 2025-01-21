@@ -9,7 +9,7 @@ import { RNCReportPreview } from "../report/RNCReportPreview";
 import { RNCDetailForm } from "./RNCDetailForm";
 import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDeleteDialog } from "./RNCDeleteDialog";
-import { useDeleteRNC } from "@/components/mutations/rncMutations";
+import { useDeleteRNC, useUpdateRNC } from "@/components/mutations/rncMutations";
 import { BackButton } from "@/components/atoms/BackButton";
 import { WorkflowStatusBadge } from "@/components/quality/workflow/status/WorkflowStatusBadge";
 
@@ -27,12 +27,20 @@ export function RNCDetailContainer() {
     handleFieldChange,
     handleEdit,
     handleSave,
+    refetch
   } = useRNCDetail(id!);
 
   console.log("RNC data in RNCDetailContainer:", rnc);
 
   const deleteMutation = useDeleteRNC(id!, () => {
     navigate("/quality/rnc");
+  });
+
+  const updateMutation = useUpdateRNC(id!, {
+    onSuccess: () => {
+      setIsEditing(false);
+      refetch();
+    }
   });
 
   const handleDelete = () => {
@@ -60,8 +68,14 @@ export function RNCDetailContainer() {
 
   const onSave = async () => {
     console.log('Save button clicked');
-    await handleSave();
-    setIsEditing(false);
+    if (!rnc) return;
+    
+    try {
+      await updateMutation.mutateAsync(rnc);
+      await handleSave();
+    } catch (error) {
+      console.error('Error saving RNC:', error);
+    }
   };
 
   if (isLoading || !rnc) {
