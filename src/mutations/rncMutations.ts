@@ -1,13 +1,39 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNC } from "@/types/rnc";
+import { toast } from "sonner";
+
+export const useDeleteRNC = (id: string, onSuccess: () => void) => {
+  return useMutation({
+    mutationFn: async () => {
+      console.log('Starting RNC deletion process for ID:', id);
+      const { error } = await supabase
+        .from("rncs")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error deleting RNC:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("RNC excluída com sucesso");
+      onSuccess();
+    },
+    onError: (error: Error) => {
+      console.error("Error in useDeleteRNC:", error);
+      toast.error("Erro ao excluir RNC: " + error.message);
+    },
+  });
+};
 
 export const useUpdateRNC = (
   id: string,
   onSuccess?: () => void,
   onError?: (error: Error) => void
 ) => {
-  return useMutation<void, Error, Partial<RNC>>({
+  return useMutation({
     mutationFn: async (updatedData: Partial<RNC>) => {
       console.log('Starting RNC update with data:', updatedData);
 
@@ -87,9 +113,13 @@ export const useUpdateRNC = (
         }
       }
     },
-    onSuccess,
+    onSuccess: () => {
+      toast.success("RNC atualizada com sucesso");
+      if (onSuccess) onSuccess();
+    },
     onError: (error) => {
       console.error("Mutation error:", error);
+      toast.error("Erro ao atualizar RNC: " + error.message);
       if (onError) onError(error);
     },
   });

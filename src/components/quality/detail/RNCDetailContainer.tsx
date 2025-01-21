@@ -25,8 +25,6 @@ export function RNCDetailContainer() {
     rnc,
     isLoading,
     handleFieldChange,
-    handleEdit,
-    handleSave,
     refetch
   } = useRNCDetail(id!);
 
@@ -36,11 +34,9 @@ export function RNCDetailContainer() {
     navigate("/quality/rnc");
   });
 
-  const updateMutation = useUpdateRNC(id!, {
-    onSuccess: () => {
-      setIsEditing(false);
-      refetch();
-    }
+  const updateMutation = useUpdateRNC(id!, () => {
+    setIsEditing(false);
+    refetch();
   });
 
   const handleDelete = () => {
@@ -63,7 +59,6 @@ export function RNCDetailContainer() {
   const onEdit = () => {
     console.log('Edit button clicked');
     setIsEditing(true);
-    handleEdit();
   };
 
   const onSave = async () => {
@@ -72,7 +67,6 @@ export function RNCDetailContainer() {
     
     try {
       await updateMutation.mutateAsync(rnc);
-      await handleSave();
     } catch (error) {
       console.error('Error saving RNC:', error);
     }
