@@ -1,4 +1,4 @@
-import { RNC, TimelineEvent, RNCProduct } from "@/types/rnc";
+import { RNC, TimelineEvent, RNCProduct, RNCContact } from "@/types/rnc";
 
 interface RawRNCData {
   id: string;
@@ -25,31 +25,24 @@ interface RawRNCData {
   collected_at?: string;
   city?: string;
   conclusion?: string;
-  products?: RawRNCProduct[];
-  contact?: RawRNCContact[];
-  events?: RawRNCEvent[];
-}
-
-interface RawRNCProduct {
-  id: string;
-  product: string;
-  weight: number;
-  rnc_id: string;
-}
-
-interface RawRNCContact {
-  name: string;
-  phone: string;
-  email?: string;
-}
-
-interface RawRNCEvent {
-  id: string;
-  created_at: string;
-  title: string;
-  description: string;
-  type: string;
-  created_by: string;
+  products?: {
+    product: string;
+    weight: number;
+    rnc_id: string;
+  }[];
+  contact?: {
+    name: string;
+    phone: string;
+    email?: string;
+  }[];
+  events?: {
+    id: string;
+    created_at: string;
+    title: string;
+    description: string;
+    type: string;
+    created_by: string;
+  }[];
 }
 
 export const transformRNCData = (data: RawRNCData): RNC => {
@@ -57,8 +50,7 @@ export const transformRNCData = (data: RawRNCData): RNC => {
   
   // Ensure products is always an array and properly transformed
   const products = Array.isArray(data.products) 
-    ? data.products.map((p: RawRNCProduct): RNCProduct => ({
-        id: p.id,
+    ? data.products.map((p): RNCProduct => ({
         product: p.product,
         weight: p.weight,
         rnc_id: p.rnc_id
@@ -67,11 +59,15 @@ export const transformRNCData = (data: RawRNCData): RNC => {
   
   console.log("Transformed products:", products);
 
-  // Transform contact data
-  const contact = data.contact?.[0] || { name: "", phone: "", email: "" };
+  // Transform contact data with required email field
+  const contact: RNCContact = {
+    name: data.contact?.[0]?.name || "",
+    phone: data.contact?.[0]?.phone || "",
+    email: data.contact?.[0]?.email || ""
+  };
   
   // Transform timeline events
-  const timeline: TimelineEvent[] = (data.events || []).map((event: RawRNCEvent) => ({
+  const timeline: TimelineEvent[] = (data.events || []).map((event) => ({
     id: event.id,
     date: event.created_at,
     title: event.title,
@@ -85,9 +81,6 @@ export const transformRNCData = (data: RawRNCData): RNC => {
     products,
     contact,
     timeline,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-    closedAt: data.closed_at,
     created_at: data.created_at,
     updated_at: data.updated_at,
     closed_at: data.closed_at,
