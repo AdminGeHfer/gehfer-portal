@@ -121,7 +121,7 @@ const RNCList = () => {
                     <TableCell>{rnc.company}</TableCell>
                     <TableCell>{rnc.department}</TableCell>
                     <TableCell>
-                      <RNCStatusBadge status={rnc.workflow_status} />
+                      <RNCStatusBadge status={rnc.status} />
                     </TableCell>
                     <TableCell className="text-right">
                       {format(new Date(rnc.created_at), "dd/MM/yyyy")}

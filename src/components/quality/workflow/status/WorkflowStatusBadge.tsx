@@ -15,15 +15,11 @@ export function WorkflowStatusBadge({ status }: WorkflowStatusBadgeProps) {
       },
       analysis: {
         label: "Em Análise",
-        className: "bg-[#FEC6A1] text-orange-800 dark:bg-orange-900 dark:text-orange-100"
+        className: "bg-[##b0872e] text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
       },
       resolution: {
         label: "Em Resolução",
-        className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
-      },
-      solved: {
-        label: "Resolvido",
-        className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+        className: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100"
       },
       closing: {
         label: "Fechando",
@@ -32,6 +28,10 @@ export function WorkflowStatusBadge({ status }: WorkflowStatusBadgeProps) {
       closed: {
         label: "Fechado",
         className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
+      },
+      solved: {
+        label: "Resolvido",
+        className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
       }
     };
 

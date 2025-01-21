@@ -11,6 +11,7 @@ import { RNCDetailActions } from "./RNCDetailActions";
 import { RNCDeleteDialog } from "./RNCDeleteDialog";
 import { useDeleteRNC } from "@/components/mutations/rncMutations";
 import { BackButton } from "@/components/atoms/BackButton";
+import { WorkflowStatusBadge } from "@/components/quality/workflow/status/WorkflowStatusBadge";
 
 export function RNCDetailContainer() {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ export function RNCDetailContainer() {
             <h1 className="text-2xl font-semibold text-foreground">
               RNC #{rnc.rnc_number}
             </h1>
-            <RNCStatusBadge status={rnc.workflow_status} />
+            <RNCStatusBadge status={rnc.status} />
           </div>
           <RNCDetailActions
             rnc={rnc}
@@ -110,7 +111,7 @@ export function RNCDetailContainer() {
             <div className="bg-background rounded-lg border border-border shadow-sm p-6">
               <h2 className="text-lg font-semibold text-foreground mb-4">Status do Workflow</h2>
               <div className="space-y-4">
-                <RNCStatusBadge status={rnc.workflow_status} />
+                <WorkflowStatusBadge status={rnc.workflow_status} />
                 <Textarea
                   className="w-full min-h-[100px]"
                   placeholder="Notas sobre a transição (opcional)"

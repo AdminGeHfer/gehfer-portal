@@ -139,15 +139,7 @@ const RNCList = () => {
                     <TableCell>{rnc.title}</TableCell>
                     <TableCell>{rnc.contact}</TableCell>
                     <TableCell>{rnc.department}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        rnc.status === "Aberto"
-                          ? "bg-yellow-50 text-yellow-800"
-                          : "bg-blue-50 text-blue-800"
-                      }`}>
-                        {rnc.status}
-                      </span>
-                    </TableCell>
+                    <TableCell>{rnc.status}</TableCell>
                     <TableCell>{rnc.date}</TableCell>
                   </TableRow>
                 ))}
