@@ -16,7 +16,7 @@ interface ProductsTableProps {
 export function ProductsTable({ fields, canEdit, form, onRemove }: ProductsTableProps) {
   console.log("Fields in ProductsTable:", fields); // Debug log
 
-  if (fields.length === 0) {
+  if (!fields || fields.length === 0) {
     return (
       <div className="text-center py-4 text-muted-foreground">
         Nenhum produto foi encontrado
@@ -34,44 +34,41 @@ export function ProductsTable({ fields, canEdit, form, onRemove }: ProductsTable
         </TableRow>
       </TableHeader>
       <TableBody>
-        {fields.map((field, index) => {
-          const product = form.getValues(`products`).find(p => p.id === field.id);
-          return (
-            <TableRow key={field.id}>
+        {fields.map((field, index) => (
+          <TableRow key={field.id || index}>
+            <TableCell>
+              <Input
+                {...form.register(`products.${index}.product`)}
+                defaultValue={field.product}
+                placeholder="Nome do produto"
+                disabled={!canEdit}
+              />
+            </TableCell>
+            <TableCell>
+              <Input
+                type="number"
+                {...form.register(`products.${index}.weight`, {
+                  valueAsNumber: true,
+                })}
+                defaultValue={field.weight}
+                placeholder="Peso em kg"
+                disabled={!canEdit}
+              />
+            </TableCell>
+            {canEdit && (
               <TableCell>
-                <Input
-                  {...form.register(`products.${index}.product`)}
-                  defaultValue={product?.product}
-                  placeholder="Nome do produto"
-                  disabled={!canEdit}
-                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onRemove(index)}
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
               </TableCell>
-              <TableCell>
-                <Input
-                  type="number"
-                  {...form.register(`products.${index}.weight`, {
-                    valueAsNumber: true,
-                  })}
-                  defaultValue={product?.weight}
-                  placeholder="Peso em kg"
-                  disabled={!canEdit}
-                />
-              </TableCell>
-              {canEdit && (
-                <TableCell>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onRemove(index)}
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              )}
-            </TableRow>
-          );
-        })}
+            )}
+          </TableRow>
+        ))}
       </TableBody>
     </Table>
   );
