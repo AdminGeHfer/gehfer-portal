@@ -28,7 +28,7 @@ export const useRNCDetail = (id: string) => {
           products:rnc_products(*)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching RNC:', error);
@@ -40,7 +40,6 @@ export const useRNCDetail = (id: string) => {
         return null;
       }
 
-      // Usuário pode editar se for admin, manager, criador da RNC, ou se a RNC não estiver solucionada
       const canEdit = isAdmin || 
                      isManager || 
                      (userData.user && data.created_by === userData.user.id) ||
@@ -69,7 +68,6 @@ export const useRNCDetail = (id: string) => {
       return;
     }
 
-    // Verificar se o status é "solved"
     if (rnc.workflow_status === "solved") {
       console.log('Edit denied - RNC is in solved status');
       toast.error("RNCs com status 'Solucionado' não podem ser editadas");
@@ -163,13 +161,15 @@ export const useRNCDetail = (id: string) => {
 
       if (error) {
         console.error('Error updating RNC field:', error);
-        throw error;
+        toast.error(`Erro ao atualizar ${field}: ${error.message}`);
+        return;
       }
 
+      console.log(`Successfully updated field ${field} for RNC ${id}`);
       await queryClient.invalidateQueries({ queryKey: ["rnc", id] });
     } catch (error) {
+      console.error('Error in handleFieldChange:', error);
       if (error instanceof Error) {
-        console.error('Error in handleFieldChange:', error);
         toast.error(`Erro ao atualizar ${field}: ${error.message}`);
       } else {
         toast.error(`Erro ao atualizar ${field}`);
