@@ -8,6 +8,18 @@ import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
+const modules = [
+  {
+    title: "Qualidade",
+    description: "Gestão de qualidade e controle de processos",
+    icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
+    route: "/quality/rnc",
+    submodules: [
+      { title: "RNCs", route: "/quality/rnc", icon: <ClipboardCheck className="h-4 w-4" /> }
+    ]
+  }
+];
+
 const Apps = () => {
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
