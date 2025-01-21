@@ -43,7 +43,12 @@ export const getRNCs = async (): Promise<RNC[]> => {
         created_by,
         created_at,
         updated_at,
-        products:rnc_products(id, product, weight, rnc_id),
+        products:rnc_products(
+          id,
+          product,
+          weight,
+          rnc_id
+        ),
         contact:rnc_contacts(name, phone, email),
         events:rnc_events(id, created_at, created_by, title, description, type)
       `)
@@ -60,8 +65,10 @@ export const getRNCs = async (): Promise<RNC[]> => {
     }
 
     console.log("Raw RNC data before transform:", data);
+    console.log("Raw products data:", data.map(d => d.products));
     const transformedData = data.map(transformRNCData);
     console.log("Transformed RNC data:", transformedData);
+    console.log("Transformed products:", transformedData.map(d => d.products));
 
     sessionStorage.setItem(
       RNC_CACHE_KEY,
@@ -106,7 +113,12 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
         created_by,
         created_at,
         updated_at,
-        products:rnc_products(id, product, weight, rnc_id),
+        products:rnc_products(
+          id,
+          product,
+          weight,
+          rnc_id
+        ),
         contact:rnc_contacts(name, phone, email),
         events:rnc_events(id, created_at, created_by, title, description, type)
       `)
