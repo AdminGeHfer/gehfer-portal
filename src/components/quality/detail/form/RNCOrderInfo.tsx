@@ -51,11 +51,9 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => append({ 
-                      id: crypto.randomUUID(),
-                      rnc_id: form.getValues().id || crypto.randomUUID(),
-                      product: "", 
-                      weight: 0 
+                    onClick={() => append({
+                      product: "",
+                      weight: 0
                     })}
                   >
                     <Plus className="h-4 w-4 mr-2" />
