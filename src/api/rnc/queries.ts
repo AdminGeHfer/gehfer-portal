@@ -15,7 +15,8 @@ export const getRNCs = async (): Promise<RNC[]> => {
       }
     }
 
-    const { data, error } = await supabase
+    // First get all RNCs
+    const { data: rncs, error: rncsError } = await supabase
       .from("rncs")
       .select(`
         id,
@@ -49,19 +50,33 @@ export const getRNCs = async (): Promise<RNC[]> => {
       `)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching RNCs:", error);
-      throw error;
+    if (rncsError) {
+      console.error("Error fetching RNCs:", rncsError);
+      throw rncsError;
     }
 
-    if (!data || data.length === 0) {
+    // For each RNC, get its products
+    for (const rnc of rncs || []) {
+      const { data: products, error: productsError } = await supabase
+        .from('rnc_products')
+        .select('*')
+        .eq('rnc_id', rnc.id);
+      
+      console.log(`[Vite] Products for RNC ${rnc.id}:`, products);
+      
+      if (productsError) {
+        console.error(`Error fetching products for RNC ${rnc.id}:`, productsError);
+      }
+    }
+
+    if (!rncs || rncs.length === 0) {
       console.warn("No RNC data found");
       return [];
     }
 
-    console.log("Raw RNC data before transform:", data);
-    console.log("Raw products data:", data.map(d => d.products));
-    const transformedData = data.map(transformRNCData);
+    console.log("Raw RNC data before transform:", rncs);
+    console.log("Raw products data:", rncs.map(d => d.products));
+    const transformedData = rncs.map(transformRNCData);
     console.log("Transformed RNC data:", transformedData);
     console.log("Transformed products:", transformedData.map(d => d.products));
 
@@ -80,6 +95,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
 export const getRNCById = async (id: string): Promise<RNC | null> => {
   try {
     console.log("Fetching RNC details for ID:", id);
+    
     const { data, error } = await supabase
       .from("rncs")
       .select(`
@@ -123,6 +139,18 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
     if (!data) {
       console.log(`No RNC found with ID: ${id}`);
       return null;
+    }
+
+    // Get products specifically for this RNC
+    const { data: products, error: productsError } = await supabase
+      .from('rnc_products')
+      .select('*')
+      .eq('rnc_id', id);
+    
+    console.log(`[Vite] Products for RNC ${id}:`, products);
+    
+    if (productsError) {
+      console.error(`Error fetching products for RNC ${id}:`, productsError);
     }
 
     console.log("Raw RNC data:", data);

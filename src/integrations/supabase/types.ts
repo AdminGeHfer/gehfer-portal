@@ -1486,26 +1486,26 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          product: string | null
-          rnc_id: string | null
+          product: string
+          rnc_id: string
           updated_at: string | null
-          weight: number | null
+          weight: number
         }
         Insert: {
           created_at?: string
           id?: string
-          product?: string | null
-          rnc_id?: string | null
+          product: string
+          rnc_id: string
           updated_at?: string | null
-          weight?: number | null
+          weight: number
         }
         Update: {
           created_at?: string
           id?: string
-          product?: string | null
-          rnc_id?: string | null
+          product?: string
+          rnc_id?: string
           updated_at?: string | null
-          weight?: number | null
+          weight?: number
         }
         Relationships: [
           {
