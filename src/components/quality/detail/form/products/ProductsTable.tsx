@@ -3,12 +3,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash, Plus } from "lucide-react";
-import { useFieldArray, UseFormReturn } from "react-hook-form";
+import { FieldArrayWithId, useFieldArray, UseFieldArrayRemove, UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 
 interface ProductsTableProps {
   form: UseFormReturn<RNCFormData>;
+  fields: FieldArrayWithId<RNCFormData, "products", "id">[];
   canEdit: boolean;
+  onRemove: UseFieldArrayRemove;
 }
 
 export function ProductsTable({ form, canEdit }: ProductsTableProps) {

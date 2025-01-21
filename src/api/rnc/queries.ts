@@ -61,7 +61,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     }
 
     const transformedData = rncs.map(transformRNCData);
-    console.log("Transformed RNC data:", transformedData);
+    console.log("Transformed RNC data (query 1st):", transformedData);
 
     sessionStorage.setItem(
       RNC_CACHE_KEY,
@@ -124,9 +124,9 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
       return null;
     }
 
-    console.log("Raw RNC data:", data);
+    console.log("Raw RNC data (query):", data);
     const transformedData = transformRNCData(data);
-    console.log("Transformed RNC data:", transformedData);
+    console.log("Transformed RNC data (query 2nd):", transformedData);
     return transformedData;
   } catch (error) {
     console.error("Error in getRNCById:", error);

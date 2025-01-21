@@ -52,7 +52,7 @@ export interface RawRNCData {
 }
 
 export const transformRNCData = (data: RawRNCData): RNC => {
-  console.log("Raw RNC data received:", data);
+  console.log("Raw RNC data received (rncTransform):", data);
 
   // Transform products with proper typing
   const products: RNCProduct[] = (data.products || []).map((product) => ({
@@ -93,6 +93,6 @@ export const transformRNCData = (data: RawRNCData): RNC => {
     conclusion: data.conclusion || ""
   };
 
-  console.log("Final transformed RNC data:", transformedData);
+  console.log("Final transformed RNC data (rncTransform):", transformedData);
   return transformedData;
 };
