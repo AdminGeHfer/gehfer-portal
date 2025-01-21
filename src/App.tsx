@@ -13,13 +13,36 @@ import { SidebarNav } from "./components/layout/SidebarNav";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { supabase } from "@/integrations/supabase/client";
 
-// Lazy load components
-const Login = lazy(() => import("./features/auth/pages/Login"));
-const Apps = lazy(() => import("./pages/Apps"));
-const QualityRoutes = lazy(() => import("./routes/QualityRoutes"));
-const AdminRoutes = lazy(() => import("./routes/AdminRoutes"));
-const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes"));
-const IntelligenceRoutes = lazy(() => import("./routes/IntelligenceRoutes"));
+// Lazy load components with error boundaries
+const Login = lazy(() => import("./features/auth/pages/Login").catch(err => {
+  console.error("Error loading Login component:", err);
+  return import("./components/pages/Login");
+}));
+
+const Apps = lazy(() => import("./pages/Apps").catch(err => {
+  console.error("Error loading Apps component:", err);
+  return Promise.reject(err);
+}));
+
+const QualityRoutes = lazy(() => import("./routes/QualityRoutes").catch(err => {
+  console.error("Error loading QualityRoutes component:", err);
+  return Promise.reject(err);
+}));
+
+const AdminRoutes = lazy(() => import("./routes/AdminRoutes").catch(err => {
+  console.error("Error loading AdminRoutes component:", err);
+  return Promise.reject(err);
+}));
+
+const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes").catch(err => {
+  console.error("Error loading PortariaRoutes component:", err);
+  return Promise.reject(err);
+}));
+
+const IntelligenceRoutes = lazy(() => import("./routes/IntelligenceRoutes").catch(err => {
+  console.error("Error loading IntelligenceRoutes component:", err);
+  return Promise.reject(err);
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +60,13 @@ const queryClient = new QueryClient({
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
     <LoadingSpinner size="lg" />
+  </div>
+);
+
+const ErrorFallback = ({ error }: { error: Error }) => (
+  <div className="flex flex-col items-center justify-center min-h-screen">
+    <h2 className="text-xl font-semibold mb-4">Error loading page</h2>
+    <p className="text-muted-foreground">{error.message}</p>
   </div>
 );
 
