@@ -1,11 +1,17 @@
 import { RNC } from "@/types/rnc";
 
-export const transformRNCData = (data): RNC => {
+export const transformRNCData = (data: any): RNC => {
+  console.log("Transforming RNC data:", data);
+  
+  // Ensure products is always an array
+  const products = Array.isArray(data.products) ? data.products : [];
+  console.log("Products after transformation:", products);
+
   return {
     ...data,
-    products: data.products || [],
+    products: products,
     contact: data.contact?.[0] || { name: "", phone: "", email: "" },
-    timeline: (data.events || []).map((event) => ({
+    timeline: (data.events || []).map((event: any) => ({
       id: event.id,
       date: event.created_at,
       title: event.title,
