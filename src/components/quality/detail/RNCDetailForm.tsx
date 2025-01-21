@@ -40,6 +40,7 @@ const formSchema = z.object({
   conclusion: z.string().optional(),
   workflow_status: z.enum(["open", "analysis", "resolution", "solved", "closing", "closed"]).default("open"),
   assigned_to: z.string().optional(),
+  responsible: z.string().optional(),
 });
 
 interface RNCDetailFormProps {
@@ -72,6 +73,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
       conclusion: rnc.conclusion,
       workflow_status: rnc.workflow_status,
       assigned_to: rnc.assigned_to,
+      responsible: rnc.responsible,
     },
   });
 
