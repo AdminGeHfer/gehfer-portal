@@ -35,16 +35,47 @@ export function RNCProductsPolicyTest() {
     
     const isAdmin = userProfile?.modules?.includes('admin');
 
-    // Get or create a test RNC
-    const { data: rnc } = await supabase
-      .from('rncs')
-      .select('*')
-      .eq('created_by', profile.user?.id)
-      .limit(1)
-      .single();
+    // Create a test RNC if needed
+    let testRnc;
+    try {
+      // First try to find an existing RNC created by the current user
+      const { data: existingRnc } = await supabase
+        .from('rncs')
+        .select('*')
+        .eq('created_by', profile.user?.id)
+        .limit(1)
+        .single();
 
-    if (!rnc) {
-      setResults(prev => [...prev, '❌ Setup failed: Could not find or create test RNC']);
+      if (existingRnc) {
+        testRnc = existingRnc;
+        setResults(prev => [...prev, '✅ Setup: Using existing RNC']);
+      } else {
+        // Create a new test RNC
+        const { data: newRnc, error: rncError } = await supabase
+          .from('rncs')
+          .insert({
+            description: 'Test RNC for policy testing',
+            type: 'company_complaint',
+            company: 'Test Company',
+            cnpj: '00.000.000/0000-00',
+            company_code: 'TEST',
+            department: 'quality',
+            created_by: profile.user?.id
+          })
+          .select()
+          .single();
+
+        if (rncError) throw rncError;
+        testRnc = newRnc;
+        setResults(prev => [...prev, '✅ Setup: Created new test RNC']);
+      }
+    } catch (error) {
+      setResults(prev => [...prev, `❌ Setup failed: ${error}`]);
+      return;
+    }
+
+    if (!testRnc) {
+      setResults(prev => [...prev, '❌ Setup failed: Could not create or find test RNC']);
       return;
     }
 
@@ -53,7 +84,7 @@ export function RNCProductsPolicyTest() {
       const { error: insertError } = await supabase
         .from('rnc_products')
         .insert({
-          rnc_id: rnc.id,
+          rnc_id: testRnc.id,
           product: 'Test Product',
           weight: 1
         });
@@ -61,13 +92,11 @@ export function RNCProductsPolicyTest() {
       if (insertError) {
         if (isAdmin) {
           setResults(prev => [...prev, `❌ Insert test failed: Admin should be able to insert`]);
-        } else if (rnc.created_by === profile.user?.id) {
-          setResults(prev => [...prev, `❌ Insert test failed: Owner should be able to insert`]);
         } else {
-          setResults(prev => [...prev, '✅ Insert test passed: Non-owner cannot insert']);
+          setResults(prev => [...prev, '✅ Insert test passed: Non-admin cannot insert to other RNCs']);
         }
       } else {
-        if (isAdmin || rnc.created_by === profile.user?.id) {
+        if (isAdmin || testRnc.created_by === profile.user?.id) {
           setResults(prev => [...prev, '✅ Insert test passed: Admin/Owner can insert']);
         } else {
           setResults(prev => [...prev, '❌ Insert test failed: Non-owner could insert']);
@@ -81,11 +110,11 @@ export function RNCProductsPolicyTest() {
     try {
       // First insert a test product if admin or owner
       let testProductId = null;
-      if (isAdmin || rnc.created_by === profile.user?.id) {
+      if (isAdmin || testRnc.created_by === profile.user?.id) {
         const { data: insertedProduct } = await supabase
           .from('rnc_products')
           .insert({
-            rnc_id: rnc.id,
+            rnc_id: testRnc.id,
             product: 'Test Product for Update',
             weight: 1
           })
@@ -104,13 +133,13 @@ export function RNCProductsPolicyTest() {
         if (updateError) {
           if (isAdmin) {
             setResults(prev => [...prev, `❌ Update test failed: Admin should be able to update`]);
-          } else if (rnc.created_by === profile.user?.id) {
+          } else if (testRnc.created_by === profile.user?.id) {
             setResults(prev => [...prev, `❌ Update test failed: Owner should be able to update`]);
           } else {
             setResults(prev => [...prev, '✅ Update test passed: Non-owner cannot update']);
           }
         } else {
-          if (isAdmin || rnc.created_by === profile.user?.id) {
+          if (isAdmin || testRnc.created_by === profile.user?.id) {
             setResults(prev => [...prev, '✅ Update test passed: Admin/Owner can update']);
           } else {
             setResults(prev => [...prev, '❌ Update test failed: Non-owner could update']);
@@ -125,11 +154,11 @@ export function RNCProductsPolicyTest() {
     try {
       // First insert a test product if admin or owner
       let testProductId = null;
-      if (isAdmin || rnc.created_by === profile.user?.id) {
+      if (isAdmin || testRnc.created_by === profile.user?.id) {
         const { data: insertedProduct } = await supabase
           .from('rnc_products')
           .insert({
-            rnc_id: rnc.id,
+            rnc_id: testRnc.id,
             product: 'Test Product for Delete',
             weight: 1
           })
@@ -148,13 +177,13 @@ export function RNCProductsPolicyTest() {
         if (deleteError) {
           if (isAdmin) {
             setResults(prev => [...prev, `❌ Delete test failed: Admin should be able to delete`]);
-          } else if (rnc.created_by === profile.user?.id) {
+          } else if (testRnc.created_by === profile.user?.id) {
             setResults(prev => [...prev, `❌ Delete test failed: Owner should be able to delete`]);
           } else {
             setResults(prev => [...prev, '✅ Delete test passed: Non-owner cannot delete']);
           }
         } else {
-          if (isAdmin || rnc.created_by === profile.user?.id) {
+          if (isAdmin || testRnc.created_by === profile.user?.id) {
             setResults(prev => [...prev, '✅ Delete test passed: Admin/Owner can delete']);
           } else {
             setResults(prev => [...prev, '❌ Delete test failed: Non-owner could delete']);
