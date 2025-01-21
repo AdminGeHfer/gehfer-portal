@@ -95,7 +95,7 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
                     size="sm"
                     onClick={() => append({ product: "", weight: 0 })}
                   >
-                    <Plus className="h-4 h-4 mr-2" />
+                    <Plus className="h-4 mr-2" />
                     Adicionar Produto
                   </Button>
                 )}
