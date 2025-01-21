@@ -1,9 +1,30 @@
-import { RNC, TimelineEvent, RNCProduct, RNCContact, WorkflowStatusEnum, RNCTypeEnum } from "@/types/rnc";
+import { RNC, TimelineEvent, RNCProduct, RNCContact, StatusEnum, WorkflowStatusEnum, RNCTypeEnum } from "@/types/rnc";
 
-interface RawRNCData {
+interface RawRNCEvent {
   id: string;
+  created_at: string;
+  title: string;
   description: string;
   type: string;
+  created_by: string;
+}
+
+interface RawRNCProduct {
+  product: string;
+  weight: number;
+  rnc_id: string;
+}
+
+interface RawRNCContact {
+  name: string;
+  phone: string;
+  email?: string;
+}
+
+export interface RawRNCData {
+  id: string;
+  description: string;
+  type: RNCTypeEnum;
   company: string;
   cnpj: string;
   created_at: string;
@@ -14,7 +35,7 @@ interface RawRNCData {
   rnc_number?: number;
   assigned_by?: string;
   assigned_at?: string;
-  workflow_status: string;
+  workflow_status: WorkflowStatusEnum;
   department: string;
   company_code: string;
   responsible?: string;
@@ -25,47 +46,23 @@ interface RawRNCData {
   collected_at?: string;
   city?: string;
   conclusion?: string;
-  products?: {
-    product: string;
-    weight: number;
-    rnc_id: string;
-  }[];
-  contact?: {
-    name: string;
-    phone: string;
-    email?: string;
-  }[];
-  events?: {
-    id: string;
-    created_at: string;
-    title: string;
-    description: string;
-    type: string;
-    created_by: string;
-  }[];
+  products?: RawRNCProduct[];
+  contact?: RawRNCContact[];
+  events?: RawRNCEvent[];
+  status?: StatusEnum;
 }
 
 export const transformRNCData = (data: RawRNCData): RNC => {
   console.log("Raw RNC data received:", data);
   
-  // Ensure products is always an array and properly transformed
-  const products = Array.isArray(data.products) 
-    ? data.products.map((p): RNCProduct => ({
-        product: p.product,
-        weight: p.weight,
-        rnc_id: p.rnc_id
-      }))
-    : [];
+  // Transform products with proper typing
+  const products: RNCProduct[] = (data.products || []).map((p) => ({
+    product: p.product,
+    weight: p.weight
+  }));
   
   console.log("Transformed products:", products);
 
-  // Transform contact data with required email field
-  const contact: RNCContact = {
-    name: data.contact?.[0]?.name || "",
-    phone: data.contact?.[0]?.phone || "",
-    email: data.contact?.[0]?.email || ""
-  };
-  
   // Transform timeline events
   const timeline: TimelineEvent[] = (data.events || []).map((event) => ({
     id: event.id,
@@ -76,6 +73,13 @@ export const transformRNCData = (data: RawRNCData): RNC => {
     userId: event.created_by
   }));
 
+  // Transform contact with required email field
+  const contact: RNCContact = {
+    name: data.contact?.[0]?.name || "",
+    phone: data.contact?.[0]?.phone || "",
+    email: data.contact?.[0]?.email || ""
+  };
+
   const transformedData: RNC = {
     ...data,
     products,
@@ -83,11 +87,11 @@ export const transformRNCData = (data: RawRNCData): RNC => {
     timeline,
     created_at: data.created_at,
     updated_at: data.updated_at,
-    closed_at: data.closed_at,
-    rnc_number: data.rnc_number,
-    status: "pending",
-    workflow_status: data.workflow_status as WorkflowStatusEnum,
-    type: data.type as RNCTypeEnum
+    closed_at: data.closed_at || "",
+    rnc_number: data.rnc_number || 0,
+    status: data.status || "not_created",
+    workflow_status: data.workflow_status,
+    type: data.type
   };
 
   console.log("Final transformed RNC data:", transformedData);
