@@ -47,18 +47,28 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
                   onRemove={remove}
                 />
                 {canAddProducts && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => append({
-                      product: "",
-                      weight: 0
-                    })}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Produto
-                  </Button>
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => append({
+                        product: "",
+                        weight: 0
+                      })}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar Produto
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onRemove(index)}
+                    >
+                      <Trash className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </>
                 )}
               </div>
             </FormControl>
