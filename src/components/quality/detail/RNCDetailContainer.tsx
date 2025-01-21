@@ -18,7 +18,7 @@ export function RNCDetailContainer() {
   const { id } = useParams();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [isEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [transitionNotes, setTransitionNotes] = useState("");
 
   const {
@@ -50,6 +50,18 @@ export function RNCDetailContainer() {
     const text = `RNC #${rnc.rnc_number}\nEmpresa: ${rnc.company}\nDescrição: ${rnc.description}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
+  };
+
+  const onEdit = () => {
+    console.log('Edit button clicked');
+    setIsEditing(true);
+    handleEdit();
+  };
+
+  const onSave = async () => {
+    console.log('Save button clicked');
+    await handleSave();
+    setIsEditing(false);
   };
 
   if (isLoading || !rnc) {
@@ -84,8 +96,8 @@ export function RNCDetailContainer() {
             rnc={rnc}
             canEdit={rnc.canEdit}
             isEditing={isEditing}
-            onEdit={handleEdit}
-            onSave={handleSave}
+            onEdit={onEdit}
+            onSave={onSave}
             onDelete={() => setIsDeleteDialogOpen(true)}
             onPrint={handleGeneratePDF}
             onWhatsApp={handleWhatsApp}
@@ -100,7 +112,7 @@ export function RNCDetailContainer() {
               rnc={rnc}
               isEditing={isEditing}
               onFieldChange={handleFieldChange}
-              onSave={handleSave}
+              onSave={onSave}
             />
 
             <div className="bg-background rounded-lg border border-border shadow-sm p-6">
