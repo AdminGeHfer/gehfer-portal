@@ -1,14 +1,11 @@
 import * as React from "react";
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
-import { RNCFormData } from "@/types/rnc";
 import {
   Select,
   SelectContent,
@@ -16,15 +13,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { RNCFormData } from "@/types/rnc";
+import { UseFormReturn } from "react-hook-form";
+
+const RESPONSIBLE_OPTIONS = [
+  "ARTHUR",
+  "MARCOS",
+  "ALEXANDRE",
+  "FINANCEIRO",
+  "IZABELLY",
+  "JORDANA",
+  "GIOVANI",
+  "HELCIO",
+  "PEDRO",
+  "SAMUEL"
+];
 
 interface RNCBasicInfoProps {
   form: UseFormReturn<RNCFormData>;
-  isEditing?: boolean;
+  isEditing: boolean;
 }
 
-export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => {
+export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
   return (
     <div className="space-y-4">
+      <FormField
+        control={form.control}
+        name="description"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Descrição</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="Descreva a não conformidade"
+                className="min-h-[100px]"
+                disabled={!isEditing}
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="responsible"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Responsável</FormLabel>
+            <Select
+              disabled={!isEditing}
+              onValueChange={field.onChange}
+              value={field.value}
+            >
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o responsável" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {RESPONSIBLE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="type"
@@ -76,25 +137,6 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
           </FormItem>
         )}
       />
-
-      <FormField
-        control={form.control}
-        name="description"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="required-field">Descrição</FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="Descreva detalhadamente a não conformidade"
-                className="min-h-[100px]"
-                {...field}
-                disabled={!isEditing}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
     </div>
   );
-};
+}
