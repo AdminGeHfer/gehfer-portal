@@ -46,7 +46,7 @@ const formSchema = z.object({
 interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
-  onFieldChange: (field: keyof RNC, value: any) => void;
+  onFieldChange: (field: keyof RNC, value) => void;
   onSave?: () => Promise<void>;
 }
 
