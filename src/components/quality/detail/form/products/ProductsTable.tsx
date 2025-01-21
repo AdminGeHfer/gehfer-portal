@@ -14,6 +14,8 @@ interface ProductsTableProps {
 }
 
 export function ProductsTable({ fields, canEdit, form, onRemove }: ProductsTableProps) {
+  console.log("Fields in ProductsTable:", fields); // Debug log
+
   if (fields.length === 0) {
     return (
       <div className="text-center py-4 text-muted-foreground">
