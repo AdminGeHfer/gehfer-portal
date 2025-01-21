@@ -10,8 +10,6 @@ interface RawRNCEvent {
 }
 
 interface RawRNCProduct {
-  id: string;
-  rnc_id: string;
   product: string;
   weight: number;
 }
@@ -58,8 +56,6 @@ export const transformRNCData = (data: RawRNCData): RNC => {
 
   // Transform products with proper typing
   const products: RNCProduct[] = (data.products || []).map((product) => ({
-    id: product.id,
-    rnc_id: product.rnc_id,
     product: product.product,
     weight: product.weight
   }));
