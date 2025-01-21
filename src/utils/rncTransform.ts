@@ -1,98 +1,30 @@
-import { RNC, TimelineEvent, RNCProduct, RNCContact, StatusEnum, WorkflowStatusEnum, RNCTypeEnum, DepartmentEnum } from "@/types/rnc";
+import { RNC } from "@/types/rnc";
 
-interface RawRNCEvent {
-  id: string;
-  created_at: string;
-  title: string;
-  description: string;
-  type: string;
-  created_by: string;
-}
+export const transformRNCData = (data): RNC => {
+  console.log("Raw data received in transformRNCData:", data);
+  console.log("Products in raw data:", data.products);
 
-interface RawRNCProduct {
-  product: string;
-  weight: number;
-}
-
-interface RawRNCContact {
-  name: string;
-  phone: string;
-  email?: string;
-}
-
-export interface RawRNCData {
-  id: string;
-  description: string;
-  type: RNCTypeEnum;
-  company: string;
-  cnpj: string;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
-  created_by: string;
-  assigned_to?: string;
-  rnc_number?: number;
-  assigned_by?: string;
-  assigned_at?: string;
-  workflow_status: WorkflowStatusEnum;
-  department: string;
-  company_code: string;
-  responsible?: string;
-  days_left?: number;
-  korp?: string;
-  nfv?: string;
-  nfd?: string;
-  collected_at?: string;
-  city?: string;
-  conclusion?: string;
-  products?: RawRNCProduct[];
-  contact?: RawRNCContact[];
-  events?: RawRNCEvent[];
-  status?: StatusEnum;
-}
-
-export const transformRNCData = (data: RawRNCData): RNC => {
-  console.log("Raw RNC data received (rncTransform):", data);
-
-  // Transform products with proper typing
-  const products: RNCProduct[] = (data.products || []).map((product) => ({
-    product: product.product,
-    weight: product.weight
-  }));
-
-  // Transform timeline events
-  const timeline: TimelineEvent[] = (data.events || []).map((event) => ({
-    id: event.id,
-    date: event.created_at,
-    title: event.title,
-    description: event.description,
-    type: event.type as "creation" | "update" | "status" | "comment" | "assignment",
-    userId: event.created_by
-  }));
-
-  // Transform contact with required email field
-  const contact: RNCContact = {
-    name: data.contact?.[0]?.name || "",
-    phone: data.contact?.[0]?.phone || "",
-    email: data.contact?.[0]?.email || ""
-  };
-
-  const transformedData: RNC = {
+  const transformed = {
     ...data,
-    products,
-    contact,
-    timeline,
+    products: data.products || [],
+    contact: data.contact?.[0] || { name: "", phone: "", email: "" },
+    timeline: (data.events || []).map((event) => ({
+      id: event.id,
+      date: event.created_at,
+      title: event.title,
+      description: event.description,
+      type: event.type,
+      userId: event.created_by
+    })),
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+    closedAt: data.closed_at,
     created_at: data.created_at,
     updated_at: data.updated_at,
-    closed_at: data.closed_at || "",
-    rnc_number: data.rnc_number || 0,
-    status: data.status || "not_created",
-    workflow_status: data.workflow_status,
-    type: data.type,
-    department: data.department as DepartmentEnum,
-    conclusion: data.conclusion || ""
+    closed_at: data.closed_at,
+    rnc_number: data.rnc_number
   };
 
-  console.log("Final transformed RNC data (rncTransform):", transformedData);
-  return transformedData;
+  console.log("Products after transform:", transformed.products);
+  return transformed;
 };
