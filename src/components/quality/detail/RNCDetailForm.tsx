@@ -1,10 +1,7 @@
+import * as React from "react";
 import { Button } from "@/components/atoms/Button";
 import { Form } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { useToast } from "@/components/ui/use-toast";
-import { RNC, RNCFormData } from "@/types/rnc";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { RNC } from "@/types/rnc";
 import { RNCBasicInfo } from "./form/RNCBasicInfo";
 import { RNCCompanyInfo } from "./form/RNCCompanyInfo";
 import { RNCContactInfo } from "./form/RNCContactInfo";
@@ -13,71 +10,28 @@ import { RNCFileUpload } from "./form/RNCFileUpload";
 import { RNCAttachments } from "./RNCAttachments";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useState } from "react";
-import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-const formSchema = z.object({
-  company_code: z.string().min(1, "O código da empresa é obrigatório"),
-  company: z.string().min(1, "O nome da empresa é obrigatória"),
-  cnpj: z.union([z.string().nullable(), z.string().regex(/^[0,9]{2}\.[0,9]{3}\.[0,9]{3}\/[0,9]{4}-[0,9]{2}$/, "CNPJ inválido")]).optional().transform(e => e === "" ? undefined : e),
-  type: z.enum(["company_complaint", "supplier", "dispatch", "logistics", "deputy", "driver", "financial", "commercial", "financial_agreement"]).default("company_complaint"),
-  products: z.array(z.object({
-    product: z.string().min(1, "O produto é obrigatório"),
-    weight: z.number().min(0, "O peso deve ser maior que 0"),
-  })).optional(),
-  description: z.string().min(1, "A descrição é obrigatória"),
-  weight: z.number().min(0, "O peso deve ser maior que 0"),
-  korp: z.string().min(1, "O número do pedido é obrigatório"),
-  nfd: z.string().optional(),
-  nfv: z.string().optional(),
-  department: z.enum(["logistics", "quality", "financial"]).default("logistics"),
-  contact: z.object({
-    name: z.string().min(1, "O nome do contato é obrigatório"),
-    phone: z.string().regex(/^[(]{0,1}[0-9]{1,2}[)]{0,1}\s[0-9]{4,5}-[0-9]{4}$/, "Telefone inválido"),
-    email: z.union([z.string().nullable(), z.string().email("Email inválido")]).optional().transform(e => e === "" ? undefined : e),
-  }),
-  attachments: z.array(z.instanceof(File)).optional(),
-  conclusion: z.string().optional(),
-  workflow_status: z.enum(["open", "analysis", "resolution", "solved", "closing", "closed"]).default("open"),
-  assigned_to: z.string().optional(),
-  responsible: z.string().optional(),
-});
+import { useRNCForm } from "./hooks/useRNCForm";
+import { toast } from "sonner";
 
 interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
-  onFieldChange: (field: keyof RNC, value) => void;
+  onFieldChange: (field: keyof RNC, value: any) => void;
   onSave?: () => Promise<void>;
 }
 
-export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDetailFormProps) {
-  const { toast } = useToast();
+export function RNCDetailForm({ 
+  rnc, 
+  isEditing, 
+  onFieldChange, 
+  onSave 
+}: RNCDetailFormProps) {
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const form = useForm<RNCFormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      company_code: rnc.company_code,
-      company: rnc.company,
-      cnpj: rnc.cnpj,
-      type: rnc.type,
-      products: rnc.products,
-      description: rnc.description,
-      korp: rnc.korp,
-      nfd: rnc.nfd,
-      nfv: rnc.nfv,
-      department: rnc.department,
-      contact: rnc.contact,
-      attachments: rnc.attachments,
-      conclusion: rnc.conclusion,
-      workflow_status: rnc.workflow_status,
-      assigned_to: rnc.assigned_to,
-      responsible: rnc.responsible,
-    },
-  });
+  const form = useRNCForm(rnc);
 
-  const handleSubmit = async (data: RNCFormData) => {
+  const handleSubmit = async (data: any) => {
     if (isSubmitting) return;
     
     try {
@@ -85,7 +39,7 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
       
       // Update all form fields
       Object.keys(data).forEach((key) => {
-        onFieldChange(key as keyof RNC, data[key as keyof RNCFormData]);
+        onFieldChange(key as keyof RNC, data[key]);
       });
 
       // Call parent save handler if provided
@@ -93,17 +47,10 @@ export function RNCDetailForm({ rnc, isEditing, onFieldChange, onSave }: RNCDeta
         await onSave();
       }
 
-      toast({
-        title: "RNC atualizada com sucesso",
-        description: "As alterações foram salvas.",
-      });
+      toast.success("RNC atualizada com sucesso");
     } catch (error) {
       console.error("Form submission error:", error);
-      toast({
-        title: "Erro ao atualizar RNC",
-        description: "Ocorreu um erro ao tentar atualizar a RNC.",
-        variant: "destructive",
-      });
+      toast.error("Erro ao atualizar RNC");
     } finally {
       setIsSubmitting(false);
     }

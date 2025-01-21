@@ -28,8 +28,6 @@ export function RNCDetailContainer() {
     refetch
   } = useRNCDetail(id!);
 
-  console.log("RNC data in RNCDetailContainer:", rnc);
-
   const deleteMutation = useDeleteRNC(id!, () => {
     navigate("/quality/rnc");
   });
