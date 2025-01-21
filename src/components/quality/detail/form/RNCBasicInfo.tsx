@@ -115,7 +115,11 @@ export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel className="required-field">Responsável</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+            <Select 
+              onValueChange={field.onChange} 
+              value={field.value || ""} 
+              disabled={!isEditing}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione o responsável" />

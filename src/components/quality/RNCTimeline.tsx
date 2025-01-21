@@ -29,6 +29,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
             closed_at,
             days_left,
             responsible,
+            workflow_status,
             created_by_profile:profiles!rncs_created_by_fkey(name, email),
             assigned_to_profile:profiles!rncs_assigned_to_fkey(name, email),
             assigned_by_profile:profiles!rncs_assigned_by_fkey(name, email)
@@ -38,6 +39,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
 
         if (rncError) throw rncError;
 
+        // Get workflow transitions
         const { data: transitions, error: transitionsError } = await supabase
           .from('rnc_workflow_transitions')
           .select(`
@@ -83,7 +85,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
           });
         }
 
-        // 3. Status changes
+        // 3. Status changes from transitions table
         transitions.forEach(transition => {
           timelineEvents.push({
             id: transition.id,

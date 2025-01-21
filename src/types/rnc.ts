@@ -17,7 +17,6 @@ export type WorkflowStatusEnum = "open" | "analysis" | "resolution" | "solved" |
 export interface RNCProduct {
   product: string;
   weight: number;
-  rnc_id?: string;
 }
 
 export interface RNCContact {
