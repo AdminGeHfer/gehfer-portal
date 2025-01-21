@@ -30,7 +30,7 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
         name="type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tipo</FormLabel>
+            <FormLabel className="required-field">Tipo</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
               <FormControl>
                 <SelectTrigger>
@@ -59,7 +59,7 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
         name="department"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Departamento</FormLabel>
+            <FormLabel className="required-field">Departamento</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
               <FormControl>
                 <SelectTrigger>
@@ -82,7 +82,7 @@ export const RNCBasicInfo = ({ form, isEditing = false }: RNCBasicInfoProps) => 
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Descrição</FormLabel>
+            <FormLabel className="required-field">Descrição</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Descreva detalhadamente a não conformidade"
