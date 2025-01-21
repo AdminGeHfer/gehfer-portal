@@ -12,11 +12,11 @@ export function WorkflowStatusBadge({ status }: WorkflowStatusBadgeProps) {
     const configs: Record<WorkflowStatusEnum, { label: string, className: string }> = {
       open: {
         label: "Aberto",
-        className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
+        className: "bg-[#F2FCE2] text-green-800 dark:bg-green-900 dark:text-green-100"
       },
       analysis: {
         label: "Em Análise",
-        className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+        className: "bg-[#FEC6A1] text-orange-800 dark:bg-orange-900 dark:text-orange-100"
       },
       resolution: {
         label: "Em Resolução",
@@ -43,7 +43,7 @@ export function WorkflowStatusBadge({ status }: WorkflowStatusBadgeProps) {
 
   return (
     <Badge variant="outline" className={config.className}>
-      {getStatusLabel(status)}
+      {config.label}
     </Badge>
   );
 }
