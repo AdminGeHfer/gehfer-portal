@@ -23,6 +23,19 @@ interface RNCBasicInfoProps {
   showErrors?: boolean;
 }
 
+const RESPONSIBLE_OPTIONS = [
+  "ALEXANDRE",
+  "ARTHUR",
+  "MARCOS",
+  "FINANCEIRO",
+  "GIOVANI",
+  "HELCIO",
+  "IZABELLY",
+  "JORDANA",
+  "PEDRO",
+  "SAMUEL"
+];
+
 export const RNCBasicInfo = ({ form, showErrors = false }: RNCBasicInfoProps) => {
   return (
     <div className="space-y-4">
@@ -75,6 +88,31 @@ export const RNCBasicInfo = ({ form, showErrors = false }: RNCBasicInfoProps) =>
               </SelectContent>
             </Select>
             {(showErrors || fieldState.isTouched) && <FormMessage className="form-message" />}
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="responsible"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="required-field">Responsável</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o responsável" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {RESPONSIBLE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
           </FormItem>
         )}
       />

@@ -17,23 +17,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { RNCFormData } from "@/types/rnc";
 import { UseFormReturn } from "react-hook-form";
 
-const RESPONSIBLE_OPTIONS = [
-  "ARTHUR",
-  "MARCOS",
-  "ALEXANDRE",
-  "FINANCEIRO",
-  "IZABELLY",
-  "JORDANA",
-  "GIOVANI",
-  "HELCIO",
-  "PEDRO",
-  "SAMUEL"
-];
-
 interface RNCBasicInfoProps {
   form: UseFormReturn<RNCFormData>;
   isEditing: boolean;
 }
+
+const RESPONSIBLE_OPTIONS = [
+  "ALEXANDRE",
+  "ARTHUR",
+  "MARCOS",
+  "FINANCEIRO",
+  "GIOVANI",
+  "HELCIO",
+  "IZABELLY",
+  "JORDANA",
+  "PEDRO",
+  "SAMUEL"
+];
 
 export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
   return (
@@ -52,35 +52,6 @@ export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
                 {...field}
               />
             </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="responsible"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Responsável</FormLabel>
-            <Select
-              disabled={!isEditing}
-              onValueChange={field.onChange}
-              value={field.value}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o responsável" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {RESPONSIBLE_OPTIONS.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <FormMessage />
           </FormItem>
         )}
@@ -131,6 +102,31 @@ export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
                 <SelectItem value="logistics">Logística</SelectItem>
                 <SelectItem value="quality">Qualidade</SelectItem>
                 <SelectItem value="financial">Financeiro</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="responsible"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="required-field">Responsável</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!isEditing}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o responsável" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {RESPONSIBLE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
