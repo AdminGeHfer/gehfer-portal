@@ -6,7 +6,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import { RNCProductsPolicyTest } from "@/components/quality/RNCProductsPolicyTest";
 import * as React from "react";
 
 const modules = [
@@ -112,14 +111,6 @@ const Apps = () => {
                 </Card>
               </motion.div>
             ))}
-          </div>
-
-          {/* Add the policy test component */}
-          <div className="mt-8">
-            <Card className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Test RNC Products Policies</h3>
-              <RNCProductsPolicyTest />
-            </Card>
           </div>
         </div>
       </main>
