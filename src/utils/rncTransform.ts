@@ -1,4 +1,4 @@
-import { RNC, TimelineEvent, RNCProduct, RNCContact, StatusEnum, WorkflowStatusEnum, RNCTypeEnum } from "@/types/rnc";
+import { RNC, TimelineEvent, RNCProduct, RNCContact, StatusEnum, WorkflowStatusEnum, RNCTypeEnum, DepartmentEnum } from "@/types/rnc";
 
 interface RawRNCEvent {
   id: string;
@@ -91,7 +91,9 @@ export const transformRNCData = (data: RawRNCData): RNC => {
     rnc_number: data.rnc_number || 0,
     status: data.status || "not_created",
     workflow_status: data.workflow_status,
-    type: data.type
+    type: data.type,
+    department: data.department as DepartmentEnum,
+    conclusion: data.conclusion || ""
   };
 
   console.log("Final transformed RNC data:", transformedData);
