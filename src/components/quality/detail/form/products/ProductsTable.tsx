@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
-import { RNCFormData, RNCProduct } from "@/types/rnc";
+import { RNCFormData } from "@/types/rnc";
 
 interface ProductsTableProps {
-  fields: RNCProduct[];
+  fields: UseFormReturn<RNCFormData>;
   canEdit: boolean;
   form: UseFormReturn<RNCFormData>;
   onRemove: (index: number) => void;
@@ -33,7 +33,7 @@ export function ProductsTable({ fields, canEdit, form, onRemove }: ProductsTable
       </TableHeader>
       <TableBody>
         {fields.map((field, index) => (
-          <TableRow key={field.id || index}>
+          <TableRow key={index}>
             <TableCell>
               <Input
                 {...form.register(`products.${index}.product`)}

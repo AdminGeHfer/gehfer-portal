@@ -79,9 +79,7 @@ export const RNCOrderInfo = ({ form, showErrors = false }: RNCOrderInfoProps) =>
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ 
-                    id: crypto.randomUUID(),
-                    rnc_id: form.getValues().id || crypto.randomUUID(),
+                  onClick={() => append({
                     product: "", 
                     weight: 0 
                   })}
