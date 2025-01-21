@@ -117,7 +117,7 @@ export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
             <FormLabel className="required-field">Responsável</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              value={field.value || ""} 
+              value={field.value} 
               disabled={!isEditing}
             >
               <FormControl>
