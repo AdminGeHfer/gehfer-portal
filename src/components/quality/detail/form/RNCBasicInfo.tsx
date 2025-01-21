@@ -43,7 +43,7 @@ export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Descrição</FormLabel>
+            <FormLabel className="required-field">Descrição</FormLabel>
             <FormControl>
               <Textarea
                 placeholder="Descreva a não conformidade"
