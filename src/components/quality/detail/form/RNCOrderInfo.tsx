@@ -9,7 +9,7 @@ import {
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { ProductsTable } from "./products/ProductsTable";
 import { OrderFields } from "./products/OrderFields";
 
@@ -25,7 +25,7 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
     name: "products"
   });
 
-  const canEdit = isEditing && (status === "pending" || status === "collect");
+  const canEdit = isEditing && (status === "pending" || status === "collect" || true);
   const canAddProducts = canEdit;
 
   console.log("Products in form:", fields); // Debug log
