@@ -7,13 +7,15 @@ interface RNCDetailContentProps {
   isEditing: boolean;
   onRefresh: () => Promise<void>;
   onStatusChange: (status: string) => Promise<void>;
-  onFieldChange: (field: keyof RNC, value) => void;
+  onFieldChange: (field: keyof RNC, value: any) => void;
+  onSave: () => Promise<void>;
 }
 
 export function RNCDetailContent({
   rnc,
   isEditing,
   onFieldChange,
+  onSave,
 }: RNCDetailContentProps) {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -21,6 +23,7 @@ export function RNCDetailContent({
         rnc={rnc}
         isEditing={isEditing}
         onFieldChange={onFieldChange}
+        onSave={onSave}
       />
     </div>
   );
