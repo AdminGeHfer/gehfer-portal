@@ -5,10 +5,8 @@ import { transformRNCData } from "@/utils/rncTransform";
 const RNC_CACHE_KEY = "rncs";
 const CACHE_TIME = 1000 * 60 * 10; // 10 minutes
 
-// Fetches all RNC records with related data
 export const getRNCs = async (): Promise<RNC[]> => {
   try {
-    // Check cache first
     const cachedData = sessionStorage.getItem(RNC_CACHE_KEY);
     if (cachedData) {
       const { data, timestamp } = JSON.parse(cachedData);
@@ -63,7 +61,6 @@ export const getRNCs = async (): Promise<RNC[]> => {
 
     const transformedData = data.map(transformRNCData);
 
-    // Update cache
     sessionStorage.setItem(
       RNC_CACHE_KEY,
       JSON.stringify({ data: transformedData, timestamp: Date.now() })
@@ -76,7 +73,6 @@ export const getRNCs = async (): Promise<RNC[]> => {
   }
 };
 
-// Fetches a single RNC record by ID with related data
 export const getRNCById = async (id: string): Promise<RNC | null> => {
   try {
     console.log("Fetching RNC details for ID:", id);
@@ -90,8 +86,9 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
         type,
         description,
         workflow_status,
+        status,
         products:rnc_products(id, product, weight),
-        contact:rnc_contacts(id, name, phone, email),
+        contact:rnc_contacts(name, phone, email),
         events:rnc_events(id, created_at, title, description, type)
       `)
       .eq("id", id)

@@ -15,7 +15,7 @@ import { Plus, Trash } from "lucide-react";
 
 interface RNCOrderInfoProps {
   form: UseFormReturn<RNCFormData>;
-  isEditing?: boolean;
+  isEditing: boolean;
   status?: string;
 }
 
