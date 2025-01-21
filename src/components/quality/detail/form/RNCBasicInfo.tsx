@@ -23,16 +23,16 @@ interface RNCBasicInfoProps {
 }
 
 const RESPONSIBLE_OPTIONS = [
-  "ALEXANDRE",
-  "ARTHUR",
-  "MARCOS",
-  "FINANCEIRO",
-  "GIOVANI",
-  "HELCIO",
-  "IZABELLY",
-  "JORDANA",
-  "PEDRO",
-  "SAMUEL"
+  "Alexandre",
+  "Arthur",
+  "Marcos",
+  "Financeiro",
+  "Giovani",
+  "Helcio",
+  "Izabelly",
+  "Jordana",
+  "Pedro",
+  "Samuel"
 ];
 
 export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
