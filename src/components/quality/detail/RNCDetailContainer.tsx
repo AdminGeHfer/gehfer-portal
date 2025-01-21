@@ -34,9 +34,11 @@ export function RNCDetailContainer() {
     navigate("/quality/rnc");
   });
 
-  const updateMutation = useUpdateRNC(id!, () => {
-    setIsEditing(false);
-    refetch();
+  const updateMutation = useUpdateRNC(id!, {
+    onSuccess: () => {
+      setIsEditing(false);
+      refetch();
+    }
   });
 
   const handleDelete = () => {
