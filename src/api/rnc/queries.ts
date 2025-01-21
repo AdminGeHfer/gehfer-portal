@@ -59,6 +59,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
       return [];
     }
 
+    console.log("Raw RNC data before transform:", data);
     const transformedData = data.map(transformRNCData);
     console.log("Transformed RNC data:", transformedData);
 
@@ -123,8 +124,10 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
     }
 
     console.log("Raw RNC data:", data);
+    console.log("Raw products data:", data.products);
     const transformedData = transformRNCData(data);
     console.log("Transformed RNC data:", transformedData);
+    console.log("Transformed products:", transformedData.products);
     return transformedData;
   } catch (error) {
     console.error("Error in getRNCById:", error);
