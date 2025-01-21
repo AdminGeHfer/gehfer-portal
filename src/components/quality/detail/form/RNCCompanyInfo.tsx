@@ -21,7 +21,7 @@ export const RNCCompanyInfo = ({ form, isEditing = false }: RNCCompanyInfoProps)
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="company"
+        name="company_code"
         render={({ field }) => (
           <FormItem>
             <FormLabel className="required-field">Código do Cliente</FormLabel>
