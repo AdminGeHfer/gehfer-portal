@@ -63,8 +63,6 @@ export const transformRNCData = (data: RawRNCData): RNC => {
     product: product.product,
     weight: product.weight
   }));
-  
-  console.log("Transformed products:", products);
 
   // Transform timeline events
   const timeline: TimelineEvent[] = (data.events || []).map((event) => ({

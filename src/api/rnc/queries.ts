@@ -55,30 +55,13 @@ export const getRNCs = async (): Promise<RNC[]> => {
       throw rncsError;
     }
 
-    // For each RNC, get its products
-    for (const rnc of rncs || []) {
-      const { data: products, error: productsError } = await supabase
-        .from('rnc_products')
-        .select('*')
-        .eq('rnc_id', rnc.id);
-      
-      console.log(`[Vite] Products for RNC ${rnc.id}:`, products);
-      
-      if (productsError) {
-        console.error(`Error fetching products for RNC ${rnc.id}:`, productsError);
-      }
-    }
-
     if (!rncs || rncs.length === 0) {
       console.warn("No RNC data found");
       return [];
     }
 
-    console.log("Raw RNC data before transform:", rncs);
-    console.log("Raw products data:", rncs.map(d => d.products));
     const transformedData = rncs.map(transformRNCData);
     console.log("Transformed RNC data:", transformedData);
-    console.log("Transformed products:", transformedData.map(d => d.products));
 
     sessionStorage.setItem(
       RNC_CACHE_KEY,
@@ -141,23 +124,9 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
       return null;
     }
 
-    // Get products specifically for this RNC
-    const { data: products, error: productsError } = await supabase
-      .from('rnc_products')
-      .select('*')
-      .eq('rnc_id', id);
-    
-    console.log(`[Vite] Products for RNC ${id}:`, products);
-    
-    if (productsError) {
-      console.error(`Error fetching products for RNC ${id}:`, productsError);
-    }
-
     console.log("Raw RNC data:", data);
-    console.log("Raw products data:", data.products);
     const transformedData = transformRNCData(data);
     console.log("Transformed RNC data:", transformedData);
-    console.log("Transformed products:", transformedData.products);
     return transformedData;
   } catch (error) {
     console.error("Error in getRNCById:", error);
