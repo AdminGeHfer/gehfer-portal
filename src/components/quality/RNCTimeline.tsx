@@ -4,8 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { TimelineList } from "./timeline/TimelineList";
 import { TimelineEventType } from "./timeline/TimelineEvent";
 import { getWorkflowStatusLabel } from "@/utils/workflow";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface RNCTimelineProps {
   rncId: string;
@@ -30,6 +28,7 @@ export function RNCTimeline({ rncId }: RNCTimelineProps) {
             days_left,
             responsible,
             workflow_status,
+            status,
             created_by_profile:profiles!rncs_created_by_fkey(name, email),
             assigned_to_profile:profiles!rncs_assigned_to_fkey(name, email),
             assigned_by_profile:profiles!rncs_assigned_by_fkey(name, email)
