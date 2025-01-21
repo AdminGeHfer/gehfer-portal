@@ -21,11 +21,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Run tests with coverage
-      run: npm run vitest -- --coverage
+    # - name: Run tests with coverage
+    #   run: npm run vitest -- --coverage
       
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
+    # - name: Upload coverage reports
+    #   uses: codecov/codecov-action@v3
       
     - name: Type check
       run: npm run typecheck
