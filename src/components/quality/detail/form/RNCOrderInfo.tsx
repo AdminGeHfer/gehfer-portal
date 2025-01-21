@@ -25,7 +25,7 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
     name: "products"
   });
 
-  const canEdit = isEditing && status !== "concluded";
+  const canEdit = isEditing && status !== "concluded" && status !== "canceled";
   const canAddProducts = isEditing && (status === "pending" || status === "collect");
 
   return (
@@ -95,7 +95,7 @@ export const RNCOrderInfo = ({ form, isEditing = false, status }: RNCOrderInfoPr
                     size="sm"
                     onClick={() => append({ product: "", weight: 0 })}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 h-4 mr-2" />
                     Adicionar Produto
                   </Button>
                 )}
