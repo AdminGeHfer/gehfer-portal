@@ -4,7 +4,7 @@ import { ptBR } from "date-fns/locale";
 import { getWorkflowStatusLabel } from "@/utils/workflow";
 import { WorkflowStatusEnum } from "@/types/rnc";
 
-export type TimelineEventType = "creation" | "update" | "status" | "comment" | "assignment";
+export type TimelineEventType = "creation" | "update" | "status" | "comment" | "assignment" | "collection" | "closure";
 
 export interface TimelineEventData {
   id: string;
@@ -14,6 +14,7 @@ export interface TimelineEventData {
   type: TimelineEventType;
   userId: string;
   userName?: string;
+  userEmail?: string;
   comment?: string;
   notes?: string;
 }
@@ -24,7 +25,7 @@ interface TimelineEventProps {
 }
 
 export const TimelineEvent = ({ event, userName }: TimelineEventProps) => {
-  const getEventIcon = (type: string) => {
+  const getEventIcon = (type: TimelineEventType) => {
     switch (type) {
       case "creation":
         return "🆕";
@@ -36,6 +37,10 @@ export const TimelineEvent = ({ event, userName }: TimelineEventProps) => {
         return "💬";
       case "assignment":
         return "👤";
+      case "collection":
+        return "📦";
+      case "closure":
+        return "✅";
       default:
         return "📌";
     }
