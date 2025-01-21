@@ -21,7 +21,8 @@ export const useRNCDetail = (id: string) => {
         .select(`
           *,
           contact:rnc_contacts(*),
-          events:rnc_events(*)
+          events:rnc_events(*),
+          products:rnc_products(*)
         `)
         .eq("id", id)
         .single();
