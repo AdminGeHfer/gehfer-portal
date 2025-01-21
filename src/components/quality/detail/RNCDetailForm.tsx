@@ -18,13 +18,13 @@ interface RNCDetailFormProps {
   rnc: RNC;
   isEditing: boolean;
   onFieldChange: (field: keyof RNC, value: any) => void;
-  onSave?: () => Promise<void>;
+  onSave: () => Promise<void>;
 }
 
 export function RNCDetailForm({ 
   rnc, 
   isEditing, 
-  onFieldChange, 
+  onFieldChange,
   onSave 
 }: RNCDetailFormProps) {
   const [activeTab, setActiveTab] = useState("company");
@@ -36,17 +36,16 @@ export function RNCDetailForm({
     
     try {
       setIsSubmitting(true);
+      console.log("Form data to be submitted:", data);
       
       // Update all form fields
       Object.keys(data).forEach((key) => {
         onFieldChange(key as keyof RNC, data[key]);
       });
 
-      // Call parent save handler if provided
-      if (onSave) {
-        await onSave();
-      }
-
+      // Call parent save handler
+      await onSave();
+      
       toast.success("RNC atualizada com sucesso");
     } catch (error) {
       console.error("Form submission error:", error);

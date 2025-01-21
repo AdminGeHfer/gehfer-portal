@@ -12,6 +12,7 @@ import { RNCDeleteDialog } from "./RNCDeleteDialog";
 import { useDeleteRNC, useUpdateRNC } from "@/components/mutations/rncMutations";
 import { BackButton } from "@/components/atoms/BackButton";
 import { WorkflowStatusBadge } from "@/components/quality/workflow/status/WorkflowStatusBadge";
+import { toast } from "sonner";
 
 export function RNCDetailContainer() {
   const navigate = useNavigate();
@@ -34,8 +35,14 @@ export function RNCDetailContainer() {
 
   const updateMutation = useUpdateRNC(id!, {
     onSuccess: () => {
+      console.log("RNC updated successfully");
       setIsEditing(false);
       refetch();
+      toast.success("RNC atualizada com sucesso");
+    },
+    onError: (error) => {
+      console.error("Error updating RNC:", error);
+      toast.error("Erro ao atualizar RNC: " + error.message);
     }
   });
 
@@ -66,6 +73,7 @@ export function RNCDetailContainer() {
     if (!rnc) return;
     
     try {
+      console.log("Updating RNC with data:", rnc);
       await updateMutation.mutateAsync(rnc);
     } catch (error) {
       console.error('Error saving RNC:', error);
