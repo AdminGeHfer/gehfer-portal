@@ -12,7 +12,7 @@ export const getRNCFromCache = () => {
   return null;
 };
 
-export const setRNCCache = (data: any) => {
+export const setRNCCache = (data) => {
   try {
     sessionStorage.setItem(RNC_CACHE_KEY, JSON.stringify({
       data,
