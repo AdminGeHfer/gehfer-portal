@@ -39,35 +39,48 @@ export function RNCDetailForm({
     
     try {
       setIsSubmitting(true);
-      console.log('Starting form submission with data:', formData);
+      console.log('Form submission started with data:', formData);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("User not authenticated");
       }
 
-      // Update all form fields
+      // Create a clean object with only the updated fields
       const updatedData = {
-        ...formData,
-        contact: {
-          name: formData.contact?.name,
-          phone: formData.contact?.phone,
-          email: formData.contact?.email
-        },
-        products: formData.products?.map((product: any) => ({
+        description: formData.description,
+        type: formData.type,
+        company: formData.company,
+        cnpj: formData.cnpj,
+        workflow_status: formData.workflow_status,
+        department: formData.department,
+        korp: formData.korp,
+        nfv: formData.nfv,
+        nfd: formData.nfd,
+        city: formData.city,
+        responsible: formData.responsible,
+        company_code: formData.company_code,
+        contact: formData.contact ? {
+          name: formData.contact.name,
+          phone: formData.contact.phone,
+          email: formData.contact.email
+        } : undefined,
+        products: formData.products ? formData.products.map((product: any) => ({
           product: product.product,
           weight: Number(product.weight)
-        }))
+        })) : undefined
       };
 
-      // Update each field individually to trigger onFieldChange
-      Object.keys(updatedData).forEach((key) => {
-        onFieldChange(key as keyof RNC, updatedData[key]);
+      // Update each field individually
+      Object.entries(updatedData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          onFieldChange(key as keyof RNC, value);
+        }
       });
 
       await onSave();
       
-      // Invalidate the RNC query to force a refetch
+      // Force a refetch of the RNC data
       await queryClient.invalidateQueries({ queryKey: ['rnc', rnc.id] });
       
       toast.success("RNC atualizada com sucesso");

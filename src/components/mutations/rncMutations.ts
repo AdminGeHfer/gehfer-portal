@@ -37,7 +37,7 @@ export const useUpdateRNC = (
 
   return useMutation({
     mutationFn: async (updatedData: Partial<RNC>) => {
-      console.log('Starting RNC update with data:', updatedData);
+      console.log('Starting RNC update with new data:', updatedData);
 
       // First update the RNC
       const { data: rncUpdateResult, error: rncError } = await supabase
@@ -70,12 +70,8 @@ export const useUpdateRNC = (
         throw rncError;
       }
 
-      console.log('RNC update result:', rncUpdateResult);
-
-      // Then handle products if they exist
+      // Handle products if they exist
       if (updatedData.products && updatedData.products.length > 0) {
-        console.log('Starting products update:', updatedData.products);
-        
         // First delete existing products
         const { error: deleteError } = await supabase
           .from("rnc_products")
@@ -88,7 +84,7 @@ export const useUpdateRNC = (
         }
 
         // Then insert new products
-        const { data: productsResult, error: productsError } = await supabase
+        const { error: productsError } = await supabase
           .from("rnc_products")
           .insert(
             updatedData.products.map(product => ({
@@ -96,71 +92,59 @@ export const useUpdateRNC = (
               product: product.product,
               weight: product.weight
             }))
-          )
-          .select();
+          );
 
         if (productsError) {
           console.error("Error inserting new products:", productsError);
           throw productsError;
         }
-
-        console.log('Products update result:', productsResult);
       }
 
-      // Finally handle contact if it exists
+      // Handle contact if it exists
       if (updatedData.contact) {
-        console.log('Starting contact update with data:', updatedData.contact);
-        
         // First get the contact ID
         const { data: existingContact, error: contactFetchError } = await supabase
           .from("rnc_contacts")
           .select('id')
           .eq("rnc_id", id)
-          .single();
+          .maybeSingle();
 
-        if (contactFetchError && contactFetchError.code !== 'PGRST116') {
+        if (contactFetchError) {
           console.error("Error fetching existing contact:", contactFetchError);
           throw contactFetchError;
         }
 
-        let contactResult;
         if (existingContact) {
           // Update existing contact
-          const { data, error: contactError } = await supabase
+          const { error: contactError } = await supabase
             .from("rnc_contacts")
             .update({
               name: updatedData.contact.name,
               phone: updatedData.contact.phone,
               email: updatedData.contact.email
             })
-            .eq("id", existingContact.id)
-            .select();
+            .eq("id", existingContact.id);
 
           if (contactError) {
             console.error("Error updating contact:", contactError);
             throw contactError;
           }
-          contactResult = data;
         } else {
           // Insert new contact
-          const { data, error: contactError } = await supabase
+          const { error: contactError } = await supabase
             .from("rnc_contacts")
             .insert({
               rnc_id: id,
               name: updatedData.contact.name,
               phone: updatedData.contact.phone,
               email: updatedData.contact.email
-            })
-            .select();
+            });
 
           if (contactError) {
             console.error("Error inserting contact:", contactError);
             throw contactError;
           }
-          contactResult = data;
         }
-
-        console.log('Contact update/insert result:', contactResult);
       }
 
       // Force a refetch of the RNC data
