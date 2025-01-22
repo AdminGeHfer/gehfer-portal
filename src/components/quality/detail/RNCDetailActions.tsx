@@ -43,6 +43,9 @@ export function RNCDetailActions({
     setIsDeleteDialogOpen(true);
   };
 
+  const editableStatuses = ['not_created', 'pending', 'collect'];
+  const showEditButton = canEdit && editableStatuses.includes(rnc.status);
+
   return (
     <div className="flex gap-2 animate-fade-in">
       <Button 
@@ -61,7 +64,7 @@ export function RNCDetailActions({
         <WhatsappLogo weight="fill" className="mr-2 h-4 w-4" />
         WhatsApp
       </Button>
-      {canEdit && (
+      {showEditButton && (
         <>
           <Button 
             variant={isEditing ? "default" : "outline"}

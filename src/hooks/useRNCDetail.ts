@@ -5,6 +5,7 @@ import { transformRNCData } from "@/utils/rncTransform";
 import { RNC, WorkflowStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
 import { useRBAC } from "./useRBAC";
+import { useAuth } from "./useAuth";
 
 export const useRNCDetail = (id: string) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -12,7 +13,41 @@ export const useRNCDetail = (id: string) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
-  const { isAdmin, isManager } = useRBAC();
+  const { isAdmin } = useRBAC();
+  const { user } = useAuth();
+
+  const canEditRNC = (rnc: RNC): boolean => {
+    // Admin can edit any RNC
+    if (isAdmin) {
+      console.log('User is admin, can edit RNC');
+      return true;
+    }
+
+    // Check status condition
+    const editableStatuses = ['not_created', 'pending', 'collect'];
+    if (!editableStatuses.includes(rnc.status)) {
+      console.log('RNC status not editable:', rnc.status);
+      return false;
+    }
+
+    // Check user permissions
+    const userId = user?.id;
+    const canEdit = userId && (
+      rnc.created_by === userId ||
+      rnc.assigned_by === userId ||
+      rnc.assigned_to === userId
+    );
+
+    console.log('User permissions check:', {
+      userId,
+      createdBy: rnc.created_by,
+      assignedBy: rnc.assigned_by,
+      assignedTo: rnc.assigned_to,
+      canEdit
+    });
+
+    return Boolean(canEdit);
+  };
 
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
@@ -40,22 +75,11 @@ export const useRNCDetail = (id: string) => {
         return null;
       }
 
-      const canEdit = isAdmin || 
-                     isManager || 
-                     (userData.user && data.created_by === userData.user.id) ||
-                     data.workflow_status !== 'solved';
-
-      console.log("User permissions:", { 
-        isAdmin, 
-        isManager, 
-        userId: userData.user?.id, 
-        createdBy: data.created_by, 
-        status: data.workflow_status,
-        canEdit 
-      });
-
       const transformedData = transformRNCData(data);
       console.log("Transformed RNC data:", transformedData);
+      
+      // Add canEdit property based on our logic
+      const canEdit = canEditRNC(transformedData);
       return { ...transformedData, canEdit };
     },
   });
@@ -65,12 +89,6 @@ export const useRNCDetail = (id: string) => {
     if (!rnc?.canEdit) {
       console.log('Edit permission denied');
       toast.error("Você não tem permissão para editar esta RNC");
-      return;
-    }
-
-    if (rnc.workflow_status === "solved") {
-      console.log('Edit denied - RNC is in solved status');
-      toast.error("RNCs com status 'Solucionado' não podem ser editadas");
       return;
     }
 
