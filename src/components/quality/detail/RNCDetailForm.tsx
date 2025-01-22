@@ -13,6 +13,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRNCForm } from "./hooks/useRNCForm";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RNCDetailFormProps {
   rnc: RNC;
@@ -37,6 +38,11 @@ export function RNCDetailForm({
     try {
       console.log('Form submission started with data:', data);
       setIsSubmitting(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
       
       // Update all form fields
       Object.keys(data).forEach((key) => {
