@@ -53,7 +53,6 @@ export const useRNCDetail = (id: string) => {
     queryKey: ["rnc", id],
     queryFn: async () => {
       console.log('Fetching RNC details for ID:', id);
-      const { data: userData } = await supabase.auth.getUser();
       const { data, error } = await supabase
         .from("rncs")
         .select(`
