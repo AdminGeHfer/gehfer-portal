@@ -32,31 +32,40 @@ export function RNCDetailForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useRNCForm(rnc);
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (formData: any) => {
     if (isSubmitting) return;
     
     try {
-      console.log('Form submission started with data:', data);
       setIsSubmitting(true);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("User not authenticated");
       }
-      
+
       // Update all form fields
-      Object.keys(data).forEach((key) => {
-        console.log(`Updating field ${key} with value:`, data[key]);
-        onFieldChange(key as keyof RNC, data[key]);
+      const updatedData = {
+        ...formData,
+        contact: {
+          name: formData.contact?.name,
+          phone: formData.contact?.phone,
+          email: formData.contact?.email
+        },
+        products: formData.products?.map((product: any) => ({
+          product: product.product,
+          weight: Number(product.weight)
+        }))
+      };
+
+      // Update each field individually to trigger onFieldChange
+      Object.keys(updatedData).forEach((key) => {
+        onFieldChange(key as keyof RNC, updatedData[key]);
       });
 
-      // Call parent save handler
-      console.log('Calling parent save handler');
       await onSave();
       
-      console.log('Form submission completed successfully');
       toast.success("RNC atualizada com sucesso");
-      setActiveTab("company"); // Reset to first tab after successful save
+      setActiveTab("company");
     } catch (error) {
       console.error('Error in form submission:', error);
       toast.error("Erro ao atualizar RNC");
