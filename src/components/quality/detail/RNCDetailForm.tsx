@@ -39,7 +39,6 @@ export function RNCDetailForm({
     
     try {
       setIsSubmitting(true);
-      console.log('Form submission started with data:', formData);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -86,7 +85,6 @@ export function RNCDetailForm({
       toast.success("RNC atualizada com sucesso");
       setActiveTab("company");
     } catch (error) {
-      console.error('Error in form submission:', error);
       toast.error("Erro ao atualizar RNC");
     } finally {
       setIsSubmitting(false);
