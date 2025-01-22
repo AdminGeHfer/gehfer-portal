@@ -24,7 +24,7 @@ export const useRNCs = () => {
         console.error('Error fetching RNCs:', error);
         throw error;
       }
-      console.log('RNCs fetched successfully:', data);
+      console.log('RNCs fetched successfully');
       return data;
     },
   });
@@ -65,7 +65,7 @@ export const useRNCs = () => {
 
   const createRNC = useMutation({
     mutationFn: async (data: RNCFormData) => {
-      console.log("Starting RNC creation with data:", data);
+      console.log("Starting RNC creation with data");
       
       // Get the current user
       const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -102,7 +102,7 @@ export const useRNCs = () => {
         throw rncError;
       }
 
-      console.log("RNC created successfully:", rnc);
+      console.log("RNC created successfully");
 
       // Create products if provided
       if (data.products && data.products.length > 0) {

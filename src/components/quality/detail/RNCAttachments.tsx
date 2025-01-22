@@ -25,7 +25,7 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
   const { data: attachments, isLoading } = useQuery({
     queryKey: ["rnc-attachments", rncId],
     queryFn: async () => {
-      console.log('Fetching attachments for RNC:', rncId);
+      console.log('Fetching attachments for RNC');
       const { data, error } = await supabase
         .from('rnc_attachments')
         .select('*')
@@ -36,7 +36,7 @@ export function RNCAttachments({ rncId, canEdit = false }: RNCAttachmentsProps) 
         throw error;
       }
       
-      console.log('Fetched attachments:', data);
+      console.log('Fetched attachments');
       return data as RNCAttachment[];
     }
   });

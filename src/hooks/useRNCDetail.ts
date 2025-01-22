@@ -39,7 +39,7 @@ export const useRNCDetail = (id: string) => {
   const { data: rnc, isLoading, refetch } = useQuery({
     queryKey: ["rnc", id],
     queryFn: async () => {
-      console.log("[RNC Detail] Starting to fetch RNC:", id);
+      console.log("[RNC Detail] Starting to fetch RNC");
       
       if (!id) {
         console.log("[RNC Detail] No ID provided");
@@ -47,7 +47,6 @@ export const useRNCDetail = (id: string) => {
       }
 
       try {
-        const { data: user } = await supabase.auth.getUser();
         const { data, error } = await supabase
           .from("rncs")
           .select(`
@@ -69,7 +68,7 @@ export const useRNCDetail = (id: string) => {
           return null;
         }
 
-        console.log("[RNC Detail] RNC data fetched successfully:", data);
+        console.log("[RNC Detail] RNC data fetched successfully");
         const transformedData = transformRNCData(data);
         const canEdit = canEditRNC(transformedData);
         

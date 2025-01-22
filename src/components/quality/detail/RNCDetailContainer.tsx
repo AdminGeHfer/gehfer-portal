@@ -46,7 +46,7 @@ export function RNCDetailContainer() {
   });
 
   const handleDelete = () => {
-    console.log('Handling delete for RNC:', id);
+    console.log('Handling delete for RNC');
     deleteMutation.mutate();
   };
 
@@ -68,7 +68,6 @@ export function RNCDetailContainer() {
   };
 
   const onSave = async () => {
-    console.log('Save button clicked with RNC data:', rnc);
     if (!rnc) return;
     
     try {

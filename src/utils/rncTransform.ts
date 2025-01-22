@@ -1,9 +1,6 @@
 import { RNC } from "@/types/rnc";
 
 export const transformRNCData = (data): RNC => {
-  console.log("Raw data received in transformRNCData:", data);
-  console.log("Products in raw data:", data.products);
-
   const transformed = {
     ...data,
     products: data.products || [],
@@ -24,7 +21,5 @@ export const transformRNCData = (data): RNC => {
     closed_at: data.closed_at,
     rnc_number: data.rnc_number
   };
-
-  console.log("Products after transform:", transformed.products);
   return transformed;
 };
