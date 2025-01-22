@@ -39,11 +39,7 @@ export function RNCDetailForm({
     
     try {
       setIsSubmitting(true);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
+      console.log("Starting RNC update...");
 
       // Create a clean object with only the updated fields
       const updatedData = {
@@ -70,7 +66,7 @@ export function RNCDetailForm({
         })) : undefined
       };
 
-      // Update each field individually
+      // Update each field individually through onFieldChange
       Object.entries(updatedData).forEach(([key, value]) => {
         if (value !== undefined) {
           onFieldChange(key as keyof RNC, value);
@@ -82,9 +78,11 @@ export function RNCDetailForm({
       // Force a refetch of the RNC data
       await queryClient.invalidateQueries({ queryKey: ['rnc', rnc.id] });
       
+      console.log("RNC updated successfully");
       toast.success("RNC atualizada com sucesso");
       setActiveTab("company");
     } catch (error) {
+      console.error("Error updating RNC");
       toast.error("Erro ao atualizar RNC");
     } finally {
       setIsSubmitting(false);
