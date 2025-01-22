@@ -16,6 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { RNCFormData } from "@/types/rnc";
 import { UseFormReturn } from "react-hook-form";
+import Subtitle from "@/components/quality/form/Subtitle";
 
 interface RNCBasicInfoProps {
   form: UseFormReturn<RNCFormData>;
@@ -137,6 +138,7 @@ export function RNCBasicInfo({ form, isEditing }: RNCBasicInfoProps) {
           </FormItem>
         )}
       />
+    <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
+import Subtitle from "@/components/quality/form/Subtitle";
 
 interface OrderFieldsProps {
   form: UseFormReturn<RNCFormData>;
@@ -65,6 +66,7 @@ export function OrderFields({ form, canEdit }: OrderFieldsProps) {
           </FormItem>
         )}
       />
+      <Subtitle text="* Campos obrigatórios" color="skyblue" />
     </>
   );
 }
