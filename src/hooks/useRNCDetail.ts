@@ -36,6 +36,54 @@ export const useRNCDetail = (id: string) => {
     return Boolean(canEdit);
   };
 
+  const { data: rnc, isLoading, refetch } = useQuery({
+    queryKey: ["rnc", id],
+    queryFn: async () => {
+      console.log("[RNC Detail] Starting to fetch RNC:", id);
+      
+      if (!id) {
+        console.log("[RNC Detail] No ID provided");
+        return null;
+      }
+
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        const { data, error } = await supabase
+          .from("rncs")
+          .select(`
+            *,
+            contact:rnc_contacts(*),
+            events:rnc_events(*),
+            products:rnc_products(*)
+          `)
+          .eq("id", id)
+          .single();
+
+        if (error) {
+          console.error("[RNC Detail] Error fetching RNC:", error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log("[RNC Detail] No RNC found with ID:", id);
+          return null;
+        }
+
+        console.log("[RNC Detail] RNC data fetched successfully:", data);
+        const transformedData = transformRNCData(data);
+        const canEdit = canEditRNC(transformedData);
+        
+        return { ...transformedData, canEdit };
+      } catch (error) {
+        console.error("[RNC Detail] Error in query function:", error);
+        throw error;
+      }
+    },
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!id && !!user?.id, // Only run query if we have both id and user
+  });
+
   const handleEdit = () => {
     if (!rnc?.canEdit) {
       toast.error("Você não tem permissão para editar esta RNC");
@@ -119,32 +167,6 @@ export const useRNCDetail = (id: string) => {
       }
     }
   };
-
-  const { data: rnc, isLoading, refetch } = useQuery({
-    queryKey: ["rnc", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("rncs")
-        .select(`
-          *,
-          contact:rnc_contacts(*),
-          events:rnc_events(*),
-          products:rnc_products(*)
-        `)
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (!data) return null;
-
-      const transformedData = transformRNCData(data);
-      const canEdit = canEditRNC(transformedData);
-      
-      return { ...transformedData, canEdit };
-    },
-    enabled: !!user?.id,
-  });
 
   return {
     rnc,
