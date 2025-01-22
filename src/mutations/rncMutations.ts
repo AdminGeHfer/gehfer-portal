@@ -38,7 +38,7 @@ export const useUpdateRNC = (
       console.log('Starting RNC update with data:', updatedData);
 
       // First update the RNC
-      const { error: rncError } = await supabase
+      const { data: rncUpdateResult, error: rncError } = await supabase
         .from("rncs")
         .update({
           description: updatedData.description,
@@ -53,21 +53,27 @@ export const useUpdateRNC = (
           closed_at: updatedData.closed_at,
           conclusion: updatedData.conclusion,
           korp: updatedData.korp,
-          nfd: updatedData.nfd,
+          nfd: updatedData.nfd || null,  // Ensure null is used for empty values
           nfv: updatedData.nfv,
           city: updatedData.city,
           responsible: updatedData.responsible,
-          days_left: updatedData.days_left
+          days_left: updatedData.days_left,
+          company_code: updatedData.company_code
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
       if (rncError) {
         console.error("Error updating RNC:", rncError);
         throw rncError;
       }
 
+      console.log('RNC update result:', rncUpdateResult);
+
       // Then handle products if they exist
       if (updatedData.products && updatedData.products.length > 0) {
+        console.log('Starting products update:', updatedData.products);
+        
         // First delete existing products
         const { error: deleteError } = await supabase
           .from("rnc_products")
@@ -80,7 +86,7 @@ export const useUpdateRNC = (
         }
 
         // Then insert new products
-        const { error: productsError } = await supabase
+        const { data: productsResult, error: productsError } = await supabase
           .from("rnc_products")
           .insert(
             updatedData.products.map(product => ({
@@ -88,29 +94,71 @@ export const useUpdateRNC = (
               product: product.product,
               weight: product.weight
             }))
-          );
+          )
+          .select();
 
         if (productsError) {
           console.error("Error inserting new products:", productsError);
           throw productsError;
         }
+
+        console.log('Products update result:', productsResult);
       }
 
       // Finally handle contact if it exists
       if (updatedData.contact) {
-        const { error: contactError } = await supabase
+        console.log('Starting contact update with data:', updatedData.contact);
+        
+        // First get the contact ID
+        const { data: existingContact, error: contactFetchError } = await supabase
           .from("rnc_contacts")
-          .update({
-            name: updatedData.contact.name,
-            phone: updatedData.contact.phone,
-            email: updatedData.contact.email
-          })
-          .eq("rnc_id", id);
+          .select('id')
+          .eq("rnc_id", id)
+          .single();
 
-        if (contactError) {
-          console.error("Error updating contact:", contactError);
-          throw contactError;
+        if (contactFetchError) {
+          console.error("Error fetching existing contact:", contactFetchError);
+          throw contactFetchError;
         }
+
+        let contactResult;
+        if (existingContact) {
+          // Update existing contact
+          const { data, error: contactError } = await supabase
+            .from("rnc_contacts")
+            .update({
+              name: updatedData.contact.name,
+              phone: updatedData.contact.phone,
+              email: updatedData.contact.email
+            })
+            .eq("id", existingContact.id)
+            .select();
+
+          if (contactError) {
+            console.error("Error updating contact:", contactError);
+            throw contactError;
+          }
+          contactResult = data;
+        } else {
+          // Insert new contact
+          const { data, error: contactError } = await supabase
+            .from("rnc_contacts")
+            .insert({
+              rnc_id: id,
+              name: updatedData.contact.name,
+              phone: updatedData.contact.phone,
+              email: updatedData.contact.email
+            })
+            .select();
+
+          if (contactError) {
+            console.error("Error inserting contact:", contactError);
+            throw contactError;
+          }
+          contactResult = data;
+        }
+
+        console.log('Contact update/insert result:', contactResult);
       }
     },
     onSuccess: () => {
