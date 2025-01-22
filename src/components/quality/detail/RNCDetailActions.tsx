@@ -46,6 +46,14 @@ export function RNCDetailActions({
   const editableStatuses = ['not_created', 'pending', 'collect'];
   const showEditButton = canEdit && editableStatuses.includes(rnc.status);
 
+  console.log('RNCDetailActions render:', {
+    rncNumber: rnc.rnc_number,
+    status: rnc.status,
+    canEdit,
+    editableStatuses,
+    showEditButton
+  });
+
   return (
     <div className="flex gap-2 animate-fade-in">
       <Button 

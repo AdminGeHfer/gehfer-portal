@@ -43,7 +43,9 @@ export const useRNCDetail = (id: string) => {
       createdBy: rnc.created_by,
       assignedBy: rnc.assigned_by,
       assignedTo: rnc.assigned_to,
-      canEdit
+      canEdit,
+      status: rnc.status,
+      rncNumber: rnc.rnc_number
     });
 
     return Boolean(canEdit);
@@ -79,6 +81,7 @@ export const useRNCDetail = (id: string) => {
       
       // Add canEdit property based on our logic
       const canEdit = canEditRNC(transformedData);
+      console.log("Final canEdit value:", canEdit);
       return { ...transformedData, canEdit };
     },
   });
