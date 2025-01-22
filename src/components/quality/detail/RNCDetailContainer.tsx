@@ -29,21 +29,21 @@ export function RNCDetailContainer() {
     refetch
   } = useRNCDetail(id!);
 
-  const deleteMutation = useDeleteRNC(id!, () => {
+  // Create a callback function for delete success
+  const handleDeleteSuccess = () => {
     navigate("/quality/rnc");
-  });
+  };
 
-  const updateMutation = useUpdateRNC(id!, {
-    onSuccess: () => {
-      console.log("RNC updated successfully");
-      setIsEditing(false);
-      refetch();
-      toast.success("RNC atualizada com sucesso");
-    },
-    onError: (error) => {
-      console.error("Error updating RNC:", error);
-      toast.error("Erro ao atualizar RNC: " + error.message);
-    }
+  const deleteMutation = useDeleteRNC(id!, handleDeleteSuccess);
+
+  const updateMutation = useUpdateRNC(id!, () => {
+    console.log("RNC updated successfully");
+    setIsEditing(false);
+    refetch();
+    toast.success("RNC atualizada com sucesso");
+  }, (error) => {
+    console.error("Error updating RNC:", error);
+    toast.error("Erro ao atualizar RNC: " + error.message);
   });
 
   const handleDelete = () => {
