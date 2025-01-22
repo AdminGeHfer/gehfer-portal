@@ -37,7 +37,7 @@ export const useUpdateRNC = (
       console.log('Starting RNC update with data:', updatedData);
 
       // First update the RNC
-      const { error: rncError } = await supabase
+      const { data: rncUpdateResult, error: rncError } = await supabase
         .from("rncs")
         .update({
           description: updatedData.description,
@@ -59,14 +59,29 @@ export const useUpdateRNC = (
           days_left: updatedData.days_left,
           company_code: updatedData.company_code
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
       if (rncError) {
         console.error("Error updating RNC:", rncError);
         throw rncError;
       }
 
-      console.log('Successfully updated RNC base data');
+      console.log('RNC update result:', rncUpdateResult);
+
+      // Verify RNC update
+      const { data: verifyRNC, error: verifyError } = await supabase
+        .from("rncs")
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (verifyError) {
+        console.error("Error verifying RNC update:", verifyError);
+        throw verifyError;
+      }
+
+      console.log('Verified RNC data after update:', verifyRNC);
 
       // Then handle products if they exist
       if (updatedData.products && updatedData.products.length > 0) {
@@ -84,7 +99,7 @@ export const useUpdateRNC = (
         }
 
         // Then insert new products
-        const { error: productsError } = await supabase
+        const { data: productsResult, error: productsError } = await supabase
           .from("rnc_products")
           .insert(
             updatedData.products.map(product => ({
@@ -92,35 +107,64 @@ export const useUpdateRNC = (
               product: product.product,
               weight: product.weight
             }))
-          );
+          )
+          .select();
 
         if (productsError) {
           console.error("Error inserting new products:", productsError);
           throw productsError;
         }
 
-        console.log('Successfully updated products');
+        console.log('Products update result:', productsResult);
+
+        // Verify products update
+        const { data: verifyProducts, error: verifyProductsError } = await supabase
+          .from("rnc_products")
+          .select('*')
+          .eq('rnc_id', id);
+
+        if (verifyProductsError) {
+          console.error("Error verifying products update:", verifyProductsError);
+          throw verifyProductsError;
+        }
+
+        console.log('Verified products after update:', verifyProducts);
       }
 
       // Finally handle contact if it exists
       if (updatedData.contact) {
         console.log('Starting contact update:', updatedData.contact);
         
-        const { error: contactError } = await supabase
+        const { data: contactResult, error: contactError } = await supabase
           .from("rnc_contacts")
           .update({
             name: updatedData.contact.name,
             phone: updatedData.contact.phone,
             email: updatedData.contact.email
           })
-          .eq("rnc_id", id);
+          .eq("rnc_id", id)
+          .select();
 
         if (contactError) {
           console.error("Error updating contact:", contactError);
           throw contactError;
         }
 
-        console.log('Successfully updated contact');
+        console.log('Contact update result:', contactResult);
+
+        // Verify contact update
+        const { data: verifyContact, error: verifyContactError } = await supabase
+          .from("rnc_contacts")
+          .select('*')
+          .eq('rnc_id', id)
+          .single();
+
+        if (verifyContactError) {
+          console.error("Error verifying contact update:", verifyContactError);
+          throw verifyContactError;
+        }
+
+        console.log('Verified contact after update:', verifyContact);
       }
     },
     ...options,
