@@ -51,41 +51,6 @@ export const useRNCDetail = (id: string) => {
     return Boolean(canEdit);
   };
 
-  const { data: rnc, isLoading, refetch } = useQuery({
-    queryKey: ["rnc", id],
-    queryFn: async () => {
-      console.log('Fetching RNC details for ID:', id);
-      const { data, error } = await supabase
-        .from("rncs")
-        .select(`
-          *,
-          contact:rnc_contacts(*),
-          events:rnc_events(*),
-          products:rnc_products(*)
-        `)
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching RNC:', error);
-        throw error;
-      }
-
-      if (!data) {
-        console.log('No RNC found with ID:', id);
-        return null;
-      }
-
-      const transformedData = transformRNCData(data);
-      console.log("Transformed RNC data:", transformedData);
-      
-      // Add canEdit property based on our logic
-      const canEdit = canEditRNC(transformedData);
-      console.log("Final canEdit value:", canEdit);
-      return { ...transformedData, canEdit };
-    },
-  });
-
   const handleEdit = () => {
     console.log('Attempting to edit RNC:', id);
     if (!rnc?.canEdit) {
@@ -196,6 +161,41 @@ export const useRNCDetail = (id: string) => {
       }
     }
   };
+
+  const { data: rnc, isLoading, refetch } = useQuery({
+    queryKey: ["rnc", id],
+    queryFn: async () => {
+      console.log('Fetching RNC details for ID:', id);
+      const { data, error } = await supabase
+        .from("rncs")
+        .select(`
+          *,
+          contact:rnc_contacts(*),
+          events:rnc_events(*),
+          products:rnc_products(*)
+        `)
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching RNC:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('No RNC found with ID:', id);
+        return null;
+      }
+
+      const transformedData = transformRNCData(data);
+      console.log("Transformed RNC data:", transformedData);
+      
+      // Add canEdit property based on our logic
+      const canEdit = canEditRNC(transformedData);
+      console.log("Final canEdit value:", canEdit);
+      return { ...transformedData, canEdit };
+    },
+  });
 
   return {
     rnc,

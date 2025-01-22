@@ -23,6 +23,7 @@ export function OrderFields({ form, canEdit }: OrderFieldsProps) {
               <Input 
                 placeholder="Número do pedido (KORP)" 
                 {...field} 
+                value={field.value || ''} // Ensure value is never null
                 disabled={!canEdit}
               />
             </FormControl>
@@ -41,6 +42,7 @@ export function OrderFields({ form, canEdit }: OrderFieldsProps) {
               <Input 
                 placeholder="Número da Nota de Venda" 
                 {...field} 
+                value={field.value || ''} // Ensure value is never null
                 disabled={!canEdit}
               />
             </FormControl>
@@ -59,6 +61,7 @@ export function OrderFields({ form, canEdit }: OrderFieldsProps) {
               <Input 
                 placeholder="Número da Nota de Devolução" 
                 {...field} 
+                value={field.value || ''} // Ensure value is never null
                 disabled={!canEdit}
               />
             </FormControl>
