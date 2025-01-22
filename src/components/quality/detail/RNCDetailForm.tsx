@@ -46,6 +46,7 @@ export function RNCDetailForm({
       await onSave();
       
       toast.success("RNC atualizada com sucesso");
+      setActiveTab("company"); // Reset to first tab after successful save
     } catch (error) {
       toast.error("Erro ao atualizar RNC");
     } finally {

@@ -34,8 +34,6 @@ export const useUpdateRNC = (
 ) => {
   return useMutation<void, Error, Partial<RNC>>({
     mutationFn: async (updatedData: Partial<RNC>) => {
-      console.log('Starting RNC update with data:', updatedData);
-
       // First update the RNC
       const { error: rncError } = await supabase
         .from("rncs")
@@ -56,7 +54,8 @@ export const useUpdateRNC = (
           nfv: updatedData.nfv,
           city: updatedData.city,
           responsible: updatedData.responsible,
-          days_left: updatedData.days_left
+          days_left: updatedData.days_left,
+          company_code: updatedData.company_code
         })
         .eq("id", id);
 
