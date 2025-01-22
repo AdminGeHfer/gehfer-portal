@@ -3,6 +3,10 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { RNCFormData } from "@/types/rnc";
+import { ProductsTable } from "./ProductsTable";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useFieldArray } from "react-hook-form";
 import Subtitle from "@/components/quality/form/Subtitle";
 
 interface OrderFieldsProps {
@@ -11,8 +15,45 @@ interface OrderFieldsProps {
 }
 
 export function OrderFields({ form, canEdit }: OrderFieldsProps) {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "products"
+  });
+
   return (
     <>
+      <FormField
+        control={form.control}
+        name="products"
+        render={() => (
+          <FormItem className="space-y-2">
+            <FormLabel className="required-field">Produtos e Pesos</FormLabel>
+            <FormControl>
+              <div className="space-y-2">
+                <ProductsTable
+                  form={form}
+                  fields={fields}
+                  canEdit={canEdit}
+                  onRemove={remove}
+                />
+                {canEdit && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => append({ product: "", weight: 0 })}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Produto
+                  </Button>
+                )}
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="korp"
@@ -23,7 +64,7 @@ export function OrderFields({ form, canEdit }: OrderFieldsProps) {
               <Input 
                 placeholder="Número do pedido (KORP)" 
                 {...field} 
-                value={field.value || ''} // Ensure value is never null
+                value={field.value || ''} 
                 disabled={!canEdit}
               />
             </FormControl>
@@ -42,7 +83,7 @@ export function OrderFields({ form, canEdit }: OrderFieldsProps) {
               <Input 
                 placeholder="Número da Nota de Venda" 
                 {...field} 
-                value={field.value || ''} // Ensure value is never null
+                value={field.value || ''} 
                 disabled={!canEdit}
               />
             </FormControl>
@@ -61,7 +102,7 @@ export function OrderFields({ form, canEdit }: OrderFieldsProps) {
               <Input 
                 placeholder="Número da Nota de Devolução" 
                 {...field} 
-                value={field.value || ''} // Ensure value is never null
+                value={field.value || ''} 
                 disabled={!canEdit}
               />
             </FormControl>

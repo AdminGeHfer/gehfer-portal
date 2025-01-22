@@ -36,7 +36,6 @@ export function RNCDetailForm({
     
     try {
       setIsSubmitting(true);
-      console.log("Form data to be submitted:", data);
       
       // Update all form fields
       Object.keys(data).forEach((key) => {
@@ -48,7 +47,6 @@ export function RNCDetailForm({
       
       toast.success("RNC atualizada com sucesso");
     } catch (error) {
-      console.error("Form submission error:", error);
       toast.error("Erro ao atualizar RNC");
     } finally {
       setIsSubmitting(false);
