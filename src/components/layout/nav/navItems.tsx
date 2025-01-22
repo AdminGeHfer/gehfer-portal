@@ -2,8 +2,6 @@ import * as React from "react";
 import { 
   Home,
   ClipboardCheck,
-  LayoutDashboard,
-  FileText,
   Network,
 } from "lucide-react";
 
@@ -31,16 +29,6 @@ export const navItems: NavItem[] = [
     href: "/quality",
     icon: <ClipboardCheck className="h-5 w-5" />,
     subModules: [
-      {
-        title: "Dashboard",
-        href: "/quality/dashboard",
-        icon: <LayoutDashboard className="h-4 w-4" />,
-      },
-      {
-        title: "RNCs",
-        href: "/quality/rnc",
-        icon: <FileText className="h-4 w-4" />,
-      },
       {
         title: "Workflow",
         href: "/quality/workflow",

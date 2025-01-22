@@ -2,8 +2,6 @@ import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   ClipboardList, 
-  FileText, 
-  BarChart3, 
   Calendar,
   Settings,
   Truck
@@ -11,16 +9,6 @@ import {
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  {
-    title: "Dashboard",
-    icon: BarChart3,
-    path: "/quality/dashboard"
-  },
-  {
-    title: "RNCs",
-    icon: FileText,
-    path: "/quality/rnc"
-  },
   {
     title: "Coletas Agendadas",
     icon: Calendar,

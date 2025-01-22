@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import * as React from "react";
@@ -10,13 +10,6 @@ export function Navbar() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-
-  const NavLinks = () => (
-    <>
-      <Button variant="ghost" onClick={() => navigate("/quality/dashboard")}>Dashboard</Button>
-      <Button variant="ghost" onClick={() => navigate("/quality/rnc")}>RNCs</Button>
-    </>
-  );
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -29,11 +22,6 @@ export function Navbar() {
             >
               GeHfer
             </h1>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex space-x-6">
-              <NavLinks />
-            </div>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -45,11 +33,6 @@ export function Navbar() {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[240px] sm:w-[300px]">
-                  <div className="flex flex-col space-y-4 mt-8">
-                    <NavLinks />
-                  </div>
-                </SheetContent>
               </Sheet>
             </div>
 
