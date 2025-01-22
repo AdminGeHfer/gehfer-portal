@@ -29,7 +29,6 @@ export function RNCDetailContainer() {
     refetch
   } = useRNCDetail(id!);
 
-  // Create a callback function for delete success
   const handleDeleteSuccess = () => {
     navigate("/quality/rnc");
   };
@@ -69,18 +68,18 @@ export function RNCDetailContainer() {
   };
 
   const onSave = async () => {
-    console.log('Save button clicked');
+    console.log('Save button clicked with RNC data:', rnc);
     if (!rnc) return;
     
     try {
-      console.log("Updating RNC with data:", rnc);
       await updateMutation.mutateAsync(rnc);
     } catch (error) {
       console.error('Error saving RNC:', error);
     }
   };
 
-  if (isLoading || !rnc) {
+  // Show loading state first
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="flex min-h-screen">
@@ -88,7 +87,24 @@ export function RNCDetailContainer() {
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                <p className="text-muted-foreground">{isLoading ? "Carregando..." : "RNC não encontrada"}</p>
+                <p className="text-muted-foreground">Carregando...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Then check if RNC exists
+  if (!rnc) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="flex min-h-screen">
+          <main className="flex-1 p-6">
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center space-y-4">
+                <p className="text-muted-foreground">RNC não encontrada</p>
               </div>
             </div>
           </main>
