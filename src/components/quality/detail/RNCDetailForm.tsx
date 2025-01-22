@@ -35,19 +35,24 @@ export function RNCDetailForm({
     if (isSubmitting) return;
     
     try {
+      console.log('Form submission started with data:', data);
       setIsSubmitting(true);
       
       // Update all form fields
       Object.keys(data).forEach((key) => {
+        console.log(`Updating field ${key} with value:`, data[key]);
         onFieldChange(key as keyof RNC, data[key]);
       });
 
       // Call parent save handler
+      console.log('Calling parent save handler');
       await onSave();
       
+      console.log('Form submission completed successfully');
       toast.success("RNC atualizada com sucesso");
       setActiveTab("company"); // Reset to first tab after successful save
     } catch (error) {
+      console.error('Error in form submission:', error);
       toast.error("Erro ao atualizar RNC");
     } finally {
       setIsSubmitting(false);

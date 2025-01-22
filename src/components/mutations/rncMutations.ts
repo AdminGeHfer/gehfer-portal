@@ -34,6 +34,8 @@ export const useUpdateRNC = (
 ) => {
   return useMutation<void, Error, Partial<RNC>>({
     mutationFn: async (updatedData: Partial<RNC>) => {
+      console.log('Starting RNC update with data:', updatedData);
+
       // First update the RNC
       const { error: rncError } = await supabase
         .from("rncs")
@@ -50,7 +52,7 @@ export const useUpdateRNC = (
           closed_at: updatedData.closed_at,
           conclusion: updatedData.conclusion,
           korp: updatedData.korp,
-          nfd: updatedData.nfd,
+          nfd: updatedData.nfd || null,  // Ensure null is used for empty values
           nfv: updatedData.nfv,
           city: updatedData.city,
           responsible: updatedData.responsible,
@@ -64,8 +66,12 @@ export const useUpdateRNC = (
         throw rncError;
       }
 
+      console.log('Successfully updated RNC base data');
+
       // Then handle products if they exist
       if (updatedData.products && updatedData.products.length > 0) {
+        console.log('Starting products update:', updatedData.products);
+        
         // First delete existing products
         const { error: deleteError } = await supabase
           .from("rnc_products")
@@ -92,10 +98,14 @@ export const useUpdateRNC = (
           console.error("Error inserting new products:", productsError);
           throw productsError;
         }
+
+        console.log('Successfully updated products');
       }
 
       // Finally handle contact if it exists
       if (updatedData.contact) {
+        console.log('Starting contact update:', updatedData.contact);
+        
         const { error: contactError } = await supabase
           .from("rnc_contacts")
           .update({
@@ -109,10 +119,13 @@ export const useUpdateRNC = (
           console.error("Error updating contact:", contactError);
           throw contactError;
         }
+
+        console.log('Successfully updated contact');
       }
     },
     ...options,
     onSuccess: (data, variables, context) => {
+      console.log('Update mutation completed successfully');
       toast.success("RNC atualizada com sucesso");
       if (options?.onSuccess) {
         options.onSuccess(data, variables, context);
