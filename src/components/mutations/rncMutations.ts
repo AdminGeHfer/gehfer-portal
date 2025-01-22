@@ -121,7 +121,6 @@ export const useUpdateRNC = (
         }
       }
 
-      // Force a refetch of the RNC data
       await queryClient.invalidateQueries({ queryKey: ['rnc', id] });
     },
     onSuccess: () => {

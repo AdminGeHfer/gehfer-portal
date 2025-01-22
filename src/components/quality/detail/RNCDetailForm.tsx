@@ -13,7 +13,6 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRNCForm } from "./hooks/useRNCForm";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface RNCDetailFormProps {
@@ -39,50 +38,43 @@ export function RNCDetailForm({
     
     try {
       setIsSubmitting(true);
-      console.log("Starting RNC update...");
 
       // Create a clean object with only the updated fields
       const updatedData = {
-        description: formData.description,
-        type: formData.type,
+        company_code: formData.company_code,
         company: formData.company,
         cnpj: formData.cnpj,
-        workflow_status: formData.workflow_status,
+        type: formData.type,
+        description: formData.description,
         department: formData.department,
+        responsible: formData.responsible,
         korp: formData.korp,
         nfv: formData.nfv,
         nfd: formData.nfd,
-        city: formData.city,
-        responsible: formData.responsible,
-        company_code: formData.company_code,
         contact: formData.contact ? {
           name: formData.contact.name,
           phone: formData.contact.phone,
           email: formData.contact.email
         } : undefined,
-        products: formData.products ? formData.products.map((product: any) => ({
+        products: formData.products?.map((product: any) => ({
           product: product.product,
           weight: Number(product.weight)
-        })) : undefined
+        }))
       };
 
       // Update each field individually through onFieldChange
-      Object.entries(updatedData).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(updatedData)) {
         if (value !== undefined) {
-          onFieldChange(key as keyof RNC, value);
+          await onFieldChange(key as keyof RNC, value);
         }
-      });
+      }
 
       await onSave();
-      
-      // Force a refetch of the RNC data
       await queryClient.invalidateQueries({ queryKey: ['rnc', rnc.id] });
       
-      console.log("RNC updated successfully");
       toast.success("RNC atualizada com sucesso");
       setActiveTab("company");
     } catch (error) {
-      console.error("Error updating RNC");
       toast.error("Erro ao atualizar RNC");
     } finally {
       setIsSubmitting(false);
