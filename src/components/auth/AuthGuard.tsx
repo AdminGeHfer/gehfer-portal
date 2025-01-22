@@ -17,8 +17,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     // Handle auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      
       if (!isMounted) return;
 
       if (event === 'SIGNED_OUT') {
@@ -37,10 +35,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         console.log('Token refreshed successfully');
       }
 
-      setIsLoading(false);
+      // Only set loading to false for meaningful events
+      if (event !== 'INITIAL_SESSION') {
+        setIsLoading(false);
+      }
     });
 
-    // Initial session check
+    // Initial session check - only perform if no active session
     const checkSession = async () => {
       try {
         if (!isMounted) return;
@@ -54,7 +55,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           if (retryCount < MAX_RETRIES) {
             console.log(`Retrying session check (${retryCount + 1}/${MAX_RETRIES})...`);
             setRetryCount(prev => prev + 1);
-            retryTimeout = setTimeout(checkSession, 2000 * (retryCount + 1)); // Exponential backoff
+            retryTimeout = setTimeout(checkSession, 2000 * (retryCount + 1));
             return;
           } else {
             toast.error("Não foi possível conectar ao servidor. Por favor, tente novamente mais tarde.");
@@ -63,7 +64,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Reset retry count on successful connection
         setRetryCount(0);
 
         if (!session) {
@@ -94,7 +94,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       }
     };
 
-    checkSession();
+    // Only check session if we don't have an active one
+    supabase.auth.getSession().then(({ data: { session }}) => {
+      if (!session) {
+        checkSession();
+      } else {
+        setIsLoading(false);
+      }
+    });
 
     return () => {
       isMounted = false;
