@@ -13,7 +13,6 @@ import { SidebarNav } from "./components/layout/SidebarNav";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { supabase } from "@/integrations/supabase/client";
 
-// Lazy load components with error boundaries
 const Login = lazy(() => import("./features/auth/pages/Login").catch(err => {
   console.error("Error loading Login component:", err);
   return import("./components/pages/Login");
@@ -86,27 +85,15 @@ const ProtectedRoute = ({ children, module, action = "read" }: ProtectedRoutePro
 
 const App = () => {
   useEffect(() => {
-    // Log initial session
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log('Current session:', session);
+      const { error } = await supabase.auth.getSession();
       if (error) console.error('Session error:', error);
     };
     
     checkSession();
 
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       console.log('Auth state changed:', event);
-      console.log('New session:', session);
-      
-      if (event === 'SIGNED_IN') {
-        console.log('User signed in:', session?.user);
-      } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed');
-      }
     });
 
     return () => {

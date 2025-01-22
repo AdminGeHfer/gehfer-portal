@@ -15,7 +15,6 @@ export const getRNCs = async (): Promise<RNC[]> => {
       }
     }
 
-    // First get all RNCs
     const { data: rncs, error: rncsError } = await supabase
       .from("rncs")
       .select(`
@@ -61,7 +60,7 @@ export const getRNCs = async (): Promise<RNC[]> => {
     }
 
     const transformedData = rncs.map(transformRNCData);
-    console.log("[Vite] Transformed RNC data (list):", transformedData);
+    console.log("[Vite] RNCs fetched successfully");
 
     sessionStorage.setItem(
       RNC_CACHE_KEY,
@@ -124,9 +123,8 @@ export const getRNCById = async (id: string): Promise<RNC | null> => {
       return null;
     }
 
-    console.log("[Vite] Raw RNC data (detail):", data);
+    console.log("[Vite] RNC details fetched successfully");
     const transformedData = transformRNCData(data);
-    console.log("[Vite] Transformed RNC data (detail):", transformedData);
     return transformedData;
   } catch (error) {
     console.error("[Vite] Error in getRNCById:", error);

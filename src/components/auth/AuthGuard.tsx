@@ -15,8 +15,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     let isMounted = true;
     let retryTimeout: NodeJS.Timeout;
 
-    // Handle auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
       if (!isMounted) return;
 
       if (event === 'SIGNED_OUT') {
@@ -35,13 +34,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
         console.log('Token refreshed successfully');
       }
 
-      // Only set loading to false for meaningful events
       if (event !== 'INITIAL_SESSION') {
         setIsLoading(false);
       }
     });
 
-    // Initial session check - only perform if no active session
     const checkSession = async () => {
       try {
         if (!isMounted) return;
@@ -72,7 +69,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        console.log('Active session found');
+        console.log('Session check completed');
       } catch (err) {
         console.error('Unexpected error checking session:', err);
         if (err instanceof Error) {
@@ -94,7 +91,6 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Only check session if we don't have an active one
     supabase.auth.getSession().then(({ data: { session }}) => {
       if (!session) {
         checkSession();
