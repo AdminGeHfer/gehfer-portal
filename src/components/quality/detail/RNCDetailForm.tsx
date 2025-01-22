@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRNCForm } from "./hooks/useRNCForm";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface RNCDetailFormProps {
   rnc: RNC;
@@ -31,12 +32,14 @@ export function RNCDetailForm({
   const [activeTab, setActiveTab] = useState("company");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useRNCForm(rnc);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (formData: any) => {
     if (isSubmitting) return;
     
     try {
       setIsSubmitting(true);
+      console.log('Starting form submission with data:', formData);
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -63,6 +66,9 @@ export function RNCDetailForm({
       });
 
       await onSave();
+      
+      // Invalidate the RNC query to force a refetch
+      await queryClient.invalidateQueries({ queryKey: ['rnc', rnc.id] });
       
       toast.success("RNC atualizada com sucesso");
       setActiveTab("company");

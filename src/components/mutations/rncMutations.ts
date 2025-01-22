@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { RNC } from "@/types/rnc";
 import { toast } from "sonner";
@@ -6,12 +6,14 @@ import { toast } from "sonner";
 export const useDeleteRNC = (id: string, onSuccess: () => void) => {
   return useMutation({
     mutationFn: async () => {
+      console.log('Starting RNC deletion process for ID:', id);
       const { error } = await supabase
         .from("rncs")
         .delete()
         .eq("id", id);
 
       if (error) {
+        console.error("Error deleting RNC:", error);
         throw error;
       }
     },
@@ -20,6 +22,7 @@ export const useDeleteRNC = (id: string, onSuccess: () => void) => {
       onSuccess();
     },
     onError: (error: Error) => {
+      console.error("Error in useDeleteRNC:", error);
       toast.error("Erro ao excluir RNC: " + error.message);
     },
   });
@@ -30,10 +33,14 @@ export const useUpdateRNC = (
   onSuccess?: () => void,
   onError?: (error: Error) => void
 ) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (updatedData: Partial<RNC>) => {
+      console.log('Starting RNC update with data:', updatedData);
+
       // First update the RNC
-      const { error: rncError } = await supabase
+      const { data: rncUpdateResult, error: rncError } = await supabase
         .from("rncs")
         .update({
           description: updatedData.description,
@@ -55,14 +62,20 @@ export const useUpdateRNC = (
           days_left: updatedData.days_left,
           company_code: updatedData.company_code
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
       if (rncError) {
+        console.error("Error updating RNC:", rncError);
         throw rncError;
       }
 
+      console.log('RNC update result:', rncUpdateResult);
+
       // Then handle products if they exist
       if (updatedData.products && updatedData.products.length > 0) {
+        console.log('Starting products update:', updatedData.products);
+        
         // First delete existing products
         const { error: deleteError } = await supabase
           .from("rnc_products")
@@ -70,11 +83,12 @@ export const useUpdateRNC = (
           .eq("rnc_id", id);
 
         if (deleteError) {
+          console.error("Error deleting existing products:", deleteError);
           throw deleteError;
         }
 
         // Then insert new products
-        const { error: productsError } = await supabase
+        const { data: productsResult, error: productsError } = await supabase
           .from("rnc_products")
           .insert(
             updatedData.products.map(product => ({
@@ -82,15 +96,21 @@ export const useUpdateRNC = (
               product: product.product,
               weight: product.weight
             }))
-          );
+          )
+          .select();
 
         if (productsError) {
+          console.error("Error inserting new products:", productsError);
           throw productsError;
         }
+
+        console.log('Products update result:', productsResult);
       }
 
       // Finally handle contact if it exists
       if (updatedData.contact) {
+        console.log('Starting contact update with data:', updatedData.contact);
+        
         // First get the contact ID
         const { data: existingContact, error: contactFetchError } = await supabase
           .from("rnc_contacts")
@@ -99,45 +119,59 @@ export const useUpdateRNC = (
           .single();
 
         if (contactFetchError && contactFetchError.code !== 'PGRST116') {
+          console.error("Error fetching existing contact:", contactFetchError);
           throw contactFetchError;
         }
 
+        let contactResult;
         if (existingContact) {
           // Update existing contact
-          const { error: contactError } = await supabase
+          const { data, error: contactError } = await supabase
             .from("rnc_contacts")
             .update({
               name: updatedData.contact.name,
               phone: updatedData.contact.phone,
               email: updatedData.contact.email
             })
-            .eq("id", existingContact.id);
+            .eq("id", existingContact.id)
+            .select();
 
           if (contactError) {
+            console.error("Error updating contact:", contactError);
             throw contactError;
           }
+          contactResult = data;
         } else {
           // Insert new contact
-          const { error: contactError } = await supabase
+          const { data, error: contactError } = await supabase
             .from("rnc_contacts")
             .insert({
               rnc_id: id,
               name: updatedData.contact.name,
               phone: updatedData.contact.phone,
               email: updatedData.contact.email
-            });
+            })
+            .select();
 
           if (contactError) {
+            console.error("Error inserting contact:", contactError);
             throw contactError;
           }
+          contactResult = data;
         }
+
+        console.log('Contact update/insert result:', contactResult);
       }
+
+      // Force a refetch of the RNC data
+      await queryClient.invalidateQueries({ queryKey: ['rnc', id] });
     },
     onSuccess: () => {
       toast.success("RNC atualizada com sucesso");
       if (onSuccess) onSuccess();
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast.error("Erro ao atualizar RNC: " + error.message);
       if (onError) onError(error);
     },
