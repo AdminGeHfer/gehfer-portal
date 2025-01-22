@@ -14,9 +14,14 @@ export const useRNCDetail = (id: string) => {
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const { isAdmin } = useRBAC();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const canEditRNC = (rnc: RNC): boolean => {
+    if (!user?.id) {
+      console.log('No user ID found, cannot edit');
+      return false;
+    }
+
     // Admin can edit any RNC
     if (isAdmin) {
       console.log('User is admin, can edit RNC');
@@ -31,7 +36,7 @@ export const useRNCDetail = (id: string) => {
     }
 
     // Check user permissions
-    const userId = user?.id;
+    const userId = user.id;
     const canEdit = userId && (
       rnc.created_by === userId ||
       rnc.assigned_by === userId ||
@@ -45,7 +50,8 @@ export const useRNCDetail = (id: string) => {
       assignedTo: rnc.assigned_to,
       canEdit,
       status: rnc.status,
-      rncNumber: rnc.rnc_number
+      rncNumber: rnc.rnc_number,
+      userRole: profile?.role
     });
 
     return Boolean(canEdit);
@@ -166,6 +172,8 @@ export const useRNCDetail = (id: string) => {
     queryKey: ["rnc", id],
     queryFn: async () => {
       console.log('Fetching RNC details for ID:', id);
+      console.log('Current user:', user?.id);
+      
       const { data, error } = await supabase
         .from("rncs")
         .select(`
@@ -195,6 +203,7 @@ export const useRNCDetail = (id: string) => {
       console.log("Final canEdit value:", canEdit);
       return { ...transformedData, canEdit };
     },
+    enabled: !!user?.id, // Only run query when we have a user ID
   });
 
   return {
