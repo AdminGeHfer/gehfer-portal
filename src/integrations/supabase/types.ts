@@ -2052,6 +2052,10 @@ export type Database = {
         }
         Returns: number
       }
+      create_daily_rnc_events: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]
