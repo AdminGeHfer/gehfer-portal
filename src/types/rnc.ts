@@ -16,35 +16,47 @@ export enum RncStatusEnum {
 }
 
 export enum RncTypeEnum {
-  company_complaint = 'company_complaint',
-  internal_complaint = 'internal_complaint',
-  customer_complaint = 'customer_complaint'
+  company_complaint = "company_complaint",
+  supplier = "supplier",
+  dispatch = "dispatch",
+  logistics = "logistics",
+  deputy = "deputy",
+  driver = "driver",
+  financial = "financial",
+  commercial = "commercial",
+  financial_agreement = "financial_agreement"
+}
+
+export enum RncDepartmentEnum {
+  logistics = "logistics",
+  quality = "quality",
+  financial = "financial"
 }
 
 export interface RNC {
   id: string;
-  description: string;
-  type: RncTypeEnum;
+  rnc_number?: number;
+  company_code: string;
   company: string;
   cnpj: string;
-  created_at: string;
-  updated_at: string;
-  closed_at?: string;
-  created_by: string;
-  assigned_to?: string;
-  rnc_number?: number;
-  assigned_by?: string;
-  assigned_at?: string;
-  workflow_status: WorkflowStatusEnum;
-  department: string;
-  company_code: string;
+  description: string;
+  type: RncTypeEnum;
+  department: RncDepartmentEnum;
   responsible?: string;
-  days_left?: number;
   korp?: string;
   nfv?: string;
   nfd?: string;
-  collected_at?: string;
+  days_left?: number;
   city?: string;
   conclusion?: string;
   status: RncStatusEnum;
+  workflow_status: WorkflowStatusEnum;
+  assigned_at?: string;
+  closed_at?: string;
+  collected_at?: string;
+  created_by: string;
+  assigned_by?: string;
+  assigned_to?: string;
+  created_at: string;
+  updated_at: string;
 }
