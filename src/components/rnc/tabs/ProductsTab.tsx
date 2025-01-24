@@ -79,9 +79,9 @@ export function ProductsTab({ setProgress }: ProductsTabProps) {
       ))}
 
       <Button
-        variant="outline"
+        variant="ghost"
         onClick={addProduct}
-        className="w-full border-blue-200 text-blue-600 hover:bg-blue-50"
+        className="w-full text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
       >
         <Plus className="h-4 w-4 mr-2" />
         Adicionar novo produto

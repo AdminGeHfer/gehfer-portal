@@ -7,7 +7,6 @@ import { ContactTab } from "../tabs/ContactTab";
 import { AttachmentsTab } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 
 interface RNCModalContentProps {
   activeTab: string;
@@ -22,7 +21,6 @@ interface RNCModalContentProps {
 export const RNCModalContent = ({
   activeTab,
   setActiveTab,
-  progress,
   onBack,
   onNext,
   onSave,
@@ -34,8 +32,8 @@ export const RNCModalContent = ({
     <>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 bg-blue-50 dark:bg-blue-900/50">
-          <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
-          <TabsTrigger value="additional">Informações Complementares</TabsTrigger>
+          <TabsTrigger value="basic">Inf. Básicas</TabsTrigger>
+          <TabsTrigger value="additional">Inf. Complementares</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="contact">Contato</TabsTrigger>
           <TabsTrigger value="attachments">Anexos</TabsTrigger>
@@ -84,6 +82,7 @@ export const RNCModalContent = ({
             </Button>
           ) : (
             <Button
+              variant="ghost"
               onClick={onNext}
               className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
             >
@@ -94,7 +93,6 @@ export const RNCModalContent = ({
         </div>
 
         <p className="text-sm text-blue-600 dark:text-blue-400">* Campos obrigatórios</p>
-        <Progress value={progress} className="h-2 bg-blue-100 dark:bg-blue-900" />
       </div>
     </>
   );
