@@ -4,6 +4,8 @@ import { StatusSelect } from "./filters/StatusSelect";
 import { TypeSelect } from "./filters/TypeSelect";
 import { DepartmentSelect } from "./filters/DepartmentSelect";
 import { SearchBar } from "./filters/SearchBar";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface RNCFiltersProps {
   selectedStatus: RNCStatus | null;
@@ -16,6 +18,7 @@ interface RNCFiltersProps {
   setSearchQuery: (value: string) => void;
   isSearchExpanded: boolean;
   setIsSearchExpanded: (value: boolean) => void;
+  onCreateRNC: () => void;
 }
 
 export const RNCFilters = ({
@@ -29,6 +32,7 @@ export const RNCFilters = ({
   setSearchQuery,
   isSearchExpanded,
   setIsSearchExpanded,
+  onCreateRNC,
 }: RNCFiltersProps) => {
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -47,13 +51,20 @@ export const RNCFilters = ({
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <SearchBar
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           isSearchExpanded={isSearchExpanded}
           setIsSearchExpanded={setIsSearchExpanded}
         />
+        <Button 
+          onClick={onCreateRNC}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Criar RNC
+        </Button>
       </div>
     </div>
   );
