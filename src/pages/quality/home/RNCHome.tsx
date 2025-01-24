@@ -3,19 +3,19 @@ import { RNCFilters } from "./components/RNCFilters";
 import { RNCTable } from "./components/RNCTable";
 import { useRNCs } from "@/hooks/useRNCs";
 import { useState } from "react";
-import { RNCType, RNCStatus, RNCDepartment } from "./types";
 
 export const RNCHome = () => {
-  const [selectedStatus, setSelectedStatus] = useState<RNCStatus | null>(null);
-  const [selectedType, setSelectedType] = useState<RNCType | null>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<RNCDepartment | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
 
   const { filteredRNCs, isLoading, error } = useRNCs({
     selectedStatus,
     selectedType,
     selectedDepartment,
-    searchTerm,
+    searchTerm: searchQuery,
   });
 
   return (
@@ -35,16 +35,14 @@ export const RNCHome = () => {
           setSelectedType={setSelectedType}
           selectedDepartment={selectedDepartment}
           setSelectedDepartment={setSelectedDepartment}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          isSearchExpanded={isSearchExpanded}
+          setIsSearchExpanded={setIsSearchExpanded}
         />
 
         <div className="mt-6">
-          <RNCTable
-            rncs={filteredRNCs}
-            isLoading={isLoading}
-            error={error}
-          />
+          <RNCTable data={filteredRNCs} />
         </div>
       </div>
 

@@ -12,12 +12,12 @@ import {
 import { cn } from "@/lib/utils";
 
 interface RNCFiltersProps {
-  selectedStatus: string;
-  setSelectedStatus: (value: string) => void;
-  selectedType: string;
-  setSelectedType: (value: string) => void;
-  selectedDepartment: string;
-  setSelectedDepartment: (value: string) => void;
+  selectedStatus: string | null;
+  setSelectedStatus: (value: string | null) => void;
+  selectedType: string | null;
+  setSelectedType: (value: string | null) => void;
+  selectedDepartment: string | null;
+  setSelectedDepartment: (value: string | null) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   isSearchExpanded: boolean;
