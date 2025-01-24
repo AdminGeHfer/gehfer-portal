@@ -69,7 +69,7 @@ export const RNCFilters = ({
         </Select>
 
         <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-          <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800 truncate">
+          <SelectTrigger className="w-full md:w-[220px] bg-white dark:bg-gray-800">
             <SelectValue placeholder="Selecione um departamento" />
           </SelectTrigger>
           <SelectContent>
