@@ -25,9 +25,9 @@ export const getTypeColor = (type: string) => {
 
 export const getDepartmentColor = (department: string) => {
   const colors = {
-    "Logística": "bg-amber-50 text-amber-800 dark:bg-amber-900 dark:text-amber-100",
-    "Qualidade": "bg-yellow-50 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-    "Financeiro": "bg-orange-50 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
+    "Logística": "bg-cyan-50 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100",
+    "Qualidade": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100",
+    "Financeiro": "bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100",
   };
   return colors[department as keyof typeof colors] || "bg-gray-100 text-gray-800";
 };
