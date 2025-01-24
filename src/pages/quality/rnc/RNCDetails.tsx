@@ -41,13 +41,13 @@ export default function RNCDetails() {
                 <div className="contents sm:flex sm:flex-1">
                   <TabsTrigger 
                     value="basic" 
-                    className="flex-1 min-w-[120px] data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                   >
                     Informações base
                   </TabsTrigger>
                   <TabsTrigger 
                     value="additional" 
-                    className="flex-1 min-w-[120px] data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                   >
                     Inf. Adicionais
                   </TabsTrigger>
@@ -55,13 +55,13 @@ export default function RNCDetails() {
                 <div className="contents sm:flex sm:flex-1">
                   <TabsTrigger 
                     value="relational" 
-                    className="flex-1 min-w-[120px] data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                   >
                     Inf. Relacionais
                   </TabsTrigger>
                   <TabsTrigger 
                     value="workflow" 
-                    className="flex-1 min-w-[120px] data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                   >
                     Workflow
                   </TabsTrigger>
