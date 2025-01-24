@@ -11,11 +11,11 @@ import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 interface RNCModalContentProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  progress: number;
   onBack: () => void;
   onNext: () => void;
   onSave: () => void;
   setProgress: (progress: number) => void;
+  progress?: number; // Made optional
 }
 
 export const RNCModalContent = ({
