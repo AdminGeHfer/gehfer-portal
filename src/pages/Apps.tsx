@@ -13,9 +13,9 @@ const modules = [
     title: "Qualidade",
     description: "Gestão de qualidade e controle de processos",
     icon: <ClipboardCheck className="h-12 w-12 text-primary" />,
-    route: "/quality/workflow",
+    route: "/quality/home",
     submodules: [
-      { title: "RNCs", route: "/quality/workflow", icon: <ClipboardCheck className="h-4 w-4" /> }
+      { title: "RNCs", route: "/quality/home", icon: <ClipboardCheck className="h-4 w-4" /> }
     ]
   }
 ];
