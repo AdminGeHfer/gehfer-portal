@@ -1,74 +1,66 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { RNCFilters } from "./components/RNCFilters";
 import { RNCTable } from "./components/RNCTable";
-import type { RNCTableData } from "./types";
+import { useRNCs } from "@/hooks/useRNCs";
+import { useState } from "react";
+import { RNCType, RNCStatus, RNCDepartment } from "./types";
 
-const RNCHome = () => {
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("");
+export const RNCHome = () => {
+  const [selectedStatus, setSelectedStatus] = useState<RNCStatus | null>(null);
+  const [selectedType, setSelectedType] = useState<RNCType | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<RNCDepartment | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Example data
-  const exampleData: RNCTableData[] = [
-    {
-      number: "RNC-001",
-      company: "Empresa A",
-      type: "Reclamação do Cliente",
-      status: "Pendente",
-      department: "Qualidade",
-      date: "2024-03-15",
-    },
-    {
-      number: "RNC-002",
-      company: "Empresa B",
-      type: "Fornecedor",
-      status: "Coletado",
-      department: "Logística",
-      date: "2024-03-14",
-    },
-    {
-      number: "RNC-003",
-      company: "Empresa C",
-      type: "Logística",
-      status: "Solucionado",
-      department: "Financeiro",
-      date: "2024-03-13",
-    },
-    {
-      number: "RNC-004",
-      company: "Empresa D",
-      type: "Expedição",
-      status: "Cancelado",
-      department: "Qualidade",
-      date: "2024-03-12",
-    },
-  ];
+  const { filteredRNCs, isLoading, error } = useRNCs({
+    selectedStatus,
+    selectedType,
+    selectedDepartment,
+    searchTerm,
+  });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-        Registros de Não Conformidades (RNCs)
-      </h1>
-      <p className="text-gray-600 dark:text-gray-400 mb-8">
-        Gerencie as não conformidades cadastradas no portal
-      </p>
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="flex-1 container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight">RNCs</h1>
+          <p className="text-muted-foreground">
+            Gerencie e acompanhe as RNCs do sistema
+          </p>
+        </div>
 
-      <RNCFilters
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-        selectedType={selectedType}
-        setSelectedType={setSelectedType}
-        selectedDepartment={selectedDepartment}
-        setSelectedDepartment={setSelectedDepartment}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        isSearchExpanded={isSearchExpanded}
-        setIsSearchExpanded={setIsSearchExpanded}
-      />
+        <RNCFilters
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+          selectedDepartment={selectedDepartment}
+          setSelectedDepartment={setSelectedDepartment}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
 
-      <RNCTable data={exampleData} />
+        <div className="mt-6">
+          <RNCTable
+            rncs={filteredRNCs}
+            isLoading={isLoading}
+            error={error}
+          />
+        </div>
+      </div>
+
+      <footer className="fixed bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
+        <div className="flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Sobre </a>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Ajuda </a>
+          </Button>
+        </div>
+      </footer>
     </div>
   );
 };
