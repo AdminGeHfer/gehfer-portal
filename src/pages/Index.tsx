@@ -5,9 +5,9 @@ import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
 import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
-import { Button } from "@/components/ui/button";
 import { useComplaintFilters } from "@/hooks/useComplaintFilters";
 import { useComplaints } from "@/hooks/useComplaints";
+import { ComplaintPageHeader } from "@/components/rnc/header/ComplaintPageHeader";
 
 const Index = () => {
   const {
@@ -35,17 +35,7 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Minhas Reclamações
-              </h2>
-              <Button
-                onClick={handleOpenModal}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Criar RNC
-              </Button>
-            </div>
+            <ComplaintPageHeader onCreateRNC={handleOpenModal} />
             <ComplaintStats complaints={complaints} />
           </div>
 
