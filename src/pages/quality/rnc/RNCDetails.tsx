@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,31 +37,35 @@ export default function RNCDetails() {
           {/* Tabs section */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap bg-muted/80 p-1 rounded-lg">
-                <TabsTrigger 
-                  value="basic" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
-                >
-                  Informações base
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="additional" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
-                >
-                  Inf. Adicionais
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="relational" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
-                >
-                  Inf. Relacionais
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="workflow" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
-                >
-                  Workflow
-                </TabsTrigger>
+              <TabsList className="w-full grid grid-cols-2 gap-1 sm:flex sm:flex-wrap bg-muted/80 p-1 rounded-lg">
+                <div className="contents sm:flex sm:flex-1">
+                  <TabsTrigger 
+                    value="basic" 
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                  >
+                    Informações base
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="additional" 
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                  >
+                    Inf. Adicionais
+                  </TabsTrigger>
+                </div>
+                <div className="contents sm:flex sm:flex-1">
+                  <TabsTrigger 
+                    value="relational" 
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                  >
+                    Inf. Relacionais
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="workflow" 
+                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                  >
+                    Workflow
+                  </TabsTrigger>
+                </div>
               </TabsList>
 
               <TabsContent value="basic" className="space-y-6 p-4">
