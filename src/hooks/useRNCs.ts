@@ -75,7 +75,7 @@ export const useRNCs = ({
       setFilteredRNCs(filtered);
       setError(null);
     } catch (err) {
-      setError("Erro ao filtrar RNCs");
+      setError(`Erro ao filtrar RNCs: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
