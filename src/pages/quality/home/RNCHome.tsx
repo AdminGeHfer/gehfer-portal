@@ -11,6 +11,7 @@ export const RNCHome = () => {
   const [selectedStatus, setSelectedStatus] = useState<RNCStatus | null>(null);
   const [selectedType, setSelectedType] = useState<RNCType | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<RNCDepartment | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { filteredRNCs, isLoading, error } = useRNCs({
     selectedStatus,
@@ -40,6 +41,7 @@ export const RNCHome = () => {
           setSearchQuery={setSearchQuery}
           isSearchExpanded={isSearchExpanded}
           setIsSearchExpanded={setIsSearchExpanded}
+          onCreateRNC={() => setIsCreateModalOpen(true)}
         />
 
         <div className="mt-6">

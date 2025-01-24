@@ -50,6 +50,11 @@ const Index = () => {
     }));
   };
 
+  const handleStatusUpdate = (complaintId: number, newStatus: string) => {
+    // Implementation for status update
+    toast.success("Status atualizado com sucesso!");
+  };
+
   const filteredComplaints = complaints.filter((complaint) => {
     const searchTerms = {
       protocol: filters.protocol.toLowerCase(),
@@ -79,6 +84,7 @@ const Index = () => {
           <ComplaintFilters 
             filters={filters} 
             onFilterChange={handleFilterChange}
+            onCreateRNC={() => setIsCreateModalOpen(true)}
           />
           
           <ComplaintTable 
@@ -89,6 +95,7 @@ const Index = () => {
           {selectedComplaint && (
             <ComplaintDetails
               complaint={complaints.find((c) => c.id === selectedComplaint)!}
+              onStatusUpdate={handleStatusUpdate}
               onClose={() => setSelectedComplaint(null)}
             />
           )}
