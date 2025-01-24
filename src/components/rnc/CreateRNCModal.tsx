@@ -2,6 +2,7 @@ import * as React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { RNCModalContent } from "./modal/RNCModalContent";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -10,6 +11,11 @@ interface CreateRNCModalProps {
 
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
+  const { toast } = useToast();
+  const basicInfoRef = React.useRef<{ validate: () => boolean }>(null);
+  const additionalInfoRef = React.useRef<{ validate: () => boolean }>(null);
+  const productsRef = React.useRef<{ validate: () => boolean }>(null);
+  const contactRef = React.useRef<{ validate: () => boolean }>(null);
 
   const handleBack = () => {
     const tabs = ["basic", "additional", "products", "contact", "attachments"];
@@ -22,12 +28,55 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const handleNext = () => {
     const tabs = ["basic", "additional", "products", "contact", "attachments"];
     const currentIndex = tabs.indexOf(activeTab);
+    
+    // Validate current tab before moving to next
+    if (!validateCurrentTab()) {
+      toast({
+        variant: "destructive",
+        title: "Erro de validação",
+        description: "Por favor, preencha todos os campos obrigatórios corretamente.",
+      });
+      return;
+    }
+
     if (currentIndex < tabs.length - 1) {
       setActiveTab(tabs[currentIndex + 1]);
     }
   };
 
+  const validateCurrentTab = () => {
+    switch (activeTab) {
+      case "basic":
+        return basicInfoRef.current?.validate() ?? false;
+      case "additional":
+        return additionalInfoRef.current?.validate() ?? false;
+      case "products":
+        return productsRef.current?.validate() ?? false;
+      case "contact":
+        return contactRef.current?.validate() ?? false;
+      case "attachments":
+        return true; // Attachments are optional
+      default:
+        return false;
+    }
+  };
+
   const handleSave = () => {
+    // Validate all tabs before saving
+    const isBasicValid = basicInfoRef.current?.validate() ?? false;
+    const isAdditionalValid = additionalInfoRef.current?.validate() ?? false;
+    const isProductsValid = productsRef.current?.validate() ?? false;
+    const isContactValid = contactRef.current?.validate() ?? false;
+
+    if (!isBasicValid || !isAdditionalValid || !isProductsValid || !isContactValid) {
+      toast({
+        variant: "destructive",
+        title: "Erro de validação",
+        description: "Por favor, verifique se todos os campos obrigatórios foram preenchidos corretamente.",
+      });
+      return;
+    }
+
     onClose();
   };
 
@@ -55,6 +104,12 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
           onNext={handleNext}
           onSave={handleSave}
           setProgress={() => {}}
+          refs={{
+            basicInfoRef,
+            additionalInfoRef,
+            productsRef,
+            contactRef
+          }}
         />
       </DialogContent>
     </Dialog>

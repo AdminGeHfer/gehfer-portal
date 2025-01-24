@@ -15,7 +15,13 @@ interface RNCModalContentProps {
   onNext: () => void;
   onSave: () => void;
   setProgress: (progress: number) => void;
-  progress?: number; // Made optional
+  progress?: number;
+  refs?: {
+    basicInfoRef: React.RefObject<{ validate: () => boolean }>;
+    additionalInfoRef: React.RefObject<{ validate: () => boolean }>;
+    productsRef: React.RefObject<{ validate: () => boolean }>;
+    contactRef: React.RefObject<{ validate: () => boolean }>;
+  };
 }
 
 export const RNCModalContent = ({
@@ -25,6 +31,7 @@ export const RNCModalContent = ({
   onNext,
   onSave,
   setProgress,
+  refs,
 }: RNCModalContentProps) => {
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
@@ -40,19 +47,19 @@ export const RNCModalContent = ({
         </TabsList>
 
         <TabsContent value="basic">
-          <BasicInfoTab setProgress={setProgress} />
+          <BasicInfoTab setProgress={setProgress} ref={refs?.basicInfoRef} />
         </TabsContent>
 
         <TabsContent value="additional">
-          <AdditionalInfoTab setProgress={setProgress} />
+          <AdditionalInfoTab setProgress={setProgress} ref={refs?.additionalInfoRef} />
         </TabsContent>
 
         <TabsContent value="products">
-          <ProductsTab setProgress={setProgress} />
+          <ProductsTab setProgress={setProgress} ref={refs?.productsRef} />
         </TabsContent>
 
         <TabsContent value="contact">
-          <ContactTab setProgress={setProgress} />
+          <ContactTab setProgress={setProgress} ref={refs?.contactRef} />
         </TabsContent>
 
         <TabsContent value="attachments">
