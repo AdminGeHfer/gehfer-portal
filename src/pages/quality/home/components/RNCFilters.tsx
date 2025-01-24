@@ -10,14 +10,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { RNCStatus, RNCType, RNCDepartment } from "../types";
 
 interface RNCFiltersProps {
-  selectedStatus: string | null;
-  setSelectedStatus: (value: string | null) => void;
-  selectedType: string | null;
-  setSelectedType: (value: string | null) => void;
-  selectedDepartment: string | null;
-  setSelectedDepartment: (value: string | null) => void;
+  selectedStatus: RNCStatus | null;
+  setSelectedStatus: (value: RNCStatus | null) => void;
+  selectedType: RNCType | null;
+  setSelectedType: (value: RNCType | null) => void;
+  selectedDepartment: RNCDepartment | null;
+  setSelectedDepartment: (value: RNCDepartment | null) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   isSearchExpanded: boolean;
@@ -39,43 +40,52 @@ export const RNCFilters = ({
   return (
     <div className="flex flex-col md:flex-row gap-4 mb-6">
       <div className="flex-1 flex gap-4">
-        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+        <Select 
+          value={selectedStatus || ""} 
+          onValueChange={(value) => setSelectedStatus(value as RNCStatus || null)}
+        >
           <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800">
             <SelectValue placeholder="Selecione um status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="pendente">Pendente</SelectItem>
-            <SelectItem value="cancelado">Cancelado</SelectItem>
-            <SelectItem value="coletado">Coletado</SelectItem>
-            <SelectItem value="solucionado">Solucionado</SelectItem>
+            <SelectItem value="Pendente">Pendente</SelectItem>
+            <SelectItem value="Cancelado">Cancelado</SelectItem>
+            <SelectItem value="Coletado">Coletado</SelectItem>
+            <SelectItem value="Solucionado">Solucionado</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select value={selectedType} onValueChange={setSelectedType}>
+        <Select 
+          value={selectedType || ""} 
+          onValueChange={(value) => setSelectedType(value as RNCType || null)}
+        >
           <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800">
             <SelectValue placeholder="Selecione um tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="reclamacao">Reclamação do Cliente</SelectItem>
-            <SelectItem value="fornecedor">Fornecedor</SelectItem>
-            <SelectItem value="expedicao">Expedição</SelectItem>
-            <SelectItem value="logistica">Logística</SelectItem>
-            <SelectItem value="representante">Representante</SelectItem>
-            <SelectItem value="motorista">Motorista</SelectItem>
-            <SelectItem value="financeiro">Financeiro</SelectItem>
-            <SelectItem value="comercial">Comercial</SelectItem>
-            <SelectItem value="acordo">Acordo Financeiro</SelectItem>
+            <SelectItem value="Reclamação do Cliente">Reclamação do Cliente</SelectItem>
+            <SelectItem value="Fornecedor">Fornecedor</SelectItem>
+            <SelectItem value="Expedição">Expedição</SelectItem>
+            <SelectItem value="Logística">Logística</SelectItem>
+            <SelectItem value="Representante">Representante</SelectItem>
+            <SelectItem value="Motorista">Motorista</SelectItem>
+            <SelectItem value="Financeiro">Financeiro</SelectItem>
+            <SelectItem value="Comercial">Comercial</SelectItem>
+            <SelectItem value="Acordo Financeiro">Acordo Financeiro</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+        <Select 
+          value={selectedDepartment || ""} 
+          onValueChange={(value) => setSelectedDepartment(value as RNCDepartment || null)}
+        >
           <SelectTrigger className="w-full md:w-[220px] bg-white dark:bg-gray-800">
             <SelectValue placeholder="Selecione um departamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="logistica">Logística</SelectItem>
-            <SelectItem value="qualidade">Qualidade</SelectItem>
-            <SelectItem value="financeiro">Financeiro</SelectItem>
+            <SelectItem value="Logística">Logística</SelectItem>
+            <SelectItem value="Qualidade">Qualidade</SelectItem>
+            <SelectItem value="Financeiro">Financeiro</SelectItem>
           </SelectContent>
         </Select>
       </div>
