@@ -3,6 +3,7 @@ import {
   Home,
   ClipboardCheck,
   Network,
+  ClipboardPen,
 } from "lucide-react";
 
 export interface SubModule {
@@ -29,6 +30,11 @@ export const navItems: NavItem[] = [
     href: "/quality",
     icon: <ClipboardCheck className="h-5 w-5" />,
     subModules: [
+      {
+        title: "RNCs",
+        href: "/quality/home",
+        icon: <ClipboardPen className="h-4 w-4" />,
+      },
       {
         title: "Workflow",
         href: "/quality/workflow",
