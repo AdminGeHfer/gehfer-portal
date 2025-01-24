@@ -34,8 +34,9 @@ export const RNCFilters = ({
   onCreateRNC,
 }: RNCFiltersProps) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 mb-6">
-      <div className="flex-1 flex gap-4">
+    <div className="flex flex-col gap-4 mb-6">
+      {/* First line - Status and Type */}
+      <div className="grid grid-cols-2 gap-4">
         <StatusSelect
           selectedStatus={selectedStatus}
           setSelectedStatus={setSelectedStatus}
@@ -44,22 +45,29 @@ export const RNCFilters = ({
           selectedType={selectedType}
           setSelectedType={setSelectedType}
         />
+      </div>
+
+      {/* Second line - Department */}
+      <div className="w-full">
         <DepartmentSelect
           selectedDepartment={selectedDepartment}
           setSelectedDepartment={setSelectedDepartment}
         />
       </div>
 
+      {/* Third line - Search and Create Button */}
       <div className="flex items-center gap-4">
-        <SearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          isSearchExpanded={isSearchExpanded}
-          setIsSearchExpanded={setIsSearchExpanded}
-        />
+        <div className="flex-1">
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            isSearchExpanded={isSearchExpanded}
+            setIsSearchExpanded={setIsSearchExpanded}
+          />
+        </div>
         <Button 
           onClick={onCreateRNC}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"
         >
           Criar RNC
         </Button>
