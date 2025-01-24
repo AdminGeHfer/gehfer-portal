@@ -27,7 +27,7 @@ interface AdditionalInfoTabProps {
 }
 
 export type AdditionalInfoTabRef = {
-  validate: () => boolean;
+  validate: () => Promise<boolean>;
 };
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(

@@ -37,7 +37,7 @@ interface BasicInfoTabProps {
 }
 
 export type BasicInfoTabRef = {
-  validate: () => boolean;
+  validate: () => Promise<boolean>;
 };
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(

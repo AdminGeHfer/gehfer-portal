@@ -12,10 +12,10 @@ interface CreateRNCModalProps {
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
   const { toast } = useToast();
-  const basicInfoRef = React.useRef<{ validate: () => boolean }>(null);
-  const additionalInfoRef = React.useRef<{ validate: () => boolean }>(null);
-  const productsRef = React.useRef<{ validate: () => boolean }>(null);
-  const contactRef = React.useRef<{ validate: () => boolean }>(null);
+  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+  const productsRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+  const contactRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
 
   const handleBack = () => {
     const tabs = ["basic", "additional", "products", "contact", "attachments"];
@@ -25,12 +25,30 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     }
   };
 
-  const handleNext = () => {
+  const validateCurrentTab = async () => {
+    switch (activeTab) {
+      case "basic":
+        return await basicInfoRef.current?.validate() ?? false;
+      case "additional":
+        return await additionalInfoRef.current?.validate() ?? false;
+      case "products":
+        return await productsRef.current?.validate() ?? false;
+      case "contact":
+        return await contactRef.current?.validate() ?? false;
+      case "attachments":
+        return true; // Attachments are optional
+      default:
+        return false;
+    }
+  };
+
+  const handleNext = async () => {
     const tabs = ["basic", "additional", "products", "contact", "attachments"];
     const currentIndex = tabs.indexOf(activeTab);
     
     // Validate current tab before moving to next
-    if (!validateCurrentTab()) {
+    const isValid = await validateCurrentTab();
+    if (!isValid) {
       toast({
         variant: "destructive",
         title: "Erro de validação",
@@ -44,29 +62,12 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     }
   };
 
-  const validateCurrentTab = () => {
-    switch (activeTab) {
-      case "basic":
-        return basicInfoRef.current?.validate() ?? false;
-      case "additional":
-        return additionalInfoRef.current?.validate() ?? false;
-      case "products":
-        return productsRef.current?.validate() ?? false;
-      case "contact":
-        return contactRef.current?.validate() ?? false;
-      case "attachments":
-        return true; // Attachments are optional
-      default:
-        return false;
-    }
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validate all tabs before saving
-    const isBasicValid = basicInfoRef.current?.validate() ?? false;
-    const isAdditionalValid = additionalInfoRef.current?.validate() ?? false;
-    const isProductsValid = productsRef.current?.validate() ?? false;
-    const isContactValid = contactRef.current?.validate() ?? false;
+    const isBasicValid = await basicInfoRef.current?.validate() ?? false;
+    const isAdditionalValid = await additionalInfoRef.current?.validate() ?? false;
+    const isProductsValid = await productsRef.current?.validate() ?? false;
+    const isContactValid = await contactRef.current?.validate() ?? false;
 
     if (!isBasicValid || !isAdditionalValid || !isProductsValid || !isContactValid) {
       toast({

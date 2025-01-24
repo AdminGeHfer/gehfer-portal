@@ -27,7 +27,7 @@ interface ContactTabProps {
 }
 
 export type ContactTabRef = {
-  validate: () => boolean;
+  validate: () => Promise<boolean>;
 };
 
 export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
