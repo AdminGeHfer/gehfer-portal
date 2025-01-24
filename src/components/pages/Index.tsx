@@ -6,6 +6,8 @@ import { ComplaintDetails } from "@/components/dashboard/ComplaintDetails";
 import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
 import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
+import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [complaints] = useState([
@@ -41,6 +43,7 @@ const Index = () => {
     status: "",
     daysOpen: "",
   });
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleFilterChange = (field: string, value: string) => {
     setFilters((prev) => ({
@@ -77,9 +80,17 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
-              Minhas Reclamações
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Minhas Reclamações
+              </h2>
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Criar RNC
+              </Button>
+            </div>
             <ComplaintStats complaints={complaints} />
           </div>
 
@@ -96,6 +107,11 @@ const Index = () => {
               onClose={() => setSelectedComplaint(null)}
             />
           )}
+
+          <CreateRNCModal
+            open={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+          />
         </div>
       </main>
     </div>
