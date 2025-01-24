@@ -18,8 +18,8 @@ const formSchema = z.object({
   korp: z.string().min(3, "Número do pedido deve ter no mínimo 3 caracteres"),
   nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
   nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres"),
-  city: z.string().min(3, "Cidade deve ter no mínimo 3 caracteres").optional(),
-  conclusion: z.string().min(10, "Conclusão deve ter no mínimo 10 caracteres").optional(),
+  city: z.string().optional(),
+  conclusion: z.string().optional(),
 });
 
 interface AdditionalInfoTabProps {
