@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Button } from "@/components/ui/button";
 import { RNCStatus, RNCType, RNCDepartment } from "../types";
 import { StatusSelect } from "./filters/StatusSelect";
 import { TypeSelect } from "./filters/TypeSelect";
@@ -55,9 +54,6 @@ export const RNCFilters = ({
           isSearchExpanded={isSearchExpanded}
           setIsSearchExpanded={setIsSearchExpanded}
         />
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-          Criar RNC
-        </Button>
       </div>
     </div>
   );
