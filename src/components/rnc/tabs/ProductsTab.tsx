@@ -64,101 +64,100 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
       },
     }));
 
-  const addProduct = () => {
-    setProducts([
-      ...products,
-      { id: Math.random().toString(), name: "", weight: "" },
-    ]);
-  };
+    const addProduct = () => {
+      setProducts(prevProducts => [
+        ...prevProducts,
+        { id: Math.random().toString(), name: "", weight: "" },
+      ]);
+    };
 
-  const removeProduct = (id: string) => {
-    if (products.length > 1) {
-      setProducts(products.filter((p) => p.id !== id));
-    }
-  };
+    const removeProduct = (id: string) => {
+      if (products.length > 1) {
+        setProducts(prevProducts => prevProducts.filter((p) => p.id !== id));
+      }
+    };
 
-  const updateProduct = (id: string, field: "name" | "weight", value: string) => {
-    setProducts(
-      products.map((p) => {
-        if (p.id === id) {
-          const updatedProduct = { ...p, [field]: value };
-          const errors = validateProduct(updatedProduct);
-          return { ...updatedProduct, error: errors };
-        }
-        return p;
-      })
-    );
-  };
+    const updateProduct = (id: string, field: "name" | "weight", value: string) => {
+      setProducts(prevProducts =>
+        prevProducts.map((p) => {
+          if (p.id === id) {
+            const updatedProduct = { ...p, [field]: value };
+            return updatedProduct;
+          }
+          return p;
+        })
+      );
+    };
 
-  React.useEffect(() => {
-    const validProducts = products.filter(p => {
-      const errors = validateProduct(p);
-      return Object.keys(errors).length === 0 && p.name && p.weight;
-    }).length;
-    setProgress(products.length > 0 ? (validProducts / products.length) * 100 : 0);
-  }, [products, setProgress]);
+    React.useEffect(() => {
+      const validProducts = products.filter(p => {
+        const errors = validateProduct(p);
+        return Object.keys(errors).length === 0 && p.name && p.weight;
+      }).length;
+      setProgress(products.length > 0 ? (validProducts / products.length) * 100 : 0);
+    }, [products, setProgress]);
 
-  return (
-    <div className="space-y-4 py-4">
-      <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
-        <div className="font-medium text-sm text-blue-900 dark:text-blue-100">
-          Produto <span className="text-blue-400">*</span>
-        </div>
-        <div className="font-medium text-sm text-blue-900 dark:text-blue-100">
-          Peso <span className="text-blue-400">*</span>
-        </div>
-        <div></div>
-      </div>
-
-      {products.map((product) => (
-        <div key={product.id} className="space-y-2">
-          <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
-            <div className="space-y-1">
-              <Input
-                value={product.name}
-                onChange={(e) => updateProduct(product.id, "name", e.target.value)}
-                placeholder="Digite o nome do produto"
-                className="border-blue-200 focus:border-blue-400"
-              />
-              {product.error?.name && (
-                <FormMessage>{product.error.name}</FormMessage>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Input
-                value={product.weight}
-                onChange={(e) => updateProduct(product.id, "weight", e.target.value)}
-                placeholder="Peso do produto (kg)"
-                className="border-blue-200 focus:border-blue-400"
-                type="number"
-                step="0.01"
-              />
-              {product.error?.weight && (
-                <FormMessage>{product.error.weight}</FormMessage>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => removeProduct(product.id)}
-              className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+    return (
+      <div className="space-y-4 py-4">
+        <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
+          <div className="font-medium text-sm text-blue-900 dark:text-blue-100">
+            Produto <span className="text-blue-400">*</span>
           </div>
+          <div className="font-medium text-sm text-blue-900 dark:text-blue-100">
+            Peso <span className="text-blue-400">*</span>
+          </div>
+          <div></div>
         </div>
-      ))}
 
-      <Button
-        variant="ghost"
-        onClick={addProduct}
-        className="w-full text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
-      >
-        <Plus className="h-4 w-4 mr-2" />
-        Adicionar novo produto
-      </Button>
-    </div>
-  );
+        {products.map((product) => (
+          <div key={product.id} className="space-y-2">
+            <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
+              <div className="space-y-1">
+                <Input
+                  value={product.name}
+                  onChange={(e) => updateProduct(product.id, "name", e.target.value)}
+                  placeholder="Digite o nome do produto"
+                  className="border-blue-200 focus:border-blue-400"
+                />
+                {product.error?.name && (
+                  <FormMessage>{product.error.name}</FormMessage>
+                )}
+              </div>
+              <div className="space-y-1">
+                <Input
+                  value={product.weight}
+                  onChange={(e) => updateProduct(product.id, "weight", e.target.value)}
+                  placeholder="Peso do produto (kg)"
+                  className="border-blue-200 focus:border-blue-400"
+                  type="number"
+                  step="0.01"
+                />
+                {product.error?.weight && (
+                  <FormMessage>{product.error.weight}</FormMessage>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => removeProduct(product.id)}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+
+        <Button
+          variant="ghost"
+          onClick={addProduct}
+          className="w-full text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Adicionar novo produto
+        </Button>
+      </div>
+    );
   }
 );
 

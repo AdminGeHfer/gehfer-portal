@@ -2,7 +2,7 @@ import * as React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { RNCModalContent } from "./modal/RNCModalContent";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -25,7 +25,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     }
   };
 
-  const validateCurrentTab = async () => {
+  const validateCurrentTab = async (showErrors: boolean = false) => {
     switch (activeTab) {
       case "basic":
         return await basicInfoRef.current?.validate() ?? false;
@@ -46,14 +46,10 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     const tabs = ["basic", "additional", "products", "contact", "attachments"];
     const currentIndex = tabs.indexOf(activeTab);
     
-    // Validate current tab before moving to next
-    const isValid = await validateCurrentTab();
+    // Validate current tab before moving to next, but don't show errors
+    const isValid = await validateCurrentTab(false);
     if (!isValid) {
-      toast({
-        variant: "destructive",
-        title: "Erro de validação",
-        description: "Por favor, preencha todos os campos obrigatórios corretamente.",
-      });
+      // Silently prevent navigation if invalid
       return;
     }
 
@@ -63,7 +59,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   };
 
   const handleSave = async () => {
-    // Validate all tabs before saving
+    // Validate all tabs before saving and show errors
     const isBasicValid = await basicInfoRef.current?.validate() ?? false;
     const isAdditionalValid = await additionalInfoRef.current?.validate() ?? false;
     const isProductsValid = await productsRef.current?.validate() ?? false;
