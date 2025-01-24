@@ -1,6 +1,5 @@
 import { useState } from "react";
 import * as React from "react";
-import { toast } from "sonner";
 import { ComplaintFilters } from "@/components/dashboard/ComplaintFilters";
 import { ComplaintDetails } from "@/components/dashboard/ComplaintDetails";
 import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
