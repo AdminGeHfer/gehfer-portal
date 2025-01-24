@@ -31,7 +31,7 @@ export const useComplaints = () => {
   const [selectedComplaint, setSelectedComplaint] = useState<number | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const handleStatusUpdate = (complaintId: number, newStatus: string) => {
+  const handleStatusUpdate = (_complaintId: number, newStatus: string) => {
     toast.success(`Status atualizado para: ${newStatus}`);
   };
 
