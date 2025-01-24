@@ -19,14 +19,15 @@ const Index = () => {
   } = useComplaints();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
 
   const handleOpenModal = () => {
+    console.log("Opening modal"); // Debug log
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
+    console.log("Closing modal"); // Debug log
     setIsModalOpen(false);
   };
 
@@ -54,7 +55,10 @@ const Index = () => {
             />
           )}
 
-          <CreateRNCModal open={isModalOpen} onClose={handleCloseModal} />
+          <CreateRNCModal 
+            open={isModalOpen} 
+            onClose={handleCloseModal}
+          />
         </div>
       </main>
     </div>
