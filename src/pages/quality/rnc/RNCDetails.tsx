@@ -38,28 +38,30 @@ export default function RNCDetails() {
           <div className="lg:col-span-2">
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap gap-1 p-1 rounded-lg border border-border bg-slate-800">
-                <div className="w-full grid grid-cols-2 gap-1 sm:flex sm:flex-1">
+                <div className="contents sm:flex sm:flex-1 w-full">
                   <TabsTrigger 
                     value="basic" 
-                    className="w-full sm:flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Informações base
                   </TabsTrigger>
                   <TabsTrigger 
                     value="additional" 
-                    className="w-full sm:flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Inf. Adicionais
                   </TabsTrigger>
+                </div>
+                <div className="contents sm:flex sm:flex-1 w-full">
                   <TabsTrigger 
                     value="relational" 
-                    className="w-full sm:flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Inf. Relacionais
                   </TabsTrigger>
                   <TabsTrigger 
                     value="workflow" 
-                    className="w-full sm:flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Workflow
                   </TabsTrigger>
