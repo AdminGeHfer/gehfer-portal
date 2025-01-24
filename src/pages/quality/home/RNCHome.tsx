@@ -3,13 +3,14 @@ import { RNCFilters } from "./components/RNCFilters";
 import { RNCTable } from "./components/RNCTable";
 import { useRNCs } from "@/hooks/useRNCs";
 import { useState } from "react";
+import { RNCStatus, RNCType, RNCDepartment } from "./types";
 
 export const RNCHome = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<RNCStatus | null>(null);
+  const [selectedType, setSelectedType] = useState<RNCType | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<RNCDepartment | null>(null);
 
   const { filteredRNCs, isLoading, error } = useRNCs({
     selectedStatus,
