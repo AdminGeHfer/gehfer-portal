@@ -26,6 +26,7 @@ const RNCHome = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
 
   // Example data
   const exampleData = [
@@ -34,6 +35,7 @@ const RNCHome = () => {
       company: "Empresa A",
       type: "Reclamação do Cliente",
       status: "Pendente",
+      department: "Qualidade",
       date: "2024-03-15",
     },
     {
@@ -41,6 +43,7 @@ const RNCHome = () => {
       company: "Empresa B",
       type: "Fornecedor",
       status: "Coletado",
+      department: "Logística",
       date: "2024-03-14",
     },
     {
@@ -48,6 +51,7 @@ const RNCHome = () => {
       company: "Empresa C",
       type: "Logística",
       status: "Solucionado",
+      department: "Financeiro",
       date: "2024-03-13",
     },
     {
@@ -55,6 +59,7 @@ const RNCHome = () => {
       company: "Empresa D",
       type: "Expedição",
       status: "Cancelado",
+      department: "Qualidade",
       date: "2024-03-12",
     },
   ];
@@ -71,17 +76,26 @@ const RNCHome = () => {
 
   const getTypeColor = (type: string) => {
     const colors = {
-      "Reclamação do Cliente": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100",
+      "Reclamação do Cliente": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
       "Fornecedor": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100",
-      "Expedição": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
+      "Expedição": "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-100",
       "Logística": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100",
-      "Representante": "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-100",
-      "Motorista": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-      "Financeiro": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-      "Comercial": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
-      "Acordo Financeiro": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
+      "Representante": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
+      "Motorista": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100",
+      "Financeiro": "bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-100",
+      "Comercial": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100",
+      "Acordo Financeiro": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
     };
     return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
+  };
+
+  const getDepartmentColor = (department: string) => {
+    const colors = {
+      "Logística": "bg-amber-50 text-amber-800 dark:bg-amber-900 dark:text-amber-100",
+      "Qualidade": "bg-yellow-50 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+      "Financeiro": "bg-orange-50 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
+    };
+    return colors[department as keyof typeof colors] || "bg-gray-100 text-gray-800";
   };
 
   return (
@@ -123,12 +137,23 @@ const RNCHome = () => {
               <SelectItem value="acordo">Acordo Financeiro</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800">
+              <SelectValue placeholder="Selecione um departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="logistica">Logística</SelectItem>
+              <SelectItem value="qualidade">Qualidade</SelectItem>
+              <SelectItem value="financeiro">Financeiro</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-center gap-2">
           <div className={cn(
             "transition-all duration-300 flex items-center gap-2",
-            isSearchExpanded ? "w-full md:w-[300px]" : "w-10"
+            isSearchExpanded ? "w-full md:w-[400px]" : "w-10"
           )}>
             {isSearchExpanded ? (
               <>
@@ -175,6 +200,7 @@ const RNCHome = () => {
               <TableHead>Empresa</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Departamento</TableHead>
               <TableHead>Data</TableHead>
             </TableRow>
           </TableHeader>
@@ -188,6 +214,9 @@ const RNCHome = () => {
                 </TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(rnc.status)}>{rnc.status}</Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge className={getDepartmentColor(rnc.department)}>{rnc.department}</Badge>
                 </TableCell>
                 <TableCell>{new Date(rnc.date).toLocaleDateString('pt-BR')}</TableCell>
               </TableRow>
