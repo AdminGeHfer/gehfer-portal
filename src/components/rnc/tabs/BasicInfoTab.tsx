@@ -36,38 +36,51 @@ interface BasicInfoTabProps {
   setProgress: (progress: number) => void;
 }
 
-export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      companyCode: "",
-      company: "",
-      document: "",
-      type: "",
-      department: "",
-      responsible: "",
-    },
-  });
+export type BasicInfoTabRef = {
+  validate: () => boolean;
+};
 
-  const responsibleOptions = [
-    "Alexandre",
-    "Arthur",
-    "Financeiro",
-    "Giovani",
-    "Helcio",
-    "Izabelly",
-    "Jordana",
-    "Marcos",
-    "Pedro",
-    "Samuel",
-  ];
+export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
+  ({ setProgress }, ref) => {
+    const form = useForm<z.infer<typeof formSchema>>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        companyCode: "",
+        company: "",
+        document: "",
+        type: "",
+        department: "",
+        responsible: "",
+      },
+    });
 
-  React.useEffect(() => {
-    const values = form.watch();
-    const filledFields = Object.values(values).filter(Boolean).length;
-    const totalFields = Object.keys(values).length;
-    setProgress((filledFields / totalFields) * 100);
-  }, [form.watch(), setProgress]);
+    const responsibleOptions = [
+      "Alexandre",
+      "Arthur",
+      "Financeiro",
+      "Giovani",
+      "Helcio",
+      "Izabelly",
+      "Jordana",
+      "Marcos",
+      "Pedro",
+      "Samuel",
+    ];
+
+    React.useEffect(() => {
+      const values = form.watch();
+      const filledFields = Object.values(values).filter(Boolean).length;
+      const totalFields = Object.keys(values).length;
+      setProgress((filledFields / totalFields) * 100);
+    }, [form.watch(), setProgress]);
+
+    React.useImperativeHandle(ref, () => ({
+      validate: () => {
+        return form.trigger().then((isValid) => {
+          return isValid;
+        });
+      },
+    }));
 
   return (
     <Form {...form}>
@@ -216,4 +229,7 @@ export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
       </form>
     </Form>
   );
-}
+  }
+);
+
+BasicInfoTab.displayName = "BasicInfoTab";

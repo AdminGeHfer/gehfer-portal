@@ -26,25 +26,38 @@ interface AdditionalInfoTabProps {
   setProgress: (progress: number) => void;
 }
 
-export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      description: "",
-      korp: "",
-      nfv: "",
-      nfd: "",
-      city: "",
-      conclusion: "",
-    },
-  });
+export type AdditionalInfoTabRef = {
+  validate: () => boolean;
+};
 
-  React.useEffect(() => {
-    const values = form.watch();
-    const requiredFields = ["description", "korp", "nfv", "nfd"];
-    const filledRequired = requiredFields.filter(field => values[field as keyof typeof values]).length;
-    setProgress((filledRequired / requiredFields.length) * 100);
-  }, [form.watch(), setProgress]);
+export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
+  ({ setProgress }, ref) => {
+    const form = useForm<z.infer<typeof formSchema>>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        description: "",
+        korp: "",
+        nfv: "",
+        nfd: "",
+        city: "",
+        conclusion: "",
+      },
+    });
+
+    React.useEffect(() => {
+      const values = form.watch();
+      const requiredFields = ["description", "korp", "nfv", "nfd"];
+      const filledRequired = requiredFields.filter(field => values[field as keyof typeof values]).length;
+      setProgress((filledRequired / requiredFields.length) * 100);
+    }, [form.watch(), setProgress]);
+
+    React.useImperativeHandle(ref, () => ({
+      validate: () => {
+        return form.trigger().then((isValid) => {
+          return isValid;
+        });
+      },
+    }));
 
   return (
     <Form {...form}>
@@ -145,4 +158,7 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
       </form>
     </Form>
   );
-}
+  }
+);
+
+AdditionalInfoTab.displayName = "AdditionalInfoTab";

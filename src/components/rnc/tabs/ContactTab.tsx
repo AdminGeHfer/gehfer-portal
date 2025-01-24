@@ -26,22 +26,35 @@ interface ContactTabProps {
   setProgress: (progress: number) => void;
 }
 
-export function ContactTab({ setProgress }: ContactTabProps) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      phone: "",
-      email: "",
-    },
-  });
+export type ContactTabRef = {
+  validate: () => boolean;
+};
 
-  React.useEffect(() => {
-    const values = form.watch();
-    const requiredFields = ["name", "phone"];
-    const filledRequired = requiredFields.filter(field => values[field as keyof typeof values]).length;
-    setProgress((filledRequired / requiredFields.length) * 100);
-  }, [form.watch(), setProgress]);
+export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
+  ({ setProgress }, ref) => {
+    const form = useForm<z.infer<typeof formSchema>>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        name: "",
+        phone: "",
+        email: "",
+      },
+    });
+
+    React.useEffect(() => {
+      const values = form.watch();
+      const requiredFields = ["name", "phone"];
+      const filledRequired = requiredFields.filter(field => values[field as keyof typeof values]).length;
+      setProgress((filledRequired / requiredFields.length) * 100);
+    }, [form.watch(), setProgress]);
+
+    React.useImperativeHandle(ref, () => ({
+      validate: () => {
+        return form.trigger().then((isValid) => {
+          return isValid;
+        });
+      },
+    }));
 
   return (
     <Form {...form}>
@@ -101,4 +114,7 @@ export function ContactTab({ setProgress }: ContactTabProps) {
       </form>
     </Form>
   );
-}
+  }
+);
+
+ContactTab.displayName = "ContactTab";

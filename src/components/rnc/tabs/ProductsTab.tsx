@@ -20,6 +20,10 @@ interface ProductsTabProps {
   setProgress: (progress: number) => void;
 }
 
+export type ProductsTabRef = {
+  validate: () => boolean;
+};
+
 const productSchema = z.object({
   name: z.string().min(3, "Produto deve ter no mínimo 3 caracteres"),
   weight: z.string().refine((val) => {
@@ -28,25 +32,37 @@ const productSchema = z.object({
   }, "Peso deve ser um número maior que 0"),
 });
 
-export function ProductsTab({ setProgress }: ProductsTabProps) {
-  const [products, setProducts] = useState<Product[]>([
-    { id: "1", name: "", weight: "" },
-  ]);
+export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
+  ({ setProgress }, ref) => {
+    const [products, setProducts] = useState<Product[]>([
+      { id: "1", name: "", weight: "" },
+    ]);
 
-  const validateProduct = (product: Product) => {
-    try {
-      productSchema.parse({ name: product.name, weight: product.weight });
-      return {};
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return error.errors.reduce((acc, curr) => {
-          const path = curr.path[0] as string;
-          return { ...acc, [path]: curr.message };
-        }, {});
+    const validateProduct = (product: Product) => {
+      try {
+        productSchema.parse({ name: product.name, weight: product.weight });
+        return {};
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          return error.errors.reduce((acc, curr) => {
+            const path = curr.path[0] as string;
+            return { ...acc, [path]: curr.message };
+          }, {});
+        }
+        return {};
       }
-      return {};
-    }
-  };
+    };
+
+    React.useImperativeHandle(ref, () => ({
+      validate: () => {
+        const updatedProducts = products.map(p => ({
+          ...p,
+          error: validateProduct(p)
+        }));
+        setProducts(updatedProducts);
+        return updatedProducts.every(p => Object.keys(p.error || {}).length === 0);
+      },
+    }));
 
   const addProduct = () => {
     setProducts([
@@ -143,4 +159,7 @@ export function ProductsTab({ setProgress }: ProductsTabProps) {
       </Button>
     </div>
   );
-}
+  }
+);
+
+ProductsTab.displayName = "ProductsTab";
