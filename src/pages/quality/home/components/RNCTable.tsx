@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -16,6 +17,12 @@ interface RNCTableProps {
 }
 
 export const RNCTable = ({ data }: RNCTableProps) => {
+  const navigate = useNavigate();
+
+  const handleRowClick = (number: string) => {
+    navigate(`/quality/rnc/${number}`);
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-x-auto">
       <Table>
@@ -31,7 +38,18 @@ export const RNCTable = ({ data }: RNCTableProps) => {
         </TableHeader>
         <TableBody>
           {data.map((rnc, index) => (
-            <TableRow key={index}>
+            <TableRow 
+              key={index}
+              className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
+              onClick={() => handleRowClick(rnc.number)}
+              role="link"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleRowClick(rnc.number);
+                }
+              }}
+            >
               <TableCell className="font-medium text-center">{rnc.number}</TableCell>
               <TableCell className="text-center">{rnc.company}</TableCell>
               <TableCell className="text-center">
