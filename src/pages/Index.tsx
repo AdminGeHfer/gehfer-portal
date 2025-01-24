@@ -21,6 +21,14 @@ const Index = () => {
 
   const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
 
+  const handleOpenModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-900">
       <ComplaintHeader />
@@ -32,7 +40,7 @@ const Index = () => {
                 Minhas Reclamações
               </h2>
               <Button
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={handleOpenModal}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Criar RNC
@@ -57,7 +65,7 @@ const Index = () => {
 
           <CreateRNCModal
             open={isCreateModalOpen}
-            onClose={() => setIsCreateModalOpen(false)}
+            onClose={handleCloseModal}
           />
         </div>
       </main>

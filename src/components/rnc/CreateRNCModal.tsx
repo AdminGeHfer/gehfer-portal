@@ -39,6 +39,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const handleSave = () => {
     // Implement save functionality
     console.log("Saving RNC...");
+    onClose();
   };
 
   return (
