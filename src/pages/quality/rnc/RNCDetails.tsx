@@ -9,6 +9,7 @@ import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoT
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
+import { WorkflowStatusEnum } from "@/types/rnc";
 
 export default function RNCDetails() {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ export default function RNCDetails() {
             Voltar
           </Button>
           <h1 className="text-2xl font-bold">RNC #123</h1>
-          <WorkflowStatusBadge status="open" />
+          <WorkflowStatusBadge status={WorkflowStatusEnum.open} />
         </div>
 
         {/* Main content */}
