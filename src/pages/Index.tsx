@@ -22,10 +22,13 @@ const Index = () => {
   const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
 
   const handleOpenModal = () => {
+    console.log("Opening modal, current state:", isCreateModalOpen);
     setIsCreateModalOpen(true);
+    console.log("Modal state after setting:", isCreateModalOpen);
   };
 
   const handleCloseModal = () => {
+    console.log("Closing modal");
     setIsCreateModalOpen(false);
   };
 
