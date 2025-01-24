@@ -11,11 +11,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { handlePhoneChange } from "@/utils/masks";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  phone: z.string().min(1, "Telefone é obrigatório"),
-  email: z.string().email("Email inválido").optional(),
+  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
+  phone: z.string().regex(
+    /\([0-9]{2}\)\s?[0-9]{4,5}-?[0-9]{3,4}/,
+    "Telefone inválido. Use o formato (99) 99999-9999"
+  ),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
 });
 
 interface ContactTabProps {
@@ -69,7 +73,12 @@ export function ContactTab({ setProgress }: ContactTabProps) {
                 <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o número de telefone" />
+                <Input 
+                  {...field} 
+                  className="border-blue-200 focus:border-blue-400" 
+                  placeholder="Digite o número de telefone"
+                  onChange={(e) => handlePhoneChange(e, field.onChange)}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

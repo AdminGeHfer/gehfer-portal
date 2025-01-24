@@ -14,11 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 const formSchema = z.object({
-  description: z.string().min(1, "Descrição é obrigatória"),
-  korp: z.string().min(1, "Número do pedido é obrigatório"),
-  nfv: z.string().min(1, "NFV é obrigatória"),
-  nfd: z.string().optional(),
-  city: z.string().optional(),
+  description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
+  korp: z.string().min(3, "Número do pedido deve ter no mínimo 3 caracteres"),
+  nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
+  nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres"),
+  city: z.string().min(3, "Cidade deve ter no mínimo 3 caracteres").optional(),
+  conclusion: z.string().min(10, "Conclusão deve ter no mínimo 10 caracteres").optional(),
 });
 
 interface AdditionalInfoTabProps {
@@ -34,12 +35,13 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
       nfv: "",
       nfd: "",
       city: "",
+      conclusion: "",
     },
   });
 
   React.useEffect(() => {
     const values = form.watch();
-    const requiredFields = ["description", "korp", "nfv"];
+    const requiredFields = ["description", "korp", "nfv", "nfd"];
     const filledRequired = requiredFields.filter(field => values[field as keyof typeof values]).length;
     setProgress((filledRequired / requiredFields.length) * 100);
   }, [form.watch(), setProgress]);
@@ -111,7 +113,10 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
           name="nfd"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>NFD</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                NFD
+                <span className="text-blue-400">*</span>
+              </FormLabel>
               <FormControl>
                 <Input 
                   {...field} 
@@ -132,6 +137,24 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
               <FormLabel>Cidade</FormLabel>
               <FormControl>
                 <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome da cidade" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="conclusion"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Conclusão Final</FormLabel>
+              <FormControl>
+                <Textarea 
+                  {...field} 
+                  className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                  placeholder="Digite a conclusão final..."
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
