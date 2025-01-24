@@ -37,28 +37,28 @@ export default function RNCDetails() {
           {/* Tabs section */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="w-full flex flex-wrap bg-muted/80">
+              <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap bg-muted/80 p-1 rounded-lg">
                 <TabsTrigger 
                   value="basic" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                 >
                   Informações base
                 </TabsTrigger>
                 <TabsTrigger 
                   value="additional" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                 >
                   Inf. Adicionais
                 </TabsTrigger>
                 <TabsTrigger 
                   value="relational" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                 >
                   Inf. Relacionais
                 </TabsTrigger>
                 <TabsTrigger 
                   value="workflow" 
-                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
                 >
                   Workflow
                 </TabsTrigger>
