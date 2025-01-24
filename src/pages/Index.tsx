@@ -14,23 +14,10 @@ const Index = () => {
     complaints,
     selectedComplaint,
     setSelectedComplaint,
-    isCreateModalOpen,
-    setIsCreateModalOpen,
     handleStatusUpdate,
   } = useComplaints();
 
   const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
-
-  const handleOpenModal = () => {
-    console.log("Opening modal, current state:", isCreateModalOpen);
-    setIsCreateModalOpen(true);
-    console.log("Modal state after setting:", isCreateModalOpen);
-  };
-
-  const handleCloseModal = () => {
-    console.log("Closing modal");
-    setIsCreateModalOpen(false);
-  };
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-900">
@@ -38,7 +25,7 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
-            <ComplaintPageHeader onCreateRNC={handleOpenModal} />
+            <ComplaintPageHeader onCreateRNC={() => {}} />
             <ComplaintStats complaints={complaints} />
           </div>
 
@@ -56,10 +43,11 @@ const Index = () => {
             />
           )}
 
-          <CreateRNCModal
-            open={isCreateModalOpen}
-            onClose={handleCloseModal}
-          />
+          {/* Modal layout shown for visualization */}
+          <div className="mt-8 border-t pt-8">
+            <h3 className="text-lg font-semibold mb-4">Modal Preview:</h3>
+            <CreateRNCModal open={true} onClose={() => {}} />
+          </div>
         </div>
       </main>
     </div>
