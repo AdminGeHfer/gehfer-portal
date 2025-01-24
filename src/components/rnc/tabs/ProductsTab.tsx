@@ -21,7 +21,7 @@ interface ProductsTabProps {
 }
 
 export type ProductsTabRef = {
-  validate: () => boolean;
+  validate: () => Promise<boolean>;
 };
 
 const productSchema = z.object({
@@ -54,7 +54,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
     };
 
     React.useImperativeHandle(ref, () => ({
-      validate: () => {
+      validate: async () => {
         const updatedProducts = products.map(p => ({
           ...p,
           error: validateProduct(p)
