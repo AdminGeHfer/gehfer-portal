@@ -17,10 +17,10 @@ export default function RNCDetails() {
   const [isEditing, setIsEditing] = React.useState(false);
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="container mx-auto">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="container mx-auto max-w-[1400px]">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/quality/home")}
@@ -29,57 +29,57 @@ export default function RNCDetails() {
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          <h1 className="text-2xl font-bold">RNC #123</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">RNC #123</h1>
           <WorkflowStatusBadge status={WorkflowStatusEnum.open} />
         </div>
 
         {/* Main content */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tabs section */}
-          <div className="md:col-span-2">
+          <div className="lg:col-span-2">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="w-full">
-                <TabsTrigger value="basic" className="flex-1">
+              <TabsList className="w-full flex flex-wrap">
+                <TabsTrigger value="basic" className="flex-1 min-w-[120px]">
                   Informações base
                 </TabsTrigger>
-                <TabsTrigger value="additional" className="flex-1">
+                <TabsTrigger value="additional" className="flex-1 min-w-[120px]">
                   Inf. Adicionais
                 </TabsTrigger>
-                <TabsTrigger value="relational" className="flex-1">
+                <TabsTrigger value="relational" className="flex-1 min-w-[120px]">
                   Inf. Relacionais
                 </TabsTrigger>
-                <TabsTrigger value="workflow" className="flex-1">
+                <TabsTrigger value="workflow" className="flex-1 min-w-[120px]">
                   Workflow
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="basic">
+              <TabsContent value="basic" className="space-y-6 p-4">
                 <BasicInfoTab isEditing={isEditing} />
               </TabsContent>
 
-              <TabsContent value="additional">
+              <TabsContent value="additional" className="space-y-6 p-4">
                 <AdditionalInfoTab isEditing={isEditing} />
               </TabsContent>
 
-              <TabsContent value="relational">
+              <TabsContent value="relational" className="space-y-6 p-4">
                 <RelationalInfoTab isEditing={isEditing} />
               </TabsContent>
 
-              <TabsContent value="workflow">
+              <TabsContent value="workflow" className="space-y-6 p-4">
                 <WorkflowTab />
               </TabsContent>
             </Tabs>
           </div>
 
           {/* Events Timeline */}
-          <div className="bg-card rounded-lg p-4">
+          <div className="bg-card rounded-lg p-4 h-[calc(100vh-12rem)] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">Histórico (Eventos)</h2>
             <EventsTimeline />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 flex items-center justify-between border-t pt-4">
+        <div className="mt-8 flex items-center justify-between border-t pt-4 flex-wrap gap-4">
           <span className="text-sm text-muted-foreground">
             * Campos obrigatórios
           </span>
