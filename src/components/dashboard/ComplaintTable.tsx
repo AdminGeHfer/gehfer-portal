@@ -40,6 +40,13 @@ export const ComplaintTable = ({ complaints, onSelectComplaint }: ComplaintTable
               key={complaint.id}
               className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
               onClick={() => handleRowClick(complaint.id)}
+              role="link"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleRowClick(complaint.id);
+                }
+              }}
             >
               <TableCell className="font-medium dark:text-gray-200">{complaint.protocol}</TableCell>
               <TableCell className="dark:text-gray-200">
