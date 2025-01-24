@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -15,6 +16,12 @@ interface ComplaintTableProps {
 }
 
 export const ComplaintTable = ({ complaints, onSelectComplaint }: ComplaintTableProps) => {
+  const navigate = useNavigate();
+
+  const handleRowClick = (complaintId: number) => {
+    navigate(`/quality/rnc/${complaintId}`);
+  };
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200/50 dark:border-gray-700/50">
       <Table>
@@ -32,7 +39,7 @@ export const ComplaintTable = ({ complaints, onSelectComplaint }: ComplaintTable
             <TableRow
               key={complaint.id}
               className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
-              onClick={() => onSelectComplaint(complaint.id)}
+              onClick={() => handleRowClick(complaint.id)}
             >
               <TableCell className="font-medium dark:text-gray-200">{complaint.protocol}</TableCell>
               <TableCell className="dark:text-gray-200">
