@@ -12,28 +12,28 @@ interface CreateRNCModalProps {
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
   const { toast } = useToast();
-  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
-  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
-  const productsRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
-  const contactRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
+  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
+  const productsRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
+  const contactRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
 
-  // Store form data in localStorage when component unmounts
+  // Load saved form data when component mounts
   React.useEffect(() => {
     const savedData = localStorage.getItem('rncFormData');
     if (savedData) {
       const parsedData = JSON.parse(savedData);
       // Pass the saved data to child components through refs
       if (basicInfoRef.current) {
-        (basicInfoRef.current as any).setFormData?.(parsedData.basic);
+        basicInfoRef.current.setFormData?.(parsedData.basic);
       }
       if (additionalInfoRef.current) {
-        (additionalInfoRef.current as any).setFormData?.(parsedData.additional);
+        additionalInfoRef.current.setFormData?.(parsedData.additional);
       }
       if (productsRef.current) {
-        (productsRef.current as any).setFormData?.(parsedData.products);
+        productsRef.current.setFormData?.(parsedData.products);
       }
       if (contactRef.current) {
-        (contactRef.current as any).setFormData?.(parsedData.contact);
+        contactRef.current.setFormData?.(parsedData.contact);
       }
     }
   }, []);
