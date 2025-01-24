@@ -55,7 +55,7 @@ export function AdditionalInfoTab({ isEditing }: AdditionalInfoTabProps) {
 
         <div className="space-y-2">
           <Label htmlFor="city">
-            Cidade <span className="text-red-500">*</span>
+            Cidade
           </Label>
           <Input
             id="city"
@@ -67,7 +67,7 @@ export function AdditionalInfoTab({ isEditing }: AdditionalInfoTabProps) {
 
       <div className="space-y-2">
         <Label htmlFor="conclusion">
-          Conclusão Final <span className="text-red-500">*</span>
+          Conclusão Final
         </Label>
         <Textarea
           id="conclusion"

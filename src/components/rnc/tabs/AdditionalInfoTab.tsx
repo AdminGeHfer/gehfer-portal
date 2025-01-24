@@ -142,24 +142,6 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
             </FormItem>
           )}
         />
-
-        <FormField
-          control={form.control}
-          name="conclusion"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Conclusão Final</FormLabel>
-              <FormControl>
-                <Textarea 
-                  {...field} 
-                  className="min-h-[100px] border-blue-200 focus:border-blue-400"
-                  placeholder="Digite a conclusão final..."
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </form>
     </Form>
   );
