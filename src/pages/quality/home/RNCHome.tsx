@@ -4,6 +4,7 @@ import { RNCTable } from "./components/RNCTable";
 import { useRNCs } from "@/hooks/useRNCs";
 import { useState } from "react";
 import { RNCStatus, RNCType, RNCDepartment } from "./types";
+import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
 
 export const RNCHome = () => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -62,6 +63,11 @@ export const RNCHome = () => {
           </Button>
         </div>
       </footer>
+
+      <CreateRNCModal 
+        open={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+      />
     </div>
   );
 };
