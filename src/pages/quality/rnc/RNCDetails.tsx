@@ -38,17 +38,29 @@ export default function RNCDetails() {
           {/* Tabs section */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="w-full flex flex-wrap bg-muted">
-                <TabsTrigger value="basic" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
+              <TabsList className="w-full flex flex-wrap bg-muted/80">
+                <TabsTrigger 
+                  value="basic" 
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                >
                   Informações base
                 </TabsTrigger>
-                <TabsTrigger value="additional" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
+                <TabsTrigger 
+                  value="additional" 
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                >
                   Inf. Adicionais
                 </TabsTrigger>
-                <TabsTrigger value="relational" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
+                <TabsTrigger 
+                  value="relational" 
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                >
                   Inf. Relacionais
                 </TabsTrigger>
-                <TabsTrigger value="workflow" className="flex-1 min-w-[120px] data-[state=active]:bg-background">
+                <TabsTrigger 
+                  value="workflow" 
+                  className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background"
+                >
                   Workflow
                 </TabsTrigger>
               </TabsList>
