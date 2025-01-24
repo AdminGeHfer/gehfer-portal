@@ -60,13 +60,28 @@ const Index = () => {
   };
 
   const filteredComplaints = complaints.filter((complaint) => {
-    return (
-      (!filters.protocol || complaint.protocol.toLowerCase().includes(filters.protocol.toLowerCase())) &&
-      (!filters.date || complaint.date === filters.date) &&
-      (!filters.company || complaint.company.toLowerCase().includes(filters.company.toLowerCase())) &&
-      (!filters.status || filters.status === 'all' || complaint.status === filters.status) &&
-      (!filters.daysOpen || complaint.daysOpen.toString() === filters.daysOpen)
-    );
+    const searchTerms = {
+      protocol: filters.protocol.toLowerCase(),
+      date: filters.date.toLowerCase(),
+      company: filters.company.toLowerCase(),
+      status: filters.status.toLowerCase(),
+      daysOpen: filters.daysOpen.toLowerCase(),
+    };
+
+    // If no filters are active, show all complaints
+    if (!Object.values(searchTerms).some(term => term !== "")) {
+      return true;
+    }
+
+    // Check each field individually
+    const matchesProtocol = !searchTerms.protocol || complaint.protocol.toLowerCase().includes(searchTerms.protocol);
+    const matchesDate = !searchTerms.date || complaint.date.toLowerCase().includes(searchTerms.date);
+    const matchesCompany = !searchTerms.company || complaint.company.toLowerCase().includes(searchTerms.company);
+    const matchesStatus = !searchTerms.status || complaint.status.toLowerCase().includes(searchTerms.status);
+    const matchesDaysOpen = !searchTerms.daysOpen || complaint.daysOpen.toString().includes(searchTerms.daysOpen);
+
+    // Return true if any field matches (OR condition)
+    return matchesProtocol || matchesDate || matchesCompany || matchesStatus || matchesDaysOpen;
   });
 
   const handleStatusUpdate = (complaintId: number, newStatus: string) => {
