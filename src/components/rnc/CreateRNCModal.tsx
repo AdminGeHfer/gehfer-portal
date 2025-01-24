@@ -10,7 +10,6 @@ interface CreateRNCModalProps {
 }
 
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
-  console.log("CreateRNCModal rendered with open:", open);
   const [progress, setProgress] = useState(0);
   const [activeTab, setActiveTab] = useState("basic");
 
@@ -31,7 +30,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   };
 
   const handleSave = () => {
-    console.log("Saving RNC...");
     onClose();
   };
 
