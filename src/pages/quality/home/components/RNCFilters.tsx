@@ -5,7 +5,6 @@ import { TypeSelect } from "./filters/TypeSelect";
 import { DepartmentSelect } from "./filters/DepartmentSelect";
 import { SearchBar } from "./filters/SearchBar";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 interface RNCFiltersProps {
   selectedStatus: RNCStatus | null;
@@ -62,7 +61,6 @@ export const RNCFilters = ({
           onClick={onCreateRNC}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <Plus className="h-4 w-4 mr-2" />
           Criar RNC
         </Button>
       </div>
