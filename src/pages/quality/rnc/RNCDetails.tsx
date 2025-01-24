@@ -37,17 +37,17 @@ export default function RNCDetails() {
           {/* Tabs section */}
           <div className="lg:col-span-2">
             <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap bg-muted/80 p-1 rounded-lg border border-border">
+              <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap gap-1 p-1 rounded-lg border border-border bg-slate-800">
                 <div className="contents sm:flex sm:flex-1">
                   <TabsTrigger 
                     value="basic" 
-                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Informações base
                   </TabsTrigger>
                   <TabsTrigger 
                     value="additional" 
-                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Inf. Adicionais
                   </TabsTrigger>
@@ -55,13 +55,13 @@ export default function RNCDetails() {
                 <div className="contents sm:flex sm:flex-1">
                   <TabsTrigger 
                     value="relational" 
-                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Inf. Relacionais
                   </TabsTrigger>
                   <TabsTrigger 
                     value="workflow" 
-                    className="flex-1 min-w-[120px] bg-muted hover:bg-muted/90 data-[state=active]:bg-background rounded-md"
+                    className="flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
                   >
                     Workflow
                   </TabsTrigger>
