@@ -17,6 +17,27 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const productsRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
   const contactRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
 
+  // Store form data in localStorage when component unmounts
+  React.useEffect(() => {
+    const savedData = localStorage.getItem('rncFormData');
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      // Pass the saved data to child components through refs
+      if (basicInfoRef.current) {
+        (basicInfoRef.current as any).setFormData?.(parsedData.basic);
+      }
+      if (additionalInfoRef.current) {
+        (additionalInfoRef.current as any).setFormData?.(parsedData.additional);
+      }
+      if (productsRef.current) {
+        (productsRef.current as any).setFormData?.(parsedData.products);
+      }
+      if (contactRef.current) {
+        (contactRef.current as any).setFormData?.(parsedData.contact);
+      }
+    }
+  }, []);
+
   const handleBack = () => {
     const tabs = ["basic", "additional", "products", "contact", "attachments"];
     const currentIndex = tabs.indexOf(activeTab);
@@ -100,6 +121,8 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       return;
     }
 
+    // Clear form data from localStorage on successful save
+    localStorage.removeItem('rncFormData');
     onClose();
   };
 
