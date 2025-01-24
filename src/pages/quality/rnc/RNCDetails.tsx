@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,6 @@ import { WorkflowStatusEnum } from "@/types/rnc";
 
 export default function RNCDetails() {
   const navigate = useNavigate();
-  const { id } = useParams();
   const [isEditing, setIsEditing] = React.useState(false);
 
   return (
