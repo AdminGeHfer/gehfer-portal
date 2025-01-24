@@ -20,7 +20,7 @@ export const RNCHome = () => {
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
 
-  const { filteredRNCs, isLoading, error } = useRNCs({
+  const { filteredRNCs } = useRNCs({
     selectedStatus,
     selectedType,
     selectedDepartment,
@@ -31,7 +31,7 @@ export const RNCHome = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-semibold tracking-tight">RNCs</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Registros de Não Conformidades (RNCs)</h1>
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -59,7 +59,7 @@ export const RNCHome = () => {
       <div className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
           <p className="text-muted-foreground">
-            Gerencie e acompanhe as RNCs do sistema
+            Gerencie e acompanhe as RNCs do portal
           </p>
         </div>
 

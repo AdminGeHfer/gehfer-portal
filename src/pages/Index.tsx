@@ -50,8 +50,8 @@ const Index = () => {
     }));
   };
 
-  const handleStatusUpdate = (complaintId: number, newStatus: string) => {
-    // Implementation for status update
+  // TO DO: Implementation for status update
+  const handleStatusUpdate = () => {
     toast.success("Status atualizado com sucesso!");
   };
 

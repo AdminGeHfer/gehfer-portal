@@ -62,13 +62,6 @@ const LoadingFallback = () => (
   </div>
 );
 
-const ErrorFallback = ({ error }: { error: Error }) => (
-  <div className="flex flex-col items-center justify-center min-h-screen">
-    <h2 className="text-xl font-semibold mb-4">Error loading page</h2>
-    <p className="text-muted-foreground">{error.message}</p>
-  </div>
-);
-
 interface ProtectedRouteProps {
   children: React.ReactNode;
   module: string;
