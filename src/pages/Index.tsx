@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as React from "react";
+import { toast } from "sonner";
 import { ComplaintFilters } from "@/components/dashboard/ComplaintFilters";
 import { ComplaintDetails } from "@/components/dashboard/ComplaintDetails";
 import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
@@ -19,15 +20,14 @@ const Index = () => {
   } = useComplaints();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
 
   const handleOpenModal = () => {
-    console.log("Opening modal"); // Debug log
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    console.log("Closing modal"); // Debug log
     setIsModalOpen(false);
   };
 
@@ -55,10 +55,7 @@ const Index = () => {
             />
           )}
 
-          <CreateRNCModal 
-            open={isModalOpen} 
-            onClose={handleCloseModal}
-          />
+          <CreateRNCModal open={isModalOpen} onClose={handleCloseModal} />
         </div>
       </main>
     </div>

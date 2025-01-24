@@ -1,28 +1,5 @@
 import { useState, useEffect } from "react";
-
-interface RNCStatus {
-  value: string;
-  label: string;
-}
-
-interface RNCType {
-  value: string;
-  label: string;
-}
-
-interface RNCDepartment {
-  value: string;
-  label: string;
-}
-
-interface RNCTableData {
-  number: string;
-  company: string;
-  type: string;
-  status: string;
-  department: string;
-  date: string;
-}
+import { RNCType, RNCStatus, RNCDepartment, RNCTableData } from "@/pages/quality/home/types";
 
 interface UseRNCsProps {
   selectedStatus: RNCStatus | null;
@@ -75,15 +52,15 @@ export const useRNCs = ({
       let filtered = [...exampleData];
 
       if (selectedStatus) {
-        filtered = filtered.filter((rnc) => rnc.status === selectedStatus.value);
+        filtered = filtered.filter((rnc) => rnc.status === selectedStatus);
       }
 
       if (selectedType) {
-        filtered = filtered.filter((rnc) => rnc.type === selectedType.value);
+        filtered = filtered.filter((rnc) => rnc.type === selectedType);
       }
 
       if (selectedDepartment) {
-        filtered = filtered.filter((rnc) => rnc.department === selectedDepartment.value);
+        filtered = filtered.filter((rnc) => rnc.department === selectedDepartment);
       }
 
       if (searchTerm) {
@@ -97,7 +74,7 @@ export const useRNCs = ({
 
       setFilteredRNCs(filtered);
       setError(null);
-    } catch (err: any) {
+    } catch (err) {
       setError(`Erro ao filtrar RNCs: ${err.message}`);
     } finally {
       setIsLoading(false);

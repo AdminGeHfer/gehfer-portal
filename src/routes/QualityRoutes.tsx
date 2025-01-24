@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import React, { lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 
 const WorkflowEditor = lazy(() => import("@/pages/quality/workflow/WorkflowEditor"));
@@ -9,7 +9,6 @@ const QualityRoutes = () => {
     <Routes>
       <Route path="/workflow" element={<WorkflowEditor />} />
       <Route path="/home" element={<RNCHome />} />
-      <Route index element={<RNCHome />} />
     </Routes>
   );
 };
