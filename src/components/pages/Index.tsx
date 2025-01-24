@@ -7,7 +7,6 @@ import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
 import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
-import { ComplaintPageHeader } from "@/components/rnc/header/ComplaintPageHeader";
 
 const Index = () => {
   const [complaints] = useState([
@@ -80,11 +79,15 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
-            <ComplaintPageHeader onCreateRNC={() => setIsCreateModalOpen(true)} />
             <ComplaintStats complaints={complaints} />
           </div>
 
-          <ComplaintFilters filters={filters} onFilterChange={handleFilterChange} />
+          <ComplaintFilters 
+            filters={filters} 
+            onFilterChange={handleFilterChange}
+            onCreateRNC={() => setIsCreateModalOpen(true)}
+          />
+          
           <ComplaintTable 
             complaints={filteredComplaints} 
             onSelectComplaint={setSelectedComplaint} 

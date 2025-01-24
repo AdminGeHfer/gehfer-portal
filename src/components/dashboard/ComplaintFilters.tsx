@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/atoms/Button";
 import {
   Select,
   SelectContent,
@@ -18,14 +19,25 @@ interface ComplaintFiltersProps {
     daysOpen: string;
   };
   onFilterChange: (field: string, value: string) => void;
+  onCreateRNC: () => void;
 }
 
 export const ComplaintFilters = ({
   filters,
   onFilterChange,
+  onCreateRNC,
 }: ComplaintFiltersProps) => {
   return (
     <div className="space-y-4 mb-6">
+      <div className="flex justify-end mb-4">
+        <Button
+          onClick={onCreateRNC}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Criar RNC
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="protocol">Protocolo</Label>
