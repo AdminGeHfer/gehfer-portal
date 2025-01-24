@@ -1,9 +1,10 @@
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormMessage } from "@/components/ui/form";
+import { productSchema } from "@/utils/validations";
 import { z } from "zod";
 
 interface Product {
@@ -22,21 +23,24 @@ interface ProductsTabProps {
 
 export type ProductsTabRef = {
   validate: () => Promise<boolean>;
+  setFormData: (data: any) => void;
 };
-
-const productSchema = z.object({
-  name: z.string().min(3, "Produto deve ter no mínimo 3 caracteres"),
-  weight: z.string().refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0;
-  }, "Peso deve ser um número maior que 0"),
-});
 
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
   ({ setProgress }, ref) => {
     const [products, setProducts] = useState<Product[]>([
       { id: "1", name: "", weight: "" },
     ]);
+
+    // Save products data to localStorage whenever it changes
+    useEffect(() => {
+      const currentData = localStorage.getItem('rncFormData');
+      const parsedData = currentData ? JSON.parse(currentData) : {};
+      localStorage.setItem('rncFormData', JSON.stringify({
+        ...parsedData,
+        products: products
+      }));
+    }, [products]);
 
     const validateProduct = (product: Product) => {
       try {
@@ -61,6 +65,11 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
         }));
         setProducts(updatedProducts);
         return updatedProducts.every(p => Object.keys(p.error || {}).length === 0);
+      },
+      setFormData: (data: Product[]) => {
+        if (data && Array.isArray(data)) {
+          setProducts(data);
+        }
       },
     }));
 

@@ -1,26 +1,11 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { handlePhoneChange } from "@/utils/masks";
-
-const formSchema = z.object({
-  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
-  phone: z.string().regex(
-    /\([0-9]{2}\)\s?[0-9]{4,5}-?[0-9]{3,4}/,
-    "Telefone inválido. Use o formato (99) 99999-9999"
-  ),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-});
+import { contactSchema } from "@/utils/validations";
+import type { z } from "zod";
 
 interface ContactTabProps {
   setProgress: (progress: number) => void;
@@ -28,18 +13,32 @@ interface ContactTabProps {
 
 export type ContactTabRef = {
   validate: () => Promise<boolean>;
+  setFormData: (data: any) => void;
 };
 
 export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
   ({ setProgress }, ref) => {
-    const form = useForm<z.infer<typeof formSchema>>({
-      resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof contactSchema>>({
+      resolver: zodResolver(contactSchema),
       defaultValues: {
         name: "",
         phone: "",
         email: "",
       },
     });
+
+    // Save form data to localStorage whenever it changes
+    React.useEffect(() => {
+      const subscription = form.watch((data) => {
+        const currentData = localStorage.getItem('rncFormData');
+        const parsedData = currentData ? JSON.parse(currentData) : {};
+        localStorage.setItem('rncFormData', JSON.stringify({
+          ...parsedData,
+          contact: data
+        }));
+      });
+      return () => subscription.unsubscribe();
+    }, [form.watch]);
 
     React.useEffect(() => {
       const values = form.watch();
@@ -53,6 +52,13 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
         return form.trigger().then((isValid) => {
           return isValid;
         });
+      },
+      setFormData: (data: any) => {
+        if (data) {
+          Object.keys(data).forEach((key) => {
+            form.setValue(key as any, data[key]);
+          });
+        }
       },
     }));
 

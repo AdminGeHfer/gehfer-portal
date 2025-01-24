@@ -1,36 +1,13 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { handleDocumentChange } from "@/utils/masks";
-
-const formSchema = z.object({
-  companyCode: z.string().min(3, "Código da empresa deve ter no mínimo 3 caracteres"),
-  company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
-  document: z.string().regex(
-    /(^\d{3}\.\d{3}\.\d{3}\-\d{2}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$)/,
-    "Documento inválido. Use um CPF ou CNPJ válido"
-  ),
-  type: z.string().min(1, "Tipo é obrigatório"),
-  department: z.string().min(1, "Departamento é obrigatório"),
-  responsible: z.string().min(1, "Responsável é obrigatório"),
-});
+import { Form } from "@/components/ui/form";
+import { basicInfoSchema } from "@/utils/validations";
+import type { z } from "zod";
 
 interface BasicInfoTabProps {
   setProgress: (progress: number) => void;
@@ -38,12 +15,13 @@ interface BasicInfoTabProps {
 
 export type BasicInfoTabRef = {
   validate: () => Promise<boolean>;
+  setFormData: (data: any) => void;
 };
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
   ({ setProgress }, ref) => {
-    const form = useForm<z.infer<typeof formSchema>>({
-      resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof basicInfoSchema>>({
+      resolver: zodResolver(basicInfoSchema),
       defaultValues: {
         companyCode: "",
         company: "",
@@ -67,6 +45,19 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
       "Samuel",
     ];
 
+    // Save form data to localStorage whenever it changes
+    React.useEffect(() => {
+      const subscription = form.watch((data) => {
+        const currentData = localStorage.getItem('rncFormData');
+        const parsedData = currentData ? JSON.parse(currentData) : {};
+        localStorage.setItem('rncFormData', JSON.stringify({
+          ...parsedData,
+          basic: data
+        }));
+      });
+      return () => subscription.unsubscribe();
+    }, [form.watch]);
+
     React.useEffect(() => {
       const values = form.watch();
       const filledFields = Object.values(values).filter(Boolean).length;
@@ -79,6 +70,13 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         return form.trigger().then((isValid) => {
           return isValid;
         });
+      },
+      setFormData: (data: any) => {
+        if (data) {
+          Object.keys(data).forEach((key) => {
+            form.setValue(key as any, data[key]);
+          });
+        }
       },
     }));
 

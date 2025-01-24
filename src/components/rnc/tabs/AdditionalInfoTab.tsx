@@ -1,26 +1,11 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
-const formSchema = z.object({
-  description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
-  korp: z.string().min(3, "Número do pedido deve ter no mínimo 3 caracteres"),
-  nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
-  nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres"),
-  city: z.string().optional(),
-  conclusion: z.string().optional(),
-});
+import { additionalInfoSchema } from "@/utils/validations";
+import type { z } from "zod";
 
 interface AdditionalInfoTabProps {
   setProgress: (progress: number) => void;
@@ -28,12 +13,13 @@ interface AdditionalInfoTabProps {
 
 export type AdditionalInfoTabRef = {
   validate: () => Promise<boolean>;
+  setFormData: (data: any) => void;
 };
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
   ({ setProgress }, ref) => {
-    const form = useForm<z.infer<typeof formSchema>>({
-      resolver: zodResolver(formSchema),
+    const form = useForm<z.infer<typeof additionalInfoSchema>>({
+      resolver: zodResolver(additionalInfoSchema),
       defaultValues: {
         description: "",
         korp: "",
@@ -43,6 +29,19 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
         conclusion: "",
       },
     });
+
+    // Save form data to localStorage whenever it changes
+    React.useEffect(() => {
+      const subscription = form.watch((data) => {
+        const currentData = localStorage.getItem('rncFormData');
+        const parsedData = currentData ? JSON.parse(currentData) : {};
+        localStorage.setItem('rncFormData', JSON.stringify({
+          ...parsedData,
+          additional: data
+        }));
+      });
+      return () => subscription.unsubscribe();
+    }, [form.watch]);
 
     React.useEffect(() => {
       const values = form.watch();
@@ -56,6 +55,13 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
         return form.trigger().then((isValid) => {
           return isValid;
         });
+      },
+      setFormData: (data: any) => {
+        if (data) {
+          Object.keys(data).forEach((key) => {
+            form.setValue(key as any, data[key]);
+          });
+        }
       },
     }));
 
