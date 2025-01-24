@@ -1,13 +1,15 @@
+import { useState } from "react";
 import * as React from "react";
+import { toast } from "sonner";
 import { ComplaintFilters } from "@/components/dashboard/ComplaintFilters";
 import { ComplaintDetails } from "@/components/dashboard/ComplaintDetails";
 import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
 import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
+import { ComplaintPageHeader } from "@/components/rnc/header/ComplaintPageHeader";
 import { useComplaintFilters } from "@/hooks/useComplaintFilters";
 import { useComplaints } from "@/hooks/useComplaints";
-import { ComplaintPageHeader } from "@/components/rnc/header/ComplaintPageHeader";
 
 const Index = () => {
   const {
@@ -44,9 +46,11 @@ const Index = () => {
           )}
 
           {/* Modal layout shown for visualization */}
-          <div className="mt-8 border-t pt-8">
-            <h3 className="text-lg font-semibold mb-4">Modal Preview:</h3>
-            <CreateRNCModal open={true} onClose={() => {}} />
+          <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-8">
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Modal Preview:</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <CreateRNCModal open={true} onClose={() => {}} />
+            </div>
           </div>
         </div>
       </main>
