@@ -58,18 +58,44 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     }
   };
 
-  const handleSave = async () => {
-    // Validate all tabs before saving and show errors
-    const isBasicValid = await basicInfoRef.current?.validate() ?? false;
-    const isAdditionalValid = await additionalInfoRef.current?.validate() ?? false;
-    const isProductsValid = await productsRef.current?.validate() ?? false;
-    const isContactValid = await contactRef.current?.validate() ?? false;
+  const getTabName = (tab: string) => {
+    switch (tab) {
+      case "basic":
+        return "Informações Básicas";
+      case "additional":
+        return "Informações Complementares";
+      case "products":
+        return "Produtos";
+      case "contact":
+        return "Contato";
+      default:
+        return tab;
+    }
+  };
 
-    if (!isBasicValid || !isAdditionalValid || !isProductsValid || !isContactValid) {
+  const handleSave = async () => {
+    // Validate all tabs and collect error messages
+    const validations = [
+      { ref: basicInfoRef, tab: "basic" },
+      { ref: additionalInfoRef, tab: "additional" },
+      { ref: productsRef, tab: "products" },
+      { ref: contactRef, tab: "contact" }
+    ];
+
+    const invalidTabs = [];
+    
+    for (const validation of validations) {
+      const isValid = await validation.ref.current?.validate() ?? false;
+      if (!isValid) {
+        invalidTabs.push(getTabName(validation.tab));
+      }
+    }
+
+    if (invalidTabs.length > 0) {
       toast({
         variant: "destructive",
         title: "Erro de validação",
-        description: "Por favor, verifique se todos os campos obrigatórios foram preenchidos corretamente.",
+        description: `Por favor, verifique se todos os campos obrigatórios foram preenchidos corretamente nas seguintes abas: ${invalidTabs.join(", ")}.`,
       });
       return;
     }
