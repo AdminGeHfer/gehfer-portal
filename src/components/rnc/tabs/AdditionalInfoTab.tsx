@@ -54,12 +54,13 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Descrição
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
                 <Textarea 
                   {...field} 
-                  className="min-h-[100px] border-blue-200 focus:border-blue-400" 
+                  className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                  placeholder="Descrição sobre a RNC..."
                 />
               </FormControl>
               <FormMessage />
@@ -73,11 +74,11 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-1">
-                Número do pedido (KORP)
-                <span className="text-red-500">*</span>
+                Número do pedido
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o número do pedido (KORP)" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -91,12 +92,12 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 NFV
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
                 <Input 
                   {...field} 
-                  placeholder="Nota fiscal de venda"
+                  placeholder="Digite o número da nota fiscal de venda"
                   className="border-blue-200 focus:border-blue-400" 
                 />
               </FormControl>
@@ -114,7 +115,7 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
               <FormControl>
                 <Input 
                   {...field} 
-                  placeholder="Nota fiscal de devolução"
+                  placeholder="Digite o número da nota fiscal de devolução"
                   className="border-blue-200 focus:border-blue-400" 
                 />
               </FormControl>
@@ -130,7 +131,7 @@ export function AdditionalInfoTab({ setProgress }: AdditionalInfoTabProps) {
             <FormItem>
               <FormLabel>Cidade</FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome da cidade" />
               </FormControl>
               <FormMessage />
             </FormItem>

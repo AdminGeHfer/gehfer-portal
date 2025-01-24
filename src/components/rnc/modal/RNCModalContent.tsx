@@ -33,7 +33,7 @@ export const RNCModalContent = ({
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 bg-blue-50 dark:bg-blue-900/50">
           <TabsTrigger value="basic">Inf. Básicas</TabsTrigger>
-          <TabsTrigger value="additional">Inf. Complementares</TabsTrigger>
+          <TabsTrigger value="additional">Inf. Compl.</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="contact">Contato</TabsTrigger>
           <TabsTrigger value="attachments">Anexos</TabsTrigger>

@@ -49,10 +49,10 @@ export function ContactTab({ setProgress }: ContactTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Nome
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome do contato" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -66,10 +66,10 @@ export function ContactTab({ setProgress }: ContactTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Telefone
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o número de telefone" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -83,7 +83,7 @@ export function ContactTab({ setProgress }: ContactTabProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input {...field} type="email" className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} type="email" className="border-blue-200 focus:border-blue-400" placeholder="Digite o email" />
               </FormControl>
               <FormMessage />
             </FormItem>

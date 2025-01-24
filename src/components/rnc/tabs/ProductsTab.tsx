@@ -48,8 +48,8 @@ export function ProductsTab({ setProgress }: ProductsTabProps) {
   return (
     <div className="space-y-4 py-4">
       <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
-        <div className="font-medium text-sm text-blue-900 dark:text-blue-100">Produto</div>
-        <div className="font-medium text-sm text-blue-900 dark:text-blue-100">Peso</div>
+        <div className="font-medium text-sm text-blue-900 dark:text-blue-100">Produto <span className="text-blue-400">*</span></div>
+        <div className="font-medium text-sm text-blue-900 dark:text-blue-100">Peso <span className="text-blue-400">*</span></div>
         <div></div>
       </div>
 

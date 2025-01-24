@@ -75,10 +75,10 @@ export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Código da empresa
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} placeholder="Digite o código da empresa" className="border-blue-200 focus:border-blue-400" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -92,10 +92,10 @@ export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Empresa
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} placeholder="Digite o nome da empresa" className="border-blue-200 focus:border-blue-400" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -109,10 +109,10 @@ export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Documento
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                <Input {...field} placeholder="Digite o documento (CNPJ/CPF)" className="border-blue-200 focus:border-blue-400" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -126,7 +126,7 @@ export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Tipo
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
@@ -158,7 +158,7 @@ export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Departamento
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
@@ -184,7 +184,7 @@ export function BasicInfoTab({ setProgress }: BasicInfoTabProps) {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Responsável
-                <span className="text-red-500">*</span>
+                <span className="text-blue-400">*</span>
               </FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
