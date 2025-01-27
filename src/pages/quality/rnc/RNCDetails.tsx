@@ -151,7 +151,7 @@ export default function RNCDetails() {
 
         {/* Footer */}
         <div className="mt-8 flex items-center justify-between border-t pt-4 flex-wrap gap-4">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-muted-foreground text-red-500">
             * Campos obrigatórios
           </span>
           <div className="flex gap-2">
