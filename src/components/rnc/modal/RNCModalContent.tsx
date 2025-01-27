@@ -35,15 +35,18 @@ export const RNCModalContent = ({
 }: RNCModalContentProps) => {
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
+  // This is a dummy function that does nothing, effectively disabling tab clicks
+  const handleTabChange = () => {};
+
   return (
     <>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full grid-cols-5 bg-blue-50 dark:bg-blue-900/50">
-          <TabsTrigger value="basic">Inf. Básicas</TabsTrigger>
-          <TabsTrigger value="additional">Inf. Compl.</TabsTrigger>
-          <TabsTrigger value="products">Produtos</TabsTrigger>
-          <TabsTrigger value="contact">Contato</TabsTrigger>
-          <TabsTrigger value="attachments">Anexos</TabsTrigger>
+          <TabsTrigger value="basic" className="cursor-default">Inf. Básicas</TabsTrigger>
+          <TabsTrigger value="additional" className="cursor-default">Inf. Compl.</TabsTrigger>
+          <TabsTrigger value="products" className="cursor-default">Produtos</TabsTrigger>
+          <TabsTrigger value="contact" className="cursor-default">Contato</TabsTrigger>
+          <TabsTrigger value="attachments" className="cursor-default">Anexos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic">
