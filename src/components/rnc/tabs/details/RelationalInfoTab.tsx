@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/atoms/Button";
 import { Plus, Download } from "lucide-react";
 import {
   Table,
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { z } from "zod";
+import { handlePhoneChange } from "@/utils/masks";
 
 const relationalInfoSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -59,6 +60,11 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       },
     }));
 
+    const handleAddProduct = () => {
+      // Add product logic here
+      console.log("Adding product...");
+    };
+
     return (
       <div className="space-y-8 p-4">
         {/* Products Section */}
@@ -83,9 +89,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
               variant="outline"
               size="sm"
               className="mt-4"
-              onClick={() => {
-                // Handle add product
-              }}
+              onClick={handleAddProduct}
             >
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Produto
@@ -133,6 +137,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                         {...field}
                         disabled={!isEditing}
                         className="border-blue-200 focus:border-blue-400"
+                        onChange={(e) => handlePhoneChange(e, field.onChange)}
                       />
                     </FormControl>
                     <FormMessage />

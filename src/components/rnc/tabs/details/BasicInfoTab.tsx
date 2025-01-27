@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { basicInfoSchema } from "@/utils/validations";
+import { handleDocumentChange } from "@/utils/masks";
 import type { z } from "zod";
 
 interface BasicInfoTabProps {
@@ -41,85 +42,86 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
       },
     }));
 
-  // Save form data to localStorage whenever it changes
-  React.useEffect(() => {
-    const subscription = form.watch((data) => {
-      const currentData = localStorage.getItem('rncDetailsData');
-      const parsedData = currentData ? JSON.parse(currentData) : {};
-      localStorage.setItem('rncDetailsData', JSON.stringify({
-        ...parsedData,
-        basic: data
-      }));
-    });
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
+    // Save form data to localStorage whenever it changes
+    React.useEffect(() => {
+      const subscription = form.watch((data) => {
+        const currentData = localStorage.getItem('rncDetailsData');
+        const parsedData = currentData ? JSON.parse(currentData) : {};
+        localStorage.setItem('rncDetailsData', JSON.stringify({
+          ...parsedData,
+          basic: data
+        }));
+      });
+      return () => subscription.unsubscribe();
+    }, [form.watch]);
 
-  return (
-    <Form {...form}>
-      <form className="space-y-4 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="companyCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1">
-                  Código da empresa
-                  <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    disabled={!isEditing}
-                    className="border-blue-200 focus:border-blue-400"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    return (
+      <Form {...form}>
+        <form className="space-y-4 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="companyCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Código da empresa
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1">
-                  Empresa
-                  <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    disabled={!isEditing}
-                    className="border-blue-200 focus:border-blue-400"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Empresa
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="document"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1">
-                  Documento
-                  <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    disabled={!isEditing}
-                    className="border-blue-200 focus:border-blue-400"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Documento
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                      onChange={(e) => handleDocumentChange(e, field.onChange)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           <FormField
             control={form.control}
@@ -211,10 +213,10 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
               </FormItem>
             )}
           />
-        </div>
-      </form>
-    </Form>
-  );
+          </div>
+        </form>
+      </Form>
+    );
   }
 );
 
