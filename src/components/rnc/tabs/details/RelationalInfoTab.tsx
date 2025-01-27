@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/atoms/Button";
-import { Plus, Download } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,11 +16,11 @@ import {
 import { z } from "zod";
 import { handlePhoneChange } from "@/utils/masks";
 
-const relationalInfoSchema = z.object({
-  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
-  phone: z.string().min(10, "Telefone deve ter no mínimo 10 caracteres"),
-  email: z.string().email("Email inválido").optional(),
-});
+interface Product {
+  id: string;
+  name: string;
+  weight: string;
+}
 
 interface RelationalInfoTabProps {
   isEditing: boolean;
@@ -30,6 +30,17 @@ export type RelationalInfoTabRef = {
   validate: () => Promise<boolean>;
 };
 
+const relationalInfoSchema = z.object({
+  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
+  phone: z.string().min(10, "Telefone deve ter no mínimo 10 caracteres"),
+  email: z.string().email("Email inválido").optional(),
+  products: z.array(z.object({
+    id: z.string(),
+    name: z.string().min(1, "Nome do produto é obrigatório"),
+    weight: z.string().min(1, "Peso é obrigatório")
+  })).min(1, "Pelo menos um produto deve ser adicionado")
+});
+
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
   ({ isEditing }, ref) => {
     const form = useForm<z.infer<typeof relationalInfoSchema>>({
@@ -38,21 +49,21 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         name: "",
         phone: "",
         email: "",
-      },
+        products: [{ id: crypto.randomUUID(), name: "", weight: "" }]
+      }
     });
 
-    // Save form data to localStorage whenever it changes
+    const { watch, setValue } = form;
+    const products = watch("products");
+
     React.useEffect(() => {
-      const subscription = form.watch((data) => {
-        const currentData = localStorage.getItem('rncDetailsData');
-        const parsedData = currentData ? JSON.parse(currentData) : {};
-        localStorage.setItem('rncDetailsData', JSON.stringify({
-          ...parsedData,
-          relational: data
-        }));
-      });
-      return () => subscription.unsubscribe();
-    }, [form.watch]);
+      const currentData = localStorage.getItem('rncDetailsData');
+      const parsedData = currentData ? JSON.parse(currentData) : {};
+      localStorage.setItem('rncDetailsData', JSON.stringify({
+        ...parsedData,
+        relational: form.getValues()
+      }));
+    }, [form.watch()]);
 
     React.useImperativeHandle(ref, () => ({
       validate: () => {
@@ -60,9 +71,19 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       },
     }));
 
-    const handleAddProduct = () => {
-      // Add product logic here
-      console.log("Adding product...");
+    const addProduct = () => {
+      const currentProducts = form.getValues("products");
+      setValue("products", [
+        ...currentProducts,
+        { id: crypto.randomUUID(), name: "", weight: "" }
+      ]);
+    };
+
+    const removeProduct = (index: number) => {
+      const currentProducts = form.getValues("products");
+      if (currentProducts.length > 1) {
+        setValue("products", currentProducts.filter((_, i) => i !== index));
+      }
     };
 
     return (
@@ -70,31 +91,60 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         {/* Products Section */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Produtos</h3>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produto</TableHead>
-                <TableHead>Peso</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>Produto A</TableCell>
-                <TableCell>100kg</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          {isEditing && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={handleAddProduct}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Produto
-            </Button>
-          )}
+          <Form {...form}>
+            <form className="space-y-4">
+              {products.map((product, index) => (
+                <div key={product.id} className="flex gap-4 items-start">
+                  <FormField
+                    control={form.control}
+                    name={`products.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Produto</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={!isEditing} placeholder="Digite o nome do produto" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name={`products.${index}.weight`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Peso (kg)</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="number" disabled={!isEditing} placeholder="Digite o peso" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {isEditing && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="mt-8"
+                      onClick={() => removeProduct(index)}
+                      disabled={products.length === 1}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+
+              {isEditing && (
+                <Button type="button" variant="outline" onClick={addProduct}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Produto
+                </Button>
+              )}
+            </form>
+          </Form>
         </div>
 
         {/* Contact Section */}
@@ -165,30 +215,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
               />
             </form>
           </Form>
-        </div>
-
-        {/* Attachments Section */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Anexos</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-2 bg-muted rounded">
-              <span>documento1.pdf</span>
-              <Button variant="ghost" size="sm">
-                <Download className="h-4 w-4" />
-              </Button>
-            </div>
-            {isEditing && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  // Handle file upload
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Anexo
-              </Button>
-            )}
-          </div>
         </div>
       </div>
     );
