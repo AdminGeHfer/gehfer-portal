@@ -1,18 +1,7 @@
-export enum WorkflowStatusEnum {
-  open = 'open',
-  analysis = 'analysis',
-  resolution = 'resolution',
-  solved = 'solved',
-  closing = 'closing',
-  closed = 'closed'
-}
-
-export enum RncStatusEnum {
-  not_created = 'not_created',
-  pending = 'pending',
-  collect = 'collect',
-  concluded = 'concluded',
-  canceled = 'canceled'
+export enum RncDepartmentEnum {
+  logistics = "logistics",
+  quality = "quality",
+  financial = "financial"
 }
 
 export enum RncTypeEnum {
@@ -27,10 +16,21 @@ export enum RncTypeEnum {
   financial_agreement = "financial_agreement"
 }
 
-export enum RncDepartmentEnum {
-  logistics = "logistics",
-  quality = "quality",
-  financial = "financial"
+export enum RncStatusEnum {
+  not_created = "not_created",
+  pending = "pending",
+  collect = "collect",
+  concluded = "concluded",
+  canceled = "canceled"
+}
+
+export enum RncWorkflowStatusEnum {
+  open = "open",
+  analysis = "analysis",
+  resolution = "resolution",
+  solved = "solved",
+  closing = "closing",
+  closed = "closed"
 }
 
 export interface RNC {
@@ -50,7 +50,7 @@ export interface RNC {
   city?: string;
   conclusion?: string;
   status: RncStatusEnum;
-  workflow_status: WorkflowStatusEnum;
+  workflow_status: RncWorkflowStatusEnum;
   assigned_at?: string;
   closed_at?: string;
   collected_at?: string;
@@ -72,6 +72,14 @@ export interface RNCAttachment {
   created_at: string
 }
 
+export interface RNCContact {
+  id: string
+  rnc_id: string
+  name: string
+  phone: string
+  email: string
+}
+
 export interface RNCEvent {
   id: string
   rnc_id: string
@@ -85,14 +93,6 @@ export interface RNCEvent {
   }
 }
 
-export interface RNCContact {
-  id: string
-  rnc_id: string
-  name: string
-  phone: string
-  email: string
-}
-
 export interface RNCProduct {
   id: string
   rnc_id: string
@@ -103,8 +103,8 @@ export interface RNCProduct {
 export interface RNCWorkflowTransition {
   id: string
   rnc_id: string
-  from_status: WorkflowStatusEnum
-  to_status: WorkflowStatusEnum
+  from_status: RncWorkflowStatusEnum
+  to_status: RncWorkflowStatusEnum
   notes: string
   created_by: string
   created_at: string
@@ -113,8 +113,8 @@ export interface RNCWorkflowTransition {
 
 export interface RNCWithRelations extends RNC {
   attachments: RNCAttachment[]
-  events: RNCEvent[]
   contacts: RNCContact[]
+  events: RNCEvent[]
   products: RNCProduct[]
   workflow_transitions: RNCWorkflowTransition[]
 }

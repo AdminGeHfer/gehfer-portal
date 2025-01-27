@@ -13,20 +13,20 @@ export const useRNCList = () => {
         .from('rncs')
         .select(`
           *,
+          attachments:rnc_attachments(*),
+          contacts:rnc_contacts(*),
           events:rnc_events(
             *,
             created_by_profile:profiles(name)
           ),
-          contacts:rnc_contacts(*),
           products:rnc_products(*),
-          attachments:rnc_attachments(*),
           workflow_transitions:rnc_workflow_transitions(*)
         `)
         .order('created_at', { ascending: false })
 
       if (error) throw error
 
-      setRNCs(data)
+      setRNCs(data as RNCWithRelations[])
     } catch (err) {
       toast.error('Error fetching RNCs')
       console.error('Error:', err)
