@@ -1,4 +1,3 @@
-import { useState } from "react";
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -52,13 +51,13 @@ const RootCauseAnalysis = () => {
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  const onSubmit = async (data: AnalysisFormData) => {
+  const onSubmit = async () => {
     try {
       // Here you would typically save the data to your backend
       toast.success("Análise salva com sucesso!");
       localStorage.removeItem('rncAnalysisData'); // Clear saved data after successful save
       navigate("/dashboard");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao salvar análise");
     }
   };

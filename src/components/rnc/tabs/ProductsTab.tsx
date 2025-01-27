@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -8,19 +8,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 
-interface Product {
-  id: string;
-  name: string;
-  weight: string;
-}
-
 interface ProductsTabProps {
   setProgress: (progress: number) => void;
 }
 
 export type ProductsTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data: any) => void;
+  setFormData: (data) => void;
 };
 
 const productsSchema = z.object({
@@ -96,7 +90,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
                 name={`products.${index}.name`}
                 render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel>Nome do Produto</FormLabel>
+                    <FormLabel>Nome do Produto <span className="text-blue-400">*</span></FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="Digite o nome do produto" />
                     </FormControl>
@@ -110,7 +104,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
                 name={`products.${index}.weight`}
                 render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel>Peso (kg)</FormLabel>
+                    <FormLabel>Peso (kg) <span className="text-blue-400">*</span></FormLabel>
                     <FormControl>
                       <Input {...field} type="number" placeholder="Digite o peso" />
                     </FormControl>

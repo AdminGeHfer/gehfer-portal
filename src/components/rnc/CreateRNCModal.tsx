@@ -2,7 +2,6 @@ import * as React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { RNCModalContent } from "./modal/RNCModalContent";
-import { useToast } from "@/hooks/use-toast";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -11,7 +10,6 @@ interface CreateRNCModalProps {
 
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
-  const { toast } = useToast();
   const basicInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
   const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
   const productsRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
@@ -75,21 +73,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
 
     if (currentIndex < tabs.length - 1) {
       setActiveTab(tabs[currentIndex + 1]);
-    }
-  };
-
-  const getTabName = (tab: string) => {
-    switch (tab) {
-      case "basic":
-        return "Informações Básicas";
-      case "additional":
-        return "Informações Complementares";
-      case "products":
-        return "Produtos";
-      case "contact":
-        return "Contato";
-      default:
-        return tab;
     }
   };
 
