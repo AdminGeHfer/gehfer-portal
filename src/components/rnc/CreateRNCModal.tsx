@@ -121,7 +121,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       return;
     }
 
-    // Clear form data from localStorage on successful save
+    // Only clear form data from localStorage on successful save
     localStorage.removeItem('rncFormData');
     onClose();
   };
