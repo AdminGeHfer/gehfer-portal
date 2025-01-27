@@ -32,7 +32,7 @@ export type RelationalInfoTabRef = {
 
 const relationalInfoSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
-  phone: z.string().min(10, "Telefone deve ter no mínimo 10 caracteres"),
+  phone: z.string().min(10, "Telefone inválido. Use o formato: (99) 99999-9999"),
   email: z.string().email("Email inválido").optional(),
   products: z.array(z.object({
     id: z.string(),
