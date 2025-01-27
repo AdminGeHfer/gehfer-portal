@@ -18,9 +18,9 @@ export const additionalInfoSchema = z.object({
   description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   korp: z.string().min(3, "Número do pedido deve ter no mínimo 3 caracteres"),
   nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
-  nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres"),
-  city: z.string().optional(),
-  conclusion: z.string().optional(),
+  nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres").optional().or(z.literal('')),
+  city: z.string().min(3, "A cidade deve ter no mínimo 3 caracteres").optional().or(z.literal('')),
+  conclusion: z.string().min(3, "A conclusão deve ter no mínimo 10 caracteres").optional().or(z.literal('')),
 });
 
 // Product Validation Schema
@@ -39,7 +39,7 @@ export const contactSchema = z.object({
     /\([0-9]{2}\)\s?[0-9]{4,5}-?[0-9]{3,4}/,
     "Telefone inválido. Use o formato: (99) 99999-9999"
   ),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  email: z.union([z.literal(""), z.string().email("Email inválido")]),
 });
 
 // Input Masks

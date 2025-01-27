@@ -5,22 +5,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/atoms/Button";
 import { Plus, Trash2 } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { z } from "zod";
 import { handlePhoneChange } from "@/utils/masks";
-
-interface Product {
-  id: string;
-  name: string;
-  weight: string;
-}
 
 interface RelationalInfoTabProps {
   isEditing: boolean;
@@ -33,7 +19,7 @@ export type RelationalInfoTabRef = {
 const relationalInfoSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
   phone: z.string().min(10, "Telefone inválido. Use o formato: (99) 99999-9999"),
-  email: z.string().email("Email inválido").optional(),
+  email: z.union([z.literal(""), z.string().email("Email inválido")]),
   products: z.array(z.object({
     id: z.string(),
     name: z.string().min(1, "Nome do produto é obrigatório"),
