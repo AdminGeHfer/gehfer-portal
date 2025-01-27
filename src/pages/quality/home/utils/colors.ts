@@ -31,3 +31,48 @@ export const getDepartmentColor = (department: string) => {
   };
   return colors[department as keyof typeof colors] || "bg-gray-100 text-gray-800";
 };
+
+// Add new function to map status to display names
+export const getStatusDisplayName = (status: string) => {
+  const displayNames: Record<string, string> = {
+    'not_created': 'Não Criado',
+    'pending': 'Pendente',
+    'collect': 'Coletado',
+    'concluded': 'Solucionado',
+    'canceled': 'Cancelado',
+    // Workflow status display names
+    'open': 'Aberto',
+    'analysis': 'Em Análise',
+    'resolution': 'Em Resolução',
+    'solved': 'Resolvido',
+    'closing': 'Fechando',
+    'closed': 'Fechado'
+  };
+  return displayNames[status] || status;
+};
+
+// Add new function to map type to display names
+export const getTypeDisplayName = (type: string) => {
+  const displayNames: Record<string, string> = {
+    'company_complaint': 'Reclamação do Cliente',
+    'supplier': 'Fornecedor',
+    'dispatch': 'Expedição',
+    'logistics': 'Logística',
+    'deputy': 'Representante',
+    'driver': 'Motorista',
+    'financial': 'Financeiro',
+    'commercial': 'Comercial',
+    'financial_agreement': 'Acordo Financeiro'
+  };
+  return displayNames[type] || type;
+};
+
+// Add new function to map department to display names
+export const getDepartmentDisplayName = (department: string) => {
+  const displayNames: Record<string, string> = {
+    'logistics': 'Logística',
+    'quality': 'Qualidade',
+    'financial': 'Financeiro'
+  };
+  return displayNames[department] || department;
+};
