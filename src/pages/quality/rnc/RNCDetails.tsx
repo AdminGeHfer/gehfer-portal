@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WorkflowStatusBadge } from "@/components/quality/workflow/status/WorkflowStatusBadge";
 import { BasicInfoTab } from "@/components/rnc/tabs/details/BasicInfoTab";
 import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoTab";
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
-import { WorkflowStatusEnum } from "@/types/rnc";
+import { RncStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
+import { StatusBadge } from "@/components/quality/StatusBadge";
 
 export default function RNCDetails() {
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ export default function RNCDetails() {
             Voltar
           </Button>
           <h1 className="text-xl sm:text-2xl font-bold">RNC #123</h1>
-          <WorkflowStatusBadge status={WorkflowStatusEnum.open} />
+          <StatusBadge status={RncStatusEnum.pending} />
         </div>
 
         {/* Main content */}

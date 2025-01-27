@@ -3,6 +3,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { WorkflowStatusBadge } from "@/components/quality/workflow/status/WorkflowStatusBadge";
+import { WorkflowStatusEnum } from "@/types/rnc";
 
 export function WorkflowTab() {
   return (
@@ -13,8 +15,8 @@ export function WorkflowTab() {
           {
             id: 1,
             date: new Date(),
-            from: "open",
-            to: "analysis",
+            from: WorkflowStatusEnum.open,
+            to: WorkflowStatusEnum.analysis,
             notes: "RNC movida para análise",
             user: "João Silva",
           },
@@ -27,7 +29,7 @@ export function WorkflowTab() {
             <div className="flex-1">
               <div className="flex items-baseline justify-between">
                 <h4 className="font-medium">
-                  {transition.from} → {transition.to}
+                  <WorkflowStatusBadge status={transition.from} /> → <WorkflowStatusBadge status={transition.to} />
                 </h4>
                 <time className="text-sm text-muted-foreground">
                   {format(transition.date, "dd/MM/yyyy HH:mm", { locale: ptBR })}

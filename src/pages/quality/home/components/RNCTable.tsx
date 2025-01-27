@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { RNCTableData } from "../types";
-import { getStatusColor, getTypeColor, getDepartmentColor } from "../utils/colors";
+import { getStatusColor, getTypeColor, getDepartmentColor, getStatusDisplayName, getDepartmentDisplayName, getTypeDisplayName } from "../utils/colors";
 
 interface RNCTableProps {
   data: RNCTableData[];
@@ -53,16 +53,16 @@ export const RNCTable = ({ data }: RNCTableProps) => {
               <TableCell className="font-medium text-center">{rnc.number}</TableCell>
               <TableCell className="text-center">{rnc.company}</TableCell>
               <TableCell className="text-center">
-                <Badge className={getTypeColor(rnc.type)}>{rnc.type}</Badge>
+                <Badge className={getTypeColor(getTypeDisplayName(rnc.type))}>{getTypeDisplayName(rnc.type)}</Badge>
               </TableCell>
               <TableCell className="text-center">
-                <Badge className={getDepartmentColor(rnc.department)}>
-                  {rnc.department}
+                <Badge className={getDepartmentColor(getDepartmentDisplayName(rnc.department))}>
+                  {getDepartmentDisplayName(rnc.department)}
                 </Badge>
               </TableCell>
               <TableCell className="text-center">
-                <Badge className={getStatusColor(rnc.status)}>
-                  {rnc.status}
+                <Badge className={getStatusColor(getStatusDisplayName(rnc.status))}>
+                  {getStatusDisplayName(rnc.status)}
                 </Badge>
               </TableCell>
               <TableCell className="text-center">
