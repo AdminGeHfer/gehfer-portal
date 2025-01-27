@@ -41,16 +41,16 @@ export const RNCTable = ({ data }: RNCTableProps) => {
             <TableRow 
               key={index}
               className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
-              onClick={() => handleRowClick(rnc.number)}
+              onClick={() => handleRowClick(rnc.company_code)}
               role="link"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  handleRowClick(rnc.number);
+                  handleRowClick(rnc.company_code);
                 }
               }}
             >
-              <TableCell className="font-medium text-center">{rnc.number}</TableCell>
+              <TableCell className="font-medium text-center">{rnc.company_code}</TableCell>
               <TableCell className="text-center">{rnc.company}</TableCell>
               <TableCell className="text-center">
                 <Badge className={getTypeColor(getTypeDisplayName(rnc.type))}>{getTypeDisplayName(rnc.type)}</Badge>

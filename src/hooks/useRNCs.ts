@@ -21,7 +21,7 @@ export const useRNCs = ({
   // Example data - this will be replaced with actual API call later
   const exampleData: RNCTableData[] = [
     {
-      number: "RNC-001",
+      company_code: "RNC-001",
       company: "Empresa A",
       type: "company_complaint",
       status: "pending",
@@ -29,7 +29,7 @@ export const useRNCs = ({
       date: "2024-03-15",
     },
     {
-      number: "RNC-002",
+      company_code: "RNC-002",
       company: "Empresa B",
       type: "supplier",
       status: "collect",
@@ -37,7 +37,7 @@ export const useRNCs = ({
       date: "2024-03-14",
     },
     {
-      number: "RNC-003",
+      company_code: "RNC-003",
       company: "Empresa C",
       type: "dispatch",
       status: "concluded",
@@ -67,7 +67,7 @@ export const useRNCs = ({
         const term = searchTerm.toLowerCase();
         filtered = filtered.filter(
           (rnc) =>
-            rnc.number.toLowerCase().includes(term) ||
+            rnc.company_code.toLowerCase().includes(term) ||
             rnc.company.toLowerCase().includes(term)
         );
       }

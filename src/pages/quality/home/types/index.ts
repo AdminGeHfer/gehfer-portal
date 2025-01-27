@@ -14,7 +14,7 @@ export type RNCType =
 export type RNCDepartment = "Logística" | "Qualidade" | "Financeiro";
 
 export interface RNCTableData {
-  number: string;
+  company_code: string;
   company: string;
   type: string;
   status: string;
