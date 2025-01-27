@@ -30,7 +30,7 @@ export function EventsTimeline() {
     },
     {
       id: 3,
-      type: "collection",
+      type: "collect",
       date: new Date(),
       title: "RNC coletada",
       description: "RNC foi coletada com sucesso",
@@ -38,7 +38,7 @@ export function EventsTimeline() {
     },
     {
       id: 4,
-      type: "closure",
+      type: "concluded",
       date: new Date(),
       title: "RNC fechada",
       description: "RNC fechada - Resolvida",
