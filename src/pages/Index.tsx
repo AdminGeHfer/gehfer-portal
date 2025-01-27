@@ -27,16 +27,16 @@ const Index = () => {
     }));
   };
 
-  const mappedComplaints: Complaint[] = React.useMemo(() => {
+  const mappedComplaints = React.useMemo(() => {
     if (!rncs) return [];
-    
-    return rncs.map(rnc => ({
+
+    return rncs.map((rnc): Complaint => ({
       id: rnc.id,
       date: rnc.created_at,
       company: rnc.company,
       status: rnc.workflow_status,
       description: rnc.description,
-      protocol: rnc.rnc_number.toString(),
+      protocol: String(rnc.rnc_number),
       daysOpen: rnc.days_left || 0,
       rootCause: "",
       solution: rnc.conclusion || "",
