@@ -1,5 +1,5 @@
 export interface Complaint {
-  id: number;
+  id: string;
   date: string;
   company: string;
   status: string;
@@ -8,4 +8,19 @@ export interface Complaint {
   daysOpen: number;
   rootCause: string;
   solution: string;
+  type: string;
+  department: string;
+  workflow_status: string;
+  rnc_number: number;
+  company_code: string;
+  cnpj: string;
+  responsible?: string;
+  korp?: string;
+  nfv?: string;
+  nfd?: string;
+  city?: string;
+  conclusion?: string;
+  events?: any[];
+  workflow_transitions?: any[];
+  attachments?: any[];
 }
