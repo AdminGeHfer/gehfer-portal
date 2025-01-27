@@ -14,12 +14,6 @@ export interface Complaint {
   rnc_number: number;
   company_code: string;
   cnpj: string;
-  responsible?: string;
-  korp?: string;
-  nfv?: string;
-  nfd?: string;
-  city?: string;
-  conclusion?: string;
   events?: any[];
   workflow_transitions?: any[];
   attachments?: any[];

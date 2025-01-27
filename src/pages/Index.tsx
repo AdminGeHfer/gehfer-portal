@@ -1,7 +1,9 @@
 import { useState } from "react";
 import * as React from "react";
+import { toast } from "sonner";
 import { ComplaintFilters } from "@/components/dashboard/ComplaintFilters";
 import { ComplaintDetails } from "@/components/dashboard/ComplaintDetails";
+import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
 import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
@@ -34,7 +36,7 @@ const Index = () => {
       id: rnc.id,
       date: rnc.created_at,
       company: rnc.company,
-      status: rnc.workflow_status,
+      status: rnc.status,
       description: rnc.description,
       protocol: String(rnc.rnc_number),
       daysOpen: rnc.days_left || 0,
@@ -46,15 +48,9 @@ const Index = () => {
       rnc_number: rnc.rnc_number,
       company_code: rnc.company_code,
       cnpj: rnc.cnpj,
-      responsible: rnc.responsible,
-      korp: rnc.korp,
-      nfv: rnc.nfv,
-      nfd: rnc.nfd,
-      city: rnc.city,
-      conclusion: rnc.conclusion,
-      events: rnc.events,
-      workflow_transitions: rnc.workflow_transitions,
-      attachments: rnc.attachments
+      events: rnc.events || [],
+      workflow_transitions: rnc.workflow_transitions || [],
+      attachments: rnc.attachments || []
     }));
   }, [rncs]);
 
@@ -80,6 +76,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-900">
+      <ComplaintHeader />
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
@@ -100,7 +97,7 @@ const Index = () => {
 
           {selectedComplaint && (
             <ComplaintDetails
-              complaint={mappedComplaints.find((c) => c.id === selectedComplaint)!}
+              complaint={filteredComplaints.find((c) => c.id === selectedComplaint)!}
               onClose={() => setSelectedComplaint(null)}
             />
           )}
