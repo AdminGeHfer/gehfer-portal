@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/atoms/Button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, FileIcon, Download } from "lucide-react";
 import { z } from "zod";
 import { handlePhoneChange } from "@/utils/masks";
 
@@ -41,6 +41,12 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
     const { watch, setValue } = form;
     const products = watch("products");
+
+    // Mock attachments data - this will be replaced with real data from Supabase
+    const mockAttachments = [
+      { id: "1", name: "documento1.pdf", size: "1.2 MB" },
+      { id: "2", name: "foto.jpg", size: "800 KB" },
+    ];
 
     React.useEffect(() => {
       const currentData = localStorage.getItem('rncDetailsData');
@@ -137,7 +143,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         <div>
           <h3 className="text-lg font-semibold mb-4">Contato</h3>
           <Form {...form}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -201,6 +207,30 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
               />
             </div>
           </Form>
+        </div>
+
+        {/* Attachments Section */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Anexos</h3>
+          <div className="space-y-2">
+            {mockAttachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+              >
+                <div className="flex items-center gap-3">
+                  <FileIcon className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{attachment.name}</p>
+                    <p className="text-xs text-gray-500">{attachment.size}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" size="sm" className="text-blue-600">
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
