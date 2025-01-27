@@ -13,7 +13,7 @@ interface AdditionalInfoTabProps {
 
 export type AdditionalInfoTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data: any) => void;
+  setFormData: (data) => void;
 };
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
@@ -56,10 +56,10 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           return isValid;
         });
       },
-      setFormData: (data: any) => {
+      setFormData: (data) => {
         if (data) {
           Object.keys(data).forEach((key) => {
-            form.setValue(key as any, data[key]);
+            form.setValue(key as keyof z.infer<typeof additionalInfoSchema>, data[key]);
           });
         }
       },

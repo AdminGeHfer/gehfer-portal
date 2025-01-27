@@ -12,10 +12,10 @@ interface CreateRNCModalProps {
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
   const { toast } = useToast();
-  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
-  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
-  const productsRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
-  const contactRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>(null);
+  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
+  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
+  const productsRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
+  const contactRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
 
   // Load saved form data when component mounts
   React.useEffect(() => {
@@ -46,7 +46,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     }
   };
 
-  const validateCurrentTab = async (showErrors: boolean = false) => {
+  const validateCurrentTab = async () => {
     switch (activeTab) {
       case "basic":
         return await basicInfoRef.current?.validate() ?? false;
@@ -68,7 +68,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     const currentIndex = tabs.indexOf(activeTab);
     
     // Validate current tab before moving to next, but don't show errors
-    const isValid = await validateCurrentTab(false);
+    const isValid = await validateCurrentTab();
     if (!isValid) {
       // Silently prevent navigation if invalid
       return;

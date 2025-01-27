@@ -23,7 +23,7 @@ interface ProductsTabProps {
 
 export type ProductsTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data: any) => void;
+  setFormData: (data) => void;
 };
 
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(

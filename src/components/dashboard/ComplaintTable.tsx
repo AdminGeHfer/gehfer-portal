@@ -15,7 +15,7 @@ interface ComplaintTableProps {
   onSelectComplaint: (id: number) => void;
 }
 
-export const ComplaintTable = ({ complaints, onSelectComplaint }: ComplaintTableProps) => {
+export const ComplaintTable = ({ complaints }: ComplaintTableProps) => {
   const navigate = useNavigate();
 
   const handleRowClick = (complaintId: number) => {

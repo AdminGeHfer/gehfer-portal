@@ -5,7 +5,7 @@ export const basicInfoSchema = z.object({
   companyCode: z.string().min(3, "Código da empresa deve ter no mínimo 3 caracteres"),
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
   document: z.string().regex(
-    /(^\d{3}\.\d{3}\.\d{3}\-\d{2}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$)/,
+    /(^\d{3}\.\d{3}\.\d{3}-\d{2}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$)/,
     "Documento inválido. Use um CPF ou CNPJ válido"
   ),
   type: z.string().min(1, "Tipo é obrigatório"),

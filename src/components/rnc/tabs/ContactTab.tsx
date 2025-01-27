@@ -13,7 +13,7 @@ interface ContactTabProps {
 
 export type ContactTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data: any) => void;
+  setFormData: (data) => void;
 };
 
 export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
@@ -53,10 +53,10 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
           return isValid;
         });
       },
-      setFormData: (data: any) => {
+      setFormData: (data) => {
         if (data) {
           Object.keys(data).forEach((key) => {
-            form.setValue(key as any, data[key]);
+            form.setValue(key as keyof z.infer<typeof contactSchema>, data[key]);
           });
         }
       },

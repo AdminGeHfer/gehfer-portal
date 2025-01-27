@@ -17,10 +17,10 @@ interface RNCModalContentProps {
   setProgress: (progress: number) => void;
   progress?: number;
   refs?: {
-    basicInfoRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>;
-    additionalInfoRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>;
-    productsRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>;
-    contactRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data: any) => void }>;
+    basicInfoRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
+    additionalInfoRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
+    productsRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
+    contactRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
   };
 }
 

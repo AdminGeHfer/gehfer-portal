@@ -15,7 +15,7 @@ interface BasicInfoTabProps {
 
 export type BasicInfoTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data: any) => void;
+  setFormData: (data) => void;
 };
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
@@ -71,10 +71,10 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
           return isValid;
         });
       },
-      setFormData: (data: any) => {
+      setFormData: (data) => {
         if (data) {
           Object.keys(data).forEach((key) => {
-            form.setValue(key as any, data[key]);
+            form.setValue(key as keyof z.infer<typeof basicInfoSchema>, data[key]);
           });
         }
       },
