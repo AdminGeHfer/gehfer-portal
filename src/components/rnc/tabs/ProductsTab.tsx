@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,10 +59,15 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
 
     React.useImperativeHandle(ref, () => ({
       validate: async () => {
+        if (products.length === 0) {
+          return false;
+        }
+        
         const updatedProducts = products.map(p => ({
           ...p,
           error: validateProduct(p)
         }));
+        
         setProducts(updatedProducts);
         return updatedProducts.every(p => Object.keys(p.error || {}).length === 0);
       },

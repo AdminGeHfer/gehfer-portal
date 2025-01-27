@@ -67,10 +67,9 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     const tabs = ["basic", "additional", "products", "contact", "attachments"];
     const currentIndex = tabs.indexOf(activeTab);
     
-    // Validate current tab before moving to next, but don't show errors
+    // Validate current tab before moving to next
     const isValid = await validateCurrentTab();
     if (!isValid) {
-      // Silently prevent navigation if invalid
       return;
     }
 
@@ -95,32 +94,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   };
 
   const handleSave = async () => {
-    // Validate all tabs and collect error messages
-    const validations = [
-      { ref: basicInfoRef, tab: "basic" },
-      { ref: additionalInfoRef, tab: "additional" },
-      { ref: productsRef, tab: "products" },
-      { ref: contactRef, tab: "contact" }
-    ];
-
-    const invalidTabs = [];
-    
-    for (const validation of validations) {
-      const isValid = await validation.ref.current?.validate() ?? false;
-      if (!isValid) {
-        invalidTabs.push(getTabName(validation.tab));
-      }
-    }
-
-    if (invalidTabs.length > 0) {
-      toast({
-        variant: "destructive",
-        title: "Erro de validação",
-        description: `Por favor, verifique se todos os campos obrigatórios foram preenchidos corretamente nas seguintes abas: ${invalidTabs.join(", ")}.`,
-      });
-      return;
-    }
-
     // Only clear form data from localStorage on successful save
     localStorage.removeItem('rncFormData');
     onClose();
