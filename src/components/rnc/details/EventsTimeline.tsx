@@ -68,11 +68,11 @@ export function EventsTimeline() {
         return <SquarePen className="text-blue-500" />;
       case "assignment":
         return <UserPlus className="text-white" />;
-      case "collection":
+      case "collect":
         return <Package style={{ color: "#C08F4F" }} />;
-      case "closure_canceled":
+      case "canceled":
         return <CircleX className="text-red-500" />;
-      case "closure":
+      case "concluded":
         return <SquareCheck className="text-green-500" />;
       case "days_left":
         return <Clock className="text-gray-500" />;
