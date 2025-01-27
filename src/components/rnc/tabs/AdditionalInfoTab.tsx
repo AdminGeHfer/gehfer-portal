@@ -134,7 +134,6 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 NFD
-                <span className="text-blue-400">*</span>
               </FormLabel>
               <FormControl>
                 <Input 
