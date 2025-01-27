@@ -29,10 +29,9 @@ export type ProductsTabRef = {
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
   ({ setProgress }, ref) => {
     const [products, setProducts] = useState<Product[]>([
-      { id: "1", name: "", weight: "" },
+      { id: crypto.randomUUID(), name: "", weight: "" },
     ]);
 
-    // Save products data to localStorage whenever it changes
     useEffect(() => {
       const currentData = localStorage.getItem('rncFormData');
       const parsedData = currentData ? JSON.parse(currentData) : {};
@@ -81,7 +80,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
     const addProduct = () => {
       setProducts(prevProducts => [
         ...prevProducts,
-        { id: Math.random().toString(), name: "", weight: "" },
+        { id: crypto.randomUUID(), name: "", weight: "" },
       ]);
     };
 
