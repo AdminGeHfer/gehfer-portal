@@ -24,7 +24,7 @@ export enum RncStatusEnum {
   canceled = "canceled"
 }
 
-export enum RncWorkflowStatusEnum {
+export enum WorkflowStatusEnum {
   open = "open",
   analysis = "analysis",
   resolution = "resolution",
@@ -50,7 +50,7 @@ export interface RNC {
   city?: string;
   conclusion?: string;
   status: RncStatusEnum;
-  workflow_status: RncWorkflowStatusEnum;
+  workflow_status: WorkflowStatusEnum;
   assigned_at?: string;
   closed_at?: string;
   collected_at?: string;
@@ -103,8 +103,8 @@ export interface RNCProduct {
 export interface RNCWorkflowTransition {
   id: string
   rnc_id: string
-  from_status: RncWorkflowStatusEnum
-  to_status: RncWorkflowStatusEnum
+  from_status: WorkflowStatusEnum | null
+  to_status: WorkflowStatusEnum
   notes: string
   created_by: string
   created_at: string
