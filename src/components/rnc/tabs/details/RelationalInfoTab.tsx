@@ -1,6 +1,8 @@
 import * as React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Download } from "lucide-react";
 import {
@@ -11,12 +13,41 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { z } from "zod";
+
+const relationalInfoSchema = z.object({
+  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
+  phone: z.string().min(10, "Telefone deve ter no mínimo 10 caracteres"),
+  email: z.string().email("Email inválido").optional(),
+});
 
 interface RelationalInfoTabProps {
   isEditing: boolean;
 }
 
 export function RelationalInfoTab({ isEditing }: RelationalInfoTabProps) {
+  const form = useForm<z.infer<typeof relationalInfoSchema>>({
+    resolver: zodResolver(relationalInfoSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      email: "",
+    },
+  });
+
+  // Save form data to localStorage whenever it changes
+  React.useEffect(() => {
+    const subscription = form.watch((data) => {
+      const currentData = localStorage.getItem('rncDetailsData');
+      const parsedData = currentData ? JSON.parse(currentData) : {};
+      localStorage.setItem('rncDetailsData', JSON.stringify({
+        ...parsedData,
+        relational: data
+      }));
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
   return (
     <div className="space-y-8 p-4">
       {/* Products Section */}
@@ -54,37 +85,70 @@ export function RelationalInfoTab({ isEditing }: RelationalInfoTabProps) {
       {/* Contact Section */}
       <div>
         <h3 className="text-lg font-semibold mb-4">Contato</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">
-              Nome <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="name"
-              disabled={!isEditing}
-              className="border-blue-200 focus:border-blue-400"
+        <Form {...form}>
+          <form className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Nome
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">
-              Telefone <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="phone"
-              disabled={!isEditing}
-              className="border-blue-200 focus:border-blue-400"
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Telefone
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              disabled={!isEditing}
-              className="border-blue-200 focus:border-blue-400"
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </div>
+          </form>
+        </Form>
       </div>
 
       {/* Attachments Section */}
