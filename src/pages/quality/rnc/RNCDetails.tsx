@@ -74,7 +74,6 @@ export default function RNCDetails() {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="container mx-auto max-w-[1400px]">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <Button
             variant="ghost"
@@ -93,17 +92,17 @@ export default function RNCDetails() {
           {/* Tabs section */}
           <div className="lg:col-span-2">
             <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap gap-1 p-1 rounded-lg border border-border bg-slate-800">
+              <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap gap-1 p-1 rounded-lg border border-border bg-background">
                 <div className="contents sm:flex sm:flex-1 w-full">
                   <TabsTrigger 
                     value="basic" 
-                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-muted text-muted-foreground hover:bg-muted/90 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md"
                   >
                     Informações base
                   </TabsTrigger>
                   <TabsTrigger 
                     value="additional" 
-                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-muted text-muted-foreground hover:bg-muted/90 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md"
                   >
                     Inf. Adicionais
                   </TabsTrigger>
@@ -111,13 +110,13 @@ export default function RNCDetails() {
                 <div className="contents sm:flex sm:flex-1 w-full">
                   <TabsTrigger 
                     value="relational" 
-                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-muted text-muted-foreground hover:bg-muted/90 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md"
                   >
                     Inf. Relacionais
                   </TabsTrigger>
                   <TabsTrigger 
                     value="workflow" 
-                    className="w-full flex-1 min-w-[120px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b]/90 data-[state=active]:bg-[#020817] data-[state=active]:text-[#f8fafc] rounded-md"
+                    className="w-full flex-1 min-w-[120px] bg-muted text-muted-foreground hover:bg-muted/90 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-md"
                   >
                     Workflow
                   </TabsTrigger>
@@ -142,14 +141,12 @@ export default function RNCDetails() {
             </Tabs>
           </div>
 
-          {/* Events Timeline */}
           <div className="bg-card rounded-lg p-4 h-[calc(100vh-12rem)] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">Histórico (Eventos)</h2>
             <EventsTimeline />
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-8 flex items-center justify-between border-t pt-4 flex-wrap gap-4">
           <span className="text-sm text-muted-foreground text-red-500">
             * Campos obrigatórios

@@ -216,16 +216,16 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
             {mockAttachments.map((attachment) => (
               <div
                 key={attachment.id}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
               >
                 <div className="flex items-center gap-3">
-                  <FileIcon className="h-5 w-5 text-blue-600" />
+                  <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{attachment.name}</p>
-                    <p className="text-xs text-gray-500">{attachment.size}</p>
+                    <p className="text-sm font-medium text-foreground">{attachment.name}</p>
+                    <p className="text-xs text-muted-foreground">{attachment.size}</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-blue-600">
+                <Button variant="ghost" size="sm" className="text-blue-600 dark:text-blue-400">
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
