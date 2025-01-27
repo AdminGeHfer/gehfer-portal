@@ -42,9 +42,9 @@ export interface RNC {
   description: string;
   type: RncTypeEnum;
   department: RncDepartmentEnum;
-  responsible?: string;
-  korp?: string;
-  nfv?: string;
+  responsible: string;
+  korp: string;
+  nfv: string;
   nfd?: string;
   days_left?: number;
   city?: string;
@@ -55,8 +55,66 @@ export interface RNC {
   closed_at?: string;
   collected_at?: string;
   created_by: string;
-  assigned_by?: string;
-  assigned_to?: string;
+  assigned_by: string;
+  assigned_to: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface RNCAttachment {
+  id: string
+  rnc_id: string
+  filename: string
+  filesize: number
+  content_type: string
+  file_path: string
+  created_by: string
+  created_at: string
+}
+
+export interface RNCEvent {
+  id: string
+  rnc_id: string
+  title: string
+  description: string
+  type: string
+  created_by: string
+  created_at: string
+  created_by_profile: {
+    name: string
+  }
+}
+
+export interface RNCContact {
+  id: string
+  rnc_id: string
+  name: string
+  phone: string
+  email: string
+}
+
+export interface RNCProduct {
+  id: string
+  rnc_id: string
+  product: string
+  weight: number
+}
+
+export interface RNCWorkflowTransition {
+  id: string
+  rnc_id: string
+  from_status: WorkflowStatusEnum
+  to_status: WorkflowStatusEnum
+  notes: string
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+export interface RNCWithRelations extends RNC {
+  attachments: RNCAttachment[]
+  events: RNCEvent[]
+  contacts: RNCContact[]
+  products: RNCProduct[]
+  workflow_transitions: RNCWorkflowTransition[]
 }
