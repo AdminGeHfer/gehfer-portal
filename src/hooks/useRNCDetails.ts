@@ -3,11 +3,11 @@ import { supabase } from '@/lib/supabase'
 import type { RNCWithRelations } from '@/types/rnc'
 import { toast } from 'sonner'
 
-export const useRNCList = () => {
-  const [rncs, setRNCs] = useState<RNCWithRelations[]>([])
+export const useRNCDetails = (id: string) => {
+  const [rnc, setRNC] = useState<RNCWithRelations | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchRNCs = async () => {
+  const fetchRNC = async () => {
     try {
       const { data, error } = await supabase
         .from('rncs')
@@ -20,18 +20,16 @@ export const useRNCList = () => {
             created_by_profile:profiles(name)
           ),
           products:rnc_products(*),
-          workflow_transitions:rnc_workflow_transitions(*),
-          created_by_profile:profiles!created_by(name),
-          assigned_by_profile:profiles!assigned_by(name),
-          assigned_to_profile:profiles!assigned_to(name)
+          workflow_transitions:rnc_workflow_transitions(*)
         `)
-        .order('created_at', { ascending: false })
+        .eq('id', id)
+        .single()
 
       if (error) throw error
 
-      setRNCs(data as RNCWithRelations[])
+      setRNC(data as RNCWithRelations)
     } catch (err) {
-      toast.error('Error fetching RNCs')
+      toast.error('Error fetching RNC details')
       console.error('Error:', err)
     } finally {
       setLoading(false)
@@ -39,8 +37,10 @@ export const useRNCList = () => {
   }
 
   useEffect(() => {
-    fetchRNCs()
-  }, [])
+    if (id) {
+      fetchRNC()
+    }
+  }, [id])
 
-  return { rncs, loading, refetch: fetchRNCs }
+  return { rnc, loading, refetch: fetchRNC }
 }
