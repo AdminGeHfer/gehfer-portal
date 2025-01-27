@@ -10,10 +10,66 @@ import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoT
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { WorkflowStatusEnum } from "@/types/rnc";
+import { toast } from "sonner";
 
 export default function RNCDetails() {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = React.useState(false);
+  const [currentTab, setCurrentTab] = React.useState("basic");
+  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+  const relationalInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+
+  const handleTabChange = async (value: string) => {
+    if (isEditing) {
+      let isValid = true;
+      
+      // Validate current tab before switching
+      switch (currentTab) {
+        case "basic":
+          isValid = await basicInfoRef.current?.validate() || false;
+          break;
+        case "relational":
+          isValid = await relationalInfoRef.current?.validate() || false;
+          break;
+        case "additional":
+          isValid = await additionalInfoRef.current?.validate() || false;
+          break;
+      }
+
+      if (!isValid) {
+        toast.error("Por favor, preencha todos os campos obrigatórios antes de continuar.");
+        return;
+      }
+    }
+    
+    setCurrentTab(value);
+  };
+
+  const handleSave = async () => {
+    let isValid = true;
+
+    // Validate all tabs before saving
+    switch (currentTab) {
+      case "basic":
+        isValid = await basicInfoRef.current?.validate() || false;
+        break;
+      case "relational":
+        isValid = await relationalInfoRef.current?.validate() || false;
+        break;
+      case "additional":
+        isValid = await additionalInfoRef.current?.validate() || false;
+        break;
+    }
+
+    if (!isValid) {
+      toast.error("Por favor, preencha todos os campos obrigatórios antes de salvar.");
+      return;
+    }
+
+    setIsEditing(false);
+    toast.success("RNC atualizada com sucesso!");
+  };
 
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
@@ -36,7 +92,7 @@ export default function RNCDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tabs section */}
           <div className="lg:col-span-2">
-            <Tabs defaultValue="basic" className="w-full">
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="w-full grid grid-cols-2 sm:flex sm:flex-wrap gap-1 p-1 rounded-lg border border-border bg-slate-800">
                 <div className="contents sm:flex sm:flex-1 w-full">
                   <TabsTrigger 
@@ -69,15 +125,15 @@ export default function RNCDetails() {
               </TabsList>
 
               <TabsContent value="basic" className="space-y-6 p-4">
-                <BasicInfoTab isEditing={isEditing} />
+                <BasicInfoTab ref={basicInfoRef} isEditing={isEditing} />
               </TabsContent>
 
               <TabsContent value="additional" className="space-y-6 p-4">
-                <AdditionalInfoTab isEditing={isEditing} />
+                <AdditionalInfoTab ref={additionalInfoRef} isEditing={isEditing} />
               </TabsContent>
 
               <TabsContent value="relational" className="space-y-6 p-4">
-                <RelationalInfoTab isEditing={isEditing} />
+                <RelationalInfoTab ref={relationalInfoRef} isEditing={isEditing} />
               </TabsContent>
 
               <TabsContent value="workflow" className="space-y-6 p-4">
@@ -101,7 +157,7 @@ export default function RNCDetails() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => isEditing ? handleSave() : setIsEditing(true)}
               className="flex items-center gap-2"
             >
               <Edit className="h-4 w-4" />

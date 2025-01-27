@@ -17,18 +17,29 @@ interface BasicInfoTabProps {
   isEditing: boolean;
 }
 
-export function BasicInfoTab({ isEditing }: BasicInfoTabProps) {
-  const form = useForm<z.infer<typeof basicInfoSchema>>({
-    resolver: zodResolver(basicInfoSchema),
-    defaultValues: {
-      companyCode: "",
-      company: "",
-      document: "",
-      type: "",
-      department: "",
-      responsible: "",
-    },
-  });
+export type BasicInfoTabRef = {
+  validate: () => Promise<boolean>;
+};
+
+export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
+  ({ isEditing }, ref) => {
+    const form = useForm<z.infer<typeof basicInfoSchema>>({
+      resolver: zodResolver(basicInfoSchema),
+      defaultValues: {
+        companyCode: "",
+        company: "",
+        document: "",
+        type: "",
+        department: "",
+        responsible: "",
+      },
+    });
+
+    React.useImperativeHandle(ref, () => ({
+      validate: () => {
+        return form.trigger();
+      },
+    }));
 
   // Save form data to localStorage whenever it changes
   React.useEffect(() => {
@@ -204,4 +215,7 @@ export function BasicInfoTab({ isEditing }: BasicInfoTabProps) {
       </form>
     </Form>
   );
-}
+  }
+);
+
+BasicInfoTab.displayName = "BasicInfoTab";
