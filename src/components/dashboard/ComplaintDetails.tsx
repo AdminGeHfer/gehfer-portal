@@ -5,7 +5,7 @@ import { Complaint } from "@/types/complaint";
 
 interface ComplaintDetailsProps {
   complaint: Complaint;
-  onStatusUpdate?: (complaintId: string, newStatus: string) => void;
+  onStatusUpdate: (complaintId: number, newStatus: string) => void;
   onClose: () => void;
 }
 
@@ -36,23 +36,21 @@ export const ComplaintDetails = ({ complaint, onStatusUpdate, onClose }: Complai
         </div>
         <div>
           <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
-          {onStatusUpdate && (
-            <Select
-              defaultValue={complaint.status}
-              onValueChange={(value) => onStatusUpdate(complaint.id, value)}
-            >
-              <SelectTrigger className="w-[200px] mt-1">
-                <SelectValue placeholder="Selecione o status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Em análise">Em análise</SelectItem>
-                <SelectItem value="Pendente">Pendente</SelectItem>
-                <SelectItem value="Programar Coleta">Programar Coleta</SelectItem>
-                <SelectItem value="Coleta Programada">Coleta Programada</SelectItem>
-                <SelectItem value="Resolvido">Resolvido</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
+          <Select
+            defaultValue={complaint.status}
+            onValueChange={(value) => onStatusUpdate(complaint.id, value)}
+          >
+            <SelectTrigger className="w-[200px] mt-1">
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Em análise">Em análise</SelectItem>
+              <SelectItem value="Pendente">Pendente</SelectItem>
+              <SelectItem value="Programar Coleta">Programar Coleta</SelectItem>
+              <SelectItem value="Coleta Programada">Coleta Programada</SelectItem>
+              <SelectItem value="Resolvido">Resolvido</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <span className="text-sm text-gray-600 dark:text-gray-400">Causa Raiz:</span>

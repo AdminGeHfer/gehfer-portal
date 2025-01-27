@@ -1407,31 +1407,25 @@ export type Database = {
       }
       rnc_contacts: {
         Row: {
-          created_at: string
           email: string | null
           id: string
           name: string
           phone: string
           rnc_id: string
-          updated_at: string | null
         }
         Insert: {
-          created_at?: string
           email?: string | null
           id?: string
           name: string
           phone: string
           rnc_id: string
-          updated_at?: string | null
         }
         Update: {
-          created_at?: string
           email?: string | null
           id?: string
           name?: string
           phone?: string
           rnc_id?: string
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1534,7 +1528,6 @@ export type Database = {
           notes: string | null
           rnc_id: string
           to_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
-          updated_at: string | null
         }
         Insert: {
           created_at?: string
@@ -1546,7 +1539,6 @@ export type Database = {
           notes?: string | null
           rnc_id: string
           to_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
-          updated_at?: string | null
         }
         Update: {
           created_at?: string
@@ -1558,7 +1550,6 @@ export type Database = {
           notes?: string | null
           rnc_id?: string
           to_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1592,7 +1583,7 @@ export type Database = {
           created_at: string
           created_by: string
           days_left: number | null
-          department: Database["public"]["Enums"]["rnc_department_enum"]
+          department: string
           description: string
           id: string
           korp: string | null
@@ -1619,7 +1610,7 @@ export type Database = {
           created_at?: string
           created_by: string
           days_left?: number | null
-          department?: Database["public"]["Enums"]["rnc_department_enum"]
+          department?: string
           description: string
           id?: string
           korp?: string | null
@@ -1646,7 +1637,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           days_left?: number | null
-          department?: Database["public"]["Enums"]["rnc_department_enum"]
+          department?: string
           description?: string
           id?: string
           korp?: string | null

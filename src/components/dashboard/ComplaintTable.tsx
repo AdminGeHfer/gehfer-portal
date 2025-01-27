@@ -12,20 +12,15 @@ import { Complaint } from "@/types/complaint";
 
 interface ComplaintTableProps {
   complaints: Complaint[];
-  onSelectComplaint: (id: string) => void;
-  isLoading?: boolean;
+  onSelectComplaint: (id: number) => void;
 }
 
-export const ComplaintTable = ({ complaints, onSelectComplaint, isLoading }: ComplaintTableProps) => {
+export const ComplaintTable = ({ complaints }: ComplaintTableProps) => {
   const navigate = useNavigate();
 
-  const handleRowClick = (complaintId: string) => {
+  const handleRowClick = (complaintId: number) => {
     navigate(`/quality/rnc/${complaintId}`);
   };
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200/50 dark:border-gray-700/50">
