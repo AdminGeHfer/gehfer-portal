@@ -6,7 +6,7 @@ import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
 import { useRNCData } from "@/hooks/useRNCData";
-import { Complaint } from "@/components/types/complaint";
+import { Complaint } from "@/types/complaint";
 
 const Index = () => {
   const { rncs, isLoadingRNCs } = useRNCData();
