@@ -7,34 +7,12 @@ import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
 import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
+import { useRNCData } from "@/hooks/useRNCData";
+import { Complaint } from "@/types/complaint";
 
 const Index = () => {
-  const [complaints] = useState([
-    {
-      id: 1,
-      date: "2024-03-20",
-      company: "Empresa ABC",
-      status: "Em análise",
-      description: "Problema com entrega do material",
-      protocol: "1001",
-      daysOpen: 3,
-      rootCause: "",
-      solution: "",
-    },
-    {
-      id: 2,
-      date: "2024-03-19",
-      company: "Empresa XYZ",
-      status: "Pendente",
-      description: "Material com defeito",
-      protocol: "1002",
-      daysOpen: 4,
-      rootCause: "",
-      solution: "",
-    },
-  ]);
-
-  const [selectedComplaint, setSelectedComplaint] = useState<number | null>(null);
+  const { rncs, isLoadingRNCs } = useRNCData();
+  const [selectedComplaint, setSelectedComplaint] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     protocol: "",
     date: "",
@@ -51,25 +29,29 @@ const Index = () => {
     }));
   };
 
-  const filteredComplaints = complaints.filter((complaint) => {
-    const searchTerms = {
-      protocol: filters.protocol.toLowerCase(),
-      date: filters.date.toLowerCase(),
-      company: filters.company.toLowerCase(),
-    };
+  const filteredComplaints = React.useMemo(() => {
+    if (!rncs) return [];
 
-    if (!Object.values(searchTerms).some(term => term !== "")) {
-      return true;
-    }
+    return rncs.filter((complaint) => {
+      const searchTerms = {
+        protocol: filters.protocol.toLowerCase(),
+        date: filters.date.toLowerCase(),
+        company: filters.company.toLowerCase(),
+      };
 
-    const matchesProtocol = !searchTerms.protocol || complaint.protocol.toLowerCase().includes(searchTerms.protocol);
-    const matchesDate = !searchTerms.date || complaint.date.toLowerCase().includes(searchTerms.date);
-    const matchesCompany = !searchTerms.company || complaint.company.toLowerCase().includes(searchTerms.company);
+      if (!Object.values(searchTerms).some(term => term !== "")) {
+        return true;
+      }
 
-    return matchesProtocol || matchesDate || matchesCompany;
-  });
+      const matchesProtocol = !searchTerms.protocol || complaint.protocol.toLowerCase().includes(searchTerms.protocol);
+      const matchesDate = !searchTerms.date || complaint.date.toLowerCase().includes(searchTerms.date);
+      const matchesCompany = !searchTerms.company || complaint.company.toLowerCase().includes(searchTerms.company);
 
-  const handleStatusUpdate = (complaintId: number, newStatus: string) => {
+      return matchesProtocol || matchesDate || matchesCompany;
+    });
+  }, [rncs, filters]);
+
+  const handleStatusUpdate = (complaintId: string, newStatus: string) => {
     toast.success(`Status atualizado para: ${newStatus}`);
   };
 
@@ -79,7 +61,7 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
-            <ComplaintStats complaints={complaints} />
+            <ComplaintStats complaints={filteredComplaints} />
           </div>
 
           <ComplaintFilters 
@@ -90,12 +72,13 @@ const Index = () => {
           
           <ComplaintTable 
             complaints={filteredComplaints} 
-            onSelectComplaint={setSelectedComplaint} 
+            onSelectComplaint={setSelectedComplaint}
+            isLoading={isLoadingRNCs}
           />
 
           {selectedComplaint && (
             <ComplaintDetails
-              complaint={complaints.find((c) => c.id === selectedComplaint)!}
+              complaint={filteredComplaints.find((c) => c.id === selectedComplaint)!}
               onStatusUpdate={handleStatusUpdate}
               onClose={() => setSelectedComplaint(null)}
             />
