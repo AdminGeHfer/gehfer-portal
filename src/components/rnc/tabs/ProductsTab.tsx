@@ -1,20 +1,17 @@
-import React from "react";
-import { useState, useEffect } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import * as React from "react";
+import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { FormMessage } from "@/components/ui/form";
-import { productSchema } from "@/utils/validations";
-import { z } from "zod";
+import { Trash2 } from "lucide-react";
 
 interface Product {
   id: string;
   name: string;
   weight: string;
-  error?: {
-    name?: string;
-    weight?: string;
-  };
 }
 
 interface ProductsTabProps {
@@ -23,14 +20,28 @@ interface ProductsTabProps {
 
 export type ProductsTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data) => void;
+  setFormData: (data: any) => void;
 };
+
+const productsSchema = z.object({
+  products: z.array(z.object({
+    id: z.string(),
+    name: z.string().min(1, "Nome do produto é obrigatório"),
+    weight: z.string().min(1, "Peso é obrigatório")
+  })).min(1, "Pelo menos um produto deve ser adicionado")
+});
 
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
   ({ setProgress }, ref) => {
-    const [products, setProducts] = useState<Product[]>([
-      { id: crypto.randomUUID(), name: "", weight: "" },
-    ]);
+    const form = useForm<z.infer<typeof productsSchema>>({
+      resolver: zodResolver(productsSchema),
+      defaultValues: {
+        products: [{ id: crypto.randomUUID(), name: "", weight: "" }]
+      }
+    });
+
+    const { watch, setValue } = form;
+    const products = watch("products");
 
     useEffect(() => {
       const currentData = localStorage.getItem('rncFormData');
@@ -39,137 +50,92 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
         ...parsedData,
         products: products
       }));
-    }, [products]);
 
-    const validateProduct = (product: Product) => {
-      try {
-        productSchema.parse({ name: product.name, weight: product.weight });
-        return {};
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          return error.errors.reduce((acc, curr) => {
-            const path = curr.path[0] as string;
-            return { ...acc, [path]: curr.message };
-          }, {});
-        }
-        return {};
-      }
-    };
+      // Calculate progress
+      const filledProducts = products.filter(
+        product => product.name && product.weight
+      ).length;
+      const progress = products.length > 0 ? (filledProducts / products.length) * 100 : 0;
+      setProgress(progress);
+    }, [products, setProgress]);
 
     React.useImperativeHandle(ref, () => ({
       validate: async () => {
-        if (products.length === 0) {
-          return false;
-        }
-        
-        const updatedProducts = products.map(p => ({
-          ...p,
-          error: validateProduct(p)
-        }));
-        
-        setProducts(updatedProducts);
-        return updatedProducts.every(p => Object.keys(p.error || {}).length === 0);
+        const result = await form.trigger();
+        return result;
       },
-      setFormData: (data: Product[]) => {
-        if (data && Array.isArray(data)) {
-          setProducts(data);
+      setFormData: (data) => {
+        if (data?.products) {
+          setValue("products", data.products);
         }
       },
     }));
 
     const addProduct = () => {
-      setProducts(prevProducts => [
-        ...prevProducts,
-        { id: crypto.randomUUID(), name: "", weight: "" },
+      const currentProducts = form.getValues("products");
+      setValue("products", [
+        ...currentProducts,
+        { id: crypto.randomUUID(), name: "", weight: "" }
       ]);
     };
 
-    const removeProduct = (id: string) => {
-      if (products.length > 1) {
-        setProducts(prevProducts => prevProducts.filter((p) => p.id !== id));
+    const removeProduct = (index: number) => {
+      const currentProducts = form.getValues("products");
+      if (currentProducts.length > 1) {
+        setValue("products", currentProducts.filter((_, i) => i !== index));
       }
     };
 
-    const updateProduct = (id: string, field: "name" | "weight", value: string) => {
-      setProducts(prevProducts =>
-        prevProducts.map((p) => {
-          if (p.id === id) {
-            const updatedProduct = { ...p, [field]: value };
-            return updatedProduct;
-          }
-          return p;
-        })
-      );
-    };
-
-    React.useEffect(() => {
-      const validProducts = products.filter(p => {
-        const errors = validateProduct(p);
-        return Object.keys(errors).length === 0 && p.name && p.weight;
-      }).length;
-      setProgress(products.length > 0 ? (validProducts / products.length) * 100 : 0);
-    }, [products, setProgress]);
-
     return (
-      <div className="space-y-4 py-4">
-        <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
-          <div className="font-medium text-sm text-blue-900 dark:text-blue-100">
-            Produto <span className="text-blue-400">*</span>
-          </div>
-          <div className="font-medium text-sm text-blue-900 dark:text-blue-100">
-            Peso <span className="text-blue-400">*</span>
-          </div>
-          <div></div>
-        </div>
+      <Form {...form}>
+        <form className="space-y-4 py-4">
+          {products.map((product, index) => (
+            <div key={product.id} className="flex gap-4 items-start">
+              <FormField
+                control={form.control}
+                name={`products.${index}.name`}
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Nome do Produto</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Digite o nome do produto" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        {products.map((product) => (
-          <div key={product.id} className="space-y-2">
-            <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
-              <div className="space-y-1">
-                <Input
-                  value={product.name}
-                  onChange={(e) => updateProduct(product.id, "name", e.target.value)}
-                  placeholder="Digite o nome do produto"
-                  className="border-blue-200 focus:border-blue-400"
-                />
-                {product.error?.name && (
-                  <FormMessage>{product.error.name}</FormMessage>
+              <FormField
+                control={form.control}
+                name={`products.${index}.weight`}
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Peso (kg)</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="number" placeholder="Digite o peso" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
-              <div className="space-y-1">
-                <Input
-                  value={product.weight}
-                  onChange={(e) => updateProduct(product.id, "weight", e.target.value)}
-                  placeholder="Peso do produto (kg)"
-                  className="border-blue-200 focus:border-blue-400"
-                  type="number"
-                  step="0.01"
-                />
-                {product.error?.weight && (
-                  <FormMessage>{product.error.weight}</FormMessage>
-                )}
-              </div>
+              />
+
               <Button
+                type="button"
                 variant="ghost"
-                size="icon"
-                onClick={() => removeProduct(product.id)}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                className="mt-8"
+                onClick={() => removeProduct(index)}
+                disabled={products.length === 1}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-        ))}
+          ))}
 
-        <Button
-          variant="ghost"
-          onClick={addProduct}
-          className="w-full text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Adicionar novo produto
-        </Button>
-      </div>
+          <Button type="button" variant="outline" onClick={addProduct}>
+            Adicionar Produto
+          </Button>
+        </form>
+      </Form>
     );
   }
 );
