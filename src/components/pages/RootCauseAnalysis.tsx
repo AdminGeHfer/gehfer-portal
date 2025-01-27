@@ -2,35 +2,65 @@ import { useState } from "react";
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+const analysisSchema = z.object({
+  rootCause: z.string().min(10, "A causa raiz deve ter no mínimo 10 caracteres"),
+  solution: z.string().min(10, "A solução deve ter no mínimo 10 caracteres"),
+  actionPlan: z.string().min(10, "O plano de ação deve ter no mínimo 10 caracteres"),
+  responsible: z.string().optional(),
+  deadline: z.string().optional(),
+});
+
+type AnalysisFormData = z.infer<typeof analysisSchema>;
 
 const RootCauseAnalysis = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const complaint = location.state?.complaint;
 
-  const [analysis, setAnalysis] = useState({
-    rootCause: "",
-    solution: "",
-    actionPlan: "",
-    responsible: "",
-    deadline: "",
+  const form = useForm<AnalysisFormData>({
+    resolver: zodResolver(analysisSchema),
+    defaultValues: {
+      rootCause: "",
+      solution: "",
+      actionPlan: "",
+      responsible: "",
+      deadline: "",
+    },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setAnalysis({
-      ...analysis,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!analysis.rootCause || !analysis.solution || !analysis.actionPlan) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
-      return;
+  // Load saved form data from localStorage if it exists
+  React.useEffect(() => {
+    const savedData = localStorage.getItem('rncAnalysisData');
+    if (savedData) {
+      const parsedData = JSON.parse(savedData);
+      Object.keys(parsedData).forEach((key) => {
+        form.setValue(key as keyof AnalysisFormData, parsedData[key]);
+      });
     }
-    toast.success("Análise salva com sucesso!");
-    navigate("/dashboard");
+  }, [form]);
+
+  // Save form data to localStorage whenever it changes
+  React.useEffect(() => {
+    const subscription = form.watch((data) => {
+      localStorage.setItem('rncAnalysisData', JSON.stringify(data));
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
+  const onSubmit = async (data: AnalysisFormData) => {
+    try {
+      // Here you would typically save the data to your backend
+      toast.success("Análise salva com sucesso!");
+      localStorage.removeItem('rncAnalysisData'); // Clear saved data after successful save
+      navigate("/dashboard");
+    } catch (error) {
+      toast.error("Erro ao salvar análise");
+    }
   };
 
   return (
@@ -46,76 +76,116 @@ const RootCauseAnalysis = () => {
             <p><span className="text-gray-600">Descrição:</span> {complaint?.description}</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="label">Causa Raiz *</label>
-              <textarea
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
                 name="rootCause"
-                value={analysis.rootCause}
-                onChange={handleChange}
-                className="input-field min-h-[100px]"
-                placeholder="Descreva a causa raiz do problema..."
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="label">Causa Raiz *</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="input-field min-h-[100px]"
+                        placeholder="Descreva a causa raiz do problema..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div>
-              <label className="label">Solução Proposta *</label>
-              <textarea
+              <FormField
+                control={form.control}
                 name="solution"
-                value={analysis.solution}
-                onChange={handleChange}
-                className="input-field min-h-[100px]"
-                placeholder="Descreva a solução proposta..."
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="label">Solução Proposta *</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="input-field min-h-[100px]"
+                        placeholder="Descreva a solução proposta..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div>
-              <label className="label">Plano de Ação *</label>
-              <textarea
+              <FormField
+                control={form.control}
                 name="actionPlan"
-                value={analysis.actionPlan}
-                onChange={handleChange}
-                className="input-field min-h-[100px]"
-                placeholder="Detalhe o plano de ação..."
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="label">Plano de Ação *</FormLabel>
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        className="input-field min-h-[100px]"
+                        placeholder="Detalhe o plano de ação..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div>
-              <label className="label">Responsável</label>
-              <input
-                type="text"
+              <FormField
+                control={form.control}
                 name="responsible"
-                value={analysis.responsible}
-                onChange={handleChange}
-                className="input-field"
-                placeholder="Nome do responsável..."
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="label">Responsável</FormLabel>
+                    <FormControl>
+                      <input
+                        type="text"
+                        {...field}
+                        className="input-field"
+                        placeholder="Nome do responsável..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div>
-              <label className="label">Prazo</label>
-              <input
-                type="date"
+              <FormField
+                control={form.control}
                 name="deadline"
-                value={analysis.deadline}
-                onChange={handleChange}
-                className="input-field"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="label">Prazo</FormLabel>
+                    <FormControl>
+                      <input
+                        type="date"
+                        {...field}
+                        className="input-field"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="flex gap-4 pt-4">
-              <button type="submit" className="btn-primary">
-                Salvar Análise
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/dashboard")}
-                className="px-6 py-3 border border-gray-200/80 rounded-full hover:bg-gray-50 transition-colors text-sm font-medium"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
+              <div className="flex gap-4 pt-4">
+                <button type="submit" className="btn-primary">
+                  Salvar Análise
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem('rncAnalysisData');
+                    navigate("/dashboard");
+                  }}
+                  className="px-6 py-3 border border-gray-200/80 rounded-full hover:bg-gray-50 transition-colors text-sm font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </Form>
         </div>
       </div>
     </div>
