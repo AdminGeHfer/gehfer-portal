@@ -1584,7 +1584,6 @@ export type Database = {
           assigned_to: string | null
           city: string | null
           closed_at: string | null
-          document: string
           collected_at: string | null
           company: string
           company_code: string
@@ -1594,6 +1593,7 @@ export type Database = {
           days_left: number | null
           department: Database["public"]["Enums"]["rnc_department_enum"]
           description: string
+          document: string
           id: string
           korp: string | null
           nfd: string | null
@@ -1611,7 +1611,6 @@ export type Database = {
           assigned_to?: string | null
           city?: string | null
           closed_at?: string | null
-          document: string
           collected_at?: string | null
           company: string
           company_code?: string
@@ -1621,6 +1620,7 @@ export type Database = {
           days_left?: number | null
           department?: Database["public"]["Enums"]["rnc_department_enum"]
           description: string
+          document: string
           id?: string
           korp?: string | null
           nfd?: string | null
@@ -1638,7 +1638,6 @@ export type Database = {
           assigned_to?: string | null
           city?: string | null
           closed_at?: string | null
-          document?: string
           collected_at?: string | null
           company?: string
           company_code?: string
@@ -1648,6 +1647,7 @@ export type Database = {
           days_left?: number | null
           department?: Database["public"]["Enums"]["rnc_department_enum"]
           description?: string
+          document?: string
           id?: string
           korp?: string | null
           nfd?: string | null
