@@ -148,7 +148,7 @@ export default function RNCDetails() {
                 <BasicInfoTab ref={basicInfoRef} isEditing={isEditing} initialValues={{
                   company_code: rnc.company_code,
                   company: rnc.company,
-                  document: rnc.cnpj,
+                  document: rnc.document,
                   type: rnc.type,
                   department: rnc.department,
                   responsible: rnc.responsible?.toLocaleLowerCase()}}

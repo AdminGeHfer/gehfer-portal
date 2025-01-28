@@ -604,7 +604,7 @@ export interface Database {
           assigned_by: string | null;
           assigned_to: string | null;
           closed_at: string | null;
-          cnpj: string;
+          document: string;
           company: string;
           created_at: string;
           created_by: string;
@@ -624,7 +624,7 @@ export interface Database {
           assigned_by?: string | null;
           assigned_to?: string | null;
           closed_at?: string | null;
-          cnpj: string;
+          document: string;
           company: string;
           created_at?: string;
           created_by: string;
@@ -644,7 +644,7 @@ export interface Database {
           assigned_by?: string | null;
           assigned_to?: string | null;
           closed_at?: string | null;
-          cnpj?: string;
+          document?: string;
           company?: string;
           created_at?: string;
           created_by?: string;

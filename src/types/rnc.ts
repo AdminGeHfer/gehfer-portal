@@ -38,7 +38,7 @@ export interface RNC {
   rnc_number?: number;
   company_code: string;
   company: string;
-  cnpj: string;
+  document: string;
   description: string;
   type: RncTypeEnum;
   department: RncDepartmentEnum;

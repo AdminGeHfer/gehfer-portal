@@ -37,7 +37,7 @@ export const rncService = {
         .insert({
           company_code: data.company_code,
           company: data.company,
-          cnpj: data.document,
+          document: data.document,
           type: data.type,
           department: data.department,
           responsible: data.responsible,

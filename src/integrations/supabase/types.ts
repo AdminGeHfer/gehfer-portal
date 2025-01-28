@@ -1584,7 +1584,7 @@ export type Database = {
           assigned_to: string | null
           city: string | null
           closed_at: string | null
-          cnpj: string
+          document: string
           collected_at: string | null
           company: string
           company_code: string
@@ -1611,7 +1611,7 @@ export type Database = {
           assigned_to?: string | null
           city?: string | null
           closed_at?: string | null
-          cnpj: string
+          document: string
           collected_at?: string | null
           company: string
           company_code?: string
@@ -1638,7 +1638,7 @@ export type Database = {
           assigned_to?: string | null
           city?: string | null
           closed_at?: string | null
-          cnpj?: string
+          document?: string
           collected_at?: string | null
           company?: string
           company_code?: string
