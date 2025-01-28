@@ -102,6 +102,7 @@
     "@types/aria-query": "^5.0.4",
     "@types/babel__core": "^7.20.5",
     "@types/cookie": "^0.6.0",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
     "@types/node-fetch": "^2.6.12",
     "@types/react": "^18.3.3",
