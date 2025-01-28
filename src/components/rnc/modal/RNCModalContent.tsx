@@ -26,7 +26,6 @@ interface RNCModalContentProps {
 
 export const RNCModalContent = ({
   activeTab,
-  setActiveTab,
   onBack,
   onNext,
   onSave,

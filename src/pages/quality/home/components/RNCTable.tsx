@@ -9,19 +9,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { RNCTableData } from "../types";
 import { getStatusColor, getTypeColor, getDepartmentColor, getStatusDisplayName, getDepartmentDisplayName, getTypeDisplayName } from "../utils/colors";
+import { useRNCList } from "@/hooks/useRNCList";
+import { useRNCRealtime } from "@/hooks/useRNCRealtime";
 
-interface RNCTableProps {
-  data: RNCTableData[];
-}
-
-export const RNCTable = ({ data }: RNCTableProps) => {
+export const RNCTable = () => {
   const navigate = useNavigate();
+  const { rncs, loading, refetch } = useRNCList();
 
-  const handleRowClick = (number: string) => {
-    navigate(`/quality/rnc/${number}`);
+  useRNCRealtime(refetch);
+
+  const handleRowClick = (id: string) => {
+    navigate(`/quality/rnc/${id}`);
   };
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-x-auto">
@@ -37,20 +41,20 @@ export const RNCTable = ({ data }: RNCTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((rnc, index) => (
+          {rncs.map((rnc) => (
             <TableRow 
-              key={index}
+              key={rnc.id}
               className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
-              onClick={() => handleRowClick(rnc.company_code)}
+              onClick={() => handleRowClick(rnc.id)}
               role="link"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                  handleRowClick(rnc.company_code);
+                  handleRowClick(rnc.id);
                 }
               }}
             >
-              <TableCell className="font-medium text-center">{rnc.company_code}</TableCell>
+              <TableCell className="font-medium text-center">{rnc.rnc_number}</TableCell>
               <TableCell className="text-center">{rnc.company}</TableCell>
               <TableCell className="text-center">
                 <Badge className={getTypeColor(getTypeDisplayName(rnc.type))}>{getTypeDisplayName(rnc.type)}</Badge>
@@ -66,7 +70,7 @@ export const RNCTable = ({ data }: RNCTableProps) => {
                 </Badge>
               </TableCell>
               <TableCell className="text-center">
-                {new Date(rnc.date).toLocaleDateString("pt-BR")}
+                {rnc.status === "collect" ? new Date(rnc.collected_at).toLocaleDateString("pt-BR") : rnc.status === "pending" ? new Date(rnc.assigned_at).toLocaleDateString("pt-BR") : rnc.status === "concluded" ? new Date(rnc.closed_at).toLocaleDateString("pt-BR") : new Date(rnc.created_at).toLocaleDateString("pt-BR")}
               </TableCell>
             </TableRow>
           ))}

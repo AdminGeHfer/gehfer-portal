@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,17 +8,38 @@ import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoT
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
-import { RncStatusEnum } from "@/types/rnc";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/quality/StatusBadge";
+import { useRNCDetails } from "@/hooks/useRNCDetails";
+import { useRNCRealtime } from '@/hooks/useRNCRealtime';
 
 export default function RNCDetails() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const { rnc, loading, refetch } = useRNCDetails(id);
   const [isEditing, setIsEditing] = React.useState(false);
   const [currentTab, setCurrentTab] = React.useState("basic");
   const basicInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
   const relationalInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
   const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
+
+  useRNCRealtime(refetch);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background p-4 sm:p-6 flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
+
+  if (!rnc) {
+    return (
+      <div className="min-h-screen bg-background p-4 sm:p-6 flex items-center justify-center">
+        <div>RNC não encontrada</div>
+      </div>
+    );
+  }
 
   const handleTabChange = async (value: string) => {
     if (isEditing) {
@@ -83,8 +104,8 @@ export default function RNCDetails() {
             <ArrowLeft className="h-4 w-4" />
             Voltar
           </Button>
-          <h1 className="text-xl sm:text-2xl font-bold">RNC #123</h1>
-          <StatusBadge status={RncStatusEnum.pending} />
+          <h1 className="text-xl sm:text-2xl font-bold">RNC #{rnc.rnc_number}</h1>
+          <StatusBadge status={rnc.status} />
         </div>
 
         {/* Main content */}
@@ -124,15 +145,42 @@ export default function RNCDetails() {
               </TabsList>
 
               <TabsContent value="basic" className="space-y-6 p-4">
-                <BasicInfoTab ref={basicInfoRef} isEditing={isEditing} />
+                <BasicInfoTab ref={basicInfoRef} isEditing={isEditing} initialValues={{
+                  companyCode: rnc.company_code,
+                  company: rnc.company,
+                  document: rnc.cnpj,
+                  type: rnc.type,
+                  department: rnc.department,
+                  responsible: rnc.responsible?.toLocaleLowerCase()}}
+                />
               </TabsContent>
 
               <TabsContent value="additional" className="space-y-6 p-4">
-                <AdditionalInfoTab ref={additionalInfoRef} isEditing={isEditing} />
+                <AdditionalInfoTab ref={additionalInfoRef} isEditing={isEditing} initialValues={{
+                  description: rnc.description,
+                  korp: rnc.korp,
+                  nfv: rnc.nfv,
+                  nfd: rnc.nfd,
+                  city: rnc.city,
+                  conclusion: rnc.conclusion,
+                  collected_at: rnc.collected_at,
+                  closed_at: rnc.closed_at}}
+                />
               </TabsContent>
 
               <TabsContent value="relational" className="space-y-6 p-4">
-                <RelationalInfoTab ref={relationalInfoRef} isEditing={isEditing} />
+                <RelationalInfoTab ref={relationalInfoRef} isEditing={isEditing}
+                  initialValues={{
+                    name: rnc.contacts?.[0]?.name || '',
+                    phone: rnc.contacts?.[0]?.phone || '',
+                    email: rnc.contacts?.[0]?.email || '',
+                    products: rnc.products?.map(p => ({
+                      id: p.id,
+                      name: p.product,
+                      weight: p.weight
+                    })) || [{ id: crypto.randomUUID(), name: '', weight: 0.1 }]
+                  }}
+                />
               </TabsContent>
 
               <TabsContent value="workflow" className="space-y-6 p-4">

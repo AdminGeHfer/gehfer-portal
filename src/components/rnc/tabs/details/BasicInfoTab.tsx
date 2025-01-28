@@ -16,6 +16,7 @@ import type { z } from "zod";
 
 interface BasicInfoTabProps {
   isEditing: boolean;
+  initialValues?: z.infer<typeof basicInfoSchema>;
 }
 
 export type BasicInfoTabRef = {
@@ -23,7 +24,7 @@ export type BasicInfoTabRef = {
 };
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
-  ({ isEditing }, ref) => {
+  ({ isEditing, initialValues }, ref) => {
     const form = useForm<z.infer<typeof basicInfoSchema>>({
       resolver: zodResolver(basicInfoSchema),
       defaultValues: {
@@ -35,6 +36,12 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         responsible: "",
       },
     });
+
+    React.useEffect(() => {
+      if (initialValues) {
+        form.reset(initialValues);
+      }
+    }, [initialValues, form]);
 
     React.useImperativeHandle(ref, () => ({
       validate: () => {

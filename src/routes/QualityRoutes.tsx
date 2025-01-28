@@ -1,5 +1,5 @@
 import React, { lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useParams } from "react-router-dom";
 
 const WorkflowEditor = lazy(() => import("@/pages/quality/workflow/WorkflowEditor"));
 const RNCHome = lazy(() => import("@/pages/quality/home/RNCHome"));
@@ -10,7 +10,7 @@ const QualityRoutes = () => {
     <Routes>
       <Route path="/workflow" element={<WorkflowEditor />} />
       <Route path="/home" element={<RNCHome />} />
-      <Route path="/rnc/:id" element={<RNCDetails />} />
+      <Route path="/rnc/:id" element={<RNCDetails id={useParams().id} />} />
     </Routes>
   );
 };

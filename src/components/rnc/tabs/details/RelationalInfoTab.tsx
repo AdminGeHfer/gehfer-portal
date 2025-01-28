@@ -10,6 +10,7 @@ import { handlePhoneChange } from "@/utils/masks";
 
 interface RelationalInfoTabProps {
   isEditing: boolean;
+  initialValues?: z.infer<typeof relationalInfoSchema>;
 }
 
 export type RelationalInfoTabRef = {
@@ -23,19 +24,19 @@ const relationalInfoSchema = z.object({
   products: z.array(z.object({
     id: z.string(),
     name: z.string().min(1, "Nome do produto é obrigatório"),
-    weight: z.string().min(1, "Peso é obrigatório")
+    weight: z.number().min(0.1, "Peso deve ser maior que 0")
   })).min(1, "Pelo menos um produto deve ser adicionado")
 });
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
-  ({ isEditing }, ref) => {
+  ({ isEditing, initialValues }, ref) => {
     const form = useForm<z.infer<typeof relationalInfoSchema>>({
       resolver: zodResolver(relationalInfoSchema),
       defaultValues: {
         name: "",
         phone: "",
         email: "",
-        products: [{ id: crypto.randomUUID(), name: "", weight: "" }]
+        products: [{ id: crypto.randomUUID(), name: "", weight: 0.1 }]
       }
     });
 
@@ -55,7 +56,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         ...parsedData,
         relational: form.getValues()
       }));
-    }, [form.watch()]);
+    }, [initialValues, form.watch()]);
 
     React.useImperativeHandle(ref, () => ({
       validate: () => {
@@ -67,7 +68,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       const currentProducts = form.getValues("products");
       setValue("products", [
         ...currentProducts,
-        { id: crypto.randomUUID(), name: "", weight: "" }
+        { id: crypto.randomUUID(), name: "", weight: 0.1 }
       ]);
     };
 
