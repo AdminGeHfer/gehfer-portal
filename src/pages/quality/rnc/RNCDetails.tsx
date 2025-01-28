@@ -169,7 +169,7 @@ export default function RNCDetails() {
               </TabsContent>
 
               <TabsContent value="relational" className="space-y-6 p-4">
-                <RelationalInfoTab ref={relationalInfoRef} isEditing={isEditing}
+                <RelationalInfoTab ref={relationalInfoRef} isEditing={isEditing} rncId={rnc.id}
                   initialValues={{
                     name: rnc.contacts?.[0]?.name || '',
                     phone: rnc.contacts?.[0]?.phone || '',

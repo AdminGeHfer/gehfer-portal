@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabase'
-import type { RNC } from '@/types/rnc'
+import type { RNC, RNCAttachment } from '@/types/rnc'
+
+interface UploadAttachmentResponse {
+  attachment: RNCAttachment;
+  error: Error | null;
+}
 
 export const rncService = {
   async create(data: Omit<RNC, 'id' | 'created_at' | 'updated_at' | 'rnc_number'>) {
@@ -11,29 +16,6 @@ export const rncService = {
 
     if (error) throw error
     return rnc
-  },
-
-  async createAttachment(rncId: string, data: {
-    filename: string
-    filesize: number
-    content_type: string
-    file_path: string
-  }) {
-    const { data: attachment, error } = await supabase
-      .from('rnc_attachments')
-      .insert([{
-        rnc_id: rncId,
-        created_by: (await supabase.auth.getUser())?.data?.user?.id,
-        ...data
-      }])
-      .select(`
-        *,
-        created_by_profile:profiles(name)
-      `)
-      .single()
-
-    if (error) throw error
-    return attachment
   },
 
   async createContact(rncId: string, data: {
@@ -150,6 +132,38 @@ export const rncService = {
     return rnc
   },
 
+  async uploadAttachment(rncId: string, file: File): Promise<UploadAttachmentResponse> {
+    try {
+      const filePath = `rnc-${rncId}/${crypto.randomUUID()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('rnc-attachments')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: attachment, error: dbError } = await supabase
+        .from('rnc_attachments')
+        .insert({
+          rnc_id: rncId,
+          filename: file.name,
+          filesize: file.size,
+          content_type: file.type,
+          file_path: filePath,
+          created_by: (await supabase.auth.getUser())?.data?.user?.id,
+        })
+        .select()
+        .single();
+
+      if (dbError) throw dbError;
+
+      return { attachment, error: null };
+    } catch (error) {
+      console.error('Error uploading attachment:', error);
+      return { attachment: null, error: error as Error };
+    }
+  },
+
   async delete(id: string) {
     const { error } = await supabase
       .from('rnc_products')
@@ -159,14 +173,26 @@ export const rncService = {
     if (error) throw error
   },
 
-  async deleteAttachment(attachmentId: string, rncId: string) {
-    const { error } = await supabase
-      .from('rnc_attachments')
-      .delete()
-      .eq('id', attachmentId)
-      .eq('rnc_id', rncId)
+  async deleteAttachment(attachment: RNCAttachment): Promise<{ error: Error | null }> {
+    try {
+      const { error: storageError } = await supabase.storage
+        .from('rnc-attachments')
+        .remove([attachment.file_path]);
 
-    if (error) throw error
+      if (storageError) throw storageError;
+
+      const { error: dbError } = await supabase
+        .from('rnc_attachments')
+        .delete()
+        .eq('id', attachment.id);
+
+      if (dbError) throw dbError;
+
+      return { error: null };
+    } catch (error) {
+      console.error('Error deleting attachment:', error);
+      return { error: error as Error };
+    }
   },
 
   async deleteProduct(productId: string, rncId: string) {
@@ -177,5 +203,42 @@ export const rncService = {
       .eq('rnc_id', rncId)
 
     if (error) throw error
+  },
+
+  async downloadAttachment(attachment: RNCAttachment): Promise<string | null> {
+    try {
+      const { data } = await supabase.storage
+        .from('rnc-attachments')
+        .createSignedUrl(attachment.file_path, 60);
+
+      return data?.signedUrl || null;
+    } catch (error) {
+      console.error('Error downloading attachment:', error);
+      return null;
+    }
+  },
+
+  async listAttachments(rncId: string): Promise<{ data: RNCAttachment[] | null, error: Error | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('rnc_attachments')
+        .select('*')
+        .eq('rnc_id', rncId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error listing attachments:', error);
+      return { data: null, error: error as Error };
+    }
+  },
+
+  getAttachmentUrl(filePath: string): string {
+    return supabase.storage
+      .from('rnc-attachments')
+      .getPublicUrl(filePath)
+      .data.publicUrl;
   }
 }

@@ -7,8 +7,13 @@ import { Button } from "@/components/atoms/Button";
 import { Plus, Trash2, FileIcon, Download } from "lucide-react";
 import { z } from "zod";
 import { handlePhoneChange } from "@/utils/masks";
+import { rncService } from "@/services/rncService";
+import { toast } from "sonner";
+import { formatBytes } from "@/utils/format";
+import { FileUploadField } from "@/components/portaria/FileUploadField";
 
 interface RelationalInfoTabProps {
+  rncId: string;
   isEditing: boolean;
   initialValues?: {
     name?: string;
@@ -18,6 +23,16 @@ interface RelationalInfoTabProps {
       id: string;
       name: string;
       weight: number;
+    }>;
+    attachments?: Array<{
+      id: string;
+      rnc_id: string;
+      filename: string;
+      filesize: number;
+      content_type: string;
+      file_path: string;
+      created_by: string;
+      created_at: string;
     }>;
   };
 }
@@ -38,7 +53,7 @@ const relationalInfoSchema = z.object({
 });
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
-  ({ isEditing, initialValues }, ref) => {
+  ({ rncId, isEditing, initialValues }, ref) => {
     const defaultValues = React.useMemo(() => ({
       name: initialValues?.name || "",
       phone: initialValues?.phone || "",
@@ -57,6 +72,61 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       defaultValues
     });
 
+    const [attachments, setAttachments] = React.useState(initialValues?.attachments || []);
+    const [, setIsUploading] = React.useState(false);
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      try {
+        setIsUploading(true);
+        const { attachment, error } = await rncService.uploadAttachment(rncId, file);
+        
+        if (error) throw error;
+        
+        setAttachments(prev => [...prev, attachment]);
+        toast.success("Arquivo anexado com sucesso!");
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        toast.error("Erro ao anexar arquivo");
+      } finally {
+        setIsUploading(false);
+      }
+    };
+
+    const handleFileDownload = async (attachment: typeof attachments[0]) => {
+      try {
+        const url = await rncService.downloadAttachment(attachment);
+        if (!url) throw new Error("Não foi possível gerar o link para download");
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = attachment.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Error downloading file:", error);
+        toast.error("Erro ao baixar arquivo");
+      }
+    };
+
+    const handleFileDelete = async (attachment: typeof attachments[0]) => {
+      if (!confirm("Tem certeza que deseja excluir este arquivo?")) return;
+
+      try {
+        const { error } = await rncService.deleteAttachment(attachment);
+        if (error) throw error;
+        
+        setAttachments(prev => prev.filter(a => a.id !== attachment.id));
+        toast.success("Arquivo excluído com sucesso!");
+      } catch (error) {
+        console.error("Error deleting file:", error);
+        toast.error("Erro ao excluir arquivo");
+      }
+    };
+
     React.useEffect(() => {
       if (initialValues) {
         form.reset(defaultValues);
@@ -65,12 +135,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
     const { watch, setValue } = form;
     const products = watch("products");
-
-    // Mock attachments data - this will be replaced with real data from Supabase
-    const mockAttachments = [
-      { id: "1", name: "documento1.pdf", size: "1.2 MB" },
-      { id: "2", name: "foto.jpg", size: "800 KB" },
-    ];
 
     React.useEffect(() => {
       const currentData = localStorage.getItem('rncDetailsData');
@@ -242,8 +306,16 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         {/* Attachments Section */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Anexos</h3>
-          <div className="space-y-2">
-            {mockAttachments.map((attachment) => (
+          {isEditing && (
+            <FileUploadField
+              label="Adicionar arquivo"
+              onChange={handleFileUpload}
+              accept="*/*"
+            />
+          )}
+
+          <div className="space-y-2 mt-4">
+            {attachments.map((attachment) => (
               <div
                 key={attachment.id}
                 className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
@@ -251,13 +323,32 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                 <div className="flex items-center gap-3">
                   <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <div>
-                    <p className="text-sm font-medium text-foreground">{attachment.name}</p>
-                    <p className="text-xs text-muted-foreground">{attachment.size}</p>
+                    <p className="text-sm font-medium text-foreground">{attachment.filename}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatBytes(attachment.filesize)}
+                    </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-blue-600 dark:text-blue-400">
-                  <Download className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFileDownload(attachment)}
+                    className="text-blue-600 dark:text-blue-400"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  {isEditing && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleFileDelete(attachment)}
+                      className="text-red-600 dark:text-red-400"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
