@@ -176,7 +176,7 @@ export default function RNCDetails() {
                     email: rnc.contacts?.[0]?.email || '',
                     products: rnc.products?.map(p => ({
                       id: p.id,
-                      name: p.product,
+                      name: p.name,
                       weight: p.weight
                     })) || [{ id: crypto.randomUUID(), name: '', weight: 0.1 }]
                   }}

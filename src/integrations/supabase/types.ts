@@ -1492,7 +1492,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          product: string
+          name: string
           rnc_id: string
           updated_at: string | null
           weight: number
@@ -1500,7 +1500,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          product: string
+          name: string
           rnc_id: string
           updated_at?: string | null
           weight: number
@@ -1508,7 +1508,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          product?: string
+          name?: string
           rnc_id?: string
           updated_at?: string | null
           weight?: number

@@ -96,7 +96,7 @@ export interface RNCEvent {
 export interface RNCProduct {
   id: string
   rnc_id: string
-  product: string
+  name: string
   weight: number
 }
 

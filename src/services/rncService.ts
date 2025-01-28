@@ -55,7 +55,7 @@ export const rncService = {
   },
 
   async createProduct(rncId: string, data: {
-    product: string
+    name: string
     weight: number
   }) {
     const { data: product, error } = await supabase
@@ -120,7 +120,7 @@ export const rncService = {
   },
 
   async updateProduct(id: string, rncId: string, data: {
-    product: string
+    name: string
     weight: number
   }) {
     const { data: rnc, error } = await supabase
