@@ -146,7 +146,7 @@ export default function RNCDetails() {
 
               <TabsContent value="basic" className="space-y-6 p-4">
                 <BasicInfoTab ref={basicInfoRef} isEditing={isEditing} initialValues={{
-                  companyCode: rnc.company_code,
+                  company_code: rnc.company_code,
                   company: rnc.company,
                   document: rnc.cnpj,
                   type: rnc.type,

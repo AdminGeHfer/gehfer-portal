@@ -23,7 +23,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
     const form = useForm<z.infer<typeof basicInfoSchema>>({
       resolver: zodResolver(basicInfoSchema),
       defaultValues: {
-        companyCode: "",
+        company_code: "",
         company: "",
         document: "",
         type: "",
@@ -85,7 +85,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
       <form className="space-y-4 py-4">
         <FormField
           control={form.control}
-          name="companyCode"
+          name="company_code"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-1">

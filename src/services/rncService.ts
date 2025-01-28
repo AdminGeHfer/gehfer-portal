@@ -1,5 +1,28 @@
 import { supabase } from '@/lib/supabase'
-import type { RNC, RNCAttachment } from '@/types/rnc'
+import { WorkflowStatusEnum, type RNC, type RNCAttachment } from '@/types/rnc'
+
+interface CreateRNCData {
+  company_code: string;
+  company: string;
+  document: string;
+  type: string;
+  department: string;
+  responsible: string;
+  description: string;
+  korp: string;
+  nfv: string;
+  nfd?: string;
+  city?: string;
+  products: Array<{
+    name: string;
+    weight: number;
+  }>;
+  contact: {
+    name: string;
+    phone: string;
+    email?: string;
+  };
+}
 
 interface UploadAttachmentResponse {
   attachment: RNCAttachment;
@@ -7,15 +30,50 @@ interface UploadAttachmentResponse {
 }
 
 export const rncService = {
-  async create(data: Omit<RNC, 'id' | 'created_at' | 'updated_at' | 'rnc_number'>) {
-    const { data: rnc, error } = await supabase
-      .from('rncs')
-      .insert([data])
-      .select()
-      .single()
-
-    if (error) throw error
-    return rnc
+  async create(data: CreateRNCData) {
+    try {
+      const { data: rnc, error: rncError } = await supabase
+        .from('rncs')
+        .insert({
+          company_code: data.company_code,
+          company: data.company,
+          cnpj: data.document,
+          type: data.type,
+          department: data.department,
+          responsible: data.responsible,
+          description: data.description,
+          korp: data.korp,
+          nfv: data.nfv,
+          nfd: data.nfd,
+          city: data.city,
+          created_by: (await supabase.auth.getUser())?.data?.user?.id,
+          workflow_status: WorkflowStatusEnum.open
+        })
+        .select()
+        .single();
+  
+      if (rncError) throw rncError;
+  
+      // 2. Create contact
+      await this.createContact(rnc.id, data.contact);
+  
+      // 3. Create products
+      for (const product of data.products) {
+        await this.createProduct(rnc.id, product);
+      }
+  
+      // 4. Create initial workflow transition
+      await this.createWorkflowTransition(rnc.id, {
+        from_status: 'open',
+        to_status: 'analysis',
+        notes: 'RNC criada e movida para análise'
+      });
+  
+      return rnc;
+    } catch (error) {
+      console.error('Error creating RNC:', error);
+      throw error;
+    }
   },
 
   async createContact(rncId: string, data: {
