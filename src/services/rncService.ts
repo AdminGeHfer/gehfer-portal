@@ -54,18 +54,15 @@ export const rncService = {
   
       if (rncError) throw rncError;
   
-      // 2. Create contact
       await this.createContact(rnc.id, data.contact);
   
-      // 3. Create products
       for (const product of data.products) {
         await this.createProduct(rnc.id, product);
       }
   
-      // 4. Create initial workflow transition
       await this.createWorkflowTransition(rnc.id, {
-        from_status: 'open',
-        to_status: 'analysis',
+        from_status: WorkflowStatusEnum.open,
+        to_status: WorkflowStatusEnum.analysis,
         notes: 'RNC criada e movida para análise'
       });
   
@@ -112,8 +109,8 @@ export const rncService = {
   },
 
   async createWorkflowTransition(rncId: string, data: {
-    from_status: 'open' | 'analysis' | 'resolution' | 'solved' | 'closing' | 'closed'
-    to_status: 'open' | 'analysis' | 'resolution' | 'solved' | 'closing' | 'closed'
+    from_status: WorkflowStatusEnum.open | WorkflowStatusEnum.analysis | WorkflowStatusEnum.resolution | WorkflowStatusEnum.solved | WorkflowStatusEnum.closing | WorkflowStatusEnum.closed
+    to_status: WorkflowStatusEnum.open | WorkflowStatusEnum.analysis | WorkflowStatusEnum.resolution | WorkflowStatusEnum.solved | WorkflowStatusEnum.closing | WorkflowStatusEnum.closed
     notes: string
   }) {
     const { data: workflow_transition, error } = await supabase
