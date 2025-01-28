@@ -1,12 +1,12 @@
 import { supabase } from '@/lib/supabase'
-import { WorkflowStatusEnum, type RNC, type RNCAttachment } from '@/types/rnc'
+import { RncDepartmentEnum, RncTypeEnum, WorkflowStatusEnum, type RNC, type RNCAttachment } from '@/types/rnc'
 
 interface CreateRNCData {
   company_code: string;
   company: string;
   document: string;
-  type: string;
-  department: string;
+  type: RncTypeEnum;
+  department: RncDepartmentEnum;
   responsible: string;
   description: string;
   korp: string;
@@ -34,7 +34,7 @@ export const rncService = {
     try {
       const { data: rnc, error: rncError } = await supabase
         .from('rncs')
-        .insert({
+        .insert([{
           company_code: data.company_code,
           company: data.company,
           document: data.document,
@@ -48,7 +48,7 @@ export const rncService = {
           city: data.city,
           created_by: (await supabase.auth.getUser())?.data?.user?.id,
           workflow_status: WorkflowStatusEnum.open
-        })
+        }])
         .select()
         .single();
   
