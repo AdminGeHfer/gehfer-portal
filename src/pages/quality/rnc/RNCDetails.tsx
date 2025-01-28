@@ -195,7 +195,9 @@ export default function RNCDetails() {
 
           <div className="bg-card rounded-lg p-4 h-[calc(100vh-12rem)] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4">Histórico (Eventos)</h2>
-            <EventsTimeline />
+            <EventsTimeline
+              events={rnc.events}
+            />
           </div>
         </div>
 

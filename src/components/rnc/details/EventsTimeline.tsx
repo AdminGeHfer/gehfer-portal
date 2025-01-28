@@ -1,3 +1,4 @@
+// src/components/rnc/details/EventsTimeline.tsx
 import * as React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -10,74 +11,38 @@ import {
   Clock
 } from "lucide-react";
 
-export function EventsTimeline() {
-  const events = [
-    {
-      id: 1,
-      type: "creation",
-      date: new Date(),
-      title: "RNC criada",
-      description: "RNC criada por João Silva",
-      userName: "João Silva"
-    },
-    {
-      id: 2,
-      type: "assignment",
-      date: new Date(),
-      title: "RNC atribuída",
-      description: "RNC atribuída para Maria Oliveira",
-      userName: "Maria Oliveira"
-    },
-    {
-      id: 3,
-      type: "collect",
-      date: new Date(),
-      title: "RNC coletada",
-      description: "RNC foi coletada com sucesso",
-      userName: "Pedro Santos"
-    },
-    {
-      id: 4,
-      type: "concluded",
-      date: new Date(),
-      title: "RNC fechada",
-      description: "RNC fechada - Resolvida",
-      userName: "Ana Costa"
-    },
-    {
-      id: 5,
-      type: "days_left",
-      date: new Date(),
-      title: "Dias em aberto",
-      description: "15 dias em aberto",
-      userName: "Sistema"
-    },
-    {
-      id: 6,
-      type: "days_left",
-      date: new Date(),
-      title: "Dias em aberto",
-      description: "16 dias em aberto",
-      userName: "Sistema"
-    },
-  ];
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  created_at: string;
+  created_by_profile?: {
+    name: string;
+  };
+}
 
+interface EventsTimelineProps {
+  events: Event[];
+}
+
+export function EventsTimeline({ events }: EventsTimelineProps) {
   const getEventIcon = (type: string) => {
     switch (type) {
       case "creation":
         return <SquarePen className="text-blue-500" />;
       case "assignment":
-        return <UserPlus className="text-white" />;
-      case "collect":
+        return <UserPlus className="text-orange-500" />;
+      case "status - collected":
         return <Package style={{ color: "#C08F4F" }} />;
-      case "canceled":
-        return <CircleX className="text-red-500" />;
-      case "concluded":
-        return <SquareCheck className="text-green-500" />;
-      case "days_left":
+      case "status":
         return <Clock className="text-gray-500" />;
+      case "status - canceled":
+        return <CircleX className="text-red-500" />;
+      case "status - concluded":
+        return <SquareCheck className="text-green-500" />;
       default:
-        return null;
+        return <Clock className="text-white" />;
     }
   };
 
@@ -100,15 +65,17 @@ export function EventsTimeline() {
                 {event.title}
               </h4>
               <time className="text-sm text-gray-500 dark:text-gray-400">
-                {format(event.date, "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                {format(new Date(event.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
               </time>
             </div>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               {event.description}
             </p>
-            <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-              por {event.userName}
-            </p>
+            {event.created_by_profile?.name && (
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                por {event.created_by_profile.name}
+              </p>
+            )}
           </div>
         </div>
       ))}
