@@ -8,6 +8,7 @@ export interface WorkflowTransition {
   notes?: string;
   created_by: string;
   created_at: string;
+  updated_at: string;
   created_by_profile: {
     name: string;
   };

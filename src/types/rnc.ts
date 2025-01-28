@@ -105,10 +105,13 @@ export interface RNCWorkflowTransition {
   rnc_id: string
   from_status: WorkflowStatusEnum | null
   to_status: WorkflowStatusEnum
-  notes: string
+  notes?: string
   created_by: string
   created_at: string
   updated_at: string
+  created_by_profile: {
+    name: string;
+  }
 }
 
 export interface RNCWithRelations extends RNC {

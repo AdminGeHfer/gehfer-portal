@@ -184,7 +184,11 @@ export default function RNCDetails() {
               </TabsContent>
 
               <TabsContent value="workflow" className="space-y-6 p-4">
-                <WorkflowTab />
+                <WorkflowTab
+                  rncId={rnc.id}
+                  transitions={rnc.workflow_transitions}
+                  isEditing={isEditing}
+                />
               </TabsContent>
             </Tabs>
           </div>
