@@ -20,7 +20,10 @@ export const useRNCList = () => {
             created_by_profile:profiles(name)
           ),
           products:rnc_products(*),
-          workflow_transitions:rnc_workflow_transitions(*),
+          workflow_transitions:rnc_workflow_transitions(
+            *,
+            created_by_profile:profiles(name)
+          ),
           created_by_profile:profiles!created_by(name),
           assigned_by_profile:profiles!assigned_by(name),
           assigned_to_profile:profiles!assigned_to(name)
