@@ -13,9 +13,25 @@ import { getStatusColor, getTypeColor, getDepartmentColor, getStatusDisplayName,
 import { useRNCList } from "@/hooks/useRNCList";
 import { useRNCRealtime } from "@/hooks/useRNCRealtime";
 
-export const RNCTable = () => {
+interface RNCTableProps {
+  data: Array<{
+    id: string;
+    rnc_number: number;
+    company: string;
+    type: string;
+    department: string;
+    status: string;
+    created_at: string;
+    collected_at?: string;
+    closed_at?: string;
+    assigned_at?: string;
+  }>;
+}
+
+export const RNCTable: React.FC<RNCTableProps> = ({ data }) => {
   const navigate = useNavigate();
-  const { rncs, loading, refetch } = useRNCList();
+  const { loading, refetch } = useRNCList();
+  const rncs = data;
 
   useRNCRealtime(refetch);
 
