@@ -10,7 +10,16 @@ import { handlePhoneChange } from "@/utils/masks";
 
 interface RelationalInfoTabProps {
   isEditing: boolean;
-  initialValues?: z.infer<typeof relationalInfoSchema>;
+  initialValues?: {
+    name?: string;
+    phone?: string;
+    email?: string;
+    products?: Array<{
+      id: string;
+      name: string;
+      weight: number;
+    }>;
+  };
 }
 
 export type RelationalInfoTabRef = {
@@ -30,15 +39,29 @@ const relationalInfoSchema = z.object({
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
   ({ isEditing, initialValues }, ref) => {
+    const defaultValues = React.useMemo(() => ({
+      name: initialValues?.name || "",
+      phone: initialValues?.phone || "",
+      email: initialValues?.email || "",
+      products: initialValues?.products?.length
+        ? initialValues.products.map(p => ({
+            id: p.id,
+            name: p.name,
+            weight: p.weight
+          }))
+        : [{ id: crypto.randomUUID(), name: "", weight: 0.1 }]
+    }), [initialValues]);
+
     const form = useForm<z.infer<typeof relationalInfoSchema>>({
       resolver: zodResolver(relationalInfoSchema),
-      defaultValues: {
-        name: "",
-        phone: "",
-        email: "",
-        products: [{ id: crypto.randomUUID(), name: "", weight: 0.1 }]
-      }
+      defaultValues
     });
+
+    React.useEffect(() => {
+      if (initialValues) {
+        form.reset(defaultValues);
+      }
+    }, [initialValues, form, defaultValues]);
 
     const { watch, setValue } = form;
     const products = watch("products");
@@ -56,7 +79,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         ...parsedData,
         relational: form.getValues()
       }));
-    }, [initialValues, form.watch()]);
+    }, [form]);
 
     React.useImperativeHandle(ref, () => ({
       validate: () => {
@@ -86,7 +109,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
           <h3 className="text-lg font-semibold mb-4">Produtos</h3>
           <Form {...form}>
             <form className="space-y-4">
-              {products.map((product, index) => (
+              {products?.map((product, index) => (
                 <div key={product.id} className="flex gap-4 items-start">
                   <FormField
                     control={form.control}
@@ -109,7 +132,13 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                       <FormItem className="flex-1">
                         <FormLabel>Peso (kg)</FormLabel>
                         <FormControl>
-                          <Input {...field} type="number" disabled={!isEditing} placeholder="Digite o peso" />
+                          <Input 
+                            {...field}
+                            type="number"
+                            disabled={!isEditing}
+                            placeholder="Digite o peso"
+                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0.1)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
