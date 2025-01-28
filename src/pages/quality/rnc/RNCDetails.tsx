@@ -28,7 +28,7 @@ export default function RNCDetails() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-4 sm:p-6 flex items-center justify-center">
-        <div>Loading...</div>
+        <div>Carregando detalhes...</div>
       </div>
     );
   }
@@ -178,7 +178,8 @@ export default function RNCDetails() {
                       id: p.id,
                       name: p.name,
                       weight: p.weight
-                    })) || [{ id: crypto.randomUUID(), name: '', weight: 0.1 }]
+                    })) || [{ id: crypto.randomUUID(), name: '', weight: 0.1 }],
+                    attachments: rnc.attachments
                   }}
                 />
               </TabsContent>

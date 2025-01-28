@@ -100,12 +100,24 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         const url = await rncService.downloadAttachment(attachment);
         if (!url) throw new Error("Não foi possível gerar o link para download");
         
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Failed to download file');
+        
+        const blob = await response.blob();
+        
+        const objectUrl = window.URL.createObjectURL(blob);
+        
         const link = document.createElement('a');
-        link.href = url;
+        link.href = objectUrl;
         link.download = attachment.filename;
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        window.URL.revokeObjectURL(objectUrl);
+        
+        toast.success("Download iniciado com sucesso!");
       } catch (error) {
         console.error("Error downloading file:", error);
         toast.error("Erro ao baixar arquivo");
