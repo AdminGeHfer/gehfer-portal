@@ -1579,85 +1579,85 @@ export type Database = {
       }
       rncs: {
         Row: {
-          assigned_at: string | null
-          assigned_by: string | null
-          assigned_to: string | null
-          city: string | null
-          closed_at: string | null
-          collected_at: string | null
-          company: string
-          company_code: string
-          conclusion: string | null
-          created_at: string
-          created_by: string
-          days_left: number | null
-          department: Database["public"]["Enums"]["rnc_department_enum"]
-          description: string
-          document: string
-          id: string
-          korp: string | null
-          nfd: string | null
-          nfv: string | null
-          responsible: string | null
-          rnc_number: number | null
-          status: Database["public"]["Enums"]["rnc_status_enum"]
-          type: Database["public"]["Enums"]["rnc_type_enum"]
-          updated_at: string
-          workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"]
+          id: string;
+          rnc_number?: number;
+          company_code: string;
+          company: string;
+          document: string;
+          description: string;
+          type: Database["public"]["Enums"]["rnc_type_enum"];
+          department: Database["public"]["Enums"]["rnc_department_enum"];
+          responsible?: string;
+          korp: string;
+          nfv: string;
+          nfd?: string;
+          days_left?: number;
+          city?: string;
+          conclusion?: string;
+          status: Database["public"]["Enums"]["rnc_status_enum"];
+          workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"];
+          assigned_at?: string;
+          closed_at?: string;
+          collected_at?: string;
+          created_by?: string;
+          assigned_by?: string;
+          assigned_to?: string;
+          created_at: string;
+          updated_at?: string;
         }
         Insert: {
-          assigned_at?: string | null
-          assigned_by?: string | null
-          assigned_to?: string | null
-          city?: string | null
-          closed_at?: string | null
-          collected_at?: string | null
-          company: string
-          company_code?: string
-          conclusion?: string | null
-          created_at?: string
-          created_by: string
-          days_left?: number | null
-          department?: Database["public"]["Enums"]["rnc_department_enum"]
-          description: string
-          document: string
-          id?: string
-          korp?: string | null
-          nfd?: string | null
-          nfv?: string | null
-          responsible?: string | null
-          rnc_number?: number | null
-          status?: Database["public"]["Enums"]["rnc_status_enum"]
-          type?: Database["public"]["Enums"]["rnc_type_enum"]
-          updated_at?: string
-          workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
+          id?: string;
+          rnc_number?: number;
+          company_code: string;
+          company: string;
+          document: string;
+          description: string;
+          type: Database["public"]["Enums"]["rnc_type_enum"];
+          department: Database["public"]["Enums"]["rnc_department_enum"];
+          responsible?: string;
+          korp: string;
+          nfv: string;
+          nfd?: string;
+          days_left?: number;
+          city?: string;
+          conclusion?: string;
+          status: Database["public"]["Enums"]["rnc_status_enum"];
+          workflow_status: Database["public"]["Enums"]["rnc_workflow_status_enum"];
+          assigned_at?: string;
+          closed_at?: string;
+          collected_at?: string;
+          created_by?: string;
+          assigned_by?: string;
+          assigned_to?: string;
+          created_at: string;
+          updated_at?: string;
         }
         Update: {
-          assigned_at?: string | null
-          assigned_by?: string | null
-          assigned_to?: string | null
-          city?: string | null
-          closed_at?: string | null
-          collected_at?: string | null
-          company?: string
-          company_code?: string
-          conclusion?: string | null
-          created_at?: string
-          created_by?: string
-          days_left?: number | null
-          department?: Database["public"]["Enums"]["rnc_department_enum"]
-          description?: string
-          document?: string
-          id?: string
-          korp?: string | null
-          nfd?: string | null
-          nfv?: string | null
-          responsible?: string | null
-          rnc_number?: number | null
-          status?: Database["public"]["Enums"]["rnc_status_enum"]
-          type?: Database["public"]["Enums"]["rnc_type_enum"]
-          updated_at?: string
-          workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"]
+          id: string;
+          rnc_number?: number;
+          company_code: string;
+          company: string;
+          document: string;
+          description: string;
+          type: Database["public"]["Enums"]["rnc_type_enum"];
+          department: Database["public"]["Enums"]["rnc_department_enum"];
+          responsible: string;
+          korp: string;
+          nfv: string;
+          nfd?: string;
+          days_left?: number;
+          city?: string;
+          conclusion?: string;
+          status?: Database["public"]["Enums"]["rnc_status_enum"];
+          workflow_status?: Database["public"]["Enums"]["rnc_workflow_status_enum"];
+          assigned_at?: string;
+          closed_at?: string;
+          collected_at?: string;
+          created_by?: string;
+          assigned_by?: string;
+          assigned_to?: string;
+          created_at?: string;
+          updated_at?: string;
         }
         Relationships: [
           {

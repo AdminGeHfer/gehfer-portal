@@ -78,7 +78,7 @@ export interface RNCContact {
   rnc_id: string
   name: string
   phone: string
-  email: string
+  email?: string
 }
 
 export interface RNCEvent {

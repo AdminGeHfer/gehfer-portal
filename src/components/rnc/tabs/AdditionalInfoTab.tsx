@@ -55,11 +55,21 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
 
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
-      getFormData: () => form.getValues() as AdditionalInfoFormData,
+      getFormData: () => {
+        const values = form.getValues();
+        return {
+          description: values.description || '',
+          korp: values.korp || '',
+          nfv: values.nfv || '',
+          nfd: values.nfd || '',
+          city: values.city || '',
+          conclusion: values.conclusion || ''
+        };
+      },
       setFormData: (data) => {
         if (data) {
           Object.keys(data).forEach((key) => {
-            form.setValue(key as keyof z.infer<typeof additionalInfoSchema>, data[key]);
+            form.setValue(key as keyof AdditionalInfoFormData, data[key]);
           });
         }
       }

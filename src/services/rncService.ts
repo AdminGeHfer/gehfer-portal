@@ -1,28 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { RncDepartmentEnum, RncTypeEnum, WorkflowStatusEnum, type RNC, type RNCAttachment } from '@/types/rnc'
-
-interface CreateRNCData {
-  company_code: string;
-  company: string;
-  document: string;
-  type: RncTypeEnum;
-  department: RncDepartmentEnum;
-  responsible: string;
-  description: string;
-  korp: string;
-  nfv: string;
-  nfd?: string;
-  city?: string;
-  products: Array<{
-    name: string;
-    weight: number;
-  }>;
-  contact: {
-    name: string;
-    phone: string;
-    email?: string;
-  };
-}
+import { RncStatusEnum, RNCWithRelations, WorkflowStatusEnum, type RNC, type RNCAttachment } from '@/types/rnc'
 
 interface UploadAttachmentResponse {
   attachment: RNCAttachment;
@@ -30,7 +7,7 @@ interface UploadAttachmentResponse {
 }
 
 export const rncService = {
-  async create(data: CreateRNCData) {
+  async create(data: RNCWithRelations) {
     try {
       const { data: rnc, error: rncError } = await supabase
         .from('rncs')
@@ -38,23 +15,27 @@ export const rncService = {
           company_code: data.company_code,
           company: data.company,
           document: data.document,
+          description: data.description,
           type: data.type,
           department: data.department,
           responsible: data.responsible,
-          description: data.description,
           korp: data.korp,
           nfv: data.nfv,
           nfd: data.nfd,
-          city: data.city,
+          status: RncStatusEnum.pending,
+          workflow_status: WorkflowStatusEnum.open,
+          assigned_by: (await supabase.auth.getUser())?.data?.user?.id,
+          assigned_at: new Date().toISOString(),
           created_by: (await supabase.auth.getUser())?.data?.user?.id,
-          workflow_status: WorkflowStatusEnum.open
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }])
         .select()
         .single();
   
       if (rncError) throw rncError;
   
-      await this.createContact(rnc.id, data.contact);
+      await this.createContact(rnc.id, data.contacts);
   
       for (const product of data.products) {
         await this.createProduct(rnc.id, product);
@@ -76,7 +57,7 @@ export const rncService = {
   async createContact(rncId: string, data: {
     name: string
     phone: string
-    email: string
+    email?: string
   }) {
     const { data: contact, error } = await supabase
       .from('rnc_contacts')
@@ -127,7 +108,7 @@ export const rncService = {
     return workflow_transition
   },
 
-  async update(id: string, data: Partial<RNC>) {
+  async update(id: string, data: Omit<RNC, 'rnc_number' | 'days_left' | 'assigned_by' | 'assigned_to' | 'assigned_at' | 'created_by' | 'created_at'>) {
     const { data: rnc, error } = await supabase
       .from('rncs')
       .update(data)

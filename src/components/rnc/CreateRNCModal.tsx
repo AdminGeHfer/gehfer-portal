@@ -5,6 +5,7 @@ import { RNCModalContent } from "./modal/RNCModalContent";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
+import { AdditionalInfoFormData } from "./tabs/AdditionalInfoTab";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -21,18 +22,20 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     department: RncDepartmentEnum;
     responsible: string;
   }; setFormData: (data) => void }>(null);
-  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => {
-    description: string;
-    korp: string;
-    nfv: string;
-    nfd?: string;
-    city?: string;
-  }; setFormData: (data) => void }>(null);
+  const additionalInfoRef = React.useRef<{ 
+    validate: () => Promise<boolean>; 
+    getFormData: () => AdditionalInfoFormData;
+    setFormData: (data: Partial<AdditionalInfoFormData>) => void; 
+  }>(null);
   const productsRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => Array<{
+    id: string;
+    rnc_id: string;
     name: string;
     weight: number;
   }>; setFormData: (data) => void }>(null);
   const contactRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => {
+    id: string;
+    rnc_id: string;
     name: string;
     phone: string;
     email?: string;
@@ -133,8 +136,9 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       const rnc = await rncService.create({
         ...basicData,
         ...additionalData,
-        products: productsData,
-        contact: contactData
+        attachments: attachmentsData,
+        contacts: [contactData],
+        products: productsData
       });
   
       // Upload attachments if any
