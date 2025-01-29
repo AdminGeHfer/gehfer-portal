@@ -20,12 +20,20 @@ export const RNCHome = () => {
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
 
-  const { filteredRNCs } = useRNCs({
+  const { filteredRNCs, isLoading, error } = useRNCs({
     selectedStatus,
     selectedType,
     selectedDepartment,
     searchTerm: searchQuery,
   });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

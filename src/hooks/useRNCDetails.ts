@@ -35,7 +35,7 @@ export const useRNCDetails = (id: string) => {
 
       setRNC(data as RNCWithRelations)
     } catch (err) {
-      toast.error('Error fetching RNC details')
+      toast.error('Erro ao carregar detalhes da RNC')
       console.error('Error:', err)
     } finally {
       setLoading(false)
