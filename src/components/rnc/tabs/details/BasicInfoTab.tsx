@@ -181,6 +181,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                     <SelectItem value="logistics">Logística</SelectItem>
                     <SelectItem value="quality">Qualidade</SelectItem>
                     <SelectItem value="financial">Financeiro</SelectItem>
+                    <SelectItem value="tax">Fiscal</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -206,6 +207,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                   <SelectContent>
                     <SelectItem value="alexandre">Alexandre</SelectItem>
                     <SelectItem value="arthur">Arthur</SelectItem>
+                    <SelectItem value="fabiana">Fabiana</SelectItem>
                     <SelectItem value="financeiro">Financeiro</SelectItem>
                     <SelectItem value="giovani">Giovani</SelectItem>
                     <SelectItem value="helcio">Helcio</SelectItem>
@@ -213,7 +215,9 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                     <SelectItem value="jordana">Jordana</SelectItem>
                     <SelectItem value="marcos">Marcos</SelectItem>
                     <SelectItem value="pedro">Pedro</SelectItem>
+                    <SelectItem value="rafaela">Rafaela</SelectItem>
                     <SelectItem value="samuel">Samuel</SelectItem>
+                    <SelectItem value="vinicius">Vinicius</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

@@ -38,6 +38,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
     const responsibleOptions = [
       "Alexandre",
       "Arthur",
+      "Fabiana",
       "Financeiro",
       "Giovani",
       "Helcio",
@@ -45,7 +46,9 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
       "Jordana",
       "Marcos",
       "Pedro",
+      "Rafaela",
       "Samuel",
+      "Vinicius"
     ];
 
     // Save form data to localStorage whenever it changes
@@ -190,6 +193,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                   <SelectItem value="logistics">Logística</SelectItem>
                   <SelectItem value="quality">Qualidade</SelectItem>
                   <SelectItem value="financial">Financeiro</SelectItem>
+                  <SelectItem value="tax">Fiscal</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

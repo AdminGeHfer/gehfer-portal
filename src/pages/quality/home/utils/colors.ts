@@ -28,6 +28,7 @@ export const getDepartmentColor = (department: string) => {
     "Logística": "bg-orange-200 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
     "Qualidade": "bg-yellow-200 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
     "Financeiro": "bg-rose-200 text-rose-700 dark:bg-rose-900 dark:text-rose-300",
+    "Fiscal": "bg-fuchsia-200 text-fuchsia-700 dark:bg-fuchsia-900 dark:text-fuchsia-300"
   };
   return colors[department as keyof typeof colors] || "bg-gray-100 text-gray-800";
 };
@@ -62,7 +63,8 @@ export const getDepartmentDisplayName = (department: string) => {
   const displayNames: Record<string, string> = {
     'logistics': 'Logística',
     'quality': 'Qualidade',
-    'financial': 'Financeiro'
+    'financial': 'Financeiro',
+    'tax': 'Fiscal'
   };
   return displayNames[department] || department;
 };

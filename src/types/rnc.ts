@@ -1,7 +1,8 @@
 export enum RncDepartmentEnum {
   logistics = "logistics",
   quality = "quality",
-  financial = "financial"
+  financial = "financial",
+  tax = "tax"
 }
 
 export enum RncTypeEnum {
