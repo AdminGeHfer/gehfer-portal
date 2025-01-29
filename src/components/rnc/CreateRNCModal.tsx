@@ -105,6 +105,13 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     try {
       const loadingToast = toast.loading('Criando RNC...');
 
+      // Get form data from all tabs
+      const basicData = basicInfoRef.current?.getFormData();
+      const additionalData = additionalInfoRef.current?.getFormData();
+      const productsData = productsRef.current?.getFormData();
+      const contactData = contactRef.current?.getFormData();
+      const attachmentsData = attachmentsRef.current?.getFiles();
+
       // Validate all tabs
       const validationResults = {
         basic: await basicInfoRef.current?.validate(),
@@ -112,7 +119,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         products: await productsRef.current?.validate(),
         contact: await contactRef.current?.validate()
       };
-  
+
       const invalidTabs = Object.entries(validationResults).filter(([isValid]) => !isValid)
                                                            .map(([tab]) => tab);
 
@@ -121,14 +128,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         toast.error(`Por favor, verifique os campos nas abas: ${invalidTabs.join(', ')}`);
         return;
       }
-  
-      // Get form data from all tabs
-      const basicData = basicInfoRef.current?.getFormData();
-      const additionalData = additionalInfoRef.current?.getFormData();
-      const productsData = productsRef.current?.getFormData();
-      const contactData = contactRef.current?.getFormData();
-      const attachmentsData = attachmentsRef.current?.getFiles();
-  
+
       // Create RNC using service
       const rnc = await rncService.create({
         ...basicData,

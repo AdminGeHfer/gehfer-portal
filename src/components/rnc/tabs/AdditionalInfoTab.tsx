@@ -48,7 +48,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
 
     React.useEffect(() => {
       const values = form.watch();
-      const requiredFields = ["description", "korp", "nfv", "nfd"];
+      const requiredFields = ["description", "korp", "nfv"];
       const filledRequired = requiredFields.filter(field => values[field as keyof typeof values]).length;
       setProgress((filledRequired / requiredFields.length) * 100);
     }, [form.watch(), setProgress]);
