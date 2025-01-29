@@ -2,6 +2,9 @@ import * as React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 import { RNCModalContent } from "./modal/RNCModalContent";
+import { toast } from "sonner";
+import { rncService } from "@/services/rncService";
+import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -10,10 +13,31 @@ interface CreateRNCModalProps {
 
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
-  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
-  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
-  const productsRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
-  const contactRef = React.useRef<{ validate: () => Promise<boolean>; setFormData: (data) => void }>(null);
+  const basicInfoRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => {
+    company_code: string;
+    company: string;
+    document: string;
+    type: RncTypeEnum;
+    department: RncDepartmentEnum;
+    responsible: string;
+  }; setFormData: (data) => void }>(null);
+  const additionalInfoRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => {
+    description: string;
+    korp: string;
+    nfv: string;
+    nfd?: string;
+    city?: string;
+  }; setFormData: (data) => void }>(null);
+  const productsRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => Array<{
+    name: string;
+    weight: string;
+  }>; setFormData: (data) => void }>(null);
+  const contactRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => {
+    name: string;
+    phone: string;
+    email?: string;
+  }; setFormData: (data) => void }>(null);
+  const attachmentsRef = React.useRef<{ getFiles: () => File[] }>(null);
 
   // Load saved form data when component mounts
   React.useEffect(() => {
@@ -77,9 +101,48 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   };
 
   const handleSave = async () => {
-    // Only clear form data from localStorage on successful save
-    localStorage.removeItem('rncFormData');
-    onClose();
+    try {
+      // Validate all tabs
+      const isBasicValid = await basicInfoRef.current?.validate();
+      const isAdditionalValid = await additionalInfoRef.current?.validate();
+      const isProductsValid = await productsRef.current?.validate();
+      const isContactValid = await contactRef.current?.validate();
+  
+      if (!isBasicValid || !isAdditionalValid || !isProductsValid || !isContactValid) {
+        return;
+      }
+  
+      // Get form data from all tabs
+      const basicData = basicInfoRef.current?.getFormData();
+      const additionalData = additionalInfoRef.current?.getFormData();
+      const productsData = productsRef.current?.getFormData().map(product => ({
+        ...product,
+        weight: parseFloat(product.weight)
+      }));
+      const contactData = contactRef.current?.getFormData();
+      const attachmentsData = attachmentsRef.current?.getFiles();
+  
+      // Create RNC using service
+      const rnc = await rncService.create({
+        ...basicData,
+        ...additionalData,
+        products: productsData,
+        contact: contactData
+      });
+  
+      // Upload attachments if any
+      if (attachmentsData?.length) {
+        for (const file of attachmentsData) {
+          await rncService.uploadAttachment(rnc.id, file);
+        }
+      }
+  
+      toast.success('RNC criada com sucesso!');
+      onClose();
+    } catch (error) {
+      console.error('Error creating RNC:', error);
+      toast.error('Erro ao criar RNC');
+    }
   };
 
   return (
@@ -110,7 +173,8 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
             basicInfoRef,
             additionalInfoRef,
             productsRef,
-            contactRef
+            contactRef,
+            attachmentsRef
           }}
         />
       </DialogContent>

@@ -13,9 +13,12 @@ interface BasicInfoTabProps {
   setProgress: (progress: number) => void;
 }
 
+export type BasicInfoFormData = z.infer<typeof basicInfoSchema>;
+
 export type BasicInfoTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data) => void;
+  getFormData: () => BasicInfoFormData;
+  setFormData: (data: Partial<BasicInfoFormData>) => void;
 };
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
@@ -66,18 +69,15 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
     }, [form.watch(), setProgress]);
 
     React.useImperativeHandle(ref, () => ({
-      validate: () => {
-        return form.trigger().then((isValid) => {
-          return isValid;
-        });
-      },
+      validate: () => form.trigger(),
+      getFormData: () => form.getValues() as BasicInfoFormData,
       setFormData: (data) => {
         if (data) {
           Object.keys(data).forEach((key) => {
             form.setValue(key as keyof z.infer<typeof basicInfoSchema>, data[key]);
           });
         }
-      },
+      }
     }));
 
   return (

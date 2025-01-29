@@ -1,10 +1,10 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BasicInfoTab } from "../tabs/BasicInfoTab";
-import { AdditionalInfoTab } from "../tabs/AdditionalInfoTab";
-import { ProductsTab } from "../tabs/ProductsTab";
-import { ContactTab } from "../tabs/ContactTab";
-import { AttachmentsTab } from "../tabs/AttachmentsTab";
+import { BasicInfoTab, BasicInfoTabRef } from "../tabs/BasicInfoTab";
+import { AdditionalInfoTab, AdditionalInfoTabRef } from "../tabs/AdditionalInfoTab";
+import { ProductsTab, ProductsTabRef } from "../tabs/ProductsTab";
+import { ContactTab, ContactTabRef } from "../tabs/ContactTab";
+import { AttachmentsTab, AttachmentsTabRef } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 
@@ -16,11 +16,12 @@ interface RNCModalContentProps {
   onSave: () => void;
   setProgress: (progress: number) => void;
   progress?: number;
-  refs?: {
-    basicInfoRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
-    additionalInfoRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
-    productsRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
-    contactRef: React.RefObject<{ validate: () => Promise<boolean>; setFormData: (data) => void }>;
+  refs: {
+    basicInfoRef: React.RefObject<BasicInfoTabRef>;
+    additionalInfoRef: React.RefObject<AdditionalInfoTabRef>;
+    productsRef: React.RefObject<ProductsTabRef>;
+    contactRef: React.RefObject<ContactTabRef>;
+    attachmentsRef: React.RefObject<AttachmentsTabRef>;
   };
 }
 
@@ -49,23 +50,23 @@ export const RNCModalContent = ({
         </TabsList>
 
         <TabsContent value="basic">
-          <BasicInfoTab setProgress={setProgress} ref={refs?.basicInfoRef} />
+          <BasicInfoTab setProgress={setProgress} ref={refs.basicInfoRef} />
         </TabsContent>
 
         <TabsContent value="additional">
-          <AdditionalInfoTab setProgress={setProgress} ref={refs?.additionalInfoRef} />
+          <AdditionalInfoTab setProgress={setProgress} ref={refs.additionalInfoRef} />
         </TabsContent>
 
         <TabsContent value="products">
-          <ProductsTab setProgress={setProgress} ref={refs?.productsRef} />
+          <ProductsTab setProgress={setProgress} ref={refs.productsRef} />
         </TabsContent>
 
         <TabsContent value="contact">
-          <ContactTab setProgress={setProgress} ref={refs?.contactRef} />
+          <ContactTab setProgress={setProgress} ref={refs.contactRef} />
         </TabsContent>
 
         <TabsContent value="attachments">
-          <AttachmentsTab setProgress={setProgress} />
+          <AttachmentsTab setProgress={setProgress} ref={refs.attachmentsRef} />
         </TabsContent>
       </Tabs>
 

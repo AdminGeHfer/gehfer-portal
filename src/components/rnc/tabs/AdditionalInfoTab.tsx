@@ -11,9 +11,12 @@ interface AdditionalInfoTabProps {
   setProgress: (progress: number) => void;
 }
 
+export type AdditionalInfoFormData = z.infer<typeof additionalInfoSchema>;
+
 export type AdditionalInfoTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data) => void;
+  getFormData: () => AdditionalInfoFormData;
+  setFormData: (data: Partial<AdditionalInfoFormData>) => void;
 };
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
@@ -51,18 +54,15 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
     }, [form.watch(), setProgress]);
 
     React.useImperativeHandle(ref, () => ({
-      validate: () => {
-        return form.trigger().then((isValid) => {
-          return isValid;
-        });
-      },
+      validate: () => form.trigger(),
+      getFormData: () => form.getValues() as AdditionalInfoFormData,
       setFormData: (data) => {
         if (data) {
           Object.keys(data).forEach((key) => {
             form.setValue(key as keyof z.infer<typeof additionalInfoSchema>, data[key]);
           });
         }
-      },
+      }
     }));
 
   return (

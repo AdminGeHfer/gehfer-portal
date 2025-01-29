@@ -8,60 +8,63 @@ interface AttachmentsTabProps {
   setProgress: (progress: number) => void;
 }
 
-interface FileItem {
-  id: string;
-  file: File;
-}
+export type AttachmentsTabRef = {
+  getFiles: () => File[];
+};
 
-export function AttachmentsTab({ setProgress }: AttachmentsTabProps) {
-  const [files, setFiles] = useState<FileItem[]>([]);
+export const AttachmentsTab = React.forwardRef<AttachmentsTabRef, AttachmentsTabProps>(
+  ({ setProgress }, ref) => {
+    const [files, setFiles] = useState<File[]>([]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const newFile = {
-        id: Math.random().toString(),
-        file: e.target.files[0],
-      };
-      setFiles([...files, newFile]);
-    }
-  };
+    React.useImperativeHandle(ref, () => ({
+      getFiles: () => files
+    }));
 
-  const removeFile = (id: string) => {
-    setFiles(files.filter((f) => f.id !== id));
-  };
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        const newFile = e.target.files[0];
+        setFiles([...files, newFile]);
+        setProgress(files.length > 0 ? 100 : 0);
+      }
+    };
 
-  React.useEffect(() => {
-    setProgress(files.length > 0 ? 100 : 0);
-  }, [files, setProgress]);
+    const removeFile = (index: number) => {
+      const newFiles = files.filter((_, i) => i !== index);
+      setFiles(newFiles);
+      setProgress(newFiles.length > 0 ? 100 : 0);
+    };
 
-  return (
-    <div className="space-y-4 py-4">
-      <FileUploadField
-        label="Anexar arquivo"
-        onChange={handleFileChange}
-        accept=".pdf,.jpg,.jpeg,.png"
-      />
+    return (
+      <div className="space-y-4 py-4">
+        <FileUploadField
+          label="Anexar arquivo"
+          onChange={handleFileChange}
+          accept=".pdf,.jpg,.jpeg,.png"
+        />
 
-      <div className="space-y-2">
-        {files.map((file) => (
-          <div
-            key={file.id}
-            className="flex items-center justify-between rounded-md border border-blue-200 p-2"
-          >
-            <span className="text-sm text-blue-900 dark:text-blue-100">
-              {file.file.name}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => removeFile(file.id)}
-              className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+        <div className="space-y-2">
+          {files.map((file, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between rounded-md border border-blue-200 p-2"
             >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+              <span className="text-sm text-blue-900 dark:text-blue-100">
+                {file.name}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeFile(index)}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
+
+AttachmentsTab.displayName = "AttachmentsTab";

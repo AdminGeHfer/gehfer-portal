@@ -28,7 +28,7 @@ export const RNCHome = () => {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Carregando...</div>;
   }
 
   if (error) {

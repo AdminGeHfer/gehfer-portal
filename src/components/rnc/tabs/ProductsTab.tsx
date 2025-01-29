@@ -7,14 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
+import { productSchema } from "@/utils/validations";
 
 interface ProductsTabProps {
   setProgress: (progress: number) => void;
 }
 
+export type ProductFormData = {
+  products: Array<z.infer<typeof productSchema>>;
+};
+
 export type ProductsTabRef = {
   validate: () => Promise<boolean>;
-  setFormData: (data) => void;
+  getFormData: () => ProductFormData['products'];
+  setFormData: (data: Partial<ProductFormData>) => void;
 };
 
 const productsSchema = z.object({
@@ -54,15 +60,13 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
     }, [products, setProgress]);
 
     React.useImperativeHandle(ref, () => ({
-      validate: async () => {
-        const result = await form.trigger();
-        return result;
-      },
+      validate: () => form.trigger(),
+      getFormData: () => form.getValues().products as ProductFormData['products'],
       setFormData: (data) => {
         if (data?.products) {
           setValue("products", data.products);
         }
-      },
+      }
     }));
 
     const addProduct = () => {
