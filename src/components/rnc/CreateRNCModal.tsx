@@ -30,7 +30,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   }; setFormData: (data) => void }>(null);
   const productsRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => Array<{
     name: string;
-    weight: string;
+    weight: number;
   }>; setFormData: (data) => void }>(null);
   const contactRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => {
     name: string;
@@ -92,6 +92,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     // Validate current tab before moving to next
     const isValid = await validateCurrentTab();
     if (!isValid) {
+      toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
       return;
     }
 
@@ -102,23 +103,29 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
 
   const handleSave = async () => {
     try {
+      const loadingToast = toast.loading('Criando RNC...');
+
       // Validate all tabs
-      const isBasicValid = await basicInfoRef.current?.validate();
-      const isAdditionalValid = await additionalInfoRef.current?.validate();
-      const isProductsValid = await productsRef.current?.validate();
-      const isContactValid = await contactRef.current?.validate();
+      const validationResults = {
+        basic: await basicInfoRef.current?.validate(),
+        additional: await additionalInfoRef.current?.validate(),
+        products: await productsRef.current?.validate(),
+        contact: await contactRef.current?.validate()
+      };
   
-      if (!isBasicValid || !isAdditionalValid || !isProductsValid || !isContactValid) {
+      const invalidTabs = Object.entries(validationResults).filter(([isValid]) => !isValid)
+                                                           .map(([tab]) => tab);
+
+      if (invalidTabs.length > 0) {
+        toast.dismiss(loadingToast);
+        toast.error(`Por favor, verifique os campos nas abas: ${invalidTabs.join(', ')}`);
         return;
       }
   
       // Get form data from all tabs
       const basicData = basicInfoRef.current?.getFormData();
       const additionalData = additionalInfoRef.current?.getFormData();
-      const productsData = productsRef.current?.getFormData().map(product => ({
-        ...product,
-        weight: parseFloat(product.weight)
-      }));
+      const productsData = productsRef.current?.getFormData();
       const contactData = contactRef.current?.getFormData();
       const attachmentsData = attachmentsRef.current?.getFiles();
   
@@ -137,9 +144,12 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         }
       }
   
+      toast.dismiss(loadingToast);
       toast.success('RNC criada com sucesso!');
+      localStorage.removeItem('rncFormData');
       onClose();
     } catch (error) {
+      toast.dismiss();
       console.error('Error creating RNC:', error);
       toast.error('Erro ao criar RNC');
     }

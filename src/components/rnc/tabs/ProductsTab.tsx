@@ -61,10 +61,20 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
 
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
-      getFormData: () => form.getValues().products as ProductFormData['products'],
+      getFormData: () => {
+        const formData = form.getValues().products;
+        return formData.map(product => ({
+          name: product.name,
+          weight: Number(product.weight)
+        }));
+      },
       setFormData: (data) => {
         if (data?.products) {
-          setValue("products", data.products);
+          setValue("products", data.products.map(product => ({
+            ...product,
+            id: product.id || crypto.randomUUID(),
+            weight: String(product.weight) // Convert number to string for the form input
+          })));
         }
       }
     }));

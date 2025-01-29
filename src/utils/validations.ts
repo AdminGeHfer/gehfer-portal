@@ -25,11 +25,9 @@ export const additionalInfoSchema = z.object({
 
 // Product Validation Schema
 export const productSchema = z.object({
+  id: z.string().uuid("ID inválido"),
   name: z.string().min(3, "Produto deve ter no mínimo 3 caracteres"),
-  weight: z.string().refine((val) => {
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0;
-  }, "Peso deve ser um número maior que 0"),
+  weight: z.number().min(0.1, "Peso deve ser maior que 0.1"),
 });
 
 // Contact Validation Schema
