@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import { RNCType, RNCStatus, RNCDepartment, RNCTableData } from "@/pages/quality/home/types";
+import { RNCWithRelations } from "@/types/rnc";
+import { useRNCList } from "./useRNCList";
+import { getDepartmentDisplayName, getStatusDisplayName, getTypeDisplayName } from "@/pages/quality/home/utils/colors";
+import { RNCDepartment, RNCStatus, RNCType } from "@/pages/quality/home/types";
 
 interface UseRNCsProps {
   selectedStatus: RNCStatus | null;
@@ -14,72 +17,39 @@ export const useRNCs = ({
   selectedDepartment,
   searchTerm,
 }: UseRNCsProps) => {
-  const [filteredRNCs, setFilteredRNCs] = useState<RNCTableData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Example data - this will be replaced with actual API call later
-  const exampleData: RNCTableData[] = [
-    {
-      company_code: "RNC-001",
-      company: "Empresa A",
-      type: "company_complaint",
-      status: "pending",
-      department: "Qualidade",
-      date: "2024-03-15",
-    },
-    {
-      company_code: "RNC-002",
-      company: "Empresa B",
-      type: "supplier",
-      status: "collect",
-      department: "Logística",
-      date: "2024-03-14",
-    },
-    {
-      company_code: "RNC-003",
-      company: "Empresa C",
-      type: "dispatch",
-      status: "concluded",
-      department: "Financeiro",
-      date: "2024-03-13",
-    },
-  ];
+  const [filteredRNCs, setFilteredRNCs] = useState<RNCWithRelations[]>([]);
+  const { rncs, loading: isLoading, error } = useRNCList();
 
   useEffect(() => {
-    setIsLoading(true);
     try {
-      let filtered = [...exampleData];
+      let filtered = [...rncs];
 
       if (selectedStatus) {
-        filtered = filtered.filter((rnc) => rnc.status === selectedStatus);
+        filtered = filtered.filter((rnc) => getStatusDisplayName(rnc.status) === getStatusDisplayName(selectedStatus));
       }
 
       if (selectedType) {
-        filtered = filtered.filter((rnc) => rnc.type === selectedType);
+        filtered = filtered.filter((rnc) => getTypeDisplayName(rnc.type) === getTypeDisplayName(selectedType));
       }
 
       if (selectedDepartment) {
-        filtered = filtered.filter((rnc) => rnc.department === selectedDepartment);
+        filtered = filtered.filter((rnc) => getDepartmentDisplayName(rnc.department) === getDepartmentDisplayName(selectedDepartment));
       }
 
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         filtered = filtered.filter(
           (rnc) =>
-            rnc.company_code.toLowerCase().includes(term) ||
+            rnc.rnc_number.toString().includes(term) ||
             rnc.company.toLowerCase().includes(term)
         );
       }
 
       setFilteredRNCs(filtered);
-      setError(null);
     } catch (err) {
-      setError(`Erro ao filtrar RNCs: ${err.message}`);
-    } finally {
-      setIsLoading(false);
+      console.error(`Erro ao filtrar RNCs: ${err.message}`);
     }
-  }, [selectedStatus, selectedType, selectedDepartment, searchTerm]);
+  }, [rncs, selectedStatus, selectedType, selectedDepartment, searchTerm]);
 
   return { filteredRNCs, isLoading, error };
 };

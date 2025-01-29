@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 export const useRNCList = () => {
   const [rncs, setRNCs] = useState<RNCWithRelations[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchRNCs = async () => {
     try {
@@ -30,10 +31,17 @@ export const useRNCList = () => {
         `)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+        if (error) {
+          setError(error.message)
+          toast.error('Error fetching RNCs')
+          console.error('Error:', error)
+          return
+        }
 
       setRNCs(data as RNCWithRelations[])
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred'
+      setError(errorMessage)
       toast.error('Error fetching RNCs')
       console.error('Error:', err)
     } finally {
@@ -45,5 +53,5 @@ export const useRNCList = () => {
     fetchRNCs()
   }, [])
 
-  return { rncs, loading, refetch: fetchRNCs }
+  return { rncs, loading, error, refetch: fetchRNCs }
 }

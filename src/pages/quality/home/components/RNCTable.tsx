@@ -16,7 +16,7 @@ import { useRNCRealtime } from "@/hooks/useRNCRealtime";
 interface RNCTableProps {
   data: Array<{
     id: string;
-    rnc_number: number;
+    rnc_number?: number;
     company: string;
     type: string;
     department: string;
