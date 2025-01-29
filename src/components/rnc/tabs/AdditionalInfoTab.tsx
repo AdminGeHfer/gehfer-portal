@@ -55,23 +55,8 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
 
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
-      getFormData: () => {
-        const values = form.getValues();
-        return {
-          description: values.description,
-          korp: values.korp,
-          nfv: values.nfv,
-          nfd: values.nfd,
-          city: values.city
-        };
-      },
-      setFormData: (data) => {
-        if (data) {
-          Object.keys(data).forEach((key) => {
-            form.setValue(key as keyof AdditionalInfoFormData, data[key]);
-          });
-        }
-      }
+      getFormData: () => form.getValues(),
+      setFormData: (data) => form.reset(data)
     }));
 
   return (

@@ -51,6 +51,14 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   }; setFormData: (data) => void }>(null);
   const attachmentsRef = React.useRef<{getFiles: () => File[]}>(null);
 
+  const refs = {
+    basicInfoRef,
+    additionalInfoRef,
+    productsRef,
+    contactRef,
+    attachmentsRef,
+  };
+
   // Load saved form data when component mounts
   React.useEffect(() => {
     const savedData = localStorage.getItem('rncFormData');
@@ -118,18 +126,18 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       const loadingToast = toast.loading('Criando RNC...');
 
       // Get form data from all tabs
-      const basicData = basicInfoRef.current?.getFormData();
-      const additionalData = additionalInfoRef.current?.getFormData();
-      const productsData = productsRef.current?.getFormData();
-      const contactData = contactRef.current?.getFormData();
-      const attachmentsData = attachmentsRef.current?.getFiles();
+      const basicData = refs.basicInfoRef.current?.getFormData();
+      const additionalData = refs.additionalInfoRef.current?.getFormData();
+      const productsData = refs.productsRef.current?.getFormData();
+      const contactData = refs.contactRef.current?.getFormData();
+      const attachmentsData = refs.attachmentsRef.current?.getFiles();
 
       // Validate all tabs
       const validationResults = {
-        basic: await basicInfoRef.current?.validate(),
-        additional: await additionalInfoRef.current?.validate(),
-        products: await productsRef.current?.validate(),
-        contact: await contactRef.current?.validate()
+        basic: await refs.basicInfoRef.current?.validate(),
+        additional: await refs.additionalInfoRef.current?.validate(),
+        products: await refs.productsRef.current?.validate(),
+        contact: await refs.contactRef.current?.validate()
       };
 
       const invalidTabs = Object.entries(validationResults).filter(([, isValid]) => !isValid)
@@ -145,12 +153,10 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       const rnc = await rncService.create({
         ...basicData,
         ...additionalData,
-        description: basicData.description, // Ensure description is always included
-        korp: additionalData.korp, // Ensure korp is always included
-        nfv: additionalData.nfv, // Ensure nfv is always included
-        nfd: additionalData.nfd, // Ensure nfd is always included
         contacts: [contactData],
-        products: productsData
+        products: productsData,
+        korp: additionalData.korp || '',
+        nfv: additionalData.nfv || '',
       });
   
       // Upload attachments if any

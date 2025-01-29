@@ -73,14 +73,8 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
 
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
-      getFormData: () => form.getValues() as BasicInfoFormData,
-      setFormData: (data) => {
-        if (data) {
-          Object.keys(data).forEach((key) => {
-            form.setValue(key as keyof z.infer<typeof basicInfoSchema>, data[key]);
-          });
-        }
-      }
+      getFormData: () => form.getValues(),
+      setFormData: (data) => form.reset(data),
     }));
 
   return (

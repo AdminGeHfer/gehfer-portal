@@ -7,6 +7,7 @@ import { ContactTab, ContactTabRef } from "../tabs/ContactTab";
 import { AttachmentsTab, AttachmentsTabRef } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
+import { toast } from "sonner";
 
 interface RNCModalContentProps {
   activeTab: string;
@@ -27,6 +28,7 @@ interface RNCModalContentProps {
 
 export const RNCModalContent = ({
   activeTab,
+  setActiveTab,
   onBack,
   onNext,
   onSave,
@@ -35,8 +37,31 @@ export const RNCModalContent = ({
 }: RNCModalContentProps) => {
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
-  // This is a dummy function that does nothing, effectively disabling tab clicks
-  const handleTabChange = () => {};
+  const handleTabChange = async (value: string) => {
+    const isValid = await validateCurrentTab();
+    if (!isValid) {
+      toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
+      return;
+    }
+    setActiveTab(value);
+  };
+
+  const validateCurrentTab = async () => {
+    switch (activeTab) {
+      case "basic":
+        return await refs.basicInfoRef.current?.validate() ?? false;
+      case "additional":
+        return await refs.additionalInfoRef.current?.validate() ?? false;
+      case "products":
+        return await refs.productsRef.current?.validate() ?? false;
+      case "contact":
+        return await refs.contactRef.current?.validate() ?? false;
+      case "attachments":
+        return true; // Attachments are optional
+      default:
+        return false;
+    }
+  };
 
   return (
     <>

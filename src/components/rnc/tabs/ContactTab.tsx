@@ -55,13 +55,7 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
         });
       },
       getFormData: () => form.getValues(),
-      setFormData: (data) => {
-        if (data) {
-          Object.keys(data).forEach((key) => {
-            form.setValue(key as keyof z.infer<typeof contactSchema>, data[key]);
-          });
-        }
-      },
+      setFormData: (data) => form.reset(data),
     }));
 
   return (
