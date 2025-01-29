@@ -2329,7 +2329,7 @@ export type Database = {
       memory_type_enum: "buffer" | "window" | "summary"
       message_role: "system" | "assistant" | "user"
       output_format_enum: "text" | "structured" | "markdown"
-      rnc_department_enum: "logistics" | "quality" | "financial"
+      rnc_department_enum: "logistics" | "quality" | "financial" | "tax"
       rnc_status_enum:
         | "not_created"
         | "pending"
