@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 import { AdditionalInfoFormData } from "./tabs/AdditionalInfoTab";
+import { AttachmentsTabRef } from "./tabs/AttachmentsTab";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -40,7 +41,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     phone: string;
     email?: string;
   }; setFormData: (data) => void }>(null);
-  const attachmentsRef = React.useRef<{ getFiles: () => File[] }>(null);
+  const attachmentsRef = React.useRef<AttachmentsTabRef>(null);
 
   // Load saved form data when component mounts
   React.useEffect(() => {
