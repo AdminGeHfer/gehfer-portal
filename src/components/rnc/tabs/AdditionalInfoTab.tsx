@@ -28,9 +28,9 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
         korp: "",
         nfv: "",
         nfd: "",
-        city: "",
-        conclusion: "",
+        city: ""
       },
+    
     });
 
     // Save form data to localStorage whenever it changes
@@ -58,12 +58,11 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
       getFormData: () => {
         const values = form.getValues();
         return {
-          description: values.description || '',
-          korp: values.korp || '',
-          nfv: values.nfv || '',
-          nfd: values.nfd || '',
-          city: values.city || '',
-          conclusion: values.conclusion || ''
+          description: values.description,
+          korp: values.korp,
+          nfv: values.nfv,
+          nfd: values.nfd,
+          city: values.city
         };
       },
       setFormData: (data) => {

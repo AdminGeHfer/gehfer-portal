@@ -4,9 +4,8 @@ import { X } from "lucide-react";
 import { RNCModalContent } from "./modal/RNCModalContent";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
+import { RncDepartmentEnum, RncStatusEnum, RncTypeEnum, WorkflowStatusEnum } from "@/types/rnc";
 import { AdditionalInfoFormData } from "./tabs/AdditionalInfoTab";
-import { AttachmentsTabRef } from "./tabs/AttachmentsTab";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -16,17 +15,26 @@ interface CreateRNCModalProps {
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
   const basicInfoRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => {
+    description: string;
     company_code: string;
     company: string;
     document: string;
     type: RncTypeEnum;
     department: RncDepartmentEnum;
     responsible: string;
+    status: RncStatusEnum;
+    workflow_status: WorkflowStatusEnum;
+    assigned_by: string;
+    assigned_to?: string;
+    assigned_at: string;
+    created_by: string;
+    created_at: string;
+    updated_at: string;
   }; setFormData: (data) => void }>(null);
   const additionalInfoRef = React.useRef<{ 
     validate: () => Promise<boolean>; 
     getFormData: () => AdditionalInfoFormData;
-    setFormData: (data: Partial<AdditionalInfoFormData>) => void; 
+    setFormData: (data: Partial<AdditionalInfoFormData>) => void;
   }>(null);
   const productsRef = React.useRef<{ validate: () => Promise<boolean>; getFormData: () => Array<{
     id: string;
@@ -41,7 +49,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     phone: string;
     email?: string;
   }; setFormData: (data) => void }>(null);
-  const attachmentsRef = React.useRef<AttachmentsTabRef>(null);
+  const attachmentsRef = React.useRef<{getFiles: () => File[]}>(null);
 
   // Load saved form data when component mounts
   React.useEffect(() => {
@@ -124,7 +132,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         contact: await contactRef.current?.validate()
       };
 
-      const invalidTabs = Object.entries(validationResults).filter(([isValid]) => !isValid)
+      const invalidTabs = Object.entries(validationResults).filter(([, isValid]) => !isValid)
                                                            .map(([tab]) => tab);
 
       if (invalidTabs.length > 0) {
@@ -137,7 +145,10 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       const rnc = await rncService.create({
         ...basicData,
         ...additionalData,
-        attachments: attachmentsData,
+        description: basicData.description, // Ensure description is always included
+        korp: additionalData.korp, // Ensure korp is always included
+        nfv: additionalData.nfv, // Ensure nfv is always included
+        nfd: additionalData.nfd, // Ensure nfd is always included
         contacts: [contactData],
         products: productsData
       });

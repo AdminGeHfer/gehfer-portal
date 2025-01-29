@@ -7,7 +7,7 @@ interface UploadAttachmentResponse {
 }
 
 export const rncService = {
-  async create(data: RNCWithRelations) {
+  async create(data: Omit<RNCWithRelations, 'id'>) {
     try {
       const { data: rnc, error: rncError } = await supabase
         .from('rncs')
@@ -26,6 +26,7 @@ export const rncService = {
           workflow_status: WorkflowStatusEnum.open,
           assigned_by: (await supabase.auth.getUser())?.data?.user?.id,
           assigned_at: new Date().toISOString(),
+          assigned_to: (await supabase.schema('public').from('profiles').select('id').eq('name', data.responsible)).data[0].id,
           created_by: (await supabase.auth.getUser())?.data?.user?.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()

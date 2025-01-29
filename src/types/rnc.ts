@@ -57,7 +57,7 @@ export interface RNC {
   collected_at?: string;
   created_by: string;
   assigned_by: string;
-  assigned_to: string;
+  assigned_to?: string;
   created_at: string;
   updated_at: string;
 }
@@ -116,9 +116,9 @@ export interface RNCWorkflowTransition {
 }
 
 export interface RNCWithRelations extends RNC {
-  attachments: RNCAttachment[]
+  attachments?: RNCAttachment[]
   contacts: RNCContact[]
-  events: RNCEvent[]
+  events?: RNCEvent[]
   products: RNCProduct[]
-  workflow_transitions: RNCWorkflowTransition[]
+  workflow_transitions?: RNCWorkflowTransition[]
 }
