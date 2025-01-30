@@ -5,6 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { handlePhoneChange } from "@/utils/masks";
 import { contactSchema } from "@/utils/validations";
+import { CreateRNCContact } from "@/types/rnc";
 import type { z } from "zod";
 
 interface ContactTabProps {
@@ -15,14 +16,12 @@ export type ContactFormData = z.infer<typeof contactSchema>;
 
 export type ContactTabRef = {
   validate: () => Promise<boolean>;
-  getFormData: () => z.infer<typeof contactSchema>;
-  setFormData: (data) => void;
+  getFormData: () => CreateRNCContact;
+  setFormData: (data: Partial<ContactFormData>) => void;
 };
 
 export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
   ({ setProgress }, ref) => {
-    console.log('ContactTab mounted');
-    
     const form = useForm<ContactFormData>({
       resolver: zodResolver(contactSchema),
       defaultValues: {
@@ -38,10 +37,8 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
       () => ({
         validate: async () => {
           try {
-            console.log('Validating ContactTab...');
             const result = await form.trigger();
             console.log('Contact validation result:', result);
-            console.log('Current form values:', form.getValues());
             return result;
           } catch (error) {
             console.error('Contact validation error:', error);
@@ -52,7 +49,13 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
           try {
             const values = form.getValues();
             console.log('Getting contact form data:', values);
-            return values;
+            // Transform the form data to match CreateRNCContact type
+            const contact: CreateRNCContact = {
+              name: values.name || '', // Ensure non-optional string
+              phone: values.phone || '', // Ensure non-optional string
+              email: values.email // Keep email optional
+            };
+            return contact;
           } catch (error) {
             console.error('Error getting contact form data:', error);
             throw error;
@@ -70,10 +73,6 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
       [form]
     );
 
-    React.useEffect(() => {
-      console.log('ContactTab ref methods exposed');
-    }, []);
-
     React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
     const saveFormData = React.useCallback((data: ContactFormData) => {
@@ -84,7 +83,6 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
           ...parsedData,
           contact: data
         }));
-        console.log('Saved contact data:', data);
       } catch (error) {
         console.error('Error saving contact data:', error);
       }

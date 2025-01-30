@@ -18,28 +18,66 @@ export const AttachmentsTab = React.forwardRef<AttachmentsTabRef, AttachmentsTab
     const [files, setFiles] = useState<File[]>([]);
 
     React.useImperativeHandle(ref, () => ({
-      getFiles: () => files,
+      getFiles: () => {
+        console.log('Getting attachment files:', files);
+        return files;
+      },
       setFormData: (data: { files?: File[] }) => {
-        if (data.files) {
-          setFiles(data.files);
-          setProgress(data.files.length > 0 ? 100 : 0);
+        try {
+          console.log('Setting attachment files:', data.files);
+          if (data.files) {
+            setFiles(data.files);
+            setProgress(data.files.length > 0 ? 100 : 0);
+          }
+        } catch (error) {
+          console.error('Error setting attachment files:', error);
         }
       }
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files && e.target.files[0]) {
-        const newFile = e.target.files[0];
-        setFiles([...files, newFile]);
-        setProgress(files.length > 0 ? 100 : 0);
+      try {
+        if (e.target.files && e.target.files[0]) {
+          const newFile = e.target.files[0];
+          console.log('New file selected:', newFile.name);
+          setFiles(prev => {
+            const updated = [...prev, newFile];
+            setProgress(updated.length > 0 ? 100 : 0);
+            return updated;
+          });
+        }
+      } catch (error) {
+        console.error('Error handling file change:', error);
       }
     };
 
     const removeFile = (index: number) => {
-      const newFiles = files.filter((_, i) => i !== index);
-      setFiles(newFiles);
-      setProgress(newFiles.length > 0 ? 100 : 0);
+      try {
+        console.log('Removing file at index:', index);
+        setFiles(prev => {
+          const updated = prev.filter((_, i) => i !== index);
+          setProgress(updated.length > 0 ? 100 : 0);
+          return updated;
+        });
+      } catch (error) {
+        console.error('Error removing file:', error);
+      }
     };
+
+    React.useEffect(() => {
+      try {
+        const currentData = localStorage.getItem('rncFormData');
+        if (currentData) {
+          const parsedData = JSON.parse(currentData);
+          localStorage.setItem('rncFormData', JSON.stringify({
+            ...parsedData,
+            attachments: { files }
+          }));
+        }
+      } catch (error) {
+        console.error('Error saving attachments data:', error);
+      }
+    }, [files]);
 
     return (
       <div className="space-y-4 py-4">

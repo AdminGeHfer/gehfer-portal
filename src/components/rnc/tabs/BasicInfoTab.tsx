@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { handleDocumentChange } from "@/utils/masks";
 import { basicInfoSchema } from "@/utils/validations";
-import type { z } from "zod";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
+import type { z } from "zod";
 
 interface BasicInfoTabProps {
   setProgress: (progress: number) => void;
@@ -23,8 +23,6 @@ export type BasicInfoTabRef = {
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
   ({ setProgress }, ref) => {
-    console.log('BasicInfoTab mounted');
-    
     const form = useForm<BasicInfoFormData>({
       resolver: zodResolver(basicInfoSchema),
       defaultValues: {
@@ -43,41 +41,35 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
       () => ({
         validate: async () => {
           try {
-            console.log('Validating BasicInfoTab...');
             const result = await form.trigger();
-            console.log('BasicInfoTab validation result:', result);
-            console.log('Current form values:', form.getValues());
+            console.log('BasicInfo validation result:', result);
             return result;
           } catch (error) {
-            console.error('BasicInfoTab validation error:', error);
+            console.error('BasicInfo validation error:', error);
             return false;
           }
         },
         getFormData: () => {
           try {
             const values = form.getValues();
-            console.log('Getting BasicInfoTab form data:', values);
+            console.log('Getting BasicInfo form data:', values);
             return values;
           } catch (error) {
-            console.error('Error getting BasicInfoTab form data:', error);
+            console.error('Error getting BasicInfo form data:', error);
             throw error;
           }
         },
         setFormData: (data: Partial<BasicInfoFormData>) => {
           try {
-            console.log('Setting BasicInfoTab form data:', data);
+            console.log('Setting BasicInfo form data:', data);
             form.reset(data);
           } catch (error) {
-            console.error('Error setting BasicInfoTab form data:', error);
+            console.error('Error setting BasicInfo form data:', error);
           }
         }
       }),
       [form]
     );
-
-    React.useEffect(() => {
-      console.log('BasicInfoTab ref methods exposed');
-    }, []);
 
     React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
@@ -89,7 +81,6 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
           ...parsedData,
           basic: data
         }));
-        console.log('Saved basic data:', data);
       } catch (error) {
         console.error('Error saving basic data:', error);
       }
@@ -118,7 +109,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                   <span className="text-blue-400">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Digite o código da empresa" className="border-blue-200 focus:border-blue-400" />
+                  <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o código da empresa" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -135,7 +126,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                   <span className="text-blue-400">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Digite o nome da empresa" className="border-blue-200 focus:border-blue-400" />
+                  <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome da empresa" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -154,8 +145,8 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                 <FormControl>
                   <Input 
                     {...field} 
-                    placeholder="Digite o documento (CNPJ/CPF)" 
                     className="border-blue-200 focus:border-blue-400"
+                    placeholder="Digite o documento (CNPJ/CPF)"
                     onChange={(e) => handleDocumentChange(e, field.onChange)}
                   />
                 </FormControl>
@@ -180,15 +171,15 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="company_complaint">Reclamação do Cliente</SelectItem>
-                    <SelectItem value="supplier">Fornecedor</SelectItem>
-                    <SelectItem value="dispatch">Expedição</SelectItem>
-                    <SelectItem value="logistics">Logística</SelectItem>
-                    <SelectItem value="deputy">Representante</SelectItem>
-                    <SelectItem value="driver">Motorista</SelectItem>
-                    <SelectItem value="financial">Financeiro</SelectItem>
-                    <SelectItem value="commercial">Comercial</SelectItem>
-                    <SelectItem value="financial_agreement">Acordo Financeiro</SelectItem>
+                    <SelectItem value={RncTypeEnum.company_complaint}>Reclamação do Cliente</SelectItem>
+                    <SelectItem value={RncTypeEnum.supplier}>Fornecedor</SelectItem>
+                    <SelectItem value={RncTypeEnum.dispatch}>Expedição</SelectItem>
+                    <SelectItem value={RncTypeEnum.logistics}>Logística</SelectItem>
+                    <SelectItem value={RncTypeEnum.deputy}>Representante</SelectItem>
+                    <SelectItem value={RncTypeEnum.driver}>Motorista</SelectItem>
+                    <SelectItem value={RncTypeEnum.financial}>Financeiro</SelectItem>
+                    <SelectItem value={RncTypeEnum.commercial}>Comercial</SelectItem>
+                    <SelectItem value={RncTypeEnum.financial_agreement}>Acordo Financeiro</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -212,10 +203,10 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="logistics">Logística</SelectItem>
-                    <SelectItem value="quality">Qualidade</SelectItem>
-                    <SelectItem value="financial">Financeiro</SelectItem>
-                    <SelectItem value="tax">Fiscal</SelectItem>
+                    <SelectItem value={RncDepartmentEnum.logistics}>Logística</SelectItem>
+                    <SelectItem value={RncDepartmentEnum.quality}>Qualidade</SelectItem>
+                    <SelectItem value={RncDepartmentEnum.financial}>Financeiro</SelectItem>
+                    <SelectItem value={RncDepartmentEnum.tax}>Fiscal</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

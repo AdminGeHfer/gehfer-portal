@@ -7,14 +7,13 @@ import { ContactTab, ContactTabRef } from "../tabs/ContactTab";
 import { AttachmentsTab, AttachmentsTabRef } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
-// import { toast } from "sonner";
+import { toast } from "sonner";
 
 interface RNCModalContentProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onSave: () => void;
   setProgress: (progress: number) => void;
-  progress?: number;
   refs: {
     basicInfoRef: React.RefObject<BasicInfoTabRef>;
     additionalInfoRef: React.RefObject<AdditionalInfoTabRef>;
@@ -33,77 +32,61 @@ export const RNCModalContent = ({
 }: RNCModalContentProps) => {
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
-  // const handleTabChange = async (value: string) => {
-  //   try {
-  //     console.log(`Attempting to change tab from ${activeTab} to ${value}`);
+  const handleTabChange = async (value: string) => {
+    try {
+      console.log(`Attempting to change tab from ${activeTab} to ${value}`);
       
-  //     // Only validate when moving forward
-  //     if (tabs.indexOf(value) > tabs.indexOf(activeTab)) {
-  //       const isValid = await validateCurrentTab();
-  //       if (!isValid) {
-  //         console.log(`Validation failed for tab ${activeTab}`);
-  //         toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
-  //         return;
-  //       }
-  //     }
+      // Only validate when moving forward
+      if (tabs.indexOf(value) > tabs.indexOf(activeTab)) {
+        const isValid = await validateCurrentTab();
+        if (!isValid) {
+          console.log(`Validation failed for tab ${activeTab}`);
+          toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
+          return;
+        }
+      }
       
-  //     console.log(`Tab change successful: ${activeTab} -> ${value}`);
-  //     setActiveTab(value);
-  //   } catch (error) {
-  //     console.error('Error changing tab:', error);
-  //     toast.error('Erro ao mudar de aba');
-  //   }
-  // };
+      console.log(`Tab change successful: ${activeTab} -> ${value}`);
+      setActiveTab(value);
+    } catch (error) {
+      console.error('Error changing tab:', error);
+      toast.error('Erro ao mudar de aba');
+    }
+  };
 
-  // const validateCurrentTab = async () => {
-  //   try {
-  //     let currentRef;
-  //     switch (activeTab) {
-  //       case 'basic':
-  //         currentRef = refs.basicInfoRef.current;
-  //         break;
-  //       case 'additional':
-  //         currentRef = refs.additionalInfoRef.current;
-  //         break;
-  //       case 'products':
-  //         currentRef = refs.productsRef.current;
-  //         break;
-  //       case 'contact':
-  //         currentRef = refs.contactRef.current;
-  //         break;
-  //       case 'attachments':
-  //         return true; // Attachments are optional
-  //     }
+  const validateCurrentTab = async () => {
+    try {
+      let currentRef;
+      switch (activeTab) {
+        case 'basic':
+          currentRef = refs.basicInfoRef.current;
+          break;
+        case 'additional':
+          currentRef = refs.additionalInfoRef.current;
+          break;
+        case 'products':
+          currentRef = refs.productsRef.current;
+          break;
+        case 'contact':
+          currentRef = refs.contactRef.current;
+          break;
+        case 'attachments':
+          return true; // Attachments are optional
+      }
   
-  //     if (!currentRef?.validate) {
-  //       console.log(`No validation method found for tab: ${activeTab}`);
-  //       return false;
-  //     }
+      if (!currentRef?.validate) {
+        console.log(`No validation method found for tab: ${activeTab}`);
+        return false;
+      }
       
-  //     const isValid = await currentRef.validate();
-  //     console.log(`Validation result for ${activeTab}:`, isValid);
-  //     return isValid;
-  //   } catch (error) {
-  //     console.error(`Error validating ${activeTab} tab:`, error);
-  //     return false;
-  //   }
-  // };
-
-  // const handleNext = async () => {
-  //   const currentIndex = tabs.indexOf(activeTab);
-  //   if (currentIndex < tabs.length - 1) {
-  //     const nextTab = tabs[currentIndex + 1];
-  //     await handleTabChange(nextTab);
-  //   }
-  // };
-
-  // const handleBack = () => {
-  //   const currentIndex = tabs.indexOf(activeTab);
-  //   if (currentIndex > 0) {
-  //     const previousTab = tabs[currentIndex - 1];
-  //     setActiveTab(previousTab); // No validation needed when going back
-  //   }
-  // };
+      const isValid = await currentRef.validate();
+      console.log(`Validation result for ${activeTab}:`, isValid);
+      return isValid;
+    } catch (error) {
+      console.error(`Error validating ${activeTab} tab:`, error);
+      return false;
+    }
+  };
 
   return (
     <>
@@ -113,8 +96,8 @@ export const RNCModalContent = ({
             <TabsTrigger 
               key={tab}
               value={tab} 
-              className="cursor-default"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => handleTabChange(tab)}
+              className="cursor-pointer"
             >
               {tab === 'basic' && 'Inf. Básicas'}
               {tab === 'additional' && 'Inf. Compl.'}
@@ -124,14 +107,6 @@ export const RNCModalContent = ({
             </TabsTrigger>
           ))}
         </TabsList>
-
-        <div className="hidden">
-          <BasicInfoTab setProgress={setProgress} ref={refs.basicInfoRef} />
-          <AdditionalInfoTab setProgress={setProgress} ref={refs.additionalInfoRef} />
-          <ProductsTab setProgress={setProgress} ref={refs.productsRef} />
-          <ContactTab setProgress={setProgress} ref={refs.contactRef} />
-          <AttachmentsTab setProgress={setProgress} ref={refs.attachmentsRef} />
-        </div>
 
         <div className="block">
           {activeTab === 'basic' && <BasicInfoTab setProgress={setProgress} ref={refs.basicInfoRef} />}
@@ -149,7 +124,7 @@ export const RNCModalContent = ({
             onClick={() => {
               const currentIndex = tabs.indexOf(activeTab);
               if (currentIndex > 0) {
-                setActiveTab(tabs[currentIndex - 1]);
+                handleTabChange(tabs[currentIndex - 1]);
               }
             }}
             disabled={activeTab === tabs[0]}
@@ -173,7 +148,7 @@ export const RNCModalContent = ({
               onClick={() => {
                 const currentIndex = tabs.indexOf(activeTab);
                 if (currentIndex < tabs.length - 1) {
-                  setActiveTab(tabs[currentIndex + 1]);
+                  handleTabChange(tabs[currentIndex + 1]);
                 }
               }}
               className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"

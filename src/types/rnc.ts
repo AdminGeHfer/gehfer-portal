@@ -1,6 +1,6 @@
 export enum RncDepartmentEnum {
   logistics = "logistics",
-  quality = "quality",
+  quality = "quality", 
   financial = "financial",
   tax = "tax"
 }
@@ -34,6 +34,7 @@ export enum WorkflowStatusEnum {
   closed = "closed"
 }
 
+// Base RNC interface matching Supabase schema
 export interface RNC {
   id: string;
   rnc_number?: number;
@@ -62,67 +63,36 @@ export interface RNC {
   updated_at: string;
 }
 
+// Attachment interface
 export interface RNCAttachment {
-  id: string
-  rnc_id: string
-  filename: string
-  filesize: number
-  content_type: string
-  file_path: string
-  created_by: string
-  created_at: string
+  id: string;
+  rnc_id: string;
+  filename: string;
+  filesize: number;
+  content_type: string;
+  file_path: string;
+  created_by: string;
+  created_at: string;
 }
 
+// Contact interface
 export interface RNCContact {
-  id: string
-  rnc_id: string
-  name: string
-  phone: string
-  email?: string
+  id: string;
+  rnc_id: string;
+  name: string;
+  phone: string;
+  email?: string;
 }
 
-export interface RNCEvent {
-  id: string
-  rnc_id: string
-  title: string
-  description: string
-  type: string
-  created_by: string
-  created_at: string
-  created_by_profile: {
-    name: string
-  }
-}
-
+// Product interface
 export interface RNCProduct {
-  id: string
-  rnc_id: string
-  name: string
-  weight: number
+  id: string;
+  rnc_id: string;
+  name: string;
+  weight: number;
 }
 
-export interface RNCWorkflowTransition {
-  id: string
-  rnc_id: string
-  from_status: WorkflowStatusEnum | null
-  to_status: WorkflowStatusEnum
-  notes?: string
-  created_by: string
-  created_at: string
-  updated_at: string
-  created_by_profile: {
-    name: string;
-  }
-}
-
-export interface RNCWithRelations extends RNC {
-  attachments?: RNCAttachment[]
-  contacts: RNCContact[]
-  events?: RNCEvent[]
-  products: RNCProduct[]
-  workflow_transitions?: RNCWorkflowTransition[]
-}
-
+// Creation interfaces
 export interface CreateRNCProduct {
   name: string;
   weight: number;
@@ -134,7 +104,14 @@ export interface CreateRNCContact {
   email?: string;
 }
 
-// Update the RNCWithRelations interface to use these types during creation
+// Update the RNCWithRelations interface
+export interface RNCWithRelations extends RNC {
+  attachments?: RNCAttachment[];
+  contacts: RNCContact[];
+  products: RNCProduct[];
+}
+
+// Creation input type
 export interface CreateRNCInput extends Omit<RNC, 'id' | 'rnc_number' | 'days_left'> {
   products: CreateRNCProduct[];
   contacts: CreateRNCContact[];

@@ -4,13 +4,13 @@ import { X } from "lucide-react";
 import { RNCModalContent } from "./modal/RNCModalContent";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { BasicInfoTab, BasicInfoTabRef } from "./tabs/BasicInfoTab";
-import { AdditionalInfoTab, AdditionalInfoTabRef } from "./tabs/AdditionalInfoTab";
-import { ProductsTab, ProductsTabRef } from "./tabs/ProductsTab";
-import { ContactTab, ContactTabRef } from "./tabs/ContactTab";
-import { AttachmentsTab, AttachmentsTabRef } from "./tabs/AttachmentsTab";
+import { BasicInfoTabRef } from "./tabs/BasicInfoTab";
+import { AdditionalInfoTabRef } from "./tabs/AdditionalInfoTab";
+import { ProductsTabRef } from "./tabs/ProductsTab";
+import { ContactTabRef } from "./tabs/ContactTab";
+import { AttachmentsTabRef } from "./tabs/AttachmentsTab";
 import { supabase } from "@/lib/supabase";
-import { RncStatusEnum, WorkflowStatusEnum, CreateRNCProduct, CreateRNCContact } from "@/types/rnc";
+import { RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -30,7 +30,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
 
   type ValidatableTabRef = BasicInfoTabRef | AdditionalInfoTabRef | ProductsTabRef | ContactTabRef;
   
-  // Use useRef instead of createRef to persist refs between renders
   const refs = React.useRef<TabRefs>({
     basicInfoRef: React.createRef<BasicInfoTabRef>(),
     additionalInfoRef: React.createRef<AdditionalInfoTabRef>(),
@@ -39,7 +38,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     attachmentsRef: React.createRef<AttachmentsTabRef>()
   });
 
-  // Keep track of mounted status
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -47,7 +45,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     return () => setMounted(false);
   }, []);
 
-  // Load saved form data when component mounts
   React.useEffect(() => {
     if (!mounted) return;
 
@@ -78,7 +75,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         return;
       }
 
-      // Use setTimeout to ensure validation happens after render
       setTimeout(async () => {
         try {
           console.log(`Validating ${tabName}...`);
@@ -99,10 +95,8 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     try {
       console.log('Starting form validation...');
 
-      // Wait for next render cycle before validating
       await new Promise(resolve => setTimeout(resolve, 0));
 
-      // Validate all tabs sequentially
       const validationResults = {
         basic: await validateTab(refs.current.basicInfoRef, 'basic'),
         additional: await validateTab(refs.current.additionalInfoRef, 'additional'),
@@ -123,7 +117,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         return;
       }
 
-      // Get form data with proper null checks
       const basicData = refs.current.basicInfoRef.current?.getFormData();
       if (!basicData) throw new Error('Dados básicos não encontrados');
   
@@ -136,24 +129,9 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       const contactData = refs.current.contactRef.current?.getFormData();
       if (!contactData) throw new Error('Dados de contato não encontrados');
   
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
-  
-      // Transform products to match RNCProduct type
-      const transformedProducts: CreateRNCProduct[] = productsData.map(product => ({
-        name: product.name || '',
-        weight: product.weight || 0
-      }));
-  
-      // Transform contact to match RNCContact type
-      const transformedContact: CreateRNCContact = {
-        name: contactData.name || '',
-        phone: contactData.phone || '',
-        email: contactData.email
-      };
-  
-      // Create RNC with transformed data
+
       const rnc = await rncService.create({
         company_code: basicData.company_code,
         company: basicData.company,
@@ -167,8 +145,8 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         nfd: additionalData.nfd,
         city: additionalData.city,
         conclusion: additionalData.conclusion,
-        products: transformedProducts,
-        contacts: [transformedContact],
+        products: productsData,
+        contacts: [contactData],
         status: RncStatusEnum.pending,
         workflow_status: WorkflowStatusEnum.open,
         created_by: user.id,
@@ -177,7 +155,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         updated_at: new Date().toISOString()
       });
 
-      // Handle attachments after RNC is created
       const attachmentsData = refs.current.attachmentsRef.current?.getFiles();
       if (attachmentsData?.length) {
         await Promise.all(attachmentsData.map(file => 
@@ -213,15 +190,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
           </button>
         </DialogHeader>
 
-        {/* Keep all tabs mounted but hidden */}
-        <div style={{ display: 'none' }}>
-          <BasicInfoTab setProgress={() => {}} ref={refs.current.basicInfoRef} />
-          <AdditionalInfoTab setProgress={() => {}} ref={refs.current.additionalInfoRef} />
-          <ProductsTab setProgress={() => {}} ref={refs.current.productsRef} />
-          <ContactTab setProgress={() => {}} ref={refs.current.contactRef} />
-          <AttachmentsTab setProgress={() => {}} ref={refs.current.attachmentsRef} />
-        </div>
-
         <RNCModalContent
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -233,4 +201,3 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     </Dialog>
   );
 }
-

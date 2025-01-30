@@ -21,8 +21,6 @@ export type AdditionalInfoTabRef = {
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
   ({ setProgress }, ref) => {
-    console.log('AdditionalInfoTab mounted');
-    
     const form = useForm<AdditionalInfoFormData>({
       resolver: zodResolver(additionalInfoSchema),
       defaultValues: {
@@ -41,10 +39,8 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
       () => ({
         validate: async () => {
           try {
-            console.log('Validating AdditionalInfoTab...');
             const result = await form.trigger();
             console.log('AdditionalInfo validation result:', result);
-            console.log('Current form values:', form.getValues());
             return result;
           } catch (error) {
             console.error('Additional validation error:', error);
@@ -73,10 +69,6 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
       [form]
     );
 
-    React.useEffect(() => {
-      console.log('AdditionalInfoTab ref methods exposed');
-    }, []);
-
     React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
     const saveFormData = React.useCallback((data: AdditionalInfoFormData) => {
@@ -87,7 +79,6 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           ...parsedData,
           additional: data
         }));
-        console.log('Saved additional data:', data);
       } catch (error) {
         console.error('Error saving additional data:', error);
       }
@@ -170,9 +161,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
             name="nfd"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-1">
-                  NFD
-                </FormLabel>
+                <FormLabel>NFD</FormLabel>
                 <FormControl>
                   <Input 
                     {...field} 

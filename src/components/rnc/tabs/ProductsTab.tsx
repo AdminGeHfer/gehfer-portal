@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 import { productSchema } from "@/utils/validations";
+import { CreateRNCProduct } from "@/types/rnc";
 
 interface ProductsTabProps {
   setProgress: (progress: number) => void;
@@ -18,14 +19,12 @@ export type ProductFormData = {
 
 export type ProductsTabRef = {
   validate: () => Promise<boolean>;
-  getFormData: () => ProductFormData['products'];
+  getFormData: () => CreateRNCProduct[];
   setFormData: (data: Partial<ProductFormData>) => void;
 };
 
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
   ({ setProgress }, ref) => {
-    console.log('ProductsTab mounted');
-    
     const form = useForm<ProductFormData>({
       resolver: zodResolver(z.object({
         products: z.array(productSchema).min(1)
@@ -36,16 +35,13 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
     });
 
     const { watch, setValue, getValues } = form;
-    const products = watch("products");
 
     const formMethods = React.useMemo(
       () => ({
         validate: async () => {
           try {
-            console.log('Validating ProductsTab...');
             const result = await form.trigger();
             console.log('Products validation result:', result);
-            console.log('Current form values:', form.getValues());
             return result;
           } catch (error) {
             console.error('Products validation error:', error);
@@ -79,10 +75,6 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
       [form, getValues]
     );
 
-    React.useEffect(() => {
-      console.log('ProductsTab ref methods exposed');
-    }, []);
-
     React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
     const saveFormData = React.useCallback((data: ProductFormData['products']) => {
@@ -93,7 +85,6 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
           ...parsedData,
           products: data
         }));
-        console.log('Saved products data:', data);
       } catch (error) {
         console.error('Error saving products data:', error);
       }
@@ -142,7 +133,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
     return (
       <Form {...form}>
         <form className="space-y-4 py-4">
-          {products.map((product, index) => (
+          {form.watch("products").map((_, index) => (
             <div key={index} className="flex gap-4 items-start">
               <FormField
                 control={form.control}
@@ -188,7 +179,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
                 variant="ghost"
                 className="mt-8"
                 onClick={() => removeProduct(index)}
-                disabled={products.length === 1}
+                disabled={form.watch("products").length === 1}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
