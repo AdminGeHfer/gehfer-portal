@@ -1,15 +1,10 @@
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useFormContext } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { additionalInfoSchema } from "@/utils/validations";
 import type { z } from "zod";
-
-interface AdditionalInfoTabProps {
-  setProgress: (progress: number) => void;
-}
 
 export type AdditionalInfoFormData = z.infer<typeof additionalInfoSchema>;
 
@@ -19,86 +14,13 @@ export type AdditionalInfoTabRef = {
   setFormData: (data: Partial<AdditionalInfoFormData>) => void;
 };
 
-export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
-  ({ setProgress }, ref) => {
-    const form = useForm<AdditionalInfoFormData>({
-      resolver: zodResolver(additionalInfoSchema),
-      defaultValues: {
-        description: "",
-        korp: "",
-        nfv: "",
-        nfd: "",
-        city: "",
-        conclusion: "",
-      },
-    });
-
-    const { watch } = form;
-
-    const formMethods = React.useMemo(
-      () => ({
-        validate: async () => {
-          try {
-            const result = await form.trigger();
-            console.log('AdditionalInfo validation result:', result);
-            return result;
-          } catch (error) {
-            console.error('Additional validation error:', error);
-            return false;
-          }
-        },
-        getFormData: () => {
-          try {
-            const values = form.getValues();
-            console.log('Getting Additional form data:', values);
-            return values;
-          } catch (error) {
-            console.error('Error getting Additional form data:', error);
-            throw error;
-          }
-        },
-        setFormData: (data: Partial<AdditionalInfoFormData>) => {
-          try {
-            console.log('Setting additional form data:', data);
-            form.reset(data);
-          } catch (error) {
-            console.error('Error setting additional form data:', error);
-          }
-        }
-      }),
-      [form]
-    );
-
-    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
-
-    const saveFormData = React.useCallback((data: AdditionalInfoFormData) => {
-      try {
-        const currentData = localStorage.getItem('rncFormData');
-        const parsedData = currentData ? JSON.parse(currentData) : {};
-        localStorage.setItem('rncFormData', JSON.stringify({
-          ...parsedData,
-          additional: data
-        }));
-      } catch (error) {
-        console.error('Error saving additional data:', error);
-      }
-    }, []);
-
-    React.useEffect(() => {
-      const subscription = watch((data) => {
-        saveFormData(data as AdditionalInfoFormData);
-        const requiredFields = ["description", "korp", "nfv"];
-        const filledRequired = requiredFields.filter(field => data[field as keyof typeof data]).length;
-        setProgress((filledRequired / requiredFields.length) * 100);
-      });
-      return () => subscription.unsubscribe();
-    }, [watch, saveFormData, setProgress]);
+export const AdditionalInfoTab = () => {
+  const { control } = useFormContext();
 
     return (
-      <Form {...form}>
-        <form className="space-y-4 py-4">
+        <div className="space-y-4 py-4">
           <FormField
-            control={form.control}
+            control={control}
             name="description"
             render={({ field }) => (
               <FormItem>
@@ -119,7 +41,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="korp"
             render={({ field }) => (
               <FormItem>
@@ -136,7 +58,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="nfv"
             render={({ field }) => (
               <FormItem>
@@ -157,7 +79,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="nfd"
             render={({ field }) => (
               <FormItem>
@@ -175,7 +97,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="city"
             render={({ field }) => (
               <FormItem>
@@ -189,7 +111,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="conclusion"
             render={({ field }) => (
               <FormItem>
@@ -205,10 +127,8 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
               </FormItem>
             )}
           />
-        </form>
-      </Form>
+        </div>
     );
   }
-);
 
 AdditionalInfoTab.displayName = "AdditionalInfoTab";

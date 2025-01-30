@@ -7,23 +7,65 @@ import {
   type RNCAttachment,
   type CreateRNCProduct,
   type CreateRNCContact,
-  RncTypeEnum,
-  RncDepartmentEnum
 } from '@/types/rnc';
 
-interface UploadAttachmentResponse {
-  attachment: RNCAttachment | null;
-  error: Error | null;
+// Custom error classes for better error handling
+export class RNCError extends Error {
+  constructor(message: string, public code?: string) {
+    super(message);
+    this.name = 'RNCError';
+  }
 }
+
+export class ValidationError extends RNCError {
+  constructor(message: string) {
+    super(message, 'VALIDATION_ERROR');
+  }
+}
+
+// Validation functions
+const validateDocument = (document: string): boolean => {
+  const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+  const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
+  const cpfNoFormat = /^\d{11}$/;
+  const cnpjNoFormat = /^\d{14}$/;
+  
+  return cpfRegex.test(document) || 
+         cnpjRegex.test(document) || 
+         cpfNoFormat.test(document) || 
+         cnpjNoFormat.test(document);
+};
+
+const validateAttachment = (file: File): void => {
+  const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+  
+  if (file.size > MAX_SIZE) {
+    throw new ValidationError('Arquivo muito grande. Máximo permitido: 10MB');
+  }
+  
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new ValidationError('Tipo de arquivo não permitido. Use: JPG, PNG ou PDF');
+  }
+};
+
+const sanitizeFilename = (filename: string): string => {
+  return filename.replace(/[^\x20-\x7E]/g, '');
+};
 
 export const rncService = {
   async create(data: CreateRNCInput): Promise<RNC> {
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Usuário não autenticado');
-  
-      // Create RNC with proper type casting
+      if (!user) throw new RNCError('Usuário não autenticado');
+
+      // Validate document
+      if (!validateDocument(data.document)) {
+        throw new ValidationError('Formato de documento inválido');
+      }
+
+      // Start transaction for RNC creation
       const { data: rncData, error: rncError } = await supabase
         .from('rncs')
         .insert([{
@@ -48,81 +90,108 @@ export const rncService = {
         }])
         .select()
         .single();
-  
-      if (rncError) throw rncError;
-      
-      // Cast the returned data to match our RNC type
+
+      if (rncError) throw new RNCError(`Error creating RNC: ${rncError.message}`, rncError.code);
+      if (!rncData) throw new RNCError('Failed to create RNC');
+
       const rnc: RNC = {
         ...rncData,
-        type: rncData.type as RncTypeEnum,
-        department: rncData.department as RncDepartmentEnum,
-        status: rncData.status as RncStatusEnum,
-        workflow_status: rncData.workflow_status as WorkflowStatusEnum
+        type: data.type, // Use the validated type from input
+        department: data.department, // Use the validated department from input
+        status: RncStatusEnum.pending,
+        workflow_status: WorkflowStatusEnum.open
       };
-  
-      // Create contacts
+
+      // Create contacts within the same transaction
       for (const contact of data.contacts) {
-        await this.createContact(rnc.id, contact);
+        const { error: contactError } = await this.createContact(rnc.id, contact);
+        if (contactError) {
+          // Rollback by deleting the RNC
+          await supabase.from('rncs').delete().eq('id', rnc.id);
+          throw new RNCError(`Error creating contact: ${contactError.message}`);
+        }
       }
-  
-      // Create products
+
+      // Create products within the same transaction
       for (const product of data.products) {
-        await this.createProduct(rnc.id, product);
+        const { error: productError } = await this.createProduct(rnc.id, product);
+        if (productError) {
+          // Rollback by deleting the RNC and related contacts
+          await supabase.from('rncs').delete().eq('id', rnc.id);
+          throw new RNCError(`Error creating product: ${productError.message}`);
+        }
       }
-  
+
       return rnc;
     } catch (error) {
-      console.error('Error creating RNC:', error);
-      throw error;
+      console.error('Error in RNC creation:', error);
+      if (error instanceof RNCError) throw error;
+      throw new RNCError('Unexpected error creating RNC');
     }
   },
 
   async createContact(rncId: string, data: CreateRNCContact) {
-    const { data: contact, error } = await supabase
-      .from('rnc_contacts')
-      .insert([{
-        rnc_id: rncId,
-        name: data.name,
-        phone: data.phone,
-        email: data.email
-      }])
-      .select()
-      .single();
+    try {
+      const { data: contact, error } = await supabase
+        .from('rnc_contacts')
+        .insert([{
+          rnc_id: rncId,
+          name: data.name,
+          phone: data.phone,
+          email: data.email
+        }])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return contact;
+      return { contact, error };
+    } catch (error) {
+      console.error('Error creating contact:', error);
+      throw new RNCError('Failed to create contact');
+    }
   },
 
   async createProduct(rncId: string, data: CreateRNCProduct) {
-    const { data: product, error } = await supabase
-      .from('rnc_products')
-      .insert([{
-        rnc_id: rncId,
-        name: data.name,
-        weight: data.weight
-      }])
-      .select()
-      .single();
+    try {
+      const { data: product, error } = await supabase
+        .from('rnc_products')
+        .insert([{
+          rnc_id: rncId,
+          name: data.name,
+          weight: data.weight
+        }])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return product;
+      return { product, error };
+    } catch (error) {
+      console.error('Error creating product:', error);
+      throw new RNCError('Failed to create product');
+    }
   },
 
-  async uploadAttachment(rncId: string, file: File): Promise<UploadAttachmentResponse> {
+  async uploadAttachment(rncId: string, file: File): Promise<RNCAttachment> {
     try {
-      const filePath = `rnc-${rncId}/${crypto.randomUUID()}-${file.name}`;
+      // Validate file before upload
+      validateAttachment(file);
+      
+      // Sanitize filename
+      const sanitizedName = sanitizeFilename(file.name);
+      const filePath = `rnc-${rncId}/${crypto.randomUUID()}-${sanitizedName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('rnc-attachments')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) throw new RNCError(`Upload failed: ${uploadError.message}`);
 
       const { data: attachment, error: dbError } = await supabase
         .from('rnc_attachments')
         .insert({
           rnc_id: rncId,
-          filename: file.name,
+          filename: sanitizedName,
           filesize: file.size,
           content_type: file.type,
           file_path: filePath,
@@ -131,12 +200,22 @@ export const rncService = {
         .select()
         .single();
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        // Cleanup uploaded file if database insert fails
+        await supabase.storage
+          .from('rnc-attachments')
+          .remove([filePath]);
+          
+        throw dbError;
+      }
 
-      return { attachment, error: null };
+      if (!attachment) throw new RNCError('Failed to create attachment record');
+
+      return attachment;
     } catch (error) {
       console.error('Error uploading attachment:', error);
-      return { attachment: null, error: error as Error };
+      if (error instanceof RNCError) throw error;
+      throw new RNCError('Failed to upload attachment');
     }
   },
 

@@ -1,17 +1,12 @@
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useFormContext } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { handleDocumentChange } from "@/utils/masks";
 import { basicInfoSchema } from "@/utils/validations";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 import type { z } from "zod";
-
-interface BasicInfoTabProps {
-  setProgress: (progress: number) => void;
-}
 
 export type BasicInfoFormData = z.infer<typeof basicInfoSchema>;
 
@@ -21,86 +16,13 @@ export type BasicInfoTabRef = {
   setFormData: (data: Partial<BasicInfoFormData>) => void;
 };
 
-export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
-  ({ setProgress }, ref) => {
-    const form = useForm<BasicInfoFormData>({
-      resolver: zodResolver(basicInfoSchema),
-      defaultValues: {
-        company_code: "",
-        company: "",
-        document: "",
-        type: RncTypeEnum.company_complaint,
-        department: RncDepartmentEnum.logistics,
-        responsible: "",
-      },
-    });
-
-    const { watch } = form;
-
-    const formMethods = React.useMemo(
-      () => ({
-        validate: async () => {
-          try {
-            const result = await form.trigger();
-            console.log('BasicInfo validation result:', result);
-            return result;
-          } catch (error) {
-            console.error('BasicInfo validation error:', error);
-            return false;
-          }
-        },
-        getFormData: () => {
-          try {
-            const values = form.getValues();
-            console.log('Getting BasicInfo form data:', values);
-            return values;
-          } catch (error) {
-            console.error('Error getting BasicInfo form data:', error);
-            throw error;
-          }
-        },
-        setFormData: (data: Partial<BasicInfoFormData>) => {
-          try {
-            console.log('Setting BasicInfo form data:', data);
-            form.reset(data);
-          } catch (error) {
-            console.error('Error setting BasicInfo form data:', error);
-          }
-        }
-      }),
-      [form]
-    );
-
-    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
-
-    const saveFormData = React.useCallback((data: BasicInfoFormData) => {
-      try {
-        const currentData = localStorage.getItem('rncFormData');
-        const parsedData = currentData ? JSON.parse(currentData) : {};
-        localStorage.setItem('rncFormData', JSON.stringify({
-          ...parsedData,
-          basic: data
-        }));
-      } catch (error) {
-        console.error('Error saving basic data:', error);
-      }
-    }, []);
-
-    React.useEffect(() => {
-      const subscription = watch((data) => {
-        saveFormData(data as BasicInfoFormData);
-        const requiredFields = ["company_code", "company", "document", "type", "department", "responsible"];
-        const filledRequired = requiredFields.filter(field => data[field as keyof typeof data]).length;
-        setProgress((filledRequired / requiredFields.length) * 100);
-      });
-      return () => subscription.unsubscribe();
-    }, [watch, saveFormData, setProgress]);
+export const BasicInfoTab = () => {
+  const { control } = useFormContext();
 
     return (
-      <Form {...form}>
-        <form className="space-y-4 py-4">
+        <div className="space-y-4 py-4">
           <FormField
-            control={form.control}
+            control={control}
             name="company_code"
             render={({ field }) => (
               <FormItem>
@@ -109,7 +31,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                   <span className="text-blue-400">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o código da empresa" />
+                  <Input {...field} className="border-blue-200 focus:border-blue-400" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -117,7 +39,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="company"
             render={({ field }) => (
               <FormItem>
@@ -134,7 +56,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="document"
             render={({ field }) => (
               <FormItem>
@@ -145,9 +67,8 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                 <FormControl>
                   <Input 
                     {...field} 
-                    className="border-blue-200 focus:border-blue-400"
-                    placeholder="Digite o documento (CNPJ/CPF)"
                     onChange={(e) => handleDocumentChange(e, field.onChange)}
+                    className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
                 <FormMessage />
@@ -156,7 +77,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="type"
             render={({ field }) => (
               <FormItem>
@@ -188,7 +109,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="department"
             render={({ field }) => (
               <FormItem>
@@ -215,7 +136,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="responsible"
             render={({ field }) => (
               <FormItem>
@@ -249,10 +170,8 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
               </FormItem>
             )}
           />
-        </form>
-      </Form>
+        </div>
     );
-  }
-);
+  };
 
 BasicInfoTab.displayName = "BasicInfoTab";

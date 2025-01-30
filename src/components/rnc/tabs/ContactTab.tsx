@@ -1,16 +1,11 @@
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useFormContext } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { handlePhoneChange } from "@/utils/masks";
 import { contactSchema } from "@/utils/validations";
 import { CreateRNCContact } from "@/types/rnc";
 import type { z } from "zod";
-
-interface ContactTabProps {
-  setProgress: (progress: number) => void;
-}
 
 export type ContactFormData = z.infer<typeof contactSchema>;
 
@@ -20,89 +15,13 @@ export type ContactTabRef = {
   setFormData: (data: Partial<ContactFormData>) => void;
 };
 
-export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
-  ({ setProgress }, ref) => {
-    const form = useForm<ContactFormData>({
-      resolver: zodResolver(contactSchema),
-      defaultValues: {
-        name: "",
-        phone: "",
-        email: "",
-      }
-    });
-
-    const { watch } = form;
-
-    const formMethods = React.useMemo(
-      () => ({
-        validate: async () => {
-          try {
-            const result = await form.trigger();
-            console.log('Contact validation result:', result);
-            return result;
-          } catch (error) {
-            console.error('Contact validation error:', error);
-            return false;
-          }
-        },
-        getFormData: () => {
-          try {
-            const values = form.getValues();
-            console.log('Getting contact form data:', values);
-            // Transform the form data to match CreateRNCContact type
-            const contact: CreateRNCContact = {
-              name: values.name || '', // Ensure non-optional string
-              phone: values.phone || '', // Ensure non-optional string
-              email: values.email // Keep email optional
-            };
-            return contact;
-          } catch (error) {
-            console.error('Error getting contact form data:', error);
-            throw error;
-          }
-        },
-        setFormData: (data: Partial<ContactFormData>) => {
-          try {
-            console.log('Setting contact form data:', data);
-            form.reset(data);
-          } catch (error) {
-            console.error('Error setting contact form data:', error);
-          }
-        }
-      }),
-      [form]
-    );
-
-    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
-
-    const saveFormData = React.useCallback((data: ContactFormData) => {
-      try {
-        const currentData = localStorage.getItem('rncFormData');
-        const parsedData = currentData ? JSON.parse(currentData) : {};
-        localStorage.setItem('rncFormData', JSON.stringify({
-          ...parsedData,
-          contact: data
-        }));
-      } catch (error) {
-        console.error('Error saving contact data:', error);
-      }
-    }, []);
-
-    React.useEffect(() => {
-      const subscription = watch((data) => {
-        saveFormData(data as ContactFormData);
-        const requiredFields = ["name", "phone"];
-        const filledRequired = requiredFields.filter(field => data[field as keyof typeof data]).length;
-        setProgress((filledRequired / requiredFields.length) * 100);
-      });
-      return () => subscription.unsubscribe();
-    }, [watch, saveFormData, setProgress]);
+export const ContactTab = () => {
+  const { control } = useFormContext();
 
     return (
-      <Form {...form}>
-        <form className="space-y-4 py-4">
+        <div className="space-y-4 py-4">
           <FormField
-            control={form.control}
+            control={control}
             name="name"
             render={({ field }) => (
               <FormItem>
@@ -119,7 +38,7 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="phone"
             render={({ field }) => (
               <FormItem>
@@ -141,7 +60,7 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="email"
             render={({ field }) => (
               <FormItem>
@@ -153,10 +72,8 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
               </FormItem>
             )}
           />
-        </form>
-      </Form>
+        </div>
     );
   }
-);
 
 ContactTab.displayName = "ContactTab";
