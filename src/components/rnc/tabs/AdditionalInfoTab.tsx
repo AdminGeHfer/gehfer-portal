@@ -15,7 +15,9 @@ export type AdditionalInfoTabRef = {
 };
 
 export const AdditionalInfoTab = () => {
-  const { control } = useFormContext();
+  const { control, watch } = useFormContext();
+  const description = watch('description');
+  console.log('Description value:', description);
 
     return (
         <div className="space-y-4 py-4">
@@ -104,24 +106,6 @@ export const AdditionalInfoTab = () => {
                 <FormLabel>Cidade</FormLabel>
                 <FormControl>
                   <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome da cidade" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="conclusion"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Conclusão</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    {...field} 
-                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
-                    placeholder="Conclusão sobre a RNC..."
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

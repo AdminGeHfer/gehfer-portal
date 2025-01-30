@@ -31,7 +31,7 @@ export const BasicInfoTab = () => {
                   <span className="text-blue-400">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input {...field} className="border-blue-200 focus:border-blue-400" />
+                  <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o código da empresa (Korp)" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -69,6 +69,7 @@ export const BasicInfoTab = () => {
                     {...field} 
                     onChange={(e) => handleDocumentChange(e, field.onChange)}
                     className="border-blue-200 focus:border-blue-400"
+                    placeholder="Digite o documento da empresa"
                   />
                 </FormControl>
                 <FormMessage />

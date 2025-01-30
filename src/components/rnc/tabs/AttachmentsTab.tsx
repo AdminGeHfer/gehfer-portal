@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 
 export const AttachmentsTab = () => {
   const { setValue, watch } = useFormContext();
-  const files = watch('attachments') || [];
+  const attachments = watch('attachments');
+  const files: File[] = Array.isArray(attachments) ? attachments : [];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       if (e.target.files && e.target.files[0]) {
         const newFile = e.target.files[0];
-        setValue('attachments', [...files, newFile], { 
+        const currentFiles = Array.isArray(files) ? files : [];
+        setValue('attachments', [...currentFiles, newFile], { 
           shouldValidate: true,
           shouldDirty: true 
         });
@@ -24,9 +26,10 @@ export const AttachmentsTab = () => {
 
   const removeFile = (index: number) => {
     try {
+      const currentFiles = Array.isArray(files) ? files : [];
       setValue(
         'attachments', 
-        files.filter((_: File, i: number) => i !== index),
+        currentFiles.filter((_: File, i: number) => i !== index),
         { shouldValidate: true }
       );
     } catch (error) {
@@ -41,7 +44,7 @@ export const AttachmentsTab = () => {
         const parsedData = JSON.parse(currentData);
         localStorage.setItem('rncFormData', JSON.stringify({
           ...parsedData,
-          attachments: { files }
+          attachments: files
         }));
       }
     } catch (error) {
@@ -58,7 +61,7 @@ export const AttachmentsTab = () => {
       />
 
       <div className="space-y-2">
-        {files.map((file: File, index: number) => (
+        {Array.isArray(files) && files.map((file: File, index: number) => (
           <div
             key={index}
             className="flex items-center justify-between rounded-md border border-blue-200 p-2"

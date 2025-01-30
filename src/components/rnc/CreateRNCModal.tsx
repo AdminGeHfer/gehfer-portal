@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { basicInfoSchema } from "@/schemas/rncValidation";
+import { CreateRNCFormData, createRNCSchema } from "@/schemas/rncValidation";
 
 interface CreateRNCModalProps {
   open: boolean;
@@ -20,9 +20,25 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Initialize form context
-  const methods = useForm({
-    resolver: zodResolver(basicInfoSchema),
-    mode: "onChange"
+  const methods = useForm<CreateRNCFormData>({
+    resolver: zodResolver(createRNCSchema),
+    mode: "onChange",
+    defaultValues: {
+      company_code: '',
+      company: '',
+      document: '',
+      description: '',
+      type: undefined,
+      department: undefined,
+      responsible: '',
+      korp: '',
+      nfv: '',
+      nfd: '',
+      city: '',
+      attachments: [],
+      products: [],
+      contacts: []
+    }
   });
 
   React.useEffect(() => {
@@ -37,6 +53,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   }, [open, methods]);
 
   const handleSave = async (formData) => {
+    console.log('Form data before service call:',formData);
     if (isSubmitting) return;
     setIsSubmitting(true);
     const loadingToast = toast.loading('Criando RNC...');

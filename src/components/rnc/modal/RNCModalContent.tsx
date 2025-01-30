@@ -8,7 +8,8 @@ import { AttachmentsTab } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import { toast } from "sonner";
-import { useFormContext } from "react-hook-form";
+import { type Path, useFormContext } from "react-hook-form";
+import { type CreateRNCFormData } from "@/schemas/rncValidation";
 
 interface RNCModalContentProps {
   activeTab: string;
@@ -23,13 +24,29 @@ export const RNCModalContent = ({
   onSave,
   isSubmitting
 }: RNCModalContentProps) => {
-  const methods = useFormContext();
+  const methods = useFormContext<CreateRNCFormData>();
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
   const handleTabChange = async (value: string) => {
     try {
       if (tabs.indexOf(value) > tabs.indexOf(activeTab)) {
-        const isValid = await methods.trigger();
+        let fieldsToValidate: Path<CreateRNCFormData>[] = [];
+        switch (activeTab) {
+          case "basic":
+            fieldsToValidate = ["company_code", "company", "document", "type", "department", "responsible"];
+            break;
+          case "additional":
+            fieldsToValidate = ["description", "korp", "nfv"];
+            break;
+          case "products":
+            fieldsToValidate = ["products"];
+            break;
+          case "contact":
+            fieldsToValidate = ["contacts"];
+            break;
+        }
+
+        const isValid = await methods.trigger(fieldsToValidate);
         if (!isValid) {
           toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
           return;
@@ -42,7 +59,10 @@ export const RNCModalContent = ({
     }
   };
 
-  const handleSubmit = methods.handleSubmit(onSave);
+  const handleSubmit = methods.handleSubmit((data) => {
+    console.log('Form data at submission:', data);
+    onSave(data);
+  });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

@@ -55,6 +55,7 @@ const sanitizeFilename = (filename: string): string => {
 
 export const rncService = {
   async create(data: CreateRNCInput): Promise<RNC> {
+    console.log('Data received in rncService:',data);
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
@@ -83,7 +84,6 @@ export const rncService = {
           workflow_status: WorkflowStatusEnum.open,
           assigned_by: user.id,
           assigned_at: new Date().toISOString(),
-          assigned_to: (await supabase.schema('public').from('profiles').select('id').eq('name', data.responsible)).data[0].id,
           created_by: user.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
