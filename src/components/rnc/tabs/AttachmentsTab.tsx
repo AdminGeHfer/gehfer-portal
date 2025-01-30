@@ -10,6 +10,7 @@ interface AttachmentsTabProps {
 
 export type AttachmentsTabRef = {
   getFiles: () => File[];
+  setFormData: (data: { files?: File[] }) => void;
 };
 
 export const AttachmentsTab = React.forwardRef<AttachmentsTabRef, AttachmentsTabProps>(
@@ -17,7 +18,13 @@ export const AttachmentsTab = React.forwardRef<AttachmentsTabRef, AttachmentsTab
     const [files, setFiles] = useState<File[]>([]);
 
     React.useImperativeHandle(ref, () => ({
-      getFiles: () => files
+      getFiles: () => files,
+      setFormData: (data: { files?: File[] }) => {
+        if (data.files) {
+          setFiles(data.files);
+          setProgress(data.files.length > 0 ? 100 : 0);
+        }
+      }
     }));
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

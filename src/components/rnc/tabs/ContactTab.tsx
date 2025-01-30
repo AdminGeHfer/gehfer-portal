@@ -21,7 +21,8 @@ export type ContactTabRef = {
 
 export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
   ({ setProgress }, ref) => {
-    // Use form directly like in ProductsTab
+    console.log('ContactTab mounted');
+    
     const form = useForm<ContactFormData>({
       resolver: zodResolver(contactSchema),
       defaultValues: {
@@ -37,12 +38,13 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
       () => ({
         validate: async () => {
           try {
+            console.log('Validating ContactTab...');
             const result = await form.trigger();
-            console.log('contact Info validation result:', result);
+            console.log('Contact validation result:', result);
             console.log('Current form values:', form.getValues());
             return result;
           } catch (error) {
-            console.error('contact validation error:', error);
+            console.error('Contact validation error:', error);
             return false;
           }
         },
@@ -68,6 +70,12 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
       [form]
     );
 
+    React.useEffect(() => {
+      console.log('ContactTab ref methods exposed');
+    }, []);
+
+    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
+
     const saveFormData = React.useCallback((data: ContactFormData) => {
       try {
         const currentData = localStorage.getItem('rncFormData');
@@ -92,66 +100,64 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
       return () => subscription.unsubscribe();
     }, [watch, saveFormData, setProgress]);
 
-    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
+    return (
+      <Form {...form}>
+        <form className="space-y-4 py-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Nome
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome do contato" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-  return (
-    <Form {...form}>
-      <form className="space-y-4 py-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Nome
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome do contato" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Telefone
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    className="border-blue-200 focus:border-blue-400" 
+                    placeholder="Digite o número de telefone"
+                    onChange={(e) => handlePhoneChange(e, field.onChange)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Telefone
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  className="border-blue-200 focus:border-blue-400" 
-                  placeholder="Digite o número de telefone"
-                  onChange={(e) => handlePhoneChange(e, field.onChange)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input {...field} type="email" className="border-blue-200 focus:border-blue-400" placeholder="Digite o email" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </form>
-    </Form>
-  );
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input {...field} type="email" className="border-blue-200 focus:border-blue-400" placeholder="Digite o email" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
+    );
   }
 );
 

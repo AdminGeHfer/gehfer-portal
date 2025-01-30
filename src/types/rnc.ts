@@ -122,3 +122,20 @@ export interface RNCWithRelations extends RNC {
   products: RNCProduct[]
   workflow_transitions?: RNCWorkflowTransition[]
 }
+
+export interface CreateRNCProduct {
+  name: string;
+  weight: number;
+}
+
+export interface CreateRNCContact {
+  name: string;
+  phone: string;
+  email?: string;
+}
+
+// Update the RNCWithRelations interface to use these types during creation
+export interface CreateRNCInput extends Omit<RNC, 'id' | 'rnc_number' | 'days_left'> {
+  products: CreateRNCProduct[];
+  contacts: CreateRNCContact[];
+}

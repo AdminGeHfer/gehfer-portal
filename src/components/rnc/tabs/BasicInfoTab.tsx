@@ -81,6 +81,30 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
 
     React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
+    const saveFormData = React.useCallback((data: BasicInfoFormData) => {
+      try {
+        const currentData = localStorage.getItem('rncFormData');
+        const parsedData = currentData ? JSON.parse(currentData) : {};
+        localStorage.setItem('rncFormData', JSON.stringify({
+          ...parsedData,
+          basic: data
+        }));
+        console.log('Saved basic data:', data);
+      } catch (error) {
+        console.error('Error saving basic data:', error);
+      }
+    }, []);
+
+    React.useEffect(() => {
+      const subscription = watch((data) => {
+        saveFormData(data as BasicInfoFormData);
+        const requiredFields = ["company_code", "company", "document", "type", "department", "responsible"];
+        const filledRequired = requiredFields.filter(field => data[field as keyof typeof data]).length;
+        setProgress((filledRequired / requiredFields.length) * 100);
+      });
+      return () => subscription.unsubscribe();
+    }, [watch, saveFormData, setProgress]);
+
     return (
       <Form {...form}>
         <form className="space-y-4 py-4">

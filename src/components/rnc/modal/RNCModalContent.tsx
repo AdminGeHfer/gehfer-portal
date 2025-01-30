@@ -1,5 +1,5 @@
 import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicInfoTab, BasicInfoTabRef } from "../tabs/BasicInfoTab";
 import { AdditionalInfoTab, AdditionalInfoTabRef } from "../tabs/AdditionalInfoTab";
 import { ProductsTab, ProductsTabRef } from "../tabs/ProductsTab";
@@ -7,13 +7,11 @@ import { ContactTab, ContactTabRef } from "../tabs/ContactTab";
 import { AttachmentsTab, AttachmentsTabRef } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 
 interface RNCModalContentProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  onBack: () => void;
-  onNext: () => void;
   onSave: () => void;
   setProgress: (progress: number) => void;
   progress?: number;
@@ -29,100 +27,131 @@ interface RNCModalContentProps {
 export const RNCModalContent = ({
   activeTab,
   setActiveTab,
-  onBack,
-  onNext,
   onSave,
   setProgress,
   refs,
 }: RNCModalContentProps) => {
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
-  const handleTabChange = async (value: string) => {
-    try {
-      console.log(`Attempting to change tab from ${activeTab} to ${value}`);
-      const isValid = await validateCurrentTab();
-      if (!isValid) {
-        toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
-        return;
-      }
-      setActiveTab(value);
-    } catch (error) {
-      console.error('Error changing tab:', error);
-      toast.error('Erro ao mudar de aba');
-    }
-  };
-
-  const validateCurrentTab = async () => {
-    try {
-      let currentRef;
-      switch (activeTab) {
-        case 'basic':
-          currentRef = refs.basicInfoRef.current;
-          break;
-        case 'additional':
-          currentRef = refs.additionalInfoRef.current;
-          break;
-        case 'products':
-          currentRef = refs.productsRef.current;
-          break;
-        case 'contact':
-          currentRef = refs.contactRef.current;
-          break;
-        case 'attachments':
-          return true; // Attachments are optional
-      }
-  
-      if (!currentRef?.validate) {
-        console.log(`No validation method found for tab: ${activeTab}`);
-        return false;
-      }
+  // const handleTabChange = async (value: string) => {
+  //   try {
+  //     console.log(`Attempting to change tab from ${activeTab} to ${value}`);
       
-      const isValid = await currentRef.validate();
-      console.log(`Validation result for ${activeTab}:`, isValid);
-      return isValid;
-    } catch (error) {
-      console.error(`Error validating ${activeTab} tab:`, error);
-      return false;
-    }
-  };
+  //     // Only validate when moving forward
+  //     if (tabs.indexOf(value) > tabs.indexOf(activeTab)) {
+  //       const isValid = await validateCurrentTab();
+  //       if (!isValid) {
+  //         console.log(`Validation failed for tab ${activeTab}`);
+  //         toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
+  //         return;
+  //       }
+  //     }
+      
+  //     console.log(`Tab change successful: ${activeTab} -> ${value}`);
+  //     setActiveTab(value);
+  //   } catch (error) {
+  //     console.error('Error changing tab:', error);
+  //     toast.error('Erro ao mudar de aba');
+  //   }
+  // };
+
+  // const validateCurrentTab = async () => {
+  //   try {
+  //     let currentRef;
+  //     switch (activeTab) {
+  //       case 'basic':
+  //         currentRef = refs.basicInfoRef.current;
+  //         break;
+  //       case 'additional':
+  //         currentRef = refs.additionalInfoRef.current;
+  //         break;
+  //       case 'products':
+  //         currentRef = refs.productsRef.current;
+  //         break;
+  //       case 'contact':
+  //         currentRef = refs.contactRef.current;
+  //         break;
+  //       case 'attachments':
+  //         return true; // Attachments are optional
+  //     }
+  
+  //     if (!currentRef?.validate) {
+  //       console.log(`No validation method found for tab: ${activeTab}`);
+  //       return false;
+  //     }
+      
+  //     const isValid = await currentRef.validate();
+  //     console.log(`Validation result for ${activeTab}:`, isValid);
+  //     return isValid;
+  //   } catch (error) {
+  //     console.error(`Error validating ${activeTab} tab:`, error);
+  //     return false;
+  //   }
+  // };
+
+  // const handleNext = async () => {
+  //   const currentIndex = tabs.indexOf(activeTab);
+  //   if (currentIndex < tabs.length - 1) {
+  //     const nextTab = tabs[currentIndex + 1];
+  //     await handleTabChange(nextTab);
+  //   }
+  // };
+
+  // const handleBack = () => {
+  //   const currentIndex = tabs.indexOf(activeTab);
+  //   if (currentIndex > 0) {
+  //     const previousTab = tabs[currentIndex - 1];
+  //     setActiveTab(previousTab); // No validation needed when going back
+  //   }
+  // };
 
   return (
     <>
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      <Tabs value={activeTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 bg-blue-50 dark:bg-blue-900/50">
-          <TabsTrigger value="basic" className="cursor-default">Inf. Básicas</TabsTrigger>
-          <TabsTrigger value="additional" className="cursor-default">Inf. Compl.</TabsTrigger>
-          <TabsTrigger value="products" className="cursor-default">Produtos</TabsTrigger>
-          <TabsTrigger value="contact" className="cursor-default">Contato</TabsTrigger>
-          <TabsTrigger value="attachments" className="cursor-default">Anexos</TabsTrigger>
+          {tabs.map((tab) => (
+            <TabsTrigger 
+              key={tab}
+              value={tab} 
+              className="cursor-default"
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === 'basic' && 'Inf. Básicas'}
+              {tab === 'additional' && 'Inf. Compl.'}
+              {tab === 'products' && 'Produtos'}
+              {tab === 'contact' && 'Contato'}
+              {tab === 'attachments' && 'Anexos'}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="basic">
+        <div className="hidden">
           <BasicInfoTab setProgress={setProgress} ref={refs.basicInfoRef} />
-        </TabsContent>
-
-        <TabsContent value="additional">
           <AdditionalInfoTab setProgress={setProgress} ref={refs.additionalInfoRef} />
-        </TabsContent>
-
-        <TabsContent value="products">
           <ProductsTab setProgress={setProgress} ref={refs.productsRef} />
-        </TabsContent>
-
-        <TabsContent value="contact">
           <ContactTab setProgress={setProgress} ref={refs.contactRef} />
-        </TabsContent>
-
-        <TabsContent value="attachments">
           <AttachmentsTab setProgress={setProgress} ref={refs.attachmentsRef} />
-        </TabsContent>
+        </div>
+
+        <div className="block">
+          {activeTab === 'basic' && <BasicInfoTab setProgress={setProgress} ref={refs.basicInfoRef} />}
+          {activeTab === 'additional' && <AdditionalInfoTab setProgress={setProgress} ref={refs.additionalInfoRef} />}
+          {activeTab === 'products' && <ProductsTab setProgress={setProgress} ref={refs.productsRef} />}
+          {activeTab === 'contact' && <ContactTab setProgress={setProgress} ref={refs.contactRef} />}
+          {activeTab === 'attachments' && <AttachmentsTab setProgress={setProgress} ref={refs.attachmentsRef} />}
+        </div>
       </Tabs>
 
       <div className="space-y-4">
         <div className="flex justify-between">
           <Button
             variant="ghost"
-            onClick={onBack}
+            onClick={() => {
+              const currentIndex = tabs.indexOf(activeTab);
+              if (currentIndex > 0) {
+                setActiveTab(tabs[currentIndex - 1]);
+              }
+            }}
             disabled={activeTab === tabs[0]}
             className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
           >
@@ -141,7 +170,12 @@ export const RNCModalContent = ({
           ) : (
             <Button
               variant="ghost"
-              onClick={onNext}
+              onClick={() => {
+                const currentIndex = tabs.indexOf(activeTab);
+                if (currentIndex < tabs.length - 1) {
+                  setActiveTab(tabs[currentIndex + 1]);
+                }
+              }}
               className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
             >
               Próximo

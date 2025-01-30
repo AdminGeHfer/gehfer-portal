@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import { RncStatusEnum, RNCWithRelations, WorkflowStatusEnum, type RNC, type RNCAttachment } from '@/types/rnc'
+import { CreateRNCInput, RncStatusEnum, WorkflowStatusEnum, type RNC, type RNCAttachment } from '@/types/rnc'
 
 interface UploadAttachmentResponse {
   attachment: RNCAttachment;
@@ -7,7 +7,7 @@ interface UploadAttachmentResponse {
 }
 
 export const rncService = {
-  async create(data: Omit<RNCWithRelations, 'id'>) {
+  async create(data: CreateRNCInput) {
     try {
       const { data: rnc, error: rncError } = await supabase
         .from('rncs')

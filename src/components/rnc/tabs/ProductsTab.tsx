@@ -24,18 +24,66 @@ export type ProductsTabRef = {
 
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
   ({ setProgress }, ref) => {
-    // Create form with useForm hook directly
+    console.log('ProductsTab mounted');
+    
     const form = useForm<ProductFormData>({
       resolver: zodResolver(z.object({
         products: z.array(productSchema).min(1)
       })),
       defaultValues: {
-        products: [{ name: "", weight: 0 }]
+        products: [{ name: "", weight: 0.1 }]
       }
     });
 
     const { watch, setValue, getValues } = form;
     const products = watch("products");
+
+    const formMethods = React.useMemo(
+      () => ({
+        validate: async () => {
+          try {
+            console.log('Validating ProductsTab...');
+            const result = await form.trigger();
+            console.log('Products validation result:', result);
+            console.log('Current form values:', form.getValues());
+            return result;
+          } catch (error) {
+            console.error('Products validation error:', error);
+            return false;
+          }
+        },
+        getFormData: () => {
+          try {
+            const values = getValues();
+            console.log('Getting products form data:', values.products);
+            return values.products.map(product => ({
+              name: product.name,
+              weight: Number(product.weight)
+            }));
+          } catch (error) {
+            console.error('Error getting products form data:', error);
+            throw error;
+          }
+        },
+        setFormData: (data: Partial<ProductFormData>) => {
+          try {
+            console.log('Setting products form data:', data);
+            if (data?.products) {
+              form.reset({ products: data.products });
+            }
+          } catch (error) {
+            console.error('Error setting products form data:', error);
+          }
+        }
+      }),
+      [form, getValues]
+    );
+
+    React.useEffect(() => {
+      console.log('ProductsTab ref methods exposed');
+    }, []);
+
+    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
     const saveFormData = React.useCallback((data: ProductFormData['products']) => {
       try {
@@ -65,46 +113,6 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
       });
       return () => subscription.unsubscribe();
     }, [watch, saveFormData, setProgress]);
-
-    React.useImperativeHandle(
-      ref,
-      () => ({
-        validate: async () => {
-          try {
-            const result = await form.trigger();
-            console.log('Products validation result:', result);
-            return result;
-          } catch (error) {
-            console.error('Products validation error:', error);
-            return false;
-          }
-        },
-        getFormData: () => {
-          try {
-            const values = getValues();
-            console.log('Getting products form data:', values.products);
-            return values.products.map(product => ({
-              name: product.name,
-              weight: Number(product.weight)
-            }));
-          } catch (error) {
-            console.error('Error getting products form data:', error);
-            throw new Error('Failed to get products form data');
-          }
-        },
-        setFormData: (data: Partial<ProductFormData>) => {
-          try {
-            if (data?.products) {
-              console.log('Setting products form data:', data.products);
-              form.reset({ products: data.products });
-            }
-          } catch (error) {
-            console.error('Error setting products form data:', error);
-          }
-        }
-      }),
-      [form, getValues]
-    );
 
     const addProduct = () => {
       try {
@@ -143,7 +151,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
                   <FormItem className="flex-1">
                     <FormLabel>Nome do Produto <span className="text-blue-400">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Digite o nome do produto" />
+                      <Input {...field} placeholder="Digite o nome do produto" className="border-blue-200 focus:border-blue-400" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -166,7 +174,8 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
                           const value = e.target.value;
                           field.onChange(value ? parseFloat(value) : '');
                         }}
-                        placeholder="Digite o peso" 
+                        placeholder="Digite o peso"
+                        className="border-blue-200 focus:border-blue-400"
                       />
                     </FormControl>
                     <FormMessage />
@@ -186,7 +195,12 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
             </div>
           ))}
 
-          <Button type="button" variant="outline" onClick={addProduct}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={addProduct}
+            className="border-blue-200 hover:border-blue-400"
+          >
             Adicionar Produto
           </Button>
         </form>

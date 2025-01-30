@@ -21,7 +21,8 @@ export type AdditionalInfoTabRef = {
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
   ({ setProgress }, ref) => {
-    // Use form directly like in ProductsTab
+    console.log('AdditionalInfoTab mounted');
+    
     const form = useForm<AdditionalInfoFormData>({
       resolver: zodResolver(additionalInfoSchema),
       defaultValues: {
@@ -40,8 +41,9 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
       () => ({
         validate: async () => {
           try {
+            console.log('Validating AdditionalInfoTab...');
             const result = await form.trigger();
-            console.log('Additional Info validation result:', result);
+            console.log('AdditionalInfo validation result:', result);
             console.log('Current form values:', form.getValues());
             return result;
           } catch (error) {
@@ -61,15 +63,21 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
         },
         setFormData: (data: Partial<AdditionalInfoFormData>) => {
           try {
-            console.log('Setting basic form data:', data);
+            console.log('Setting additional form data:', data);
             form.reset(data);
           } catch (error) {
-            console.error('Error setting basic form data:', error);
+            console.error('Error setting additional form data:', error);
           }
         }
       }),
       [form]
     );
+
+    React.useEffect(() => {
+      console.log('AdditionalInfoTab ref methods exposed');
+    }, []);
+
+    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
     const saveFormData = React.useCallback((data: AdditionalInfoFormData) => {
       try {
@@ -95,106 +103,122 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
       return () => subscription.unsubscribe();
     }, [watch, saveFormData, setProgress]);
 
-    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
+    return (
+      <Form {...form}>
+        <form className="space-y-4 py-4">
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Descrição
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Textarea 
+                    {...field} 
+                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                    placeholder="Descrição sobre a RNC..."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-  return (
-    <Form {...form}>
-      <form className="space-y-4 py-4">
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Descrição
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Textarea 
-                  {...field} 
-                  className="min-h-[100px] border-blue-200 focus:border-blue-400"
-                  placeholder="Descrição sobre a RNC..."
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="korp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Número do pedido
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o número do pedido (KORP)" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="korp"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Número do pedido
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o número do pedido (KORP)" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="nfv"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  NFV
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    placeholder="Digite o número da nota fiscal de venda"
+                    className="border-blue-200 focus:border-blue-400" 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="nfv"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                NFV
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  placeholder="Digite o número da nota fiscal de venda"
-                  className="border-blue-200 focus:border-blue-400" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="nfd"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  NFD
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    placeholder="Digite o número da nota fiscal de devolução"
+                    className="border-blue-200 focus:border-blue-400" 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="nfd"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                NFD
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  placeholder="Digite o número da nota fiscal de devolução"
-                  className="border-blue-200 focus:border-blue-400" 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="city"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cidade</FormLabel>
+                <FormControl>
+                  <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome da cidade" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="city"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cidade</FormLabel>
-              <FormControl>
-                <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome da cidade" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </form>
-    </Form>
-  );
+          <FormField
+            control={form.control}
+            name="conclusion"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Conclusão</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    {...field} 
+                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                    placeholder="Conclusão sobre a RNC..."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
+    );
   }
 );
 
