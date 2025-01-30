@@ -31,12 +31,12 @@ interface TabRefs {
       created_at: string;
       updated_at: string;
     };
-    setFormData: (data: any) => void;
+    setFormData: (data) => void;
   }>;
   additionalInfoRef: React.RefObject<{
     validate: () => Promise<boolean>;
     getFormData: () => AdditionalInfoFormData;
-    setFormData: (data: any) => void;
+    setFormData: (data) => void;
   }>;
   productsRef: React.RefObject<{
     validate: () => Promise<boolean>;
@@ -46,7 +46,7 @@ interface TabRefs {
       name: string;
       weight: number;
     }>;
-    setFormData: (data: any) => void;
+    setFormData: (data) => void;
   }>;
   contactRef: React.RefObject<{
     validate: () => Promise<boolean>;
@@ -57,11 +57,11 @@ interface TabRefs {
       phone: string;
       email?: string;
     };
-    setFormData: (data: any) => void;
+    setFormData: (data) => void;
   }>;
   attachmentsRef: React.RefObject<{
     getFiles: () => File[];
-    setFormData?: (data: any) => void;
+    setFormData?: (data) => void;
   }>;
 }
 
@@ -147,7 +147,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       console.log('All validation results:', validationResults);
   
       const invalidTabs = Object.entries(validationResults)
-        .filter(([_, isValid]) => !isValid)
+        .filter(([, isValid]) => !isValid)
         .map(([tab]) => tab);
   
       if (invalidTabs.length > 0) {
