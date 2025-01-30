@@ -31,12 +31,12 @@ interface TabRefs {
       created_at: string;
       updated_at: string;
     };
-    setFormData: (data) => void;
+    setFormData: (data: any) => void;
   }>;
   additionalInfoRef: React.RefObject<{
     validate: () => Promise<boolean>;
     getFormData: () => AdditionalInfoFormData;
-    setFormData: (data) => void;
+    setFormData: (data: any) => void;
   }>;
   productsRef: React.RefObject<{
     validate: () => Promise<boolean>;
@@ -46,7 +46,7 @@ interface TabRefs {
       name: string;
       weight: number;
     }>;
-    setFormData: (data) => void;
+    setFormData: (data: any) => void;
   }>;
   contactRef: React.RefObject<{
     validate: () => Promise<boolean>;
@@ -57,18 +57,17 @@ interface TabRefs {
       phone: string;
       email?: string;
     };
-    setFormData: (data) => void;
+    setFormData: (data: any) => void;
   }>;
   attachmentsRef: React.RefObject<{
     getFiles: () => File[];
-    setFormData?: (data) => void;
+    setFormData?: (data: any) => void;
   }>;
 }
 
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
   
-  // Initialize refs with proper typing
   const refs: TabRefs = {
     basicInfoRef: React.useRef(null),
     additionalInfoRef: React.useRef(null),
@@ -76,6 +75,10 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     contactRef: React.useRef(null),
     attachmentsRef: React.useRef(null),
   };
+
+  React.useEffect(() => {
+    console.log('CreateRNCModal mounted, refs initialized:', refs);
+  }, []);
 
   // Load saved form data when component mounts
   React.useEffect(() => {
@@ -85,7 +88,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         const parsedData = JSON.parse(savedData);
         console.log('Loading saved form data:', parsedData);
         
-        // Pass the saved data to child components through refs
         Object.entries(refs).forEach(([key, ref]) => {
           const tabKey = key.replace('Ref', '');
           if (ref.current && parsedData[tabKey]) {
@@ -98,68 +100,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       console.error('Error loading saved form data:', error);
     }
   }, []);
-
-  const handleBack = () => {
-    const tabs = ["basic", "additional", "products", "contact", "attachments"];
-    const currentIndex = tabs.indexOf(activeTab);
-    if (currentIndex > 0) {
-      setActiveTab(tabs[currentIndex - 1]);
-    }
-  };
-
-  const validateCurrentTab = async () => {
-    try {
-      let currentRef;
-      switch (activeTab) {
-        case 'basic':
-          currentRef = refs.basicInfoRef.current;
-          break;
-        case 'additional':
-          currentRef = refs.additionalInfoRef.current;
-          break;
-        case 'products':
-          currentRef = refs.productsRef.current;
-          break;
-        case 'contact':
-          currentRef = refs.contactRef.current;
-          break;
-        case 'attachments':
-          return true; // Attachments are optional
-      }
-  
-      if (!currentRef?.validate) {
-        console.log(`No validation method found for tab: ${activeTab}`);
-        return false;
-      }
-      
-      const isValid = await currentRef.validate();
-      console.log(`Validation result for ${activeTab}:`, isValid);
-      return isValid;
-    } catch (error) {
-      console.error(`Error validating ${activeTab} tab:`, error);
-      return false;
-    }
-  };
-
-  const handleNext = async () => {
-    const tabs = ["basic", "additional", "products", "contact", "attachments"];
-    const currentIndex = tabs.indexOf(activeTab);
-    
-    try {
-      const isValid = await validateCurrentTab();
-      if (!isValid) {
-        toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
-        return;
-      }
-
-      if (currentIndex < tabs.length - 1) {
-        setActiveTab(tabs[currentIndex + 1]);
-      }
-    } catch (error) {
-      console.error('Error handling next:', error);
-      toast.error('Erro ao validar formulário');
-    }
-  };
 
   const handleSave = async () => {
     const loadingToast = toast.loading('Criando RNC...');
@@ -207,7 +147,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       console.log('All validation results:', validationResults);
   
       const invalidTabs = Object.entries(validationResults)
-        .filter(([, isValid]) => !isValid)
+        .filter(([_, isValid]) => !isValid)
         .map(([tab]) => tab);
   
       if (invalidTabs.length > 0) {
@@ -250,6 +190,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       });
 
       // Upload attachments if any
+      const attachmentsData = refs.attachmentsRef.current?.getFiles();
       if (attachmentsData?.length) {
         for (const file of attachmentsData) {
           await rncService.uploadAttachment(rnc.id, file);
@@ -287,8 +228,8 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         <RNCModalContent
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          onBack={handleBack}
-          onNext={handleNext}
+          onBack={() => setActiveTab("basic")}
+          onNext={() => setActiveTab("additional")}
           onSave={handleSave}
           setProgress={() => {}}
           refs={refs}

@@ -1,11 +1,10 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { handleDocumentChange } from "@/utils/masks";
-import { Form } from "@/components/ui/form";
 import { basicInfoSchema } from "@/utils/validations";
 import type { z } from "zod";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
@@ -24,6 +23,8 @@ export type BasicInfoTabRef = {
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
   ({ setProgress }, ref) => {
+    console.log('BasicInfoTab mounted');
+    
     const form = useForm<BasicInfoFormData>({
       resolver: zodResolver(basicInfoSchema),
       defaultValues: {
@@ -38,80 +39,45 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
 
     const { watch } = form;
 
-    const responsibleOptions = [
-      "Alexandre",
-      "Arthur",
-      "Fabiana",
-      "Financeiro",
-      "Giovani",
-      "Helcio",
-      "Izabelly",
-      "Jordana",
-      "Marcos",
-      "Pedro",
-      "Rafaela",
-      "Samuel",
-      "Vinicius"
-    ];
-
     const formMethods = React.useMemo(
       () => ({
         validate: async () => {
           try {
+            console.log('Validating BasicInfoTab...');
             const result = await form.trigger();
-            console.log('Basic Info validation result:', result);
+            console.log('BasicInfoTab validation result:', result);
             console.log('Current form values:', form.getValues());
             return result;
           } catch (error) {
-            console.error('Basic validation error:', error);
+            console.error('BasicInfoTab validation error:', error);
             return false;
           }
         },
         getFormData: () => {
           try {
             const values = form.getValues();
-            console.log('Getting basic form data:', values);
+            console.log('Getting BasicInfoTab form data:', values);
             return values;
           } catch (error) {
-            console.error('Error getting basic form data:', error);
+            console.error('Error getting BasicInfoTab form data:', error);
             throw error;
           }
         },
         setFormData: (data: Partial<BasicInfoFormData>) => {
           try {
-            console.log('Setting basic form data:', data);
+            console.log('Setting BasicInfoTab form data:', data);
             form.reset(data);
           } catch (error) {
-            console.error('Error setting basic form data:', error);
+            console.error('Error setting BasicInfoTab form data:', error);
           }
         }
       }),
       [form]
     );
 
-    const saveFormData = React.useCallback((data: BasicInfoFormData) => {
-      try {
-        const currentData = localStorage.getItem('rncFormData');
-        const parsedData = currentData ? JSON.parse(currentData) : {};
-        localStorage.setItem('rncFormData', JSON.stringify({
-          ...parsedData,
-          basic: data
-        }));
-        console.log('Saved basic data:', data);
-      } catch (error) {
-        console.error('Error saving basic data:', error);
-      }
-    }, []);
-
     React.useEffect(() => {
-      const subscription = watch((data) => {
-        saveFormData(data as BasicInfoFormData);
-        const filledFields = Object.values(data).filter(Boolean).length;
-        const totalFields = Object.keys(data).length;
-        setProgress((filledFields / totalFields) * 100);
-      });
-      return () => subscription.unsubscribe();
-    }, [watch, saveFormData, setProgress]);
+      console.log('BasicInfoTab ref methods exposed');
+    }, []);
 
     React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
@@ -249,11 +215,19 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {responsibleOptions.map((option) => (
-                      <SelectItem key={option} value={option.toLowerCase()}>
-                        {option}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="alexandre">Alexandre</SelectItem>
+                    <SelectItem value="arthur">Arthur</SelectItem>
+                    <SelectItem value="fabiana">Fabiana</SelectItem>
+                    <SelectItem value="financeiro">Financeiro</SelectItem>
+                    <SelectItem value="giovani">Giovani</SelectItem>
+                    <SelectItem value="helcio">Helcio</SelectItem>
+                    <SelectItem value="izabelly">Izabelly</SelectItem>
+                    <SelectItem value="jordana">Jordana</SelectItem>
+                    <SelectItem value="marcos">Marcos</SelectItem>
+                    <SelectItem value="pedro">Pedro</SelectItem>
+                    <SelectItem value="rafaela">Rafaela</SelectItem>
+                    <SelectItem value="samuel">Samuel</SelectItem>
+                    <SelectItem value="vinicius">Vinicius</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
