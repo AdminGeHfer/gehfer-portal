@@ -1,3 +1,4 @@
+import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 import { z } from "zod";
 
 // Basic Info Validation Schema
@@ -8,8 +9,12 @@ export const basicInfoSchema = z.object({
     /(^\d{3}\.\d{3}\.\d{3}-\d{2}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$)/,
     "Documento inválido. Use um CPF ou CNPJ válido (Ex: 123.456.789-00 ou 12.345.678/0001-00)"
   ),
-  type: z.string().min(1, "Tipo é obrigatório"),
-  department: z.string().min(1, "Departamento é obrigatório"),
+  type: z.nativeEnum(RncTypeEnum, {
+    required_error: "Tipo é obrigatório"
+  }),
+  department: z.nativeEnum(RncDepartmentEnum, {
+    required_error: "Departamento é obrigatório"
+  }),
   responsible: z.string().min(1, "Responsável é obrigatório"),
 });
 
@@ -25,7 +30,6 @@ export const additionalInfoSchema = z.object({
 
 // Product Validation Schema
 export const productSchema = z.object({
-  id: z.string().uuid("ID inválido"),
   name: z.string().min(3, "Produto deve ter no mínimo 3 caracteres"),
   weight: z.number().min(0.1, "Peso deve ser maior que 0.1"),
 });

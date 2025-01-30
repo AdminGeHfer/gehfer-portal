@@ -125,13 +125,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     try {
       const loadingToast = toast.loading('Criando RNC...');
 
-      // Get form data from all tabs
-      const basicData = refs.basicInfoRef.current?.getFormData();
-      const additionalData = refs.additionalInfoRef.current?.getFormData();
-      const productsData = refs.productsRef.current?.getFormData();
-      const contactData = refs.contactRef.current?.getFormData();
-      const attachmentsData = refs.attachmentsRef.current?.getFiles();
-
       // Validate all tabs
       const validationResults = {
         basic: await refs.basicInfoRef.current?.validate(),
@@ -149,16 +142,32 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         return;
       }
 
+      // Get form data from all tabs
+      const basicData = refs.basicInfoRef.current?.getFormData();
+      const additionalData = refs.additionalInfoRef.current?.getFormData();
+      const productsData = refs.productsRef.current?.getFormData();
+      const contactData = refs.contactRef.current?.getFormData();
+      const attachmentsData = refs.attachmentsRef.current?.getFiles();
+
+      if (!basicData || !additionalData || !productsData || !contactData) {
+        toast.dismiss(loadingToast);
+        toast.error('Erro ao obter dados do formulário');
+        return;
+      }
+
       // Create RNC using service
       const rnc = await rncService.create({
         ...basicData,
-        ...additionalData,
-        contacts: [contactData],
+        description: additionalData.description,
+        korp: additionalData.korp,
+        nfv: additionalData.nfv,
+        nfd: additionalData.nfd,
+        city: additionalData.city,
+        conclusion: additionalData.conclusion,
         products: productsData,
-        korp: additionalData.korp || '',
-        nfv: additionalData.nfv || '',
+        contacts: [contactData],
       });
-  
+
       // Upload attachments if any
       if (attachmentsData?.length) {
         for (const file of attachmentsData) {

@@ -11,6 +11,8 @@ interface ContactTabProps {
   setProgress: (progress: number) => void;
 }
 
+export type ContactFormData = z.infer<typeof contactSchema>;
+
 export type ContactTabRef = {
   validate: () => Promise<boolean>;
   getFormData: () => z.infer<typeof contactSchema>;
@@ -19,13 +21,13 @@ export type ContactTabRef = {
 
 export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
   ({ setProgress }, ref) => {
-    const form = useForm<z.infer<typeof contactSchema>>({
+    const form = useForm<ContactFormData>({
       resolver: zodResolver(contactSchema),
       defaultValues: {
         name: "",
         phone: "",
         email: "",
-      },
+      }
     });
 
     // Save form data to localStorage whenever it changes
@@ -49,13 +51,20 @@ export const ContactTab = React.forwardRef<ContactTabRef, ContactTabProps>(
     }, [form.watch(), setProgress]);
 
     React.useImperativeHandle(ref, () => ({
-      validate: () => {
-        return form.trigger().then((isValid) => {
-          return isValid;
-        });
+      validate: () => form.trigger(),
+      getFormData: () => {
+        const values = form.getValues();
+        return {
+          name: values.name,
+          phone: values.phone,
+          email: values.email || "",
+        };
       },
-      getFormData: () => form.getValues(),
-      setFormData: (data) => form.reset(data),
+      setFormData: (data) => {
+        if (data) {
+          form.reset(data);
+        }
+      }
     }));
 
   return (

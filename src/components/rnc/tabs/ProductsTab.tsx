@@ -14,7 +14,7 @@ interface ProductsTabProps {
 }
 
 export type ProductFormData = {
-  products: Array<z.infer<typeof productSchema>>;
+  products: z.infer<typeof productSchema>[];
 };
 
 export type ProductsTabRef = {
@@ -23,20 +23,14 @@ export type ProductsTabRef = {
   setFormData: (data: Partial<ProductFormData>) => void;
 };
 
-const productsSchema = z.object({
-  products: z.array(z.object({
-    id: z.string(),
-    name: z.string().min(1, "Nome do produto é obrigatório"),
-    weight: z.string().min(1, "Peso é obrigatório")
-  })).min(1, "Pelo menos um produto deve ser adicionado")
-});
-
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
   ({ setProgress }, ref) => {
-    const form = useForm<z.infer<typeof productsSchema>>({
-      resolver: zodResolver(productsSchema),
+    const form = useForm<ProductFormData>({
+      resolver: zodResolver(z.object({
+        products: z.array(productSchema).min(1)
+      })),
       defaultValues: {
-        products: [{ id: crypto.randomUUID(), name: "", weight: "" }]
+        products: [{ name: "", weight: 0 }]
       }
     });
 
@@ -62,19 +56,15 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
       getFormData: () => {
-        const formData = form.getValues().products;
-        return formData.map(product => ({
+        const values = form.getValues();
+        return values.products.map(product => ({
           name: product.name,
           weight: Number(product.weight)
         }));
       },
       setFormData: (data) => {
         if (data?.products) {
-          setValue("products", data.products.map(product => ({
-            ...product,
-            id: product.id || crypto.randomUUID(),
-            weight: String(product.weight) // Convert number to string for the form input
-          })));
+          form.reset({ products: data.products });
         }
       }
     }));
@@ -83,7 +73,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
       const currentProducts = form.getValues("products");
       setValue("products", [
         ...currentProducts,
-        { id: crypto.randomUUID(), name: "", weight: "" }
+        { name: "", weight: 0.1 }
       ]);
     };
 
@@ -98,7 +88,7 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
       <Form {...form}>
         <form className="space-y-4 py-4">
           {products.map((product, index) => (
-            <div key={product.id} className="flex gap-4 items-start">
+            <div key={index} className="flex gap-4 items-start">
               <FormField
                 control={form.control}
                 name={`products.${index}.name`}
@@ -120,7 +110,17 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
                   <FormItem className="flex-1">
                     <FormLabel>Peso (kg) <span className="text-blue-400">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} type="number" placeholder="Digite o peso" />
+                      <Input 
+                        {...field}
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value ? parseFloat(value) : '');
+                        }}
+                        placeholder="Digite o peso" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

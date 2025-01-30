@@ -8,6 +8,7 @@ import { handleDocumentChange } from "@/utils/masks";
 import { Form } from "@/components/ui/form";
 import { basicInfoSchema } from "@/utils/validations";
 import type { z } from "zod";
+import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 
 interface BasicInfoTabProps {
   setProgress: (progress: number) => void;
@@ -23,14 +24,14 @@ export type BasicInfoTabRef = {
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
   ({ setProgress }, ref) => {
-    const form = useForm<z.infer<typeof basicInfoSchema>>({
+    const form = useForm<BasicInfoFormData>({
       resolver: zodResolver(basicInfoSchema),
       defaultValues: {
         company_code: "",
         company: "",
         document: "",
-        type: "",
-        department: "",
+        type: RncTypeEnum.company_complaint,
+        department: RncDepartmentEnum.logistics,
         responsible: "",
       },
     });
@@ -73,8 +74,22 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
 
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
-      getFormData: () => form.getValues(),
-      setFormData: (data) => form.reset(data),
+      getFormData: () => {
+        const values = form.getValues();
+        return {
+          company_code: values.company_code,
+          company: values.company,
+          document: values.document,
+          type: values.type,
+          department: values.department,
+          responsible: values.responsible,
+        };
+      },
+      setFormData: (data) => {
+        if (data) {
+          form.reset(data);
+        }
+      }
     }));
 
   return (
