@@ -36,6 +36,8 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
       },
     });
 
+    const { watch } = form;
+
     const responsibleOptions = [
       "Alexandre",
       "Arthur",
@@ -52,194 +54,215 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
       "Vinicius"
     ];
 
-    // Save form data to localStorage whenever it changes
-    React.useEffect(() => {
-      const subscription = form.watch((data) => {
+    const formMethods = React.useMemo(
+      () => ({
+        validate: async () => {
+          try {
+            const result = await form.trigger();
+            console.log('Basic Info validation result:', result);
+            console.log('Current form values:', form.getValues());
+            return result;
+          } catch (error) {
+            console.error('Basic validation error:', error);
+            return false;
+          }
+        },
+        getFormData: () => {
+          try {
+            const values = form.getValues();
+            console.log('Getting basic form data:', values);
+            return values;
+          } catch (error) {
+            console.error('Error getting basic form data:', error);
+            throw error;
+          }
+        },
+        setFormData: (data: Partial<BasicInfoFormData>) => {
+          try {
+            console.log('Setting basic form data:', data);
+            form.reset(data);
+          } catch (error) {
+            console.error('Error setting basic form data:', error);
+          }
+        }
+      }),
+      [form]
+    );
+
+    const saveFormData = React.useCallback((data: BasicInfoFormData) => {
+      try {
         const currentData = localStorage.getItem('rncFormData');
         const parsedData = currentData ? JSON.parse(currentData) : {};
         localStorage.setItem('rncFormData', JSON.stringify({
           ...parsedData,
           basic: data
         }));
-      });
-      return () => subscription.unsubscribe();
-    }, [form.watch]);
+        console.log('Saved basic data:', data);
+      } catch (error) {
+        console.error('Error saving basic data:', error);
+      }
+    }, []);
 
     React.useEffect(() => {
-      const values = form.watch();
-      const filledFields = Object.values(values).filter(Boolean).length;
-      const totalFields = Object.keys(values).length;
-      setProgress((filledFields / totalFields) * 100);
-    }, [form.watch(), setProgress]);
+      const subscription = watch((data) => {
+        saveFormData(data as BasicInfoFormData);
+        const filledFields = Object.values(data).filter(Boolean).length;
+        const totalFields = Object.keys(data).length;
+        setProgress((filledFields / totalFields) * 100);
+      });
+      return () => subscription.unsubscribe();
+    }, [watch, saveFormData, setProgress]);
 
-    React.useImperativeHandle(ref, () => ({
-      validate: () => form.trigger(),
-      getFormData: () => {
-        const values = form.getValues();
-        return {
-          company_code: values.company_code,
-          company: values.company,
-          document: values.document,
-          type: values.type,
-          department: values.department,
-          responsible: values.responsible,
-        };
-      },
-      setFormData: (data) => {
-        if (data) {
-          form.reset(data);
-        }
-      }
-    }));
+    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
-  return (
-    <Form {...form}>
-      <form className="space-y-4 py-4">
-        <FormField
-          control={form.control}
-          name="company_code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Código da empresa
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Digite o código da empresa" className="border-blue-200 focus:border-blue-400" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="company"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Empresa
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Digite o nome da empresa" className="border-blue-200 focus:border-blue-400" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="document"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Documento
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  placeholder="Digite o documento (CNPJ/CPF)" 
-                  className="border-blue-200 focus:border-blue-400"
-                  onChange={(e) => handleDocumentChange(e, field.onChange)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Tipo
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+    return (
+      <Form {...form}>
+        <form className="space-y-4 py-4">
+          <FormField
+            control={form.control}
+            name="company_code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Código da empresa
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
                 <FormControl>
-                  <SelectTrigger className="border-blue-200 focus:border-blue-400">
-                    <SelectValue placeholder="Selecione um tipo" />
-                  </SelectTrigger>
+                  <Input {...field} placeholder="Digite o código da empresa" className="border-blue-200 focus:border-blue-400" />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="company_complaint">Reclamação do Cliente</SelectItem>
-                  <SelectItem value="supplier">Fornecedor</SelectItem>
-                  <SelectItem value="dispatch">Expedição</SelectItem>
-                  <SelectItem value="logistics">Logística</SelectItem>
-                  <SelectItem value="deputy">Representante</SelectItem>
-                  <SelectItem value="driver">Motorista</SelectItem>
-                  <SelectItem value="financial">Financeiro</SelectItem>
-                  <SelectItem value="commercial">Comercial</SelectItem>
-                  <SelectItem value="financial_agreement">Acordo Financeiro</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="department"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Departamento
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormField
+            control={form.control}
+            name="company"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Empresa
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
                 <FormControl>
-                  <SelectTrigger className="border-blue-200 focus:border-blue-400">
-                    <SelectValue placeholder="Selecione um departamento" />
-                  </SelectTrigger>
+                  <Input {...field} placeholder="Digite o nome da empresa" className="border-blue-200 focus:border-blue-400" />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="logistics">Logística</SelectItem>
-                  <SelectItem value="quality">Qualidade</SelectItem>
-                  <SelectItem value="financial">Financeiro</SelectItem>
-                  <SelectItem value="tax">Fiscal</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="responsible"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Responsável
-                <span className="text-blue-400">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Documento
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
                 <FormControl>
-                  <SelectTrigger className="border-blue-200 focus:border-blue-400">
-                    <SelectValue placeholder="Responsável" />
-                  </SelectTrigger>
+                  <Input 
+                    {...field} 
+                    placeholder="Digite o documento (CNPJ/CPF)" 
+                    className="border-blue-200 focus:border-blue-400"
+                    onChange={(e) => handleDocumentChange(e, field.onChange)}
+                  />
                 </FormControl>
-                <SelectContent>
-                  {responsibleOptions.map((option) => (
-                    <SelectItem key={option} value={option.toLowerCase()}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </form>
-    </Form>
-  );
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Tipo
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="border-blue-200 focus:border-blue-400">
+                      <SelectValue placeholder="Selecione um tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="company_complaint">Reclamação do Cliente</SelectItem>
+                    <SelectItem value="supplier">Fornecedor</SelectItem>
+                    <SelectItem value="dispatch">Expedição</SelectItem>
+                    <SelectItem value="logistics">Logística</SelectItem>
+                    <SelectItem value="deputy">Representante</SelectItem>
+                    <SelectItem value="driver">Motorista</SelectItem>
+                    <SelectItem value="financial">Financeiro</SelectItem>
+                    <SelectItem value="commercial">Comercial</SelectItem>
+                    <SelectItem value="financial_agreement">Acordo Financeiro</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="department"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Departamento
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="border-blue-200 focus:border-blue-400">
+                      <SelectValue placeholder="Selecione um departamento" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="logistics">Logística</SelectItem>
+                    <SelectItem value="quality">Qualidade</SelectItem>
+                    <SelectItem value="financial">Financeiro</SelectItem>
+                    <SelectItem value="tax">Fiscal</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="responsible"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Responsável
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="border-blue-200 focus:border-blue-400">
+                      <SelectValue placeholder="Responsável" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {responsibleOptions.map((option) => (
+                      <SelectItem key={option} value={option.toLowerCase()}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
+    );
   }
 );
 

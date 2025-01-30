@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -25,6 +24,7 @@ export type ProductsTabRef = {
 
 export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
   ({ setProgress }, ref) => {
+    // Create form with useForm hook directly
     const form = useForm<ProductFormData>({
       resolver: zodResolver(z.object({
         products: z.array(productSchema).min(1)
@@ -34,53 +34,100 @@ export const ProductsTab = React.forwardRef<ProductsTabRef, ProductsTabProps>(
       }
     });
 
-    const { watch, setValue } = form;
+    const { watch, setValue, getValues } = form;
     const products = watch("products");
 
-    useEffect(() => {
-      const currentData = localStorage.getItem('rncFormData');
-      const parsedData = currentData ? JSON.parse(currentData) : {};
-      localStorage.setItem('rncFormData', JSON.stringify({
-        ...parsedData,
-        products: products
-      }));
-
-      // Calculate progress
-      const filledProducts = products.filter(
-        product => product.name && product.weight
-      ).length;
-      const progress = products.length > 0 ? (filledProducts / products.length) * 100 : 0;
-      setProgress(progress);
-    }, [products, setProgress]);
-
-    React.useImperativeHandle(ref, () => ({
-      validate: () => form.trigger(),
-      getFormData: () => {
-        const values = form.getValues();
-        return values.products.map(product => ({
-          name: product.name,
-          weight: Number(product.weight)
+    const saveFormData = React.useCallback((data: ProductFormData['products']) => {
+      try {
+        const currentData = localStorage.getItem('rncFormData');
+        const parsedData = currentData ? JSON.parse(currentData) : {};
+        localStorage.setItem('rncFormData', JSON.stringify({
+          ...parsedData,
+          products: data
         }));
-      },
-      setFormData: (data) => {
-        if (data?.products) {
-          form.reset({ products: data.products });
-        }
+        console.log('Saved products data:', data);
+      } catch (error) {
+        console.error('Error saving products data:', error);
       }
-    }));
+    }, []);
+
+    React.useEffect(() => {
+      const subscription = watch((data) => {
+        if (data.products) {
+          saveFormData(data.products);
+          const filledProducts = data.products.filter(
+            product => product.name && product.weight
+          ).length;
+          const progress = data.products.length > 0 ? 
+            (filledProducts / data.products.length) * 100 : 0;
+          setProgress(progress);
+        }
+      });
+      return () => subscription.unsubscribe();
+    }, [watch, saveFormData, setProgress]);
+
+    React.useImperativeHandle(
+      ref,
+      () => ({
+        validate: async () => {
+          try {
+            const result = await form.trigger();
+            console.log('Products validation result:', result);
+            return result;
+          } catch (error) {
+            console.error('Products validation error:', error);
+            return false;
+          }
+        },
+        getFormData: () => {
+          try {
+            const values = getValues();
+            console.log('Getting products form data:', values.products);
+            return values.products.map(product => ({
+              name: product.name,
+              weight: Number(product.weight)
+            }));
+          } catch (error) {
+            console.error('Error getting products form data:', error);
+            throw new Error('Failed to get products form data');
+          }
+        },
+        setFormData: (data: Partial<ProductFormData>) => {
+          try {
+            if (data?.products) {
+              console.log('Setting products form data:', data.products);
+              form.reset({ products: data.products });
+            }
+          } catch (error) {
+            console.error('Error setting products form data:', error);
+          }
+        }
+      }),
+      [form, getValues]
+    );
 
     const addProduct = () => {
-      const currentProducts = form.getValues("products");
-      setValue("products", [
-        ...currentProducts,
-        { name: "", weight: 0.1 }
-      ]);
+      try {
+        const currentProducts = getValues("products");
+        console.log('Adding new product to:', currentProducts);
+        setValue("products", [
+          ...currentProducts,
+          { name: "", weight: 0.1 }
+        ]);
+      } catch (error) {
+        console.error('Error adding product:', error);
+      }
     };
 
     const removeProduct = (index: number) => {
-      const currentProducts = form.getValues("products");
-      if (currentProducts.length > 1) {
-        setValue("products", currentProducts.filter((_, i) => i !== index));
+      try {
+        const currentProducts = getValues("products");
+        if (currentProducts.length > 1) {
+          console.log('Removing product at index:', index);
+          setValue("products", currentProducts.filter((_, i) => i !== index));
+        }
+      } catch (error) {
+        console.error('Error removing product:', error);
       }
     };
 

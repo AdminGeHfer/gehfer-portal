@@ -38,28 +38,51 @@ export const RNCModalContent = ({
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
   const handleTabChange = async (value: string) => {
-    const isValid = await validateCurrentTab();
-    if (!isValid) {
-      toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
-      return;
+    try {
+      console.log(`Attempting to change tab from ${activeTab} to ${value}`);
+      const isValid = await validateCurrentTab();
+      if (!isValid) {
+        toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
+        return;
+      }
+      setActiveTab(value);
+    } catch (error) {
+      console.error('Error changing tab:', error);
+      toast.error('Erro ao mudar de aba');
     }
-    setActiveTab(value);
   };
 
   const validateCurrentTab = async () => {
-    switch (activeTab) {
-      case "basic":
-        return await refs.basicInfoRef.current?.validate() ?? false;
-      case "additional":
-        return await refs.additionalInfoRef.current?.validate() ?? false;
-      case "products":
-        return await refs.productsRef.current?.validate() ?? false;
-      case "contact":
-        return await refs.contactRef.current?.validate() ?? false;
-      case "attachments":
-        return true; // Attachments are optional
-      default:
+    try {
+      let currentRef;
+      switch (activeTab) {
+        case 'basic':
+          currentRef = refs.basicInfoRef.current;
+          break;
+        case 'additional':
+          currentRef = refs.additionalInfoRef.current;
+          break;
+        case 'products':
+          currentRef = refs.productsRef.current;
+          break;
+        case 'contact':
+          currentRef = refs.contactRef.current;
+          break;
+        case 'attachments':
+          return true; // Attachments are optional
+      }
+  
+      if (!currentRef?.validate) {
+        console.log(`No validation method found for tab: ${activeTab}`);
         return false;
+      }
+      
+      const isValid = await currentRef.validate();
+      console.log(`Validation result for ${activeTab}:`, isValid);
+      return isValid;
+    } catch (error) {
+      console.error(`Error validating ${activeTab} tab:`, error);
+      return false;
     }
   };
 

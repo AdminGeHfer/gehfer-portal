@@ -21,57 +21,81 @@ export type AdditionalInfoTabRef = {
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
   ({ setProgress }, ref) => {
-    const form = useForm<z.infer<typeof additionalInfoSchema>>({
+    // Use form directly like in ProductsTab
+    const form = useForm<AdditionalInfoFormData>({
       resolver: zodResolver(additionalInfoSchema),
       defaultValues: {
         description: "",
         korp: "",
         nfv: "",
         nfd: "",
-        city: ""
+        city: "",
+        conclusion: "",
       },
-    
     });
 
-    // Save form data to localStorage whenever it changes
-    React.useEffect(() => {
-      const subscription = form.watch((data) => {
+    const { watch } = form;
+
+    const formMethods = React.useMemo(
+      () => ({
+        validate: async () => {
+          try {
+            const result = await form.trigger();
+            console.log('Additional Info validation result:', result);
+            console.log('Current form values:', form.getValues());
+            return result;
+          } catch (error) {
+            console.error('Additional validation error:', error);
+            return false;
+          }
+        },
+        getFormData: () => {
+          try {
+            const values = form.getValues();
+            console.log('Getting Additional form data:', values);
+            return values;
+          } catch (error) {
+            console.error('Error getting Additional form data:', error);
+            throw error;
+          }
+        },
+        setFormData: (data: Partial<AdditionalInfoFormData>) => {
+          try {
+            console.log('Setting basic form data:', data);
+            form.reset(data);
+          } catch (error) {
+            console.error('Error setting basic form data:', error);
+          }
+        }
+      }),
+      [form]
+    );
+
+    const saveFormData = React.useCallback((data: AdditionalInfoFormData) => {
+      try {
         const currentData = localStorage.getItem('rncFormData');
         const parsedData = currentData ? JSON.parse(currentData) : {};
         localStorage.setItem('rncFormData', JSON.stringify({
           ...parsedData,
           additional: data
         }));
-      });
-      return () => subscription.unsubscribe();
-    }, [form.watch]);
+        console.log('Saved additional data:', data);
+      } catch (error) {
+        console.error('Error saving additional data:', error);
+      }
+    }, []);
 
     React.useEffect(() => {
-      const values = form.watch();
-      const requiredFields = ["description", "korp", "nfv"];
-      const filledRequired = requiredFields.filter(field => values[field as keyof typeof values]).length;
-      setProgress((filledRequired / requiredFields.length) * 100);
-    }, [form.watch(), setProgress]);
+      const subscription = watch((data) => {
+        saveFormData(data as AdditionalInfoFormData);
+        const requiredFields = ["description", "korp", "nfv"];
+        const filledRequired = requiredFields.filter(field => data[field as keyof typeof data]).length;
+        setProgress((filledRequired / requiredFields.length) * 100);
+      });
+      return () => subscription.unsubscribe();
+    }, [watch, saveFormData, setProgress]);
 
-    React.useImperativeHandle(ref, () => ({
-      validate: () => form.trigger(),
-      getFormData: () => {
-        const values = form.getValues();
-        return {
-          description: values.description,
-          korp: values.korp,
-          nfv: values.nfv,
-          nfd: values.nfd || "",
-          city: values.city || "",
-          conclusion: values.conclusion || "",
-        };
-      },
-      setFormData: (data) => {
-        if (data) {
-          form.reset(data);
-        }
-      }
-    }));
+    React.useImperativeHandle(ref, () => formMethods, [formMethods]);
 
   return (
     <Form {...form}>
