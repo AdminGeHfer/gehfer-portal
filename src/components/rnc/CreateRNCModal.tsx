@@ -27,6 +27,7 @@ interface TabRefs {
 
 export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
+  const [isReady, setIsReady] = React.useState(false);
 
   type ValidatableTabRef = BasicInfoTabRef | AdditionalInfoTabRef | ProductsTabRef | ContactTabRef;
   
@@ -38,7 +39,19 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     attachmentsRef: React.createRef<AttachmentsTabRef>()
   });
 
-  const [mounted, setMounted] = React.useState(false);
+  const validateRefs = () => {
+    console.log('Validating refs:', {
+      basicInfoRef: !!refs.current.basicInfoRef.current,
+      additionalInfoRef: !!refs.current.additionalInfoRef.current,
+      productsRef: !!refs.current.productsRef.current,
+      contactRef: !!refs.current.contactRef.current,
+      attachmentsRef: !!refs.current.attachmentsRef.current
+    });
+    
+    return Object.values(refs.current).every(ref => !!ref.current);
+  };
+
+  const [, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
@@ -46,26 +59,44 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   }, []);
 
   React.useEffect(() => {
-    if (!mounted) return;
+    if (!open) return;
 
-    try {
-      const savedData = localStorage.getItem('rncFormData');
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        console.log('Loading saved form data:', parsedData);
+    const initializeForm = async () => {
+      try {
+        console.log('Initializing form...');
         
-        Object.entries(refs.current).forEach(([key, ref]) => {
-          const tabKey = key.replace('Ref', '');
-          if (ref.current && parsedData[tabKey]) {
-            console.log(`Setting ${tabKey} data:`, parsedData[tabKey]);
-            ref.current.setFormData?.(parsedData[tabKey]);
+        // Wait for refs to be ready
+        const checkRefs = setInterval(() => {
+          if (validateRefs()) {
+            clearInterval(checkRefs);
+            setIsReady(true);
+            
+            // Load saved data
+            const savedData = localStorage.getItem('rncFormData');
+            if (savedData) {
+              const parsedData = JSON.parse(savedData);
+              console.log('Loading saved form data:', parsedData);
+              
+              Object.entries(refs.current).forEach(([key, ref]) => {
+                const tabKey = key.replace('Ref', '');
+                if (ref.current && parsedData[tabKey]) {
+                  console.log(`Setting ${tabKey} data:`, parsedData[tabKey]);
+                  ref.current.setFormData?.(parsedData[tabKey]);
+                }
+              });
+            }
           }
-        });
+        }, 100);
+
+        // Cleanup interval after 5 seconds if refs aren't ready
+        setTimeout(() => clearInterval(checkRefs), 5000);
+      } catch (error) {
+        console.error('Error initializing form:', error);
       }
-    } catch (error) {
-      console.error('Error loading saved form data:', error);
-    }
-  }, [mounted]);
+    };
+
+    initializeForm();
+  }, [open]);
 
   const validateTab = async (ref: React.RefObject<ValidatableTabRef>, tabName: string): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -90,10 +121,19 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   };
 
   const handleSave = async () => {
+    if (!isReady) {
+      console.error('Form not ready for submission');
+      toast.error('Formulário não está pronto para envio');
+      return;
+    }
+
     const loadingToast = toast.loading('Criando RNC...');
   
     try {
-      console.log('Starting form validation...');
+      console.log('Starting form submission...', {
+        refsState: refs.current,
+        isReady
+      });
 
       await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -172,6 +212,17 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       toast.error(error instanceof Error ? error.message : 'Erro ao criar RNC');
     }
   };
+
+    // Only render content when ready
+    if (!isReady && open) {
+      return (
+        <Dialog open={open} onOpenChange={onClose}>
+          <DialogContent>
+            <div>Carregando formulário...</div>
+          </DialogContent>
+        </Dialog>
+      );
+    }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

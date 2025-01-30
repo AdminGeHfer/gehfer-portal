@@ -1,3 +1,4 @@
+// src/components/rnc/modal/RNCModalContent.tsx
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicInfoTab, BasicInfoTabRef } from "../tabs/BasicInfoTab";
@@ -34,13 +35,17 @@ export const RNCModalContent = ({
 
   const handleTabChange = async (value: string) => {
     try {
-      console.log(`Attempting to change tab from ${activeTab} to ${value}`);
+      console.log(`Tab change initiated:`, {
+        from: activeTab,
+        to: value,
+        currentRefs: refs // Log current refs state
+      });
       
-      // Only validate when moving forward
       if (tabs.indexOf(value) > tabs.indexOf(activeTab)) {
+        console.log('Moving forward - validating current tab');
         const isValid = await validateCurrentTab();
         if (!isValid) {
-          console.log(`Validation failed for tab ${activeTab}`);
+          console.log(`Validation failed for ${activeTab}, staying on current tab`);
           toast.error(`Por favor, preencha todos os campos obrigatórios na aba ${activeTab}`);
           return;
         }
@@ -49,7 +54,7 @@ export const RNCModalContent = ({
       console.log(`Tab change successful: ${activeTab} -> ${value}`);
       setActiveTab(value);
     } catch (error) {
-      console.error('Error changing tab:', error);
+      console.error('Error in handleTabChange:', error);
       toast.error('Erro ao mudar de aba');
     }
   };
