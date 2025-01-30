@@ -61,6 +61,18 @@ export const rncService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new RNCError('Usuário não autenticado');
 
+      const capitalizedResponsible = data.responsible.charAt(0).toUpperCase() + data.responsible.slice(1).toLowerCase();
+
+      const { data: assignedUser, error: userError } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('name', capitalizedResponsible)
+        .single();
+
+      if (userError) {
+        console.warn('Could not find user for assignment:', userError);
+      }
+
       // Validate document
       if (!validateDocument(data.document)) {
         throw new ValidationError('Formato de documento inválido');
@@ -76,13 +88,14 @@ export const rncService = {
           description: data.description,
           type: data.type,
           department: data.department,
-          responsible: data.responsible,
+          responsible: capitalizedResponsible,
           korp: data.korp,
           nfv: data.nfv,
           nfd: data.nfd,
           status: RncStatusEnum.pending,
           workflow_status: WorkflowStatusEnum.open,
           assigned_by: user.id,
+          assigned_to: assignedUser?.id || null,
           assigned_at: new Date().toISOString(),
           created_by: user.id,
           created_at: new Date().toISOString(),
