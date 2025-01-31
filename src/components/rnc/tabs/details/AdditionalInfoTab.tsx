@@ -8,12 +8,13 @@ import { z } from "zod";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { additionalInfoSchema } from "@/utils/validations";
-import { AdditionalInfoFormData } from "../AdditionalInfoTab";
 
 interface AdditionalInfoTabProps {
   isEditing: boolean;
   initialValues?: z.infer<typeof additionalInfoSchema>;
 }
+
+export type AdditionalInfoFormData = z.infer<typeof additionalInfoSchema>;
 
 export type AdditionalInfoTabRef = {
   validate: () => Promise<boolean>;

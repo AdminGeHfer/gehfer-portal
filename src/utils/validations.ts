@@ -23,11 +23,11 @@ export const additionalInfoSchema = z.object({
   description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   korp: z.string().min(3, "Número do pedido deve ter no mínimo 3 caracteres"),
   nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
-  nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres").optional().or(z.literal('')).nullable(),
-  city: z.string().min(3, "A cidade deve ter no mínimo 3 caracteres").optional().or(z.literal('')).nullable(),
-  conclusion: z.string().min(3, "A conclusão deve ter no mínimo 10 caracteres").optional().or(z.literal('')).nullable(),
-  closed_at: z.string().datetime().optional().nullable(),
-  collected_at: z.string().datetime().optional().nullable()
+  nfd: z.string().optional(),
+  city: z.string().optional(),
+  conclusion: z.string().optional(),
+  closed_at: z.string().datetime().nullable(),
+  collected_at: z.string().datetime().nullable()
 });
 
 // Product Validation Schema
@@ -54,22 +54,25 @@ export const relationalInfoSchema = z.object({
       "Telefone inválido. Use o formato: (99) 99999-9999"
     ),
     email: z.union([z.literal(""), z.string().email("Email inválido")]),
-  })),
+  })).min(1, "Adicione pelo menos um contato"),
   products: z.array(z.object({
-    id: z.string().uuid("ID inválido"),
+    id: z.string(),
     name: z.string().min(1, "Nome do produto é obrigatório"),
     weight: z.number().min(0.1, "Peso deve ser maior que 0")
   })).min(1, "Pelo menos um produto deve ser adicionado"),
-  attachments: z.array(z.object({
-    id: z.string().uuid("ID inválido"),
-    rnc_id: z.string().uuid("ID inválido"),
-    filename: z.string().min(1, "Nome do arquivo é obrigatório"),
-    filesize: z.number().min(1, "Tamanho do arquivo é obrigatório"),
-    content_type: z.string().min(1, "Tipo do arquivo é obrigatório"),
-    file_path: z.string().min(1, "Caminho do arquivo é obrigatório"),
-    created_by: z.string().uuid("Criado por ID é inválido"),
-    created_at: z.string().datetime(),
-  })),
+  attachments: z.array(z.union([
+    z.instanceof(File),
+    z.object({
+      id: z.string(),
+      rnc_id: z.string(),
+      filename: z.string(),
+      filesize: z.number(),
+      content_type: z.string(),
+      file_path: z.string(),
+      created_by: z.string(),
+      created_at: z.string()
+    })
+  ])).optional()
 });
 
 // Input Masks

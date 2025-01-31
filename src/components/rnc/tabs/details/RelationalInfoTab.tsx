@@ -11,7 +11,6 @@ import { rncService } from "@/services/rncService";
 import { toast } from "sonner";
 import { formatBytes } from "@/utils/format";
 import { FileUploadField } from "@/components/rnc/FileUploadField";
-import { CreateRNCContact, CreateRNCProduct, RNCAttachment } from "@/types/rnc";
 import { relationalInfoSchema } from "@/utils/validations";
 
 interface RelationalInfoTabProps {
@@ -40,38 +39,30 @@ interface RelationalInfoTabProps {
   };
 }
 
-type FormData = z.infer<typeof relationalInfoSchema>;
-
-export type RelationalInfoFormData = {
-  contacts: CreateRNCContact[];
-  products: CreateRNCProduct[];
-  attachments?: (File | RNCAttachment)[];
-};
+type RelationalInfoFormData  = z.infer<typeof relationalInfoSchema>;
 
 export type RelationalInfoTabRef = {
   validate: () => Promise<boolean>;
-  getFormData: () => FormData;
+  getFormData: () => RelationalInfoFormData ;
 };
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
   ({ rncId, isEditing, initialValues }, ref) => {
-    const defaultValues = React.useMemo(() => ({
-      contacts: initialValues?.contacts?.length ? initialValues.contacts : [{
-        name: initialValues?.contacts?.[0]?.name ?? "",
-        phone: initialValues?.contacts?.[0]?.phone ?? "",
-        email: initialValues?.contacts?.[0]?.email ?? ""
-      }],
-      products: initialValues?.products?.length ? initialValues.products : [{
-        id: crypto.randomUUID(),
-        name: "",
-        weight: 0.1
-      }],
-      attachments: initialValues?.attachments || []
-    }), [initialValues]);
-
-    const form = useForm<z.infer<typeof relationalInfoSchema>>({
+    const form = useForm<RelationalInfoFormData>({
       resolver: zodResolver(relationalInfoSchema),
-      defaultValues
+      defaultValues: {
+        contacts: initialValues?.contacts?.length ? initialValues.contacts : [{
+          name: "",
+          phone: "",
+          email: ""
+        }],
+        products: initialValues?.products?.length ? initialValues.products : [{
+          id: crypto.randomUUID(),
+          name: "",
+          weight: 0.1
+        }],
+        attachments: initialValues?.attachments || []
+      }
     });
 
     const [attachments, setAttachments] = React.useState(initialValues?.attachments || []);

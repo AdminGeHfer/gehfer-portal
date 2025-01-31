@@ -14,7 +14,6 @@ import { basicInfoSchema } from "@/utils/validations";
 import { handleDocumentChange } from "@/utils/masks";
 import type { z } from "zod";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
-import { BasicInfoFormData } from "../BasicInfoTab";
 
 interface BasicInfoTabProps {
   isEditing: boolean;
@@ -26,17 +25,19 @@ export type BasicInfoTabRef = {
   getFormData: () => BasicInfoFormData;
 };
 
+export type BasicInfoFormData = z.infer<typeof basicInfoSchema>;
+
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
   ({ isEditing, initialValues }, ref) => {
     const form = useForm<z.infer<typeof basicInfoSchema>>({
       resolver: zodResolver(basicInfoSchema),
       defaultValues: {
-        company_code: "",
-        company: "",
-        document: "",
-        type: RncTypeEnum.company_complaint,
-        department: RncDepartmentEnum.logistics,
-        responsible: "",
+        company_code: initialValues?.company_code || "",
+        company: initialValues?.company || "",
+        document: initialValues?.document || "",
+        type: initialValues?.type || RncTypeEnum.company_complaint,
+        department: initialValues?.department || RncDepartmentEnum.logistics,
+        responsible: initialValues?.responsible || ""
       },
     });
 

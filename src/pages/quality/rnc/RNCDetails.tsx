@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { BackButton } from '@/components/atoms/BackButton';
+import { RncStatusEnum, WorkflowStatusEnum } from '@/types/rnc';
 
 const RNCDetailsPage = () => {
   const navigate = useNavigate();
@@ -68,11 +69,25 @@ const RNCDetailsPage = () => {
 
       // Update RNC
       const updatedData = {
-        ...basicData,
-        ...additionalData,
-        contacts: relationalData.contacts || [],
-        products: relationalData.products || [],
+        company_code: basicData.company_code,
+        company: basicData.company,
+        document: basicData.document,
+        type: basicData.type,
+        department: basicData.department,
+        responsible: basicData.responsible,
+        description: additionalData.description,
+        korp: additionalData.korp || "",
+        nfv: additionalData.nfv || "",
+        nfd: additionalData.nfd,
+        city: additionalData.city,
+        collected_at: additionalData.collected_at,
+        closed_at: additionalData.closed_at,
+        conclusion: additionalData.conclusion,
+        contacts: relationalData.contacts,
+        products: relationalData.products,
         attachments: relationalData.attachments || [],
+        status: rnc?.status || RncStatusEnum.pending,
+        workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
         updated_at: new Date().toISOString()
       };
 
