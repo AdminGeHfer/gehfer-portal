@@ -10,6 +10,7 @@ const QualityRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<RNCHome />} />
+      <Route path="/home" element={<RNCHome />} />
       <Route path="/workflow" element={<WorkflowEditor />} />
       <Route path="/rnc/:id" element={<RNCDetails />} />
     </Routes>

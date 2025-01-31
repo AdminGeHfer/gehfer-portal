@@ -1,7 +1,13 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RncDepartmentEnum, RncStatusEnum, RncTypeEnum } from "@/types/rnc";
 
 interface RNCFiltersProps {
@@ -20,47 +26,70 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
     <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">RNCs</h2>
-        <Button onClick={onCreateRNC}>Nova RNC</Button>
+        <Button 
+          onClick={onCreateRNC}
+          className="bg-primary hover:bg-primary/90 text-white"
+        >
+          Nova RNC
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Input
-          placeholder="Buscar por número ou empresa..."
-          value={filters.searchTerm}
-          onChange={(e) => onFilterChange('searchTerm', e.target.value)}
-        />
+        <div className="relative">
+          <Input
+            placeholder="Buscar por número ou empresa..."
+            value={filters.searchTerm}
+            onChange={(e) => onFilterChange('searchTerm', e.target.value)}
+            className="w-full bg-white dark:bg-gray-800"
+          />
+        </div>
 
         <Select
           value={filters.selectedStatus || ''}
           onValueChange={(value) => onFilterChange('selectedStatus', value || null)}
         >
-          <option value="">Status</option>
-          <option value={RncStatusEnum.pending}>Pendente</option>
-          <option value={RncStatusEnum.collect}>Coleta</option>
-          <option value={RncStatusEnum.concluded}>Concluída</option>
-          <option value={RncStatusEnum.canceled}>Cancelada</option>
+          <SelectTrigger className="w-full bg-white dark:bg-gray-800">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value={RncStatusEnum.pending}>Pendente</SelectItem>
+            <SelectItem value={RncStatusEnum.collect}>Coleta</SelectItem>
+            <SelectItem value={RncStatusEnum.concluded}>Concluída</SelectItem>
+            <SelectItem value={RncStatusEnum.canceled}>Cancelada</SelectItem>
+          </SelectContent>
         </Select>
 
         <Select
           value={filters.selectedType || ''}
           onValueChange={(value) => onFilterChange('selectedType', value || null)}
         >
-          <option value="">Tipo</option>
-          <option value={RncTypeEnum.company_complaint}>Reclamação</option>
-          <option value={RncTypeEnum.supplier}>Fornecedor</option>
-          <option value={RncTypeEnum.dispatch}>Expedição</option>
-          <option value={RncTypeEnum.logistics}>Logística</option>
+          <SelectTrigger className="w-full bg-white dark:bg-gray-800">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value={RncTypeEnum.company_complaint}>Reclamação</SelectItem>
+            <SelectItem value={RncTypeEnum.supplier}>Fornecedor</SelectItem>
+            <SelectItem value={RncTypeEnum.dispatch}>Expedição</SelectItem>
+            <SelectItem value={RncTypeEnum.logistics}>Logística</SelectItem>
+          </SelectContent>
         </Select>
 
         <Select
           value={filters.selectedDepartment || ''}
           onValueChange={(value) => onFilterChange('selectedDepartment', value || null)}
         >
-          <option value="">Departamento</option>
-          <option value={RncDepartmentEnum.logistics}>Logística</option>
-          <option value={RncDepartmentEnum.quality}>Qualidade</option>
-          <option value={RncDepartmentEnum.financial}>Financeiro</option>
-          <option value={RncDepartmentEnum.tax}>Fiscal</option>
+          <SelectTrigger className="w-full bg-white dark:bg-gray-800">
+            <SelectValue placeholder="Departamento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value={RncDepartmentEnum.logistics}>Logística</SelectItem>
+            <SelectItem value={RncDepartmentEnum.quality}>Qualidade</SelectItem>
+            <SelectItem value={RncDepartmentEnum.financial}>Financeiro</SelectItem>
+            <SelectItem value={RncDepartmentEnum.tax}>Fiscal</SelectItem>
+          </SelectContent>
         </Select>
       </div>
     </div>

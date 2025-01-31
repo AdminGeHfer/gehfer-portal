@@ -6,18 +6,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RNCType } from "../../types";
+import { RncTypeEnum } from "@/types/rnc";
+
 
 interface TypeSelectProps {
-  selectedType: RNCType | null;
-  setSelectedType: (value: RNCType | null) => void;
+  selectedType: RncTypeEnum | null;
+  setSelectedType: (value: RncTypeEnum | null) => void;
 }
 
 export const TypeSelect = ({ selectedType, setSelectedType }: TypeSelectProps) => {
   return (
     <Select 
       value={selectedType || ""} 
-      onValueChange={(value) => setSelectedType(value as RNCType || null)}
+      onValueChange={(value) => setSelectedType(value as RncTypeEnum || null)}
     >
       <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800">
         <SelectValue placeholder="Selecione um tipo" />

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useFormContext } from "react-hook-form";
-import { FileUploadField } from "@/components/portaria/FileUploadField";
+import { FileUploadField } from "@/components/rnc/FileUploadField";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
