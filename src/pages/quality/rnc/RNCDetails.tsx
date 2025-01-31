@@ -87,7 +87,7 @@ const RNCDetailsPage = () => {
       }
 
       await rncService.delete(id);
-      toast.success("RNC excluída com sucesso!");
+
       navigate('/quality/home', { replace: true });
     } catch (error) {
       console.error('Error deleting RNC:', error);

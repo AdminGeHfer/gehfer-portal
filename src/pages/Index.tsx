@@ -61,7 +61,7 @@ const Index = () => {
     
     try {
       await rncService.delete(selectedRNCData.id);
-      // toast.success("RNC excluída com sucesso!");
+      toast.success("RNC excluída com sucesso!");
       
       // Refresh the RNC List
       await refetch();
