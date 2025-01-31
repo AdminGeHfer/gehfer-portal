@@ -15,9 +15,7 @@ export type AdditionalInfoTabRef = {
 };
 
 export const AdditionalInfoTab = () => {
-  const { control, watch } = useFormContext();
-  const description = watch('description');
-  console.log('Description value:', description);
+  const { control } = useFormContext();
 
     return (
         <div className="space-y-4 py-4">

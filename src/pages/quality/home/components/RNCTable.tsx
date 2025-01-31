@@ -35,8 +35,8 @@ export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
     return <div>Carregando RNCs...</div>;
   }
 
-  const handleRowClick = (id: string) => {
-    navigate(`/quality/rnc/${id}`);
+  const handleRowClick = (rnc: RNCWithRelations) => {
+    navigate(`/quality/rnc/${rnc.id}`);
   };
 
   return (
@@ -59,7 +59,7 @@ export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
               <TableRow 
                 key={rnc.id}
                 className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
-                onClick={() => handleRowClick(rnc.id)}
+                onClick={() => handleRowClick(rnc)}
               >
                 <TableCell>{rnc.rnc_number}</TableCell>
                 <TableCell>{rnc.company}</TableCell>
