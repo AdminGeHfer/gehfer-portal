@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
-import { RNCWithRelations } from "@/types/rnc";
+import { RNCWithRelations, RncStatusEnum, RncTypeEnum, RncDepartmentEnum } from "@/types/rnc";
 import { 
-  getDepartmentDisplayName, 
   getStatusDisplayName, 
-  getTypeDisplayName 
+  getTypeDisplayName, 
+  getDepartmentDisplayName 
 } from "@/pages/quality/home/utils/colors";
-import { 
-  RncDepartmentEnum, 
-  RncStatusEnum, 
-  RncTypeEnum 
-} from "@/types/rnc";
 
 interface FilterProps {
   rncs: RNCWithRelations[];
@@ -26,7 +21,7 @@ export const useRNCs = ({
   selectedDepartment,
   searchTerm,
 }: FilterProps) => {
-  const [filteredRNCs, setFilteredRNCs] = useState<RNCWithRelations[]>(rncs);
+  const [filteredRNCs, setFilteredRNCs] = useState<RNCWithRelations[]>(rncs || []);
 
   useEffect(() => {
     try {
@@ -54,7 +49,7 @@ export const useRNCs = ({
         const term = searchTerm.toLowerCase();
         filtered = filtered.filter(
           (rnc) =>
-            rnc.rnc_number.toString().includes(term) ||
+            rnc.rnc_number?.toString().includes(term) ||
             rnc.company.toLowerCase().includes(term)
         );
       }

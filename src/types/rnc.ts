@@ -92,6 +92,33 @@ export interface RNCProduct {
   weight: number;
 }
 
+export interface RNCEvent {
+  id: string;
+  rnc_id: string;
+  title: string;
+  description: string;
+  type: string;
+  created_at: string;
+  created_by: string;
+  created_by_profile?: {
+    name: string;
+  };
+}
+
+export interface WorkflowTransition {
+  id: string;
+  rnc_id: string;
+  from_status: WorkflowStatusEnum | null;
+  to_status: WorkflowStatusEnum;
+  notes?: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  created_by_profile: {
+    name: string;
+  };
+}
+
 // Creation interfaces
 export interface CreateRNCProduct {
   name: string;
@@ -109,6 +136,17 @@ export interface RNCWithRelations extends RNC {
   attachments?: RNCAttachment[];
   contacts: RNCContact[];
   products: RNCProduct[];
+  events: RNCEvent[];
+  workflow_transitions: WorkflowTransition[];
+  created_by_profile?: {
+    name: string;
+  };
+  assigned_by_profile?: {
+    name: string;
+  };
+  assigned_to_profile?: {
+    name: string;
+  };
 }
 
 // Creation input type
@@ -119,4 +157,15 @@ export interface CreateRNCInput extends Omit<RNC, 'id' | 'rnc_number' | 'days_le
 
 export interface UpdateRNCInput extends Omit<CreateRNCInput, 'created_by' | 'created_at'> {
   updated_at: string;
+}
+
+export interface CreateRNCProduct {
+  name: string;
+  weight: number;
+}
+
+export interface CreateRNCContact {
+  name: string;
+  phone: string;
+  email?: string;
 }

@@ -1,9 +1,11 @@
+// src/pages/quality/home/RNCHome.tsx
 import { Button } from "@/components/ui/button";
 import { RNCFilters } from "./components/RNCFilters";
 import { RNCTable } from "./components/RNCTable";
 import { useRNCs } from "@/hooks/useRNCs";
+import { useRNCList } from "@/hooks/useRNCList";
 import { useState } from "react";
-import { RNCStatus, RNCType, RNCDepartment } from "./types";
+import { RncStatusEnum, RncTypeEnum, RncDepartmentEnum } from "@/types/rnc";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
 import { useTheme } from "next-themes";
 import { Moon, Sun, LogOut } from "lucide-react";
@@ -11,16 +13,18 @@ import { useAuth } from "@/hooks/useAuth";
 import * as React from "react";
 
 export const RNCHome = () => {
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<RNCStatus | null>(null);
-  const [selectedType, setSelectedType] = useState<RNCType | null>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<RNCDepartment | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<RncStatusEnum | null>(null);
+  const [selectedType, setSelectedType] = useState<RncTypeEnum | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<RncDepartmentEnum | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
 
-  const { filteredRNCs, isLoading, error } = useRNCs({
+  const { rncs, loading: isLoading, error, refetch } = useRNCList();
+
+  const { filteredRNCs } = useRNCs({
+    rncs,
     selectedStatus,
     selectedType,
     selectedDepartment,
@@ -72,21 +76,38 @@ export const RNCHome = () => {
         </div>
 
         <RNCFilters
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
-          selectedType={selectedType}
-          setSelectedType={setSelectedType}
-          selectedDepartment={selectedDepartment}
-          setSelectedDepartment={setSelectedDepartment}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          isSearchExpanded={isSearchExpanded}
-          setIsSearchExpanded={setIsSearchExpanded}
+          filters={{
+            searchTerm: searchQuery,
+            selectedStatus,
+            selectedType,
+            selectedDepartment
+          }}
+          onFilterChange={(key, value) => {
+            switch (key) {
+              case 'searchTerm':
+                setSearchQuery(value);
+                break;
+              case 'selectedStatus':
+                setSelectedStatus(value);
+                break;
+              case 'selectedType':
+                setSelectedType(value);
+                break;
+              case 'selectedDepartment':
+                setSelectedDepartment(value);
+                break;
+            }
+          }}
           onCreateRNC={() => setIsCreateModalOpen(true)}
         />
 
         <div className="mt-6">
-          <RNCTable data={filteredRNCs} />
+          <RNCTable 
+            rncs={filteredRNCs}
+            onEdit={() => {}} // Implement if needed
+            onDelete={() => {}} // Implement if needed
+            isLoading={isLoading}
+          />
         </div>
       </div>
 
@@ -106,7 +127,10 @@ export const RNCHome = () => {
 
       <CreateRNCModal 
         open={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          refetch();
+        }} 
       />
     </div>
   );

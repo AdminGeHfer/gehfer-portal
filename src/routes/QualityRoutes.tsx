@@ -1,3 +1,4 @@
+// src/routes/QualityRoutes.tsx
 import React, { lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 
@@ -8,8 +9,8 @@ const RNCDetails = lazy(() => import("@/pages/quality/rnc/RNCDetails"));
 const QualityRoutes = () => {
   return (
     <Routes>
+      <Route path="/" element={<RNCHome />} />
       <Route path="/workflow" element={<WorkflowEditor />} />
-      <Route path="/home" element={<RNCHome />} />
       <Route path="/rnc/:id" element={<RNCDetails />} />
     </Routes>
   );
