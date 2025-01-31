@@ -64,17 +64,17 @@ export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
                 <TableCell>{rnc.rnc_number}</TableCell>
                 <TableCell>{rnc.company}</TableCell>
                 <TableCell>
-                  <Badge className={getTypeColor(rnc.type)}>
+                  <Badge className={getTypeColor(getTypeDisplayName(rnc.type))}>
                     {getTypeDisplayName(rnc.type)}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={getDepartmentColor(rnc.department)}>
+                  <Badge className={getDepartmentColor(getDepartmentDisplayName(rnc.department))}>
                     {getDepartmentDisplayName(rnc.department)}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={getStatusColor(rnc.status)}>
+                  <Badge className={getStatusColor(getStatusDisplayName(rnc.status))}>
                     {getStatusDisplayName(rnc.status)}
                   </Badge>
                 </TableCell>

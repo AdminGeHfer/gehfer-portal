@@ -2,48 +2,48 @@ import { RncDepartmentEnum, RncStatusEnum, RncTypeEnum, WorkflowStatusEnum } fro
 
 export const getStatusDisplayName = (status: RncStatusEnum): string => {
   const statusMap = {
-    [RncStatusEnum.not_created]: 'Não Criada',
-    [RncStatusEnum.pending]: 'Pendente',
-    [RncStatusEnum.collect]: 'Coleta',
-    [RncStatusEnum.concluded]: 'Concluída',
-    [RncStatusEnum.canceled]: 'Cancelada'
+    [RncStatusEnum.not_created]: "Não Criada",
+    [RncStatusEnum.pending]: "Pendente",
+    [RncStatusEnum.collect]: "Coletado",
+    [RncStatusEnum.concluded]: "Solucionado",
+    [RncStatusEnum.canceled]: "Cancelado"
   };
   return statusMap[status] || status;
 };
 
 export const getTypeDisplayName = (type: RncTypeEnum): string => {
   const typeMap = {
-    [RncTypeEnum.company_complaint]: 'Reclamação',
-    [RncTypeEnum.supplier]: 'Fornecedor',
-    [RncTypeEnum.dispatch]: 'Expedição',
-    [RncTypeEnum.logistics]: 'Logística',
-    [RncTypeEnum.deputy]: 'Representante',
-    [RncTypeEnum.driver]: 'Motorista',
-    [RncTypeEnum.financial]: 'Financeiro',
-    [RncTypeEnum.commercial]: 'Comercial',
-    [RncTypeEnum.financial_agreement]: 'Acordo Financeiro'
+    [RncTypeEnum.company_complaint]: "Reclamação do Cliente",
+    [RncTypeEnum.supplier]: "Fornecedor",
+    [RncTypeEnum.dispatch]: "Expedição",
+    [RncTypeEnum.logistics]: "Logística",
+    [RncTypeEnum.deputy]: "Representante",
+    [RncTypeEnum.driver]: "Motorista",
+    [RncTypeEnum.financial]: "Financeiro",
+    [RncTypeEnum.commercial]: "Comercial",
+    [RncTypeEnum.financial_agreement]: "Acordo Financeiro"
   };
   return typeMap[type] || type;
 };
 
 export const getDepartmentDisplayName = (department: RncDepartmentEnum): string => {
   const departmentMap = {
-    [RncDepartmentEnum.logistics]: 'Logística',
-    [RncDepartmentEnum.quality]: 'Qualidade',
-    [RncDepartmentEnum.financial]: 'Financeiro',
-    [RncDepartmentEnum.tax]: 'Fiscal'
+    [RncDepartmentEnum.logistics]: "Logística",
+    [RncDepartmentEnum.quality]: "Qualidade",
+    [RncDepartmentEnum.financial]: "Financeiro",
+    [RncDepartmentEnum.tax]: "Fiscal"
   };
   return departmentMap[department] || department;
 };
 
 export const getWorkflowStatusDisplayName = (status: WorkflowStatusEnum) => {
   const workflowStatusMap = {
-    [WorkflowStatusEnum.open]: 'Aberto',
-    [WorkflowStatusEnum.analysis]: 'Em Análise',
-    [WorkflowStatusEnum.resolution]: 'Em Resolução',
-    [WorkflowStatusEnum.solved]: 'Resolvido',
-    [WorkflowStatusEnum.closing]: 'Fechando',
-    [WorkflowStatusEnum.closed]: 'Fechado'
+    [WorkflowStatusEnum.open]: "Aberto",
+    [WorkflowStatusEnum.analysis]: "Em Análise",
+    [WorkflowStatusEnum.resolution]: "Em Resolução",
+    [WorkflowStatusEnum.solved]: "Resolvido",
+    [WorkflowStatusEnum.closing]: "Fechando",
+    [WorkflowStatusEnum.closed]: "Fechado"
   };
   return workflowStatusMap[status] || status;
 };
