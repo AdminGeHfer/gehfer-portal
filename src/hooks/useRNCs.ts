@@ -1,39 +1,53 @@
 import { useState, useEffect } from "react";
 import { RNCWithRelations } from "@/types/rnc";
-import { useRNCList } from "./useRNCList";
-import { getDepartmentDisplayName, getStatusDisplayName, getTypeDisplayName } from "@/pages/quality/home/utils/colors";
-import { RNCDepartment, RNCStatus, RNCType } from "@/pages/quality/home/types";
+import { 
+  getDepartmentDisplayName, 
+  getStatusDisplayName, 
+  getTypeDisplayName 
+} from "@/pages/quality/home/utils/colors";
+import { 
+  RncDepartmentEnum, 
+  RncStatusEnum, 
+  RncTypeEnum 
+} from "@/types/rnc";
 
-interface UseRNCsProps {
-  selectedStatus: RNCStatus | null;
-  selectedType: RNCType | null;
-  selectedDepartment: RNCDepartment | null;
+interface FilterProps {
+  rncs: RNCWithRelations[];
+  selectedStatus: RncStatusEnum | null;
+  selectedType: RncTypeEnum | null;
+  selectedDepartment: RncDepartmentEnum | null;
   searchTerm: string;
 }
 
 export const useRNCs = ({
+  rncs,
   selectedStatus,
   selectedType,
   selectedDepartment,
   searchTerm,
-}: UseRNCsProps) => {
-  const [filteredRNCs, setFilteredRNCs] = useState<RNCWithRelations[]>([]);
-  const { rncs, loading: isLoading, error } = useRNCList();
+}: FilterProps) => {
+  const [filteredRNCs, setFilteredRNCs] = useState<RNCWithRelations[]>(rncs);
 
   useEffect(() => {
     try {
       let filtered = [...rncs];
 
       if (selectedStatus) {
-        filtered = filtered.filter((rnc) => getStatusDisplayName(rnc.status) === getStatusDisplayName(selectedStatus));
+        filtered = filtered.filter((rnc) => 
+          getStatusDisplayName(rnc.status) === getStatusDisplayName(selectedStatus)
+        );
       }
 
       if (selectedType) {
-        filtered = filtered.filter((rnc) => getTypeDisplayName(rnc.type) === getTypeDisplayName(selectedType));
+        filtered = filtered.filter((rnc) => 
+          getTypeDisplayName(rnc.type) === getTypeDisplayName(selectedType)
+        );
       }
 
       if (selectedDepartment) {
-        filtered = filtered.filter((rnc) => getDepartmentDisplayName(rnc.department) === getDepartmentDisplayName(selectedDepartment));
+        filtered = filtered.filter((rnc) => 
+          getDepartmentDisplayName(rnc.department) === getDepartmentDisplayName(selectedDepartment)
+        );
       }
 
       if (searchTerm) {
@@ -51,5 +65,5 @@ export const useRNCs = ({
     }
   }, [rncs, selectedStatus, selectedType, selectedDepartment, searchTerm]);
 
-  return { filteredRNCs, isLoading, error };
+  return { filteredRNCs };
 };

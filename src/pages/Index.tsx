@@ -1,139 +1,157 @@
 import { useState } from "react";
 import * as React from "react";
 import { toast } from "sonner";
-import { ComplaintFilters } from "@/components/dashboard/ComplaintFilters";
-import { ComplaintDetails } from "@/components/dashboard/ComplaintDetails";
-import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
-import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
+import { RNCFilters } from "@/components/dashboard/RNCFilters";
+import { RNCDetails } from "@/components/dashboard/RNCDetails";
+import { RNCStats } from "@/components/dashboard/RNCStats";
+import { RNCTable } from "@/components/dashboard/RNCTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
 import { EditRNCModal } from "@/components/rnc/EditRNCModal";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
-import { useComplaints } from "@/hooks/useComplaints";
-import { useComplaintFilters } from "@/hooks/useComplaintFilters";
-import { RNC, RncTypeEnum, RncDepartmentEnum, RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
+import { useRNCs } from "@/hooks/useRNCs";
+import { useRNCList } from "@/hooks/useRNCList";
+import { RNC, RncDepartmentEnum, RncStatusEnum, RncTypeEnum } from "@/types/rnc";
 import { rncService } from "@/services/rncService";
 
 const Index = () => {
-  const { complaints, setComplaints, selectedComplaint, setSelectedComplaint } = useComplaints();
-  const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
+  // RNC List Management
+  const { rncs, loading: isLoading, error, refetch } = useRNCList();
+  const [selectedRNC, setSelectedRNC] = useState<string | null>(null);
 
+  // Filter States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<RncStatusEnum | null>(null);
+  const [selectedType, setSelectedType] = useState<RncTypeEnum | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<RncDepartmentEnum | null>(null);
+
+  // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedRNC, setSelectedRNC] = useState<RNC | null>(null);
+  const [selectedRNCData, setSelectedRNCData] = useState<RNC | null>(null);
+
+  // Apply Filters
+  const { filteredRNCs } = useRNCs({
+    rncs,
+    selectedStatus,
+    selectedType,
+    selectedDepartment,
+    searchTerm,
+  });
+
+  const handleFilterChange = (key: string, value) => {
+    switch (key) {
+      case 'searchTerm':
+        setSearchTerm(value);
+        break;
+      case 'selectedStatus':
+        setSelectedStatus(value);
+        break;
+      case 'selectedType':
+        setSelectedType(value);
+        break;
+      case 'selectedDepartment':
+        setSelectedDepartment(value);
+        break;
+    }
+  };
 
   const handleEdit = (rnc: RNC) => {
-    setSelectedRNC(rnc);
+    setSelectedRNCData(rnc);
     setIsEditModalOpen(true);
   };
 
   const handleDelete = (rnc: RNC) => {
-    setSelectedRNC(rnc);
+    setSelectedRNCData(rnc);
     setIsDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!selectedRNC) return;
+    if (!selectedRNCData) return;
     
     try {
-      await rncService.delete(selectedRNC.id);
+      await rncService.delete(selectedRNCData.id);
       toast.success("RNC excluída com sucesso!");
       
-      // Remove the deleted RNC from the list
-      const updatedComplaints = complaints.filter(c => c.id.toString() === selectedRNC.id);
-      setComplaints(updatedComplaints);
+      // Refresh the RNC List
+      await refetch();
       
       // Close the dialog
       setIsDeleteDialogOpen(false);
-      setSelectedRNC(null);
+      setSelectedRNCData(null);
     } catch (error) {
       console.error('Error deleting RNC:', error);
       toast.error("Erro ao excluir RNC");
     }
   };
 
-  // Convert complaints to RNC format for the table
-  const complaintRNCs = filteredComplaints.map(complaint => ({
-    id: complaint.id.toString(),
-    rnc_number: parseInt(complaint.protocol),
-    company: complaint.company,
-    description: complaint.description,
-    type: RncTypeEnum.company_complaint,
-    workflow_status: WorkflowStatusEnum.open,
-    department: RncDepartmentEnum.logistics,
-    status: RncStatusEnum.pending,
-    created_by: "",
-    created_at: complaint.date,
-    updated_at: new Date().toISOString(),
-    company_code: "",
-    document: "",
-    assigned_by: null,
-    assigned_to: null,
-    assigned_at: null,
-    closed_at: null,
-    responsible: "",
-    days_left: complaint.daysOpen,
-    korp: "",
-    nfv: "",
-    nfd: null,
-    collected_at: null,
-    city: "",
-    conclusion: ""
-  } as RNC));
+  if (error) {
+    toast.error("Erro ao carregar RNCs");
+    return <div>Erro ao carregar RNCs...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-900">
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
-            <ComplaintStats complaints={complaints} />
+            <RNCStats rncs={filteredRNCs} isLoading={isLoading} />
           </div>
 
-          <ComplaintFilters 
-            filters={filters} 
+          <RNCFilters 
+            filters={{
+              searchTerm,
+              selectedStatus,
+              selectedType,
+              selectedDepartment
+            }}
             onFilterChange={handleFilterChange}
             onCreateRNC={() => setIsCreateModalOpen(true)}
           />
           
-          <ComplaintTable 
-            complaints={complaintRNCs}
+          <RNCTable 
+            rncs={filteredRNCs}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            isLoading={isLoading}
           />
 
-          {selectedComplaint && (
-            <ComplaintDetails
-              complaint={complaints.find((c) => c.id === selectedComplaint)!}
-              onStatusUpdate={() => toast.success("Status atualizado com sucesso!")}
-              onClose={() => setSelectedComplaint(null)}
+          {selectedRNC && (
+            <RNCDetails
+              rnc={rncs.find((r) => r.id === selectedRNC)!}
+              onClose={() => setSelectedRNC(null)}
             />
           )}
 
           <CreateRNCModal
             open={isCreateModalOpen}
-            onClose={() => setIsCreateModalOpen(false)}
+            onClose={() => {
+              setIsCreateModalOpen(false);
+              refetch(); // Refresh after creation
+            }}
           />
 
-          {selectedRNC && (
+          {selectedRNCData && (
             <>
               <EditRNCModal
                 open={isEditModalOpen}
                 onClose={() => {
                   setIsEditModalOpen(false);
-                  setSelectedRNC(null);
+                  setSelectedRNCData(null);
+                  refetch(); // Refresh after edit
                 }}
-                rncData={selectedRNC}
-                rncId={selectedRNC.id}
+                rncData={selectedRNCData}
+                rncId={selectedRNCData.id}
               />
 
               <DeleteRNCDialog
                 open={isDeleteDialogOpen}
                 onClose={() => {
                   setIsDeleteDialogOpen(false);
-                  setSelectedRNC(null);
+                  setSelectedRNCData(null);
                 }}
-                rncId={selectedRNC.id}
-                rncNumber={selectedRNC.rnc_number}
+                rncId={selectedRNCData.id}
+                rncNumber={selectedRNCData.rnc_number}
                 onConfirm={handleDeleteConfirm}
               />
             </>
