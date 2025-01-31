@@ -83,8 +83,16 @@ const RNCDetailsPage = () => {
         collected_at: additionalData.collected_at,
         closed_at: additionalData.closed_at,
         conclusion: additionalData.conclusion,
-        contacts: relationalData.contacts,
-        products: relationalData.products,
+        assigned_by: rnc?.assigned_by || "",
+        contacts: relationalData.contacts.map(contact => ({
+          name: contact.name,
+          phone: contact.phone,
+          email: contact.email || ""
+        })),
+        products: relationalData.products.map(product => ({
+          name: product.name,
+          weight: product.weight
+        })),
         attachments: relationalData.attachments || [],
         status: rnc?.status || RncStatusEnum.pending,
         workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
