@@ -39,7 +39,7 @@ export const RNCTable: React.FC<RNCTableProps> = ({ data }) => {
     navigate(`/quality/rnc/${id}`);
   };
 
-  if (loading) {
+  if (loading || !rncs) {
     return <div>Carregando...</div>;
   }
 

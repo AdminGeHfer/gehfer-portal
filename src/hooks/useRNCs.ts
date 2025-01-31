@@ -30,7 +30,7 @@ export const useRNCs = ({
 
   useEffect(() => {
     try {
-      let filtered = [...rncs];
+      let filtered = rncs ? [...rncs] : [];
 
       if (selectedStatus) {
         filtered = filtered.filter((rnc) => 

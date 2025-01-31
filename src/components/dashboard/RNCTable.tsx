@@ -14,7 +14,7 @@ interface RNCTableProps {
 }
 
 export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
-  if (isLoading) {
+  if (isLoading || !rncs) {
     return <div>Carregando RNCs...</div>;
   }
 
