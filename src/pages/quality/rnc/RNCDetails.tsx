@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { BackButton } from '@/components/atoms/BackButton';
-import { RncStatusEnum, WorkflowStatusEnum } from '@/types/rnc';
+import { RNCAttachment, RncStatusEnum, WorkflowStatusEnum } from '@/types/rnc';
 
 const RNCDetailsPage = () => {
   const navigate = useNavigate();
@@ -93,7 +93,21 @@ const RNCDetailsPage = () => {
           name: product.name,
           weight: product.weight
         })),
-        attachments: relationalData.attachments || [],
+        attachments: relationalData.attachments?.map(attachment => {
+          // If it's already an RNCAttachment object (from database)
+          if ('rnc_id' in attachment) {
+            return attachment;
+          }
+          // If it's a File object (newly uploaded)
+          if (attachment instanceof File) {
+            // This case should be handled by the FileUploadField component
+            // The actual attachment object will be managed by the state
+            // So this case shouldn't occur in the update
+            return null;
+          }
+          // Return null for any other case
+          return null;
+        }).filter(Boolean) as RNCAttachment[] || [],
         status: rnc?.status || RncStatusEnum.pending,
         workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
         updated_at: new Date().toISOString()
