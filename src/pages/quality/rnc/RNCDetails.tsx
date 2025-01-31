@@ -1,159 +1,207 @@
 import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { RNCWithRelations } from "@/types/rnc";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { X, Trash2, Edit } from "lucide-react";
+import { useParams } from 'react-router-dom';
+import { useRNCDetails } from '@/hooks/useRNCDetails';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BasicInfoTab } from "@/components/rnc/tabs/details/BasicInfoTab";
+import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
+import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoTab";
+import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
+import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Edit, Save } from "lucide-react";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 
-interface RNCDetailsProps {
-  rnc: RNCWithRelations;
-  onClose?: () => void;
-  variant?: 'modal' | 'page';
-  isLoading?: boolean;
-  isDeleting?: boolean;
-}
+const RNCDetailsPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const { rnc, loading, refetch } = useRNCDetails(id!);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-export function RNCDetails({ 
-  rnc, 
-  onClose, 
-  variant = 'modal',
-  isLoading = false,
-}: RNCDetailsProps) {
-  const navigate = useNavigate();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [,setIsEditing] = React.useState(false);
+  // Refs for form validation
+  const basicInfoRef = useRef<{ validate: () => Promise<boolean> }>(null);
+  const relationalInfoRef = useRef<{ validate: () => Promise<boolean> }>(null);
+  const additionalInfoRef = useRef<{ validate: () => Promise<boolean> }>(null);
 
-  const handleDelete = async () => {
+  const handleSave = async () => {
     try {
-      await rncService.delete(rnc.id);
-      if (variant === 'page') {
-        navigate("/quality/home", { replace: true });
-      } else {
-        onClose?.();
+      setIsSaving(true);
+
+      // Validate all forms
+      const [basicValid, relationalValid, additionalValid] = await Promise.all([
+        basicInfoRef.current?.validate(),
+        relationalInfoRef.current?.validate(),
+        additionalInfoRef.current?.validate(),
+      ]);
+
+      if (!basicValid || !relationalValid || !additionalValid) {
+        toast.error("Por favor, corrija os erros antes de salvar");
+        return;
       }
+
+      // Get form data from localStorage
+      const storedData = localStorage.getItem('rncDetailsData');
+      if (!storedData) {
+        toast.error("Nenhum dado para salvar");
+        return;
+      }
+
+      const formData = JSON.parse(storedData);
+      
+      // Update RNC
+      await rncService.update(id!, {
+        ...formData.basic,
+        ...formData.relational,
+        ...formData.additional,
+      });
+
+      toast.success("RNC atualizada com sucesso!");
+      setIsEditing(false);
+      refetch();
+
+      // Clear stored form data
+      localStorage.removeItem('rncDetailsData');
     } catch (error) {
-      console.error('Error deleting RNC:', error);
-      toast.error("Erro ao excluir RNC");
+      console.error('Error saving RNC:', error);
+      toast.error("Erro ao salvar RNC");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return <div>Carregando detalhes...</div>;
   }
 
-  const renderContent = () => (
-    <div className="space-y-4">
-      <div>
-        <h3 className="font-semibold">Informações Básicas</h3>
-        <div className="grid grid-cols-2 gap-4 mt-2">
-          <div>
-            <p className="text-sm text-gray-500">Empresa</p>
-            <p>{rnc.company}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Data de Criação</p>
-            <p>
-              {format(new Date(rnc.created_at), "dd/MM/yyyy", {
-                locale: ptBR,
-              })}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Status</p>
-            <p>{rnc.status}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Tipo</p>
-            <p>{rnc.type}</p>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="font-semibold">Descrição</h3>
-        <p className="mt-2">{rnc.description}</p>
-      </div>
-
-      {rnc.conclusion && (
-        <div>
-          <h3 className="font-semibold">Conclusão</h3>
-          <p className="mt-2">{rnc.conclusion}</p>
-        </div>
-      )}
-
-      {rnc.contacts && rnc.contacts.length > 0 && (
-        <div>
-          <h3 className="font-semibold">Contatos</h3>
-          <div className="space-y-2 mt-2">
-            {rnc.contacts.map((contact) => (
-              <div key={contact.id}>
-                <p>{contact.name}</p>
-                <p className="text-sm text-gray-500">{contact.phone}</p>
-                {contact.email && (
-                  <p className="text-sm text-gray-500">{contact.email}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  if (variant === 'modal') {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg w-full max-w-2xl">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">RNC #{rnc.rnc_number}</h2>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          {renderContent()}
-        </div>
-      </div>
-    );
+  if (!rnc) {
+    return <div>RNC não encontrada</div>;
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
-      <div className="bg-white p-6 rounded-lg">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">RNC #{rnc.rnc_number}</h1>
-          <div className="flex gap-2">
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">RNC #{rnc.rnc_number}</h1>
+        <div className="flex gap-2">
+          {!isEditing ? (
             <Button
-              variant="outline"
               onClick={() => setIsEditing(true)}
               className="flex items-center gap-2"
             >
               <Edit className="h-4 w-4" />
               Editar
             </Button>
+          ) : (
             <Button
-              variant="destructive"
-              onClick={() => setIsDeleteDialogOpen(true)}
+              onClick={handleSave}
+              disabled={isSaving}
               className="flex items-center gap-2"
             >
-              <Trash2 className="h-4 w-4" />
-              Excluir
+              <Save className="h-4 w-4" />
+              Salvar
             </Button>
-          </div>
+          )}
         </div>
-        {renderContent()}
       </div>
 
-      <DeleteRNCDialog
-        open={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        rncId={rnc.id}
-        rncNumber={rnc.rnc_number}
-        onConfirm={handleDelete}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white rounded-lg shadow">
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="w-full justify-start border-b rounded-none p-0 h-auto">
+                <TabsTrigger
+                  value="basic"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
+                >
+                  Informações Básicas
+                </TabsTrigger>
+                <TabsTrigger
+                  value="relational"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
+                >
+                  Informações Relacionais
+                </TabsTrigger>
+                <TabsTrigger
+                  value="additional"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
+                >
+                  Informações Adicionais
+                </TabsTrigger>
+                <TabsTrigger
+                  value="workflow"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
+                >
+                  Workflow
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="basic">
+                <BasicInfoTab
+                  ref={basicInfoRef}
+                  isEditing={isEditing}
+                  initialValues={{
+                    company_code: rnc.company_code,
+                    company: rnc.company,
+                    document: rnc.document,
+                    type: rnc.type,
+                    department: rnc.department,
+                    responsible: rnc.responsible,
+                  }}
+                />
+              </TabsContent>
+
+              <TabsContent value="relational">
+                <RelationalInfoTab
+                  ref={relationalInfoRef}
+                  rncId={rnc.id}
+                  isEditing={isEditing}
+                  initialValues={{
+                    name: rnc.contacts?.[0]?.name,
+                    phone: rnc.contacts?.[0]?.phone,
+                    email: rnc.contacts?.[0]?.email,
+                    products: rnc.products,
+                    attachments: rnc.attachments,
+                  }}
+                />
+              </TabsContent>
+
+              <TabsContent value="additional">
+                <AdditionalInfoTab
+                  ref={additionalInfoRef}
+                  isEditing={isEditing}
+                  initialValues={{
+                    description: rnc.description,
+                    korp: rnc.korp,
+                    nfv: rnc.nfv,
+                    nfd: rnc.nfd,
+                    city: rnc.city,
+                    collected_at: rnc.collected_at,
+                    closed_at: rnc.closed_at,
+                    conclusion: rnc.conclusion,
+                  }}
+                />
+              </TabsContent>
+
+              <TabsContent value="workflow">
+                <WorkflowTab
+                  rncId={rnc.id}
+                  transitions={rnc.workflow_transitions}
+                  isEditing={isEditing}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold mb-4">Timeline de Eventos</h2>
+            <EventsTimeline events={rnc.events} />
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default RNCDetailsPage;
