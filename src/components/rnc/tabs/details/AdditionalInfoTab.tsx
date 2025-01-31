@@ -7,17 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-const additionalInfoSchema = z.object({
-  description: z.string().min(1, "Descrição é obrigatória"),
-  korp: z.string().min(1, "Número do pedido é obrigatório"),
-  nfv: z.string().min(1, "NFV é obrigatória"),
-  nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres").optional().or(z.literal('')),
-  city: z.string().min(3, "A cidade deve ter no mínimo 3 caracteres").optional().or(z.literal('')),
-  collected_at: z.string().date().optional().or(z.literal('')),
-  closed_at: z.string().date().optional().or(z.literal('')),
-  conclusion: z.string().min(3, "A conclusão deve ter no mínimo 10 caracteres").optional().or(z.literal('')),
-});
+import { additionalInfoSchema } from "@/utils/validations";
 
 interface AdditionalInfoTabProps {
   isEditing: boolean;

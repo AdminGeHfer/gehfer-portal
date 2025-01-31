@@ -8,14 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/atoms/Button";
+import { Edit, Trash2 } from "lucide-react";
 import { Complaint } from "@/types/complaint";
+import { RNC } from "@/types/rnc";
 
 interface ComplaintTableProps {
   complaints: Complaint[];
-  onSelectComplaint: (id: number) => void;
+  onEdit: (rnc: RNC) => void;
+  onDelete: (rnc: RNC) => void;
 }
 
-export const ComplaintTable = ({ complaints }: ComplaintTableProps) => {
+export const ComplaintTable = ({ complaints, onEdit, onDelete }: ComplaintTableProps) => {
   const navigate = useNavigate();
 
   const handleRowClick = (complaintId: number) => {
@@ -24,7 +28,7 @@ export const ComplaintTable = ({ complaints }: ComplaintTableProps) => {
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto rounded-xl border border-gray-200/50 dark:border-gray-700/50">
+      <div className="overflow-x-auto border border-gray-200/50 dark:border-gray-700/50 rounded-xl">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50/50 dark:bg-gray-800/50">
@@ -33,6 +37,7 @@ export const ComplaintTable = ({ complaints }: ComplaintTableProps) => {
               <TableHead className="font-medium dark:text-gray-300">Empresa</TableHead>
               <TableHead className="font-medium dark:text-gray-300">Status</TableHead>
               <TableHead className="font-medium dark:text-gray-300">Dias em Aberto</TableHead>
+              <TableHead className="font-medium dark:text-gray-300">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -66,6 +71,30 @@ export const ComplaintTable = ({ complaints }: ComplaintTableProps) => {
                   </span>
                 </TableCell>
                 <TableCell className="dark:text-gray-200">{complaint.daysOpen} dias</TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(complaint as unknown as RNC);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(complaint as unknown as RNC);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

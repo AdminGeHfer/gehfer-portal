@@ -1,12 +1,13 @@
 import { supabase } from '@/lib/supabase';
 import { 
   CreateRNCInput, 
+  UpdateRNCInput,
   RncStatusEnum, 
   WorkflowStatusEnum, 
   type RNC, 
   type RNCAttachment,
-  type CreateRNCProduct,
-  type CreateRNCContact,
+  RncTypeEnum,
+  RncDepartmentEnum,
 } from '@/types/rnc';
 
 // Custom error classes for better error handling
@@ -55,9 +56,7 @@ const sanitizeFilename = (filename: string): string => {
 
 export const rncService = {
   async create(data: CreateRNCInput): Promise<RNC> {
-    console.log('Data received in rncService:',data);
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new RNCError('Usuário não autenticado');
 
@@ -78,7 +77,6 @@ export const rncService = {
         throw new ValidationError('Formato de documento inválido');
       }
 
-      // Start transaction for RNC creation
       const { data: rncData, error: rncError } = await supabase
         .from('rncs')
         .insert([{
@@ -104,7 +102,7 @@ export const rncService = {
         .select()
         .single();
 
-      if (rncError) throw new RNCError(`Error creating RNC: ${rncError.message}`, rncError.code);
+      if (rncError) throw new RNCError(`Error creating RNC: ${rncError.message}`);
       if (!rncData) throw new RNCError('Failed to create RNC');
 
       const rnc: RNC = {
@@ -143,42 +141,122 @@ export const rncService = {
     }
   },
 
-  async createContact(rncId: string, data: CreateRNCContact) {
+  async update(id: string, data: UpdateRNCInput): Promise<RNC> {
     try {
-      const { data: contact, error } = await supabase
-        .from('rnc_contacts')
-        .insert([{
-          rnc_id: rncId,
-          name: data.name,
-          phone: data.phone,
-          email: data.email
-        }])
-        .select()
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new RNCError('Usuário não autenticado');
+
+      const capitalizedResponsible = data.responsible.charAt(0).toUpperCase() + data.responsible.slice(1).toLowerCase();
+
+      const { data: assignedUser, error: userError } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('name', capitalizedResponsible)
         .single();
 
-      return { contact, error };
+      if (userError) {
+        console.warn('Could not find user for assignment:', userError);
+      }
+
+      const updateData = {
+        company_code: data.company_code,
+        company: data.company,
+        document: data.document,
+        description: data.description,
+        type: data.type as RncTypeEnum,
+        department: data.department as RncDepartmentEnum,
+        responsible: capitalizedResponsible,
+        korp: data.korp,
+        nfv: data.nfv,
+        nfd: data.nfd,
+        city: data.city,
+        assigned_to: assignedUser?.id || null,
+        updated_at: new Date().toISOString()
+      };
+  
+      const { data: rncData, error: rncError } = await supabase
+        .from('rncs')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+  
+      if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
+      if (!rncData) throw new RNCError('Failed to update RNC');
+
+      return rncData as RNC;
     } catch (error) {
-      console.error('Error creating contact:', error);
-      throw new RNCError('Failed to create contact');
+      console.error('Error in RNC update:', error);
+      if (error instanceof RNCError) throw error;
+      throw new RNCError('Unexpected error updating RNC');
     }
   },
 
-  async createProduct(rncId: string, data: CreateRNCProduct) {
+  async delete(id: string): Promise<void> {
     try {
-      const { data: product, error } = await supabase
-        .from('rnc_products')
-        .insert([{
-          rnc_id: rncId,
-          name: data.name,
-          weight: data.weight
-        }])
-        .select()
-        .single();
+      const { error: attachmentsError } = await supabase
+      .from('rnc_attachments')
+      .delete()
+      .eq('rnc_id', id);
 
-      return { product, error };
+      if (attachmentsError) throw new RNCError(`Error deleting attachments: ${attachmentsError.message}`);
+
+      const { error: eventsError } = await supabase
+      .from('rnc_events')
+      .delete()
+      .eq('rnc_id', id);
+
+      if (eventsError) throw new RNCError(`Error deleting events: ${eventsError.message}`);
+
+      const { error: transitionsError } = await supabase
+      .from('rnc_workflow_transitions')
+      .delete()
+      .eq('rnc_id', id);
+
+      if (transitionsError) throw new RNCError(`Error deleting workflow transitions: ${transitionsError.message}`);
+
+      const { error: contactsError } = await supabase
+      .from('rnc_contacts')
+      .delete()
+      .eq('rnc_id', id);
+
+      if (contactsError) throw new RNCError(`Error deleting contacts: ${contactsError.message}`);
+
+      const { error: productsError } = await supabase
+      .from('rnc_products')
+      .delete()
+      .eq('rnc_id', id);
+
+      if (productsError) throw new RNCError(`Error deleting products: ${productsError.message}`);
+
+      const { error: rncError } = await supabase
+      .from('rncs')
+      .delete()
+      .eq('id', id);
+
+      if (rncError) throw new RNCError(`Error deleting RNC: ${rncError.message}`);
+
+      // Also delete files from storage
+      const { data: files } = await supabase
+        .storage
+        .from('rnc-attachments')
+        .list(`rnc-${id}`);
+
+      if (files?.length) {
+        const filePaths = files.map(file => `rnc-${id}/${file.name}`);
+        const { error: storageError } = await supabase
+          .storage
+          .from('rnc-attachments')
+          .remove(filePaths);
+
+        if (storageError) {
+          console.error('Error deleting files:', storageError);
+        }
+      }
     } catch (error) {
-      console.error('Error creating product:', error);
-      throw new RNCError('Failed to create product');
+      console.error('Error in RNC deletion:', error);
+      if (error instanceof RNCError) throw error;
+      throw new RNCError('Unexpected error deleting RNC');
     }
   },
 
@@ -232,10 +310,65 @@ export const rncService = {
     }
   },
 
+  async deleteAttachment(rncId: string, attachmentId: string): Promise<void> {
+    try {
+      // First get the attachment details to know the file path
+      const { data: attachment, error: fetchError } = await supabase
+        .from('rnc_attachments')
+        .select('file_path')
+        .eq('id', attachmentId)
+        .eq('rnc_id', rncId)
+        .single();
+
+      if (fetchError) throw new RNCError(`Error fetching attachment: ${fetchError.message}`);
+      if (!attachment) throw new RNCError('Attachment not found');
+
+      // Delete the file from storage
+      const { error: storageError } = await supabase
+        .storage
+        .from('rnc-attachments')
+        .remove([attachment.file_path]);
+
+      if (storageError) {
+        console.error('Error deleting file from storage:', storageError);
+        // Continue with database deletion even if storage deletion fails
+      }
+
+      // Delete the attachment record from the database
+      const { error: dbError } = await supabase
+        .from('rnc_attachments')
+        .delete()
+        .eq('id', attachmentId)
+        .eq('rnc_id', rncId);
+
+      if (dbError) throw new RNCError(`Error deleting attachment record: ${dbError.message}`);
+    } catch (error) {
+      console.error('Error deleting attachment:', error);
+      if (error instanceof RNCError) throw error;
+      throw new RNCError('Failed to delete attachment');
+    }
+  },
+
   getAttachmentUrl(filePath: string): string {
     return supabase.storage
       .from('rnc-attachments')
       .getPublicUrl(filePath)
       .data.publicUrl;
+  },
+
+  async updateWorkflowTransition(transitionId: string, rncId: string, data: { notes: string }): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('rnc_workflow_transitions')
+        .update({ notes: data.notes })
+        .eq('id', transitionId)
+        .eq('rnc_id', rncId); // Additional safety check
+  
+      if (error) throw new RNCError(`Error updating workflow transition notes: ${error.message}`);
+    } catch (error) {
+      console.error('Error updating transition notes:', error);
+      if (error instanceof RNCError) throw error;
+      throw new RNCError('Unexpected error updating transition notes');
+    }
   }
 };

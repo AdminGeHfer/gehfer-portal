@@ -13,6 +13,7 @@ import {
 import { basicInfoSchema } from "@/utils/validations";
 import { handleDocumentChange } from "@/utils/masks";
 import type { z } from "zod";
+import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 
 interface BasicInfoTabProps {
   isEditing: boolean;
@@ -31,8 +32,8 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         company_code: "",
         company: "",
         document: "",
-        type: "",
-        department: "",
+        type: RncTypeEnum.company_complaint,
+        department: RncDepartmentEnum.logistics,
         responsible: "",
       },
     });

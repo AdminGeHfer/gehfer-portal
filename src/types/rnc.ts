@@ -116,3 +116,7 @@ export interface CreateRNCInput extends Omit<RNC, 'id' | 'rnc_number' | 'days_le
   products: CreateRNCProduct[];
   contacts: CreateRNCContact[];
 }
+
+export interface UpdateRNCInput extends Omit<CreateRNCInput, 'created_by' | 'created_at'> {
+  updated_at: string;
+}

@@ -26,8 +26,9 @@ export const createRNCSchema = z.object({
   description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   korp: z.string().min(3, "KORP deve ter no mínimo 3 caracteres"),
   nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
-  nfd: z.union([z.literal(""), z.string().min(3, "NFD deve ter no mínimo 3 caracteres")]),
-  city: z.union([z.literal(""), z.string().min(3, "Cidade deve ter no mínimo 3 caracteres")]),
+  nfd: z.union([z.literal(""), z.string().min(3, "NFD deve ter no mínimo 3 caracteres")]).nullable().optional(),
+  city: z.union([z.literal(""), z.string().min(3, "Cidade deve ter no mínimo 3 caracteres")]).nullable().optional(),
+  conclusion: z.union([z.literal(""), z.string().min(10, "Conclusão deve ter no mínimo 10 caracteres")]).nullable().optional(),
   
   // Products
   products: z.array(z.object({
@@ -39,7 +40,7 @@ export const createRNCSchema = z.object({
   contacts: z.array(z.object({
     name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
     phone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, "Telefone inválido"),
-    email: z.union([z.literal(""), z.string().email("Email inválido")])
+    email: z.union([z.literal(""), z.string().email("Email inválido")]).optional()
   })),
   
   // Attachments

@@ -3,79 +3,34 @@ import * as React from "react";
 import { toast } from "sonner";
 import { ComplaintFilters } from "@/components/dashboard/ComplaintFilters";
 import { ComplaintDetails } from "@/components/dashboard/ComplaintDetails";
-import { ComplaintHeader } from "@/components/dashboard/ComplaintHeader";
 import { ComplaintStats } from "@/components/dashboard/ComplaintStats";
 import { ComplaintTable } from "@/components/dashboard/ComplaintTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
+import { EditRNCModal } from "@/components/rnc/EditRNCModal";
+import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
+import { useComplaints } from "@/hooks/useComplaints";
+import { useComplaintFilters } from "@/hooks/useComplaintFilters";
+import { RNC } from "@/types/rnc";
 
 const Index = () => {
-  const [complaints] = useState([
-    {
-      id: 1,
-      date: "2024-03-20",
-      company: "Empresa ABC",
-      status: "Em análise",
-      description: "Problema com entrega do material",
-      protocol: "1001",
-      daysOpen: 3,
-      rootCause: "",
-      solution: "",
-    },
-    {
-      id: 2,
-      date: "2024-03-19",
-      company: "Empresa XYZ",
-      status: "Pendente",
-      description: "Material com defeito",
-      protocol: "1002",
-      daysOpen: 4,
-      rootCause: "",
-      solution: "",
-    },
-  ]);
+  const { complaints, selectedComplaint, setSelectedComplaint, isCreateModalOpen, setIsCreateModalOpen } = useComplaints();
+  const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedRNC, setSelectedRNC] = useState<RNC | null>(null);
 
-  const [selectedComplaint, setSelectedComplaint] = useState<number | null>(null);
-  const [filters, setFilters] = useState({
-    protocol: "",
-    date: "",
-    company: "",
-    status: "",
-    daysOpen: "",
-  });
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  const handleFilterChange = (field: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleEdit = (rnc: RNC) => {
+    setSelectedRNC(rnc);
+    setIsEditModalOpen(true);
   };
 
-  const filteredComplaints = complaints.filter((complaint) => {
-    const searchTerms = {
-      protocol: filters.protocol.toLowerCase(),
-      date: filters.date.toLowerCase(),
-      company: filters.company.toLowerCase(),
-    };
-
-    if (!Object.values(searchTerms).some(term => term !== "")) {
-      return true;
-    }
-
-    const matchesProtocol = !searchTerms.protocol || complaint.protocol.toLowerCase().includes(searchTerms.protocol);
-    const matchesDate = !searchTerms.date || complaint.date.toLowerCase().includes(searchTerms.date);
-    const matchesCompany = !searchTerms.company || complaint.company.toLowerCase().includes(searchTerms.company);
-
-    return matchesProtocol || matchesDate || matchesCompany;
-  });
-
-  const handleStatusUpdate = (complaintId: number, newStatus: string) => {
-    toast.success(`Status atualizado para: ${newStatus}`);
+  const handleDelete = (rnc: RNC) => {
+    setSelectedRNC(rnc);
+    setIsDeleteDialogOpen(true);
   };
 
   return (
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-900">
-      <ComplaintHeader />
       <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         <div className="glass-card p-8 animate-scale-in dark:bg-gray-800/50">
           <div className="mb-8">
@@ -90,13 +45,15 @@ const Index = () => {
           
           <ComplaintTable 
             complaints={filteredComplaints} 
-            onSelectComplaint={setSelectedComplaint} 
+            onSelectComplaint={setSelectedComplaint}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
 
           {selectedComplaint && (
             <ComplaintDetails
               complaint={complaints.find((c) => c.id === selectedComplaint)!}
-              onStatusUpdate={handleStatusUpdate}
+              onStatusUpdate={() => toast.success("Status atualizado com sucesso!")}
               onClose={() => setSelectedComplaint(null)}
             />
           )}
@@ -105,6 +62,30 @@ const Index = () => {
             open={isCreateModalOpen}
             onClose={() => setIsCreateModalOpen(false)}
           />
+
+          {selectedRNC && (
+            <>
+              <EditRNCModal
+                open={isEditModalOpen}
+                onClose={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedRNC(null);
+                }}
+                rncData={selectedRNC}
+                rncId={selectedRNC.id}
+              />
+
+              <DeleteRNCDialog
+                open={isDeleteDialogOpen}
+                onClose={() => {
+                  setIsDeleteDialogOpen(false);
+                  setSelectedRNC(null);
+                }}
+                rncId={selectedRNC.id}
+                rncNumber={selectedRNC.rnc_number}
+              />
+            </>
+          )}
         </div>
       </main>
     </div>

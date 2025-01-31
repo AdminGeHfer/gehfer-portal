@@ -10,6 +10,7 @@ interface FileUploadFieldProps {
   onRemove?: () => void;
   value?: File | null;
   accept?: string;
+  loading?: boolean;
 }
 
 export function FileUploadField({ 

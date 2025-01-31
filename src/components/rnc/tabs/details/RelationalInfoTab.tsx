@@ -26,7 +26,6 @@ interface RelationalInfoTabProps {
     }>;
     attachments?: Array<{
       id: string;
-      rnc_id: string;
       filename: string;
       filesize: number;
       content_type: string;
@@ -44,7 +43,7 @@ export type RelationalInfoTabRef = {
 const relationalInfoSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
   phone: z.string().min(10, "Telefone inválido. Use o formato: (99) 99999-9999"),
-  email: z.union([z.literal(""), z.string().email("Email inválido")]),
+  email: z.union([z.literal(""), z.string().email("Email inválido")]).optional(),
   products: z.array(z.object({
     id: z.string(),
     name: z.string().min(1, "Nome do produto é obrigatório"),
@@ -59,11 +58,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       phone: initialValues?.phone || "",
       email: initialValues?.email || "",
       products: initialValues?.products?.length
-        ? initialValues.products.map(p => ({
-            id: p.id,
-            name: p.name,
-            weight: p.weight
-          }))
+        ? initialValues.products
         : [{ id: crypto.randomUUID(), name: "", weight: 0.1 }]
     }), [initialValues]);
 
@@ -73,7 +68,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
     });
 
     const [attachments, setAttachments] = React.useState(initialValues?.attachments || []);
-    const [, setIsUploading] = React.useState(false);
+    const [isUploading, setIsUploading] = React.useState(false);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
@@ -81,10 +76,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
       try {
         setIsUploading(true);
-        const { attachment, error } = await rncService.uploadAttachment(rncId, file);
-        
-        if (error) throw error;
-        
+        const attachment = await rncService.uploadAttachment(rncId, file);
         setAttachments(prev => [...prev, attachment]);
         toast.success("Arquivo anexado com sucesso!");
       } catch (error) {
@@ -97,26 +89,8 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
     const handleFileDownload = async (attachment: typeof attachments[0]) => {
       try {
-        const url = await rncService.downloadAttachment(attachment);
-        if (!url) throw new Error("Não foi possível gerar o link para download");
-        
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Failed to download file');
-        
-        const blob = await response.blob();
-        
-        const objectUrl = window.URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = objectUrl;
-        link.download = attachment.filename;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        window.URL.revokeObjectURL(objectUrl);
-        
+        const url = rncService.getAttachmentUrl(attachment.file_path);
+        window.open(url, '_blank');
         toast.success("Download iniciado com sucesso!");
       } catch (error) {
         console.error("Error downloading file:", error);
@@ -128,9 +102,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       if (!confirm("Tem certeza que deseja excluir este arquivo?")) return;
 
       try {
-        const { error } = await rncService.deleteAttachment(attachment);
-        if (error) throw error;
-        
+        await rncService.deleteAttachment(rncId, attachment.id);
         setAttachments(prev => prev.filter(a => a.id !== attachment.id));
         toast.success("Arquivo excluído com sucesso!");
       } catch (error) {
@@ -139,28 +111,11 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       }
     };
 
-    React.useEffect(() => {
-      if (initialValues) {
-        form.reset(defaultValues);
-      }
-    }, [initialValues, form, defaultValues]);
-
     const { watch, setValue } = form;
     const products = watch("products");
 
-    React.useEffect(() => {
-      const currentData = localStorage.getItem('rncDetailsData');
-      const parsedData = currentData ? JSON.parse(currentData) : {};
-      localStorage.setItem('rncDetailsData', JSON.stringify({
-        ...parsedData,
-        relational: form.getValues()
-      }));
-    }, [form]);
-
     React.useImperativeHandle(ref, () => ({
-      validate: () => {
-        return form.trigger();
-      },
+      validate: () => form.trigger()
     }));
 
     const addProduct = () => {
@@ -323,6 +278,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
               label="Adicionar arquivo"
               onChange={handleFileUpload}
               accept="*/*"
+              loading={isUploading}
             />
           )}
 
