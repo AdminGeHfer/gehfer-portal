@@ -98,7 +98,6 @@ export default function RNCDetails() {
   const handleDelete = async () => {
     try {
       await rncService.delete(id);
-      toast.success("RNC excluída com sucesso!");
       navigate("/quality/home");
     } catch (error) {
       console.error('Error deleting RNC:', error);
