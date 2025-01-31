@@ -40,17 +40,17 @@ export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
   };
 
   return (
-    <div className="rounded-md border bg-white dark:bg-gray-800 overflow-hidden">
-      <div className="overflow-x-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+    <div className="rounded-md border bg-white dark:bg-gray-800">
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-gray-50 dark:bg-gray-900">
             <TableRow>
               <TableHead className="font-semibold">Número</TableHead>
-              <TableHead className="font-semibold">Data</TableHead>
               <TableHead className="font-semibold">Empresa</TableHead>
-              <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">Tipo</TableHead>
               <TableHead className="font-semibold">Departamento</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="font-semibold">Data</TableHead>
               <TableHead className="font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -62,24 +62,24 @@ export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
                 onClick={() => handleRowClick(rnc.id)}
               >
                 <TableCell>{rnc.rnc_number}</TableCell>
-                <TableCell>
-                  {new Date(rnc.created_at).toLocaleDateString("pt-BR")}
-                </TableCell>
                 <TableCell>{rnc.company}</TableCell>
                 <TableCell>
-                  <Badge className={getStatusColor(getStatusDisplayName(rnc.status))}>
-                    {getStatusDisplayName(rnc.status)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getTypeColor(getTypeDisplayName(rnc.type))}>
+                  <Badge className={getTypeColor(rnc.type)}>
                     {getTypeDisplayName(rnc.type)}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={getDepartmentColor(getDepartmentDisplayName(rnc.department))}>
+                  <Badge className={getDepartmentColor(rnc.department)}>
                     {getDepartmentDisplayName(rnc.department)}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(rnc.status)}>
+                    {getStatusDisplayName(rnc.status)}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {new Date(rnc.created_at).toLocaleDateString("pt-BR")}
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">

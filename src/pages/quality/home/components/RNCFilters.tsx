@@ -28,7 +28,7 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
         <h2 className="text-2xl font-bold">RNCs</h2>
         <Button 
           onClick={onCreateRNC}
-          className="bg-primary hover:bg-primary/90 text-white"
+          className="bg-[#1EAEDB] hover:bg-[#1EAEDB]/90 text-white"
         >
           Nova RNC
         </Button>

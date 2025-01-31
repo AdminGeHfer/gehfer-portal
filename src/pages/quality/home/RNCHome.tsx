@@ -1,4 +1,3 @@
-// src/pages/quality/home/RNCHome.tsx
 import { Button } from "@/components/ui/button";
 import { RNCFilters } from "./components/RNCFilters";
 import { RNCTable } from "./components/RNCTable";
@@ -31,8 +30,8 @@ export const RNCHome = () => {
     searchTerm: searchQuery,
   });
 
-  if (isLoading) {
-    return <div>Carregando...</div>;
+  if (isLoading || !rncs) {
+    return <div>Carregando RNCs...</div>;
   }
 
   if (error) {
@@ -68,7 +67,7 @@ export const RNCHome = () => {
         </div>
       </div>
 
-      <div className="flex-1 container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto px-4 py-8 overflow-hidden">
         <div className="mb-8">
           <p className="text-muted-foreground">
             Gerencie e acompanhe as RNCs do portal
@@ -104,26 +103,12 @@ export const RNCHome = () => {
         <div className="mt-6">
           <RNCTable 
             rncs={filteredRNCs}
-            onEdit={() => {}} // Implement if needed
-            onDelete={() => {}} // Implement if needed
+            onEdit={() => {}} 
+            onDelete={() => {}} 
             isLoading={isLoading}
           />
         </div>
       </div>
-
-      <footer className="fixed bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
-        <div className="flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
-          </Button>
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Sobre </a>
-          </Button>
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Ajuda </a>
-          </Button>
-        </div>
-      </footer>
 
       <CreateRNCModal 
         open={isCreateModalOpen} 
