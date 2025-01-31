@@ -18,9 +18,11 @@ interface RelationalInfoTabProps {
   rncId: string;
   isEditing: boolean;
   initialValues?: {
+    contacts?: Array<{
     name?: string;
     phone?: string;
     email?: string;
+    }>;
     products?: Array<{
       id: string;
       name: string;
@@ -52,12 +54,17 @@ export type RelationalInfoTabRef = {
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
   ({ rncId, isEditing, initialValues }, ref) => {
     const defaultValues = React.useMemo(() => ({
-      name: initialValues?.name || "",
-      phone: initialValues?.phone || "",
-      email: initialValues?.email || "",
-      products: initialValues?.products?.length
-        ? initialValues.products
-        : [{ id: crypto.randomUUID(), name: "", weight: 0.1 }]
+      contacts: initialValues?.contacts?.length ? initialValues.contacts : [{
+        name: "",
+        phone: "",
+        email: ""
+      }],
+      products: initialValues?.products?.length ? initialValues.products : [{
+        id: crypto.randomUUID(),
+        name: "",
+        weight: 0.1
+      }],
+      attachments: initialValues?.attachments || []
     }), [initialValues]);
 
     const form = useForm<z.infer<typeof relationalInfoSchema>>({
@@ -113,7 +120,11 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
-      getFormData: () => form.getValues()
+      getFormData: () => ({
+        contacts: form.getValues("contacts"),
+        products: form.getValues("products"),
+        attachments
+      })
     }));
 
     const addProduct = () => {

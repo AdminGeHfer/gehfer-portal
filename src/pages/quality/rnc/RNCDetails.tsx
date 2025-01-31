@@ -227,9 +227,7 @@ const RNCDetailsPage = () => {
                     rncId={rnc.id}
                     isEditing={isEditing}
                     initialValues={{
-                      name: rnc.contacts?.[0]?.name,
-                      phone: rnc.contacts?.[0]?.phone,
-                      email: rnc.contacts?.[0]?.email,
+                      contacts: rnc.contacts,
                       products: rnc.products,
                       attachments: rnc.attachments,
                     }}
