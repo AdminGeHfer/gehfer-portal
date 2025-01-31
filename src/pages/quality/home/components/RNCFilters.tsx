@@ -25,15 +25,13 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
   return (
     <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">RNCs</h2>
         <Button 
           onClick={onCreateRNC}
-          className="bg-[#1EAEDB] hover:bg-[#1EAEDB]/90 text-white"
+          className="bg-[#4254f5] hover:bg-[#4254f5]/90 text-white"
         >
           Nova RNC
         </Button>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="relative">
           <Input
@@ -45,14 +43,14 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
         </div>
 
         <Select
-          value={filters.selectedStatus || ''}
-          onValueChange={(value) => onFilterChange('selectedStatus', value || null)}
+          value={filters.selectedStatus?.toString() || "all"}
+          onValueChange={(value) => onFilterChange('selectedStatus', value === "all" ? null : value)}
         >
           <SelectTrigger className="w-full bg-white dark:bg-gray-800">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value={RncStatusEnum.pending}>Pendente</SelectItem>
             <SelectItem value={RncStatusEnum.collect}>Coleta</SelectItem>
             <SelectItem value={RncStatusEnum.concluded}>Concluída</SelectItem>
@@ -61,14 +59,14 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
         </Select>
 
         <Select
-          value={filters.selectedType || ''}
-          onValueChange={(value) => onFilterChange('selectedType', value || null)}
+          value={filters.selectedType?.toString() || "all"}
+          onValueChange={(value) => onFilterChange('selectedType', value === "all" ? null : value)}
         >
           <SelectTrigger className="w-full bg-white dark:bg-gray-800">
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value={RncTypeEnum.company_complaint}>Reclamação</SelectItem>
             <SelectItem value={RncTypeEnum.supplier}>Fornecedor</SelectItem>
             <SelectItem value={RncTypeEnum.dispatch}>Expedição</SelectItem>
@@ -77,14 +75,14 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
         </Select>
 
         <Select
-          value={filters.selectedDepartment || ''}
-          onValueChange={(value) => onFilterChange('selectedDepartment', value || null)}
+          value={filters.selectedDepartment?.toString() || "all"}
+          onValueChange={(value) => onFilterChange('selectedDepartment', value === "all" ? null : value)}
         >
           <SelectTrigger className="w-full bg-white dark:bg-gray-800">
             <SelectValue placeholder="Departamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             <SelectItem value={RncDepartmentEnum.logistics}>Logística</SelectItem>
             <SelectItem value={RncDepartmentEnum.quality}>Qualidade</SelectItem>
             <SelectItem value={RncDepartmentEnum.financial}>Financeiro</SelectItem>

@@ -39,7 +39,7 @@ export const RNCHome = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background">
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-semibold tracking-tight">Registros de Não Conformidades (RNCs)</h1>
@@ -67,7 +67,7 @@ export const RNCHome = () => {
         </div>
       </div>
 
-      <div className="flex-1 container mx-auto px-4 py-8 overflow-hidden">
+      <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <p className="text-muted-foreground">
             Gerencie e acompanhe as RNCs do portal

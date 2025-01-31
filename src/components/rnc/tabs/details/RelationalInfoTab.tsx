@@ -10,7 +10,7 @@ import { handlePhoneChange } from "@/utils/masks";
 import { rncService } from "@/services/rncService";
 import { toast } from "sonner";
 import { formatBytes } from "@/utils/format";
-import { FileUploadField } from "@/components/rnc/FileUploadField"
+import { FileUploadField } from "@/components/rnc/FileUploadField";
 
 interface RelationalInfoTabProps {
   rncId: string;
@@ -70,26 +70,9 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
     const [attachments, setAttachments] = React.useState(initialValues?.attachments || []);
     const [isUploading, setIsUploading] = React.useState(false);
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      try {
-        setIsUploading(true);
-        const attachment = await rncService.uploadAttachment(rncId, file);
-        setAttachments(prev => [...prev, attachment]);
-        toast.success("Arquivo anexado com sucesso!");
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        toast.error("Erro ao anexar arquivo");
-      } finally {
-        setIsUploading(false);
-      }
-    };
-
     const handleFileSelect = async (file: File) => {
       if (!file) return;
-    
+
       try {
         setIsUploading(true);
         const attachment = await rncService.uploadAttachment(rncId, file);
@@ -171,7 +154,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name={`products.${index}.weight`}
@@ -292,7 +274,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
           {isEditing && (
             <FileUploadField
               label="Adicionar arquivo"
-              onChange={handleFileUpload}
               onFileSelect={handleFileSelect}
               accept="*/*"
               loading={isUploading}

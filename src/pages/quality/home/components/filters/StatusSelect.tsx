@@ -6,28 +6,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RNCStatus } from "../../types";
+import { RncStatusEnum } from "@/types/rnc";
 
 interface StatusSelectProps {
-  selectedStatus: RNCStatus | null;
-  setSelectedStatus: (value: RNCStatus | null) => void;
+  value: RncStatusEnum | null;
+  onChange: (value: RncStatusEnum | null) => void;
 }
 
-export const StatusSelect = ({ selectedStatus, setSelectedStatus }: StatusSelectProps) => {
-  return (
-    <Select 
-      value={selectedStatus || ""} 
-      onValueChange={(value) => setSelectedStatus(value as RNCStatus || null)}
-    >
-      <SelectTrigger className="w-full md:w-[200px] bg-white dark:bg-gray-800">
-        <SelectValue placeholder="Selecione um status" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="Pendente">Pendente</SelectItem>
-        <SelectItem value="Cancelado">Cancelado</SelectItem>
-        <SelectItem value="Coletado">Coletado</SelectItem>
-        <SelectItem value="Solucionado">Solucionado</SelectItem>
-      </SelectContent>
-    </Select>
-  );
-};
+export const StatusSelect = ({ value, onChange }: StatusSelectProps) => (
+  <Select value={value || "all"} onValueChange={v => onChange(v === "all" ? null : v as RncStatusEnum)}>
+    <SelectTrigger>
+      <SelectValue placeholder="Status" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">Todos</SelectItem>
+      {Object.values(RncStatusEnum).map(status => (
+        <SelectItem key={status} value={status}>
+          {status}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
