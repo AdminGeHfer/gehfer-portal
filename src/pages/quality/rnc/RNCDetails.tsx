@@ -12,12 +12,15 @@ import { toast } from "sonner";
 import { StatusBadge } from "@/components/quality/StatusBadge";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
 import { useRNCRealtime } from '@/hooks/useRNCRealtime';
+import { rncService } from "@/services/rncService";
+import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 
 export default function RNCDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { rnc, loading, refetch } = useRNCDetails(id);
   const [isEditing, setIsEditing] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   const [currentTab, setCurrentTab] = React.useState("basic");
   const basicInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
   const relationalInfoRef = React.useRef<{ validate: () => Promise<boolean> }>(null);
@@ -90,6 +93,17 @@ export default function RNCDetails() {
 
     setIsEditing(false);
     toast.success("RNC atualizada com sucesso!");
+  };
+
+  const handleDelete = async () => {
+    try {
+      await rncService.delete(id);
+      toast.success("RNC excluída com sucesso!");
+      navigate("/quality/home");
+    } catch (error) {
+      console.error('Error deleting RNC:', error);
+      toast.error("Erro ao excluir RNC");
+    }
   };
 
   return (
@@ -218,13 +232,20 @@ export default function RNCDetails() {
             <Button
               variant="destructive"
               className="flex items-center gap-2"
-              onClick={() => {
-                // Handle delete
-              }}
+              onClick={() => setIsDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4" />
               Excluir
             </Button>
+            {isDeleteDialogOpen && (
+              <DeleteRNCDialog
+                open={isDeleteDialogOpen}
+                onClose={() => setIsDeleteDialogOpen(false)}
+                rncId={id}
+                rncNumber={rnc?.rnc_number}
+                onConfirm={handleDelete}
+              />
+            )}
           </div>
         </div>
       </div>
