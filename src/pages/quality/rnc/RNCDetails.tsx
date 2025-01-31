@@ -59,11 +59,16 @@ const RNCDetailsPage = () => {
       }
 
       // Update RNC
-      await rncService.update(id, {
+      const updatedData = {
         ...formData.basic,
         ...formData.relational,
         ...formData.additional,
-      });
+        contacts: formData.relational?.contacts || [],
+        products: formData.relational?.products || [],
+        attachments: formData.relational?.attachments || []
+      };
+
+      await rncService.update(id, updatedData);
 
       toast.success("RNC atualizada com sucesso!");
       setIsEditing(false);

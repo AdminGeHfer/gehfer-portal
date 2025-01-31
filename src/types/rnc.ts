@@ -153,6 +153,7 @@ export interface RNCWithRelations extends RNC {
 export interface CreateRNCInput extends Omit<RNC, 'id' | 'rnc_number' | 'days_left'> {
   products: CreateRNCProduct[];
   contacts: CreateRNCContact[];
+  attachments?: RNCAttachment[];
 }
 
 export interface UpdateRNCInput extends Omit<CreateRNCInput, 'created_by' | 'created_at'> {

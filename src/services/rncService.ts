@@ -117,11 +117,7 @@ export const rncService = {
             }))
           );
 
-        if (contactsError) {
-          // Rollback by deleting the RNC
-          await supabase.from('rncs').delete().eq('id', rncData.id);
-          throw new RNCError(`Error creating contacts: ${contactsError.message}`);
-        }
+        if (contactsError) throw new RNCError(`Error creating contacts: ${contactsError.message}`);
       }
 
       // Create products
@@ -136,11 +132,13 @@ export const rncService = {
             }))
           );
 
-        if (productsError) {
-          // Rollback by deleting the RNC and contacts
-          await supabase.from('rncs').delete().eq('id', rncData.id);
-          throw new RNCError(`Error creating products: ${productsError.message}`);
-        }
+        if (productsError) throw new RNCError(`Error creating products: ${productsError.message}`);
+      }
+
+      if (data.attachments?.length) {
+        await Promise.all(data.attachments.map(file => 
+          this.uploadAttachment(rncData.id, file)
+        ));
       }
 
       return rncData as RNC;
@@ -196,48 +194,55 @@ export const rncService = {
       if (!rncData) throw new RNCError('Failed to update RNC');
 
       // Update contacts
-      if (data.contacts?.length) {
+      if (data.contacts) {
         // Delete existing contacts
-        await supabase
-          .from('rnc_contacts')
-          .delete()
-          .eq('rnc_id', id);
+        await supabase.from('rnc_contacts').delete().eq('rnc_id', id);
+        
+        // Insert new contacts if any
+        if (data.contacts.length > 0) {
+          const { error: contactsError } = await supabase
+            .from('rnc_contacts')
+            .insert(
+              data.contacts.map(contact => ({
+                rnc_id: id,
+                name: contact.name,
+                phone: contact.phone,
+                email: contact.email
+              }))
+            );
 
-        // Insert new contacts
-        const { error: contactsError } = await supabase
-          .from('rnc_contacts')
-          .insert(
-            data.contacts.map(contact => ({
-              rnc_id: id,
-              name: contact.name,
-              phone: contact.phone,
-              email: contact.email
-            }))
-          );
-
-        if (contactsError) throw new RNCError(`Error updating contacts: ${contactsError.message}`);
+          if (contactsError) throw new RNCError(`Error updating contacts: ${contactsError.message}`);
+        }
       }
 
       // Update products
-      if (data.products?.length) {
+      if (data.products) {
         // Delete existing products
-        await supabase
-          .from('rnc_products')
-          .delete()
-          .eq('rnc_id', id);
+        await supabase.from('rnc_products').delete().eq('rnc_id', id);
+        
+        // Insert new products if any
+        if (data.products.length > 0) {
+          const { error: productsError } = await supabase
+            .from('rnc_products')
+            .insert(
+              data.products.map(product => ({
+                rnc_id: id,
+                name: product.name,
+                weight: product.weight
+              }))
+            );
 
-        // Insert new products
-        const { error: productsError } = await supabase
-          .from('rnc_products')
-          .insert(
-            data.products.map(product => ({
-              rnc_id: id,
-              name: product.name,
-              weight: product.weight
-            }))
-          );
+          if (productsError) throw new RNCError(`Error updating products: ${productsError.message}`);
+        }
+      }
 
-        if (productsError) throw new RNCError(`Error updating products: ${productsError.message}`);
+      // Handle attachments
+      if (data.attachments?.length) {
+        // Only handle new File objects, existing attachments are managed separately
+        const newAttachments = data.attachments.filter(att => att instanceof File);
+        await Promise.all(newAttachments.map(file => 
+          this.uploadAttachment(id, file)
+        ));
       }
 
       return rncData as RNC;

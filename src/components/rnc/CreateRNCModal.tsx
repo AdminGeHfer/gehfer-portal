@@ -52,7 +52,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     }
   }, [open, methods]);
 
-  const handleSave = async (formData) => {
+  const handleSave = async (formData: CreateRNCFormData) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     const loadingToast = toast.loading('Criando RNC...');
