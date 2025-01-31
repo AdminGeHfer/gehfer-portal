@@ -56,22 +56,12 @@ const Index = () => {
     }
   };
 
-  const handleEdit = (rnc: RNC) => {
-    setSelectedRNCData(rnc);
-    setIsEditModalOpen(true);
-  };
-
-  const handleDelete = (rnc: RNC) => {
-    setSelectedRNCData(rnc);
-    setIsDeleteDialogOpen(true);
-  };
-
   const handleDeleteConfirm = async () => {
     if (!selectedRNCData) return;
     
     try {
       await rncService.delete(selectedRNCData.id);
-      toast.success("RNC excluída com sucesso!");
+      // toast.success("RNC excluída com sucesso!");
       
       // Refresh the RNC List
       await refetch();
@@ -111,8 +101,6 @@ const Index = () => {
           
           <RNCTable 
             rncs={filteredRNCs}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
             isLoading={isLoading}
           />
 

@@ -168,6 +168,27 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="closed_at"
+              render={({ field }) => (
+                <FormItem className="flex flex-col space-y-4">
+                  <FormLabel htmlFor="closed_at">Data Final</FormLabel>
+                  <FormControl>
+                    <ReactDatePicker
+                      selected={field.value ? new Date(field.value) : null}
+                      onChange={(date: Date) => field.onChange(date?.toISOString() || "")}
+                      disabled={!isEditing}
+                      className="border border-blue-200 rounded-lg p-2 focus:border-blue-400 focus:ring focus:ring-blue-200 w-full"
+                      dateFormat="dd/MM/yyyy"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           <FormField

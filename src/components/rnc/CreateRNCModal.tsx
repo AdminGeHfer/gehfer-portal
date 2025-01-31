@@ -53,7 +53,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
   }, [open, methods]);
 
   const handleSave = async (formData) => {
-    console.log('Form data before service call:',formData);
     if (isSubmitting) return;
     setIsSubmitting(true);
     const loadingToast = toast.loading('Criando RNC...');

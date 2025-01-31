@@ -60,7 +60,6 @@ export const RNCModalContent = ({
   };
 
   const handleSubmit = methods.handleSubmit((data) => {
-    console.log('Form data at submission:', data);
     onSave(data);
   });
 

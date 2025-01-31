@@ -9,8 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
 import { RNCWithRelations } from "@/types/rnc";
 import { 
   getStatusColor, 
@@ -23,12 +21,10 @@ import {
 
 interface RNCTableProps {
   rncs: RNCWithRelations[];
-  onEdit: (rnc: RNCWithRelations) => void;
-  onDelete: (rnc: RNCWithRelations) => void;
   isLoading: boolean;
 }
 
-export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
+export function RNCTable({ rncs, isLoading }: RNCTableProps) {
   const navigate = useNavigate();
 
   if (isLoading || !rncs) {
@@ -51,7 +47,6 @@ export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
               <TableHead className="font-semibold">Departamento</TableHead>
               <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">Data</TableHead>
-              <TableHead className="font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -80,30 +75,6 @@ export function RNCTable({ rncs, onEdit, onDelete, isLoading }: RNCTableProps) {
                 </TableCell>
                 <TableCell>
                   {new Date(rnc.created_at).toLocaleDateString("pt-BR")}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(rnc);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(rnc);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </TableCell>
               </TableRow>
             ))}
