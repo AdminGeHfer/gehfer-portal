@@ -22,15 +22,15 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
   ({ isEditing, initialValues }, ref) => {
     const form = useForm<z.infer<typeof additionalInfoSchema>>({
       resolver: zodResolver(additionalInfoSchema),
-      defaultValues: initialValues ||{
-        description: "",
-        korp: "",
-        nfv: "",
-        nfd: "",
-        city: "",
-        conclusion: "",
-        collected_at: "",
-        closed_at: "",
+      defaultValues: {
+        description: initialValues?.description || "",
+        korp: initialValues?.korp || "",
+        nfv: initialValues?.nfv || "",
+        nfd: initialValues?.nfd || "",
+        city: initialValues?.city || "",
+        conclusion: initialValues?.conclusion || "",
+        collected_at: initialValues?.collected_at ? new Date(initialValues.collected_at).toDateString() : undefined,
+        closed_at: initialValues?.closed_at ? new Date(initialValues.closed_at).toDateString() : undefined,
       },
     });
 
@@ -156,6 +156,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                   <FormLabel htmlFor="collected_at">Data para Coleta</FormLabel>
                   <FormControl>
                   <ReactDatePicker
+                    selected={field.value ? new Date(field.value) : null}
                     onChange={(date: Date) => field.onChange(date?.toISOString() || "")}
                     disabled={!isEditing}
                     className="border border-blue-200 rounded-lg p-2 focus:border-blue-400 focus:ring focus:ring-blue-200 w-full"
@@ -176,6 +177,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                   <FormLabel htmlFor="closed_at">Data Final</FormLabel>
                   <FormControl>
                   <ReactDatePicker
+                    selected={field.value ? new Date(field.value) : null}
                     onChange={(date: Date) => field.onChange(date?.toISOString() || "")}
                     disabled={!isEditing}
                     className="border border-blue-200 rounded-lg p-2 focus:border-blue-400 focus:ring focus:ring-blue-200 w-full"

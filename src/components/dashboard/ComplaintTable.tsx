@@ -10,11 +10,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/atoms/Button";
 import { Edit, Trash2 } from "lucide-react";
-import { Complaint } from "@/types/complaint";
 import { RNC } from "@/types/rnc";
 
 interface ComplaintTableProps {
-  complaints: Complaint[];
+  complaints: RNC[];
   onEdit: (rnc: RNC) => void;
   onDelete: (rnc: RNC) => void;
 }
@@ -22,7 +21,7 @@ interface ComplaintTableProps {
 export const ComplaintTable = ({ complaints, onEdit, onDelete }: ComplaintTableProps) => {
   const navigate = useNavigate();
 
-  const handleRowClick = (complaintId: number) => {
+  const handleRowClick = (complaintId: string) => {
     navigate(`/quality/rnc/${complaintId}`);
   };
 
@@ -54,23 +53,23 @@ export const ComplaintTable = ({ complaints, onEdit, onDelete }: ComplaintTableP
                   }
                 }}
               >
-                <TableCell className="font-medium dark:text-gray-200">{complaint.protocol}</TableCell>
+                <TableCell className="font-medium dark:text-gray-200">{complaint.rnc_number}</TableCell>
                 <TableCell className="dark:text-gray-200">
-                  {new Date(complaint.date).toLocaleDateString("pt-BR")}
+                  {new Date(complaint.created_at).toLocaleDateString("pt-BR")}
                 </TableCell>
                 <TableCell className="dark:text-gray-200">{complaint.company}</TableCell>
                 <TableCell>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      complaint.status === "Em análise"
+                      complaint.workflow_status === "open"
                         ? "bg-warning/10 text-warning-dark dark:bg-warning/20"
                         : "bg-error/10 text-error-dark dark:bg-error/20"
                     }`}
                   >
-                    {complaint.status}
+                    {complaint.workflow_status}
                   </span>
                 </TableCell>
-                <TableCell className="dark:text-gray-200">{complaint.daysOpen} dias</TableCell>
+                <TableCell className="dark:text-gray-200">{complaint.days_left} dias</TableCell>
                 <TableCell>
                   <div className="flex gap-2">
                     <Button
@@ -78,7 +77,7 @@ export const ComplaintTable = ({ complaints, onEdit, onDelete }: ComplaintTableP
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onEdit(complaint as unknown as RNC);
+                        onEdit(complaint);
                       }}
                     >
                       <Edit className="h-4 w-4" />
@@ -88,7 +87,7 @@ export const ComplaintTable = ({ complaints, onEdit, onDelete }: ComplaintTableP
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDelete(complaint as unknown as RNC);
+                        onDelete(complaint);
                       }}
                     >
                       <Trash2 className="h-4 w-4" />

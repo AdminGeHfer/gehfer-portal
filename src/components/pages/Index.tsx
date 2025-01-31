@@ -45,7 +45,6 @@ const Index = () => {
           
           <ComplaintTable 
             complaints={filteredComplaints} 
-            onSelectComplaint={setSelectedComplaint}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />

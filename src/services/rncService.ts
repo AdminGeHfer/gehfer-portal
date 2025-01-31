@@ -6,8 +6,6 @@ import {
   WorkflowStatusEnum, 
   type RNC, 
   type RNCAttachment,
-  RncTypeEnum,
-  RncDepartmentEnum,
 } from '@/types/rnc';
 
 // Custom error classes for better error handling
@@ -157,32 +155,78 @@ export const rncService = {
       if (userError) {
         console.warn('Could not find user for assignment:', userError);
       }
-
-      const updateData = {
-        company_code: data.company_code,
-        company: data.company,
-        document: data.document,
-        description: data.description,
-        type: data.type as RncTypeEnum,
-        department: data.department as RncDepartmentEnum,
-        responsible: capitalizedResponsible,
-        korp: data.korp,
-        nfv: data.nfv,
-        nfd: data.nfd,
-        city: data.city,
-        assigned_to: assignedUser?.id || null,
-        updated_at: new Date().toISOString()
-      };
   
       const { data: rncData, error: rncError } = await supabase
         .from('rncs')
-        .update(updateData)
+        .update({
+          company_code: data.company_code,
+          company: data.company,
+          document: data.document,
+          type: data.type,
+          department: data.department,
+          responsible: capitalizedResponsible,
+          description: data.description,
+          korp: data.korp,
+          nfv: data.nfv,
+          nfd: data.nfd,
+          city: data.city,
+          collected_at: data.collected_at,
+          closed_at: data.closed_at,
+          conclusion: data.conclusion,
+          assigned_to: assignedUser?.id || null,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', id)
         .select()
         .single();
   
       if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
       if (!rncData) throw new RNCError('Failed to update RNC');
+
+      // Update contacts
+      if (data.contacts?.length) {
+        // Delete existing contacts
+        await supabase
+          .from('rnc_contacts')
+          .delete()
+          .eq('rnc_id', id);
+
+        // Insert new contacts
+        const { error: contactsError } = await supabase
+          .from('rnc_contacts')
+          .insert(
+            data.contacts.map(contact => ({
+              rnc_id: id,
+              name: contact.name,
+              phone: contact.phone,
+              email: contact.email
+            }))
+          );
+
+        if (contactsError) throw new RNCError(`Error updating contacts: ${contactsError.message}`);
+      }
+
+      // Update products
+      if (data.products?.length) {
+        // Delete existing products
+        await supabase
+          .from('rnc_products')
+          .delete()
+          .eq('rnc_id', id);
+
+        // Insert new products
+        const { error: productsError } = await supabase
+          .from('rnc_products')
+          .insert(
+            data.products.map(product => ({
+              rnc_id: id,
+              name: product.name,
+              weight: product.weight
+            }))
+          );
+
+        if (productsError) throw new RNCError(`Error updating products: ${productsError.message}`);
+      }
 
       return rncData as RNC;
     } catch (error) {

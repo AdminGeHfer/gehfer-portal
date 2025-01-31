@@ -26,8 +26,8 @@ export const additionalInfoSchema = z.object({
   nfd: z.string().min(3, "NFD deve ter no mínimo 3 caracteres").optional().or(z.literal('')).nullable(),
   city: z.string().min(3, "A cidade deve ter no mínimo 3 caracteres").optional().or(z.literal('')).nullable(),
   conclusion: z.string().min(3, "A conclusão deve ter no mínimo 10 caracteres").optional().or(z.literal('')).nullable(),
-  closed_at: z.string().date().optional().nullable(),
-  collected_at: z.string().date().optional().nullable()
+  closed_at: z.string().datetime().optional().nullable(),
+  collected_at: z.string().datetime().optional().nullable()
 });
 
 // Product Validation Schema
