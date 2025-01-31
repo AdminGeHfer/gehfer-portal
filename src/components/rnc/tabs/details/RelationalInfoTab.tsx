@@ -40,6 +40,8 @@ interface RelationalInfoTabProps {
   };
 }
 
+type FormData = z.infer<typeof relationalInfoSchema>;
+
 export type RelationalInfoFormData = {
   contacts: CreateRNCContact[];
   products: CreateRNCProduct[];
@@ -48,16 +50,16 @@ export type RelationalInfoFormData = {
 
 export type RelationalInfoTabRef = {
   validate: () => Promise<boolean>;
-  getFormData: () => RelationalInfoFormData;
+  getFormData: () => FormData;
 };
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
   ({ rncId, isEditing, initialValues }, ref) => {
     const defaultValues = React.useMemo(() => ({
       contacts: initialValues?.contacts?.length ? initialValues.contacts : [{
-        name: "",
-        phone: "",
-        email: ""
+        name: initialValues?.contacts?.[0]?.name ?? "",
+        phone: initialValues?.contacts?.[0]?.phone ?? "",
+        email: initialValues?.contacts?.[0]?.email ?? ""
       }],
       products: initialValues?.products?.length ? initialValues.products : [{
         id: crypto.randomUUID(),
@@ -120,11 +122,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
-      getFormData: () => ({
-        contacts: form.getValues("contacts"),
-        products: form.getValues("products"),
-        attachments
-      })
+      getFormData: () => form.getValues()
     }));
 
     const addProduct = () => {
@@ -215,7 +213,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="name"
+                name={`contacts.0.name` as const}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
@@ -236,7 +234,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
               <FormField
                 control={form.control}
-                name="phone"
+                name={`contacts.0.phone` as const}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
@@ -258,7 +256,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
 
               <FormField
                 control={form.control}
-                name="email"
+                name={`contacts.0.email` as const}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>

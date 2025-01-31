@@ -8,6 +8,7 @@ import { z } from "zod";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { additionalInfoSchema } from "@/utils/validations";
+import { AdditionalInfoFormData } from "../AdditionalInfoTab";
 
 interface AdditionalInfoTabProps {
   isEditing: boolean;
@@ -16,6 +17,7 @@ interface AdditionalInfoTabProps {
 
 export type AdditionalInfoTabRef = {
   validate: () => Promise<boolean>;
+  getFormData: () => AdditionalInfoFormData;
 };
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
