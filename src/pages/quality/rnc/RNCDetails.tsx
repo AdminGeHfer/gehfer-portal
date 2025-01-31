@@ -2,9 +2,9 @@ import * as React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRNCDetails } from '@/hooks/useRNCDetails';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BasicInfoTab } from "@/components/rnc/tabs/details/BasicInfoTab";
-import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
-import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoTab";
+import { BasicInfoTab, BasicInfoTabRef } from "@/components/rnc/tabs/details/BasicInfoTab";
+import { RelationalInfoTab, RelationalInfoTabRef } from "@/components/rnc/tabs/details/RelationalInfoTab";
+import { AdditionalInfoTab, AdditionalInfoTabRef } from "@/components/rnc/tabs/details/AdditionalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { useRef, useState } from "react";
@@ -24,20 +24,30 @@ const RNCDetailsPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Refs for form validation
-  const basicInfoRef = useRef<{ validate: () => Promise<boolean> }>(null);
-  const relationalInfoRef = useRef<{ validate: () => Promise<boolean> }>(null);
-  const additionalInfoRef = useRef<{ validate: () => Promise<boolean> }>(null);
+  const basicInfoRef = useRef<BasicInfoTabRef>(null);
+  const relationalInfoRef = useRef<RelationalInfoTabRef>(null);
+  const additionalInfoRef = useRef<AdditionalInfoTabRef>(null);
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
 
+      // Get current form data from refs instead of localStorage
+      const basicData = basicInfoRef.current?.getFormData();
+      const additionalData = additionalInfoRef.current?.getFormData();
+      const relationalData = relationalInfoRef.current?.getFormData();
+
       // Validate all forms
       const [basicValid, relationalValid, additionalValid] = await Promise.all([
-        basicInfoRef.current?.validate(),
-        relationalInfoRef.current?.validate(),
-        additionalInfoRef.current?.validate(),
+        basicInfoRef.current?.validate() || Promise.resolve(false),
+        relationalInfoRef.current?.validate() || Promise.resolve(false),
+        additionalInfoRef.current?.validate() || Promise.resolve(false),
       ]);
+
+      if (!basicData || !relationalData || !additionalData) {
+        toast.error("Erro ao obter dados dos formulários");
+        return;
+      }
 
       if (!basicValid || !relationalValid || !additionalValid) {
         toast.error("Por favor, corrija os erros antes de salvar");
@@ -50,8 +60,6 @@ const RNCDetailsPage = () => {
         toast.error("Nenhum dado para salvar");
         return;
       }
-
-      const formData = JSON.parse(storedData);
       
       if (!id) {
         toast.error("ID da RNC não encontrado");
@@ -60,12 +68,11 @@ const RNCDetailsPage = () => {
 
       // Update RNC
       const updatedData = {
-        ...formData.basic,
-        ...formData.relational,
-        ...formData.additional,
-        contacts: formData.relational?.contacts || [],
-        products: formData.relational?.products || [],
-        attachments: formData.relational?.attachments || []
+        ...basicData,
+        ...additionalData,
+        contacts: relationalData.contacts || [],
+        products: relationalData.products || [],
+        attachments: relationalData.attachments || []
       };
 
       await rncService.update(id, updatedData);
@@ -74,8 +81,6 @@ const RNCDetailsPage = () => {
       setIsEditing(false);
       refetch();
 
-      // Clear stored form data
-      localStorage.removeItem('rncDetailsData');
     } catch (error) {
       console.error('Error saving RNC:', error);
       toast.error("Erro ao salvar RNC");

@@ -11,6 +11,7 @@ import { rncService } from "@/services/rncService";
 import { toast } from "sonner";
 import { formatBytes } from "@/utils/format";
 import { FileUploadField } from "@/components/rnc/FileUploadField";
+import { CreateRNCContact, CreateRNCProduct, RNCAttachment } from "@/types/rnc";
 
 interface RelationalInfoTabProps {
   rncId: string;
@@ -36,8 +37,15 @@ interface RelationalInfoTabProps {
   };
 }
 
+export type RelationalInfoFormData = {
+  contacts: CreateRNCContact[];
+  products: CreateRNCProduct[];
+  attachments?: (File | RNCAttachment)[];
+};
+
 export type RelationalInfoTabRef = {
   validate: () => Promise<boolean>;
+  getFormData: () => RelationalInfoFormData;
 };
 
 const relationalInfoSchema = z.object({
@@ -114,7 +122,8 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
     const products = watch("products");
 
     React.useImperativeHandle(ref, () => ({
-      validate: () => form.trigger()
+      validate: () => form.trigger(),
+      getFormData: () => form.getValues()
     }));
 
     const addProduct = () => {

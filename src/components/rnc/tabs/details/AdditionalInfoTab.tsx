@@ -29,8 +29,8 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
         nfd: initialValues?.nfd || "",
         city: initialValues?.city || "",
         conclusion: initialValues?.conclusion || "",
-        collected_at: initialValues?.collected_at ? new Date(initialValues.collected_at).toDateString() : undefined,
-        closed_at: initialValues?.closed_at ? new Date(initialValues.closed_at).toDateString() : undefined,
+        collected_at: initialValues?.collected_at ? new Date(initialValues.collected_at).toDateString() : null,
+        closed_at: initialValues?.closed_at ? new Date(initialValues.closed_at).toDateString() : null,
       },
     });
 
@@ -41,9 +41,8 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
     }, [initialValues, form]);
 
     React.useImperativeHandle(ref, () => ({
-      validate: () => {
-        return form.trigger();
-      },
+      validate: () => form.trigger(),
+      getFormData: () => form.getValues()
     }));
 
     return (
@@ -61,6 +60,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                   <FormControl>
                     <Textarea
                       {...field}
+                      value={field.value || ""}
                       disabled={!isEditing}
                       className="min-h-[100px] border-blue-200 focus:border-blue-400"
                     />
@@ -83,6 +83,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ""}
                       disabled={!isEditing}
                       className="border-blue-200 focus:border-blue-400"
                     />
@@ -103,6 +104,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ""}
                       disabled={!isEditing}
                       className="border-blue-200 focus:border-blue-400"
                     />
@@ -121,6 +123,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ""}
                       disabled={!isEditing}
                       className="border-blue-200 focus:border-blue-400"
                     />
@@ -139,6 +142,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                   <FormControl>
                     <Input
                       {...field}
+                      value={field.value || ""}
                       disabled={!isEditing}
                       className="border-blue-200 focus:border-blue-400"
                     />
@@ -200,6 +204,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                 <FormControl>
                   <Textarea
                     {...field}
+                    value={field.value || ""}
                     disabled={!isEditing}
                     className="min-h-[100px] border-blue-200 focus:border-blue-400"
                   />

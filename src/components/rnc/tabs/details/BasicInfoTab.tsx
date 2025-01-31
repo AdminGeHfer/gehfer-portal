@@ -14,6 +14,7 @@ import { basicInfoSchema } from "@/utils/validations";
 import { handleDocumentChange } from "@/utils/masks";
 import type { z } from "zod";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
+import { BasicInfoFormData } from "../BasicInfoTab";
 
 interface BasicInfoTabProps {
   isEditing: boolean;
@@ -22,6 +23,7 @@ interface BasicInfoTabProps {
 
 export type BasicInfoTabRef = {
   validate: () => Promise<boolean>;
+  getFormData: () => BasicInfoFormData;
 };
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
@@ -45,9 +47,8 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
     }, [initialValues, form]);
 
     React.useImperativeHandle(ref, () => ({
-      validate: () => {
-        return form.trigger();
-      },
+      validate: () => form.trigger(),
+      getFormData: () => form.getValues()
     }));
 
     // Save form data to localStorage whenever it changes
