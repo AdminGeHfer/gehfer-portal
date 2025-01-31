@@ -5,7 +5,7 @@ import { RNCModalContent } from "./modal/RNCModalContent";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { supabase } from "@/lib/supabase";
-import { RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
+import { RncDepartmentEnum, RncStatusEnum, RncTypeEnum, WorkflowStatusEnum } from "@/types/rnc";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateRNCFormData, createRNCSchema } from "@/schemas/rncValidation";
@@ -28,8 +28,8 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       company: '',
       document: '',
       description: '',
-      type: undefined,
-      department: undefined,
+      type: RncTypeEnum.company_complaint,
+      department: RncDepartmentEnum.logistics,
       responsible: '',
       korp: '',
       nfv: '',
@@ -56,27 +56,62 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     if (isSubmitting) return;
     setIsSubmitting(true);
     const loadingToast = toast.loading('Criando RNC...');
-
+  
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
-
+  
+      // Validate and structure products
+      const validatedProducts = formData.products
+        .filter(product => product.name && product.weight) // Only include products with required fields
+        .map(product => ({
+          name: product.name,
+          weight: product.weight
+        }));
+  
+      // Validate and structure contacts
+      const validatedContacts = formData.contacts
+        .filter(contact => contact.name && contact.phone) // Only include contacts with required fields
+        .map(contact => ({
+          name: contact.name,
+          phone: contact.phone,
+          email: contact.email || undefined // Make email truly optional
+        }));
+  
+      // Filter out any invalid attachments
+      const validAttachments = (formData.attachments || [])
+        .filter((file): file is File => file instanceof File);
+  
       const rnc = await rncService.create({
-        ...formData,
+        company_code: formData.company_code,
+        company: formData.company,
+        document: formData.document,
+        description: formData.description,
+        type: formData.type,
+        department: formData.department,
+        responsible: formData.responsible,
+        korp: formData.korp,
+        nfv: formData.nfv,
+        nfd: formData.nfd || undefined,
+        city: formData.city || undefined,
         status: RncStatusEnum.pending,
         workflow_status: WorkflowStatusEnum.open,
         created_by: user.id,
         assigned_by: user.id,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        products: validatedProducts,
+        contacts: validatedContacts,
+        attachments: validAttachments
       });
-
-      if (formData.attachments?.length) {
-        await Promise.all(formData.attachments.map((file: File) => 
+  
+      // Handle attachments upload after RNC creation
+      if (validAttachments.length) {
+        await Promise.all(validAttachments.map(file => 
           rncService.uploadAttachment(rnc.id, file)
         ));
       }
-
+  
       toast.dismiss(loadingToast);
       toast.success('RNC criada com sucesso!');
       localStorage.removeItem('rncFormData');
