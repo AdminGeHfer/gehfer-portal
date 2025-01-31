@@ -1,10 +1,10 @@
-import { useState } from "react";
 import * as React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { RNCFilters } from "@/components/dashboard/RNCFilters";
+import { RNCFilters } from "@/pages/quality/home/components/RNCFilters";
 import { RNCDetails } from "@/components/dashboard/RNCDetails";
 import { RNCStats } from "@/components/dashboard/RNCStats";
-import { RNCTable } from "@/components/dashboard/RNCTable";
+import { RNCTable } from "@/pages/quality/home/components/RNCTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
 import { EditRNCModal } from "@/components/rnc/EditRNCModal";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";

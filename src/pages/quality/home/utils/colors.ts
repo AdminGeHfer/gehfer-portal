@@ -1,3 +1,53 @@
+import { RncDepartmentEnum, RncStatusEnum, RncTypeEnum, WorkflowStatusEnum } from "@/types/rnc";
+
+export const getStatusDisplayName = (status: RncStatusEnum): string => {
+  const statusMap = {
+    [RncStatusEnum.not_created]: 'Não Criada',
+    [RncStatusEnum.pending]: 'Pendente',
+    [RncStatusEnum.collect]: 'Coleta',
+    [RncStatusEnum.concluded]: 'Concluída',
+    [RncStatusEnum.canceled]: 'Cancelada'
+  };
+  return statusMap[status] || status;
+};
+
+export const getTypeDisplayName = (type: RncTypeEnum): string => {
+  const typeMap = {
+    [RncTypeEnum.company_complaint]: 'Reclamação',
+    [RncTypeEnum.supplier]: 'Fornecedor',
+    [RncTypeEnum.dispatch]: 'Expedição',
+    [RncTypeEnum.logistics]: 'Logística',
+    [RncTypeEnum.deputy]: 'Representante',
+    [RncTypeEnum.driver]: 'Motorista',
+    [RncTypeEnum.financial]: 'Financeiro',
+    [RncTypeEnum.commercial]: 'Comercial',
+    [RncTypeEnum.financial_agreement]: 'Acordo Financeiro'
+  };
+  return typeMap[type] || type;
+};
+
+export const getDepartmentDisplayName = (department: RncDepartmentEnum): string => {
+  const departmentMap = {
+    [RncDepartmentEnum.logistics]: 'Logística',
+    [RncDepartmentEnum.quality]: 'Qualidade',
+    [RncDepartmentEnum.financial]: 'Financeiro',
+    [RncDepartmentEnum.tax]: 'Fiscal'
+  };
+  return departmentMap[department] || department;
+};
+
+export const getWorkflowStatusDisplayName = (status: WorkflowStatusEnum) => {
+  const workflowStatusMap = {
+    [WorkflowStatusEnum.open]: 'Aberto',
+    [WorkflowStatusEnum.analysis]: 'Em Análise',
+    [WorkflowStatusEnum.resolution]: 'Em Resolução',
+    [WorkflowStatusEnum.solved]: 'Resolvido',
+    [WorkflowStatusEnum.closing]: 'Fechando',
+    [WorkflowStatusEnum.closed]: 'Fechado'
+  };
+  return workflowStatusMap[status] || status;
+};
+
 export const getStatusColor = (status: string) => {
   const colors = {
     "Pendente": "bg-amber-200 text-amber-700 dark:bg-amber-900 dark:text-amber-200",
@@ -31,52 +81,4 @@ export const getDepartmentColor = (department: string) => {
     "Fiscal": "bg-fuchsia-200 text-fuchsia-700 dark:bg-fuchsia-900 dark:text-fuchsia-300"
   };
   return colors[department as keyof typeof colors] || "bg-gray-100 text-gray-800";
-};
-
-export const getStatusDisplayName = (status: string) => {
-  const displayNames: Record<string, string> = {
-    'not_created': 'Não Criado',
-    'pending': 'Pendente',
-    'collect': 'Coletado',
-    'concluded': 'Solucionado',
-    'canceled': 'Cancelado',
-  };
-  return displayNames[status] || status;
-};
-
-export const getTypeDisplayName = (type: string) => {
-  const displayNames: Record<string, string> = {
-    'company_complaint': 'Reclamação do Cliente',
-    'supplier': 'Fornecedor',
-    'dispatch': 'Expedição',
-    'logistics': 'Logística',
-    'deputy': 'Representante',
-    'driver': 'Motorista',
-    'financial': 'Financeiro',
-    'commercial': 'Comercial',
-    'financial_agreement': 'Acordo Financeiro'
-  };
-  return displayNames[type] || type;
-};
-
-export const getDepartmentDisplayName = (department: string) => {
-  const displayNames: Record<string, string> = {
-    'logistics': 'Logística',
-    'quality': 'Qualidade',
-    'financial': 'Financeiro',
-    'tax': 'Fiscal'
-  };
-  return displayNames[department] || department;
-};
-
-export const getWorkflowStatusDisplayName = (status: string) => {
-  const displayNames: Record<string, string> = {
-    'open': 'Aberto',
-    'analysis': 'Em Análise',
-    'resolution': 'Em Resolução',
-    'solved': 'Resolvido',
-    'closing': 'Fechando',
-    'closed': 'Fechado'
-  };
-  return displayNames[status] || status;
 };
