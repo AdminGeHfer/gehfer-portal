@@ -28,21 +28,6 @@ const QualityRoutes = lazy(() => import("./routes/QualityRoutes").catch(err => {
   return Promise.reject(err);
 }));
 
-const AdminRoutes = lazy(() => import("./routes/AdminRoutes").catch(err => {
-  console.error("Error loading AdminRoutes component:", err);
-  return Promise.reject(err);
-}));
-
-const PortariaRoutes = lazy(() => import("./routes/PortariaRoutes").catch(err => {
-  console.error("Error loading PortariaRoutes component:", err);
-  return Promise.reject(err);
-}));
-
-const IntelligenceRoutes = lazy(() => import("./routes/IntelligenceRoutes").catch(err => {
-  console.error("Error loading IntelligenceRoutes component:", err);
-  return Promise.reject(err);
-}));
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -119,34 +104,10 @@ const App = () => {
                                 <Routes>
                                   <Route path="/apps" element={<Apps />} />
                                   <Route
-                                    path="/intelligence/*"
-                                    element={
-                                      <ProtectedRoute module="intelligence">
-                                        <IntelligenceRoutes />
-                                      </ProtectedRoute>
-                                    }
-                                  />
-                                  <Route
                                     path="/quality/*"
                                     element={
                                       <ProtectedRoute module="quality">
                                         <QualityRoutes />
-                                      </ProtectedRoute>
-                                    }
-                                  />
-                                  <Route
-                                    path="/admin/*"
-                                    element={
-                                      <ProtectedRoute module="admin">
-                                        <AdminRoutes />
-                                      </ProtectedRoute>
-                                    }
-                                  />
-                                  <Route
-                                    path="/portaria/*"
-                                    element={
-                                      <ProtectedRoute module="portaria">
-                                        <PortariaRoutes />
                                       </ProtectedRoute>
                                     }
                                   />
