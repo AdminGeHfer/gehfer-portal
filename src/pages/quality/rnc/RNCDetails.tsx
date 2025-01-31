@@ -38,18 +38,18 @@ const RNCDetailsPage = () => {
       const relationalData = relationalInfoRef.current?.getFormData();
 
       // Validate all forms
-      const [basicValid, relationalValid, additionalValid] = await Promise.all([
+      const [basicValid, additionalValid, relationalValid] = await Promise.all([
         basicInfoRef.current?.validate() || Promise.resolve(false),
-        relationalInfoRef.current?.validate() || Promise.resolve(false),
         additionalInfoRef.current?.validate() || Promise.resolve(false),
+        relationalInfoRef.current?.validate() || Promise.resolve(false),
       ]);
 
-      if (!basicData || !relationalData || !additionalData) {
+      if (!basicData || !additionalData || !relationalData) {
         toast.error("Erro ao obter dados dos formulários");
         return;
       }
 
-      if (!basicValid || !relationalValid || !additionalValid) {
+      if (!basicValid || !additionalValid || !relationalValid) {
         toast.error("Por favor, corrija os erros antes de salvar");
         return;
       }
@@ -72,7 +72,8 @@ const RNCDetailsPage = () => {
         ...additionalData,
         contacts: relationalData.contacts || [],
         products: relationalData.products || [],
-        attachments: relationalData.attachments || []
+        attachments: relationalData.attachments || [],
+        updated_at: new Date().toISOString()
       };
 
       await rncService.update(id, updatedData);

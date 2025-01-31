@@ -47,12 +47,14 @@ export const contactSchema = z.object({
 });
 
 export const relationalInfoSchema = z.object({
-  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
-  phone: z.string().regex(
-    /\([0-9]{2}\)\s?[0-9]{4,5}-?[0-9]{3,4}/,
-    "Telefone inválido. Use o formato: (99) 99999-9999"
-  ),
-  email: z.union([z.literal(""), z.string().email("Email inválido")]),
+  contacts: z.array(z.object({
+    name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
+    phone: z.string().regex(
+      /\([0-9]{2}\)\s?[0-9]{4,5}-?[0-9]{3,4}/,
+      "Telefone inválido. Use o formato: (99) 99999-9999"
+    ),
+    email: z.union([z.literal(""), z.string().email("Email inválido")]),
+  })),
   products: z.array(z.object({
     id: z.string().uuid("ID inválido"),
     name: z.string().min(1, "Nome do produto é obrigatório"),

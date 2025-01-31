@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { formatBytes } from "@/utils/format";
 import { FileUploadField } from "@/components/rnc/FileUploadField";
 import { CreateRNCContact, CreateRNCProduct, RNCAttachment } from "@/types/rnc";
+import { relationalInfoSchema } from "@/utils/validations";
 
 interface RelationalInfoTabProps {
   rncId: string;
@@ -47,17 +48,6 @@ export type RelationalInfoTabRef = {
   validate: () => Promise<boolean>;
   getFormData: () => RelationalInfoFormData;
 };
-
-const relationalInfoSchema = z.object({
-  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
-  phone: z.string().min(10, "Telefone inválido. Use o formato: (99) 99999-9999"),
-  email: z.union([z.literal(""), z.string().email("Email inválido")]).optional(),
-  products: z.array(z.object({
-    id: z.string(),
-    name: z.string().min(1, "Nome do produto é obrigatório"),
-    weight: z.number().min(0.1, "Peso deve ser maior que 0")
-  })).min(1, "Pelo menos um produto deve ser adicionado")
-});
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
   ({ rncId, isEditing, initialValues }, ref) => {
