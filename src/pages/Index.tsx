@@ -11,9 +11,10 @@ import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { useComplaints } from "@/hooks/useComplaints";
 import { useComplaintFilters } from "@/hooks/useComplaintFilters";
 import { RNC, RncTypeEnum, RncDepartmentEnum, RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
+import { rncService } from "@/services/rncService";
 
 const Index = () => {
-  const { complaints, selectedComplaint, setSelectedComplaint } = useComplaints();
+  const { complaints, setComplaints, selectedComplaint, setSelectedComplaint } = useComplaints();
   const { filters, handleFilterChange, filteredComplaints } = useComplaintFilters(complaints);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -31,8 +32,24 @@ const Index = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleStatusUpdate = () => {
-    toast.success("Status atualizado com sucesso!");
+  const handleDeleteConfirm = async () => {
+    if (!selectedRNC) return;
+    
+    try {
+      await rncService.delete(selectedRNC.id);
+      toast.success("RNC excluída com sucesso!");
+      
+      // Remove the deleted RNC from the list
+      const updatedComplaints = complaints.filter(c => c.id.toString() === selectedRNC.id);
+      setComplaints(updatedComplaints);
+      
+      // Close the dialog
+      setIsDeleteDialogOpen(false);
+      setSelectedRNC(null);
+    } catch (error) {
+      console.error('Error deleting RNC:', error);
+      toast.error("Erro ao excluir RNC");
+    }
   };
 
   // Convert complaints to RNC format for the table
@@ -87,7 +104,7 @@ const Index = () => {
           {selectedComplaint && (
             <ComplaintDetails
               complaint={complaints.find((c) => c.id === selectedComplaint)!}
-              onStatusUpdate={handleStatusUpdate}
+              onStatusUpdate={() => toast.success("Status atualizado com sucesso!")}
               onClose={() => setSelectedComplaint(null)}
             />
           )}
@@ -117,6 +134,7 @@ const Index = () => {
                 }}
                 rncId={selectedRNC.id}
                 rncNumber={selectedRNC.rnc_number}
+                onConfirm={handleDeleteConfirm}
               />
             </>
           )}

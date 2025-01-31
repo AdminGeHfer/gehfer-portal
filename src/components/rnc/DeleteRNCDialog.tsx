@@ -17,6 +17,7 @@ interface DeleteRNCDialogProps {
   onClose: () => void;
   rncId: string;
   rncNumber?: number;
+  onConfirm: () => Promise<void>;
 }
 
 export const DeleteRNCDialog = ({ open, onClose, rncId, rncNumber }: DeleteRNCDialogProps) => {
