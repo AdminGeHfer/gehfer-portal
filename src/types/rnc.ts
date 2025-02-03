@@ -63,24 +63,24 @@ export interface RNC {
   updated_at: string;
 }
 
-export interface RNCBaseInput {
-  company_code: string;
-  company: string;
-  document: string;
-  type: RncTypeEnum;
-  department: RncDepartmentEnum;
-  responsible: string;
-  description: string;
-  korp: string;
-  nfv: string;
-  nfd?: string;
-  city?: string;
-  collected_at?: string | null;
-  closed_at?: string | null;
-  conclusion?: string | null;
-  products: (CreateRNCProduct | RNCProduct)[];
-  contacts: (CreateRNCContact | RNCContact)[];
-  attachments?: (File | RNCAttachment)[];
+export interface BaseRNCContact {
+  name: string;
+  phone: string;
+  email?: string;
+}
+
+export interface BaseRNCProduct {
+  name: string;
+  weight: number;
+}
+
+// Creation interfaces
+export interface CreateRNCProduct extends BaseRNCProduct {
+  id?: string
+}
+
+export interface CreateRNCContact extends BaseRNCContact {
+  id?: string;
 }
 
 // Attachment interface
@@ -95,22 +95,6 @@ export interface RNCAttachment {
   created_at: string;
 }
 
-// Contact interface
-export interface RNCContact {
-  id: string;
-  rnc_id: string;
-  name: string;
-  phone: string;
-  email?: string;
-}
-
-// Product interface
-export interface RNCProduct {
-  id: string;
-  rnc_id: string;
-  name: string;
-  weight: number;
-}
 
 export interface RNCEvent {
   id: string;
@@ -139,16 +123,40 @@ export interface WorkflowTransition {
   };
 }
 
-// Creation interfaces
-export interface CreateRNCProduct {
-  name: string;
-  weight: number;
+export interface RNCBaseInput {
+  company_code: string;
+  company: string;
+  document: string;
+  type: RncTypeEnum;
+  department: RncDepartmentEnum;
+  responsible: string;
+  description: string;
+  korp: string;
+  nfv: string;
+  nfd?: string;
+  city?: string;
+  collected_at?: string | null;
+  closed_at?: string | null;
+  conclusion?: string | null;
+  products: (CreateRNCProduct | RNCProduct)[];
+  contacts: (CreateRNCContact | RNCContact)[];
+  attachments?: (File | RNCAttachment)[];
 }
 
-export interface CreateRNCContact {
-  name: string;
-  phone: string;
-  email?: string;
+// Contact interface
+export interface RNCContact extends BaseRNCContact {
+  id: string;
+  rnc_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Product interface
+export interface RNCProduct extends BaseRNCProduct {
+  id: string;
+  rnc_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 // Update the RNCWithRelations interface
@@ -177,15 +185,4 @@ export interface CreateRNCInput extends RNCBaseInput {
 
 export interface UpdateRNCInput extends Partial<RNCBaseInput> {
   updated_at: string;
-}
-
-export interface CreateRNCProduct {
-  name: string;
-  weight: number;
-}
-
-export interface CreateRNCContact {
-  name: string;
-  phone: string;
-  email?: string;
 }
