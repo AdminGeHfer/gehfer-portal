@@ -102,7 +102,7 @@ const Index = () => {
           <RNCTable 
             rncs={filteredRNCs}
             isLoading={isLoading}
-            onSelectRNC={(rnc) => setSelectedRNC(rnc.id)}
+            onSelectRNC={setSelectedRNC}
           />
 
           {selectedRNC && (

@@ -21,7 +21,7 @@ import {
 interface RNCTableProps {
   rncs: RNCWithRelations[];
   isLoading: boolean;
-  onSelectRNC: (rnc: RNCWithRelations) => void;
+  onSelectRNC: (id: string) => void;
 }
 
 export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
@@ -30,7 +30,9 @@ export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
   }
 
   const handleRowClick = (rnc: RNCWithRelations) => {
-    onSelectRNC(rnc);
+    if (onSelectRNC) {
+      onSelectRNC(rnc.id); // Pass the full RNC object
+    }
   };
 
   return (
