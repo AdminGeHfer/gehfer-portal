@@ -8,7 +8,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
 import { RNCDetails } from "@/pages/quality/rnc/RNCDetails";
-import { UpdateRNCInput } from "@/types/rnc";
+import { CreateRNCContact, RNCAttachment, RNCContact, UpdateRNCInput } from "@/types/rnc";
 
 interface EditRNCModalProps {
   open: boolean;
@@ -54,8 +54,77 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
+      const transformedProducts = formData.products.map(product => {
+        if ('id' in product && product.id) {
+          // This is an existing product (RNCProduct)
+          return {
+            id: product.id,
+            name: product.name,
+            weight: product.weight,
+            rnc_id: rncId // Add rnc_id for existing products
+          };
+        } else {
+          // This is a new product (CreateRNCProduct)
+          return {
+            name: product.name,
+            weight: product.weight
+          };
+        }
+      });
+
+      const transformedContacts = formData.contacts.map(contact => {
+        if ('id' in contact && contact.id) {
+          return {
+            id: contact.id,
+            name: contact.name,
+            phone: contact.phone,
+            email: contact.email,
+            rnc_id: rncId
+          } as RNCContact
+        } else {
+          return {
+            name: contact.name,
+            phone: contact.phone,
+            email: contact.email
+          } as CreateRNCContact
+        }
+      });
+
+      const transformedAttachments = formData.attachments?.map(attachment => {
+        if (attachment instanceof File) {
+          return attachment;
+        } else if (
+          'id' in attachment && 
+          typeof attachment.id === 'string' &&
+          attachment.filename &&
+          attachment.filesize &&
+          attachment.content_type &&
+          attachment.file_path &&
+          attachment.created_by &&
+          attachment.created_at
+        ) {
+          // Only transform if all required fields are present
+          return {
+            id: attachment.id,
+            rnc_id: rncId,
+            filename: attachment.filename,
+            filesize: attachment.filesize,
+            content_type: attachment.content_type,
+            file_path: attachment.file_path,
+            created_by: attachment.created_by,
+            created_at: attachment.created_at
+          } as RNCAttachment;
+        }
+        // If any required field is missing, skip this attachment
+        return null;
+      }).filter(Boolean) as (File | RNCAttachment)[];
+  
+
       const updateData: UpdateRNCInput = {
         ...formData,
+        products: transformedProducts,
+        contacts: transformedContacts,
+        attachments: transformedAttachments,
         collected_at: rncData.collected_at,
         closed_at: rncData.closed_at,
         updated_at: new Date().toISOString()
