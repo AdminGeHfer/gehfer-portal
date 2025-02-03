@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { RNCWithRelations } from "@/types/rnc";
+import { useNavigate } from "react-router-dom";
 import { 
   getStatusColor, 
   getTypeColor, 
@@ -25,14 +26,18 @@ interface RNCTableProps {
 }
 
 export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
+  const navigate = useNavigate();
+
   if (isLoading || !rncs) {
     return <div>Carregando RNCs...</div>;
   }
 
   const handleRowClick = (rnc: RNCWithRelations) => {
-    if (onSelectRNC) {
-      onSelectRNC(rnc.id); // Pass the full RNC object
-    }
+    if (!rnc?.id) return;
+    onSelectRNC(rnc.id);
+    setTimeout(() => {
+      navigate(`/quality/rnc/${rnc.id}`);
+    }, 0);
   };
 
   return (

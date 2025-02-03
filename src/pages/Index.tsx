@@ -18,6 +18,11 @@ const Index = () => {
   const { rncs, loading: isLoading, error, refetch } = useRNCList();
   const [selectedRNC, setSelectedRNC] = useState<string | null>(null);
 
+  const handleSelectRNC = (id: string) => {
+    console.log('Selected RNC ID:', id); // Debug log
+    setSelectedRNC(id);
+  };
+
   // Filter States
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<RncStatusEnum | null>(null);
@@ -102,12 +107,12 @@ const Index = () => {
           <RNCTable 
             rncs={filteredRNCs}
             isLoading={isLoading}
-            onSelectRNC={setSelectedRNC}
+            onSelectRNC={handleSelectRNC}
           />
 
           {selectedRNC && (
             <RNCDetails
-              rnc={rncs.find((r) => r.id === selectedRNC)!}
+              id={selectedRNC}
               onClose={() => setSelectedRNC(null)}
             />
           )}

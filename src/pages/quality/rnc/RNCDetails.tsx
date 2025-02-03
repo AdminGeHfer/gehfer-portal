@@ -6,15 +6,22 @@ import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoT
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import { RNCWithRelations } from "@/types/rnc";
+import { useParams } from "react-router-dom";
+import { useRNCDetails } from "@/hooks/useRNCDetails";
 
 interface RNCDetailsProps {
-  rnc: RNCWithRelations;
-  onClose: () => void;
+  id?: string;
+  onClose?: () => void;
 }
 
-export function RNCDetails({ rnc, onClose }: RNCDetailsProps) {
+export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
+  const { id: routeId } = useParams();
+  const id = propId || routeId;
+  const { rnc, loading } = useRNCDetails(id!);
   const [activeTab, setActiveTab] = React.useState("basic");
+
+  if (loading) return <div>Carregando...</div>;
+  if (!rnc) return <div>RNC não encontrada</div>;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
