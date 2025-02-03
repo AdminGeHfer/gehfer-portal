@@ -78,8 +78,8 @@ export interface RNCBaseInput {
   collected_at?: string | null;
   closed_at?: string | null;
   conclusion?: string | null;
-  products: CreateRNCProduct[];
-  contacts: CreateRNCContact[];
+  products: (CreateRNCProduct | RNCProduct)[];
+  contacts: (CreateRNCContact | RNCContact)[];
   attachments?: (File | RNCAttachment)[];
 }
 

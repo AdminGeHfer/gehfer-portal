@@ -54,8 +54,10 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const updateData: UpdateRNCFormData = {
+      const updateData: UpdateRNCInput = {
         ...formData,
+        collected_at: rncData.collected_at,
+        closed_at: rncData.closed_at,
         updated_at: new Date().toISOString()
       };
 
