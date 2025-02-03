@@ -38,7 +38,7 @@ export function WorkflowStatusBadge({ status }: WorkflowStatusBadgeProps) {
     return configs[status] || configs.open;
   };
 
-  const config = getStatusConfig(status);
+  const config = getStatusConfig(status as WorkflowStatusEnum);
 
   return (
     <Badge variant="outline" className={config.className}>

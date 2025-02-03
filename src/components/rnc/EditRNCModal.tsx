@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
-import { RNCModalContent } from "./modal/RNCModalContent";
+import { RNCDetails } from "@/pages/quality/rnc/RNCDetails";
 
 interface EditRNCModalProps {
   open: boolean;
@@ -17,8 +17,8 @@ interface EditRNCModalProps {
 }
 
 export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProps) {
-  const [activeTab, setActiveTab] = React.useState("basic");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isEditing, setIsEditing] = React.useState(false);
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
@@ -26,7 +26,7 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
     defaultValues: rncData
   });
 
-  const handleSave = async (formData) => {
+  const handleSave = async (formData: UpdateRNCFormData) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     const loadingToast = toast.loading('Atualizando RNC...');
@@ -35,19 +35,29 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      await rncService.update(rncId, {
+      const updateData: UpdateRNCFormData = {
         ...formData,
-        updated_at: new Date().toISOString()
-      });
+        updated_at: new Date().toISOString(),
+        status: rncData.status,
+        workflow_status: rncData.workflow_status,
+        created_by: rncData.created_by,
+        created_at: rncData.created_at,
+        assigned_by: rncData.assigned_by,
+        assigned_to: rncData.assigned_to
+      };
+
+      await rncService.update(rncId, updateData);
 
       if (formData.attachments?.length) {
-        await Promise.all(formData.attachments.map((file: File) => 
+        const newAttachments = formData.attachments.filter(att => att instanceof File);
+        await Promise.all(newAttachments.map((file: File) => 
           rncService.uploadAttachment(rncId, file)
         ));
       }
 
       toast.dismiss(loadingToast);
       toast.success('RNC atualizada com sucesso!');
+      setIsEditing(false);
       onClose();
     } catch (error) {
       console.error('Error updating RNC:', error);
@@ -76,11 +86,12 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
         </DialogHeader>
 
         <FormProvider {...methods}>
-          <RNCModalContent
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
+          <RNCDetails 
+            rncId={rncId} 
             onSave={handleSave}
             isSubmitting={isSubmitting}
+            isEditing={isEditing}
+            setIsEditing={setIsEditing}
           />
         </FormProvider>
       </DialogContent>

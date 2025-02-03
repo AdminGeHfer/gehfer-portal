@@ -41,10 +41,10 @@ export interface RNC {
   company_code: string;
   company: string;
   document: string;
-  description: string;
   type: RncTypeEnum;
   department: RncDepartmentEnum;
   responsible: string;
+  description: string;
   korp: string;
   nfv: string;
   nfd?: string;
@@ -61,6 +61,26 @@ export interface RNC {
   assigned_to?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface RNCBaseInput {
+  company_code: string;
+  company: string;
+  document: string;
+  type: RncTypeEnum;
+  department: RncDepartmentEnum;
+  responsible: string;
+  description: string;
+  korp: string;
+  nfv: string;
+  nfd?: string;
+  city?: string;
+  collected_at?: string | null;
+  closed_at?: string | null;
+  conclusion?: string | null;
+  products: CreateRNCProduct[];
+  contacts: CreateRNCContact[];
+  attachments?: (File | RNCAttachment)[];
 }
 
 // Attachment interface
@@ -150,13 +170,12 @@ export interface RNCWithRelations extends RNC {
 }
 
 // Creation input type
-export interface CreateRNCInput extends Omit<RNC, 'id' | 'rnc_number' | 'days_left'> {
-  products: CreateRNCProduct[];
-  contacts: CreateRNCContact[];
-  attachments?: (File | RNCAttachment)[];
+export interface CreateRNCInput extends RNCBaseInput {
+  created_by: string;
+  created_at: string;
 }
 
-export interface UpdateRNCInput extends Omit<CreateRNCInput, 'created_by' | 'created_at'> {
+export interface UpdateRNCInput extends Partial<RNCBaseInput> {
   updated_at: string;
 }
 

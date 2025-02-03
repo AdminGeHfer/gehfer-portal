@@ -6,6 +6,7 @@ import {
   WorkflowStatusEnum, 
   type RNC, 
   type RNCAttachment,
+  WorkflowTransition,
 } from '@/types/rnc';
 
 // Custom error classes for better error handling
@@ -383,5 +384,30 @@ export const rncService = {
       .from('rnc-attachments')
       .getPublicUrl(filePath)
       .data.publicUrl;
-  }
-};
+  },
+
+  async updateWorkflowTransition(
+    transitionId: string,
+    rncId: string,
+    data: { notes: string }
+  ): Promise<WorkflowTransition> {
+    try {
+      const { data: transition, error } = await supabase
+        .from('rnc_workflow_transitions')
+        .update({ notes: data.notes })
+        .eq('id', transitionId)
+        .eq('rnc_id', rncId)
+        .select(`
+          *,
+          created_by_profile:profiles!created_by(name)
+          `)
+        .single();
+
+      if (error) throw error;
+      return transition as WorkflowTransition;
+    } catch (error) {
+      console.error('Error updating workflow transition:', error);
+      throw new Error('Failed to update workflow transition');
+    }
+  },
+}

@@ -11,11 +11,21 @@ import { toast } from "sonner";
 
 interface WorkflowTabProps {
   rncId: string;
-  transitions: WorkflowTransition[];
-  isEditing?: boolean;
+  isEditing: boolean;
+  transitions: Array<{
+    id: string;
+    from_status: string | null;
+    to_status: string;
+    notes?: string;
+    created_by: string;
+    created_at: string;
+    created_by_profile: {
+      name: string;
+    };
+  }>;
 }
 
-export function WorkflowTab({ rncId, transitions, isEditing = false }: WorkflowTabProps) {
+export function WorkflowTab({ rncId, transitions, isEditing }: WorkflowTabProps) {
   const [editingTransitionId, setEditingTransitionId] = React.useState<string | null>(null);
   const [notes, setNotes] = React.useState("");
   const [isUpdating, setIsUpdating] = React.useState(false);
