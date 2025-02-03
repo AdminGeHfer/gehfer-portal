@@ -1,5 +1,5 @@
 import React from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BasicInfoTab } from "../tabs/BasicInfoTab";
 import { AdditionalInfoTab } from "../tabs/AdditionalInfoTab";
 import { ProductsTab } from "../tabs/ProductsTab";
@@ -28,6 +28,7 @@ export const RNCModalContent = ({
 }: RNCModalContentProps) => {
   const methods = useForm<CreateRNCFormData>({
     resolver: zodResolver(createRNCSchema),
+    mode: "onChange",
     defaultValues: {
       company_code: "",
       company: "",
@@ -91,6 +92,22 @@ export const RNCModalContent = ({
     onSave(data);
   });
 
+  // Save form data to localStorage when it changes
+  React.useEffect(() => {
+    const subscription = methods.watch((data) => {
+      localStorage.setItem('rncFormData', JSON.stringify(data));
+    });
+    return () => subscription.unsubscribe();
+  }, [methods]);
+
+  // Load saved form data on mount
+  React.useEffect(() => {
+    const savedData = localStorage.getItem('rncFormData');
+    if (savedData) {
+      methods.reset(JSON.parse(savedData));
+    }
+  }, [methods]);
+
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,13 +129,25 @@ export const RNCModalContent = ({
             ))}
           </TabsList>
 
-          <div className="block">
-            {activeTab === 'basic' && <BasicInfoTab />}
-            {activeTab === 'additional' && <AdditionalInfoTab />}
-            {activeTab === 'products' && <ProductsTab />}
-            {activeTab === 'contact' && <ContactTab />}
-            {activeTab === 'attachments' && <AttachmentsTab />}
-          </div>
+          <TabsContent value="basic">
+            <BasicInfoTab />
+          </TabsContent>
+
+          <TabsContent value="additional">
+            <AdditionalInfoTab />
+          </TabsContent>
+
+          <TabsContent value="products">
+            <ProductsTab />
+          </TabsContent>
+
+          <TabsContent value="contact">
+            <ContactTab />
+          </TabsContent>
+
+          <TabsContent value="attachments">
+            <AttachmentsTab />
+          </TabsContent>
         </Tabs>
 
         <div className="flex justify-between">
