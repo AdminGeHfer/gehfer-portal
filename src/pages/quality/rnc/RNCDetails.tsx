@@ -14,10 +14,7 @@ import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { BackButton } from '@/components/atoms/BackButton';
-import { RNCAttachment, RncDepartmentEnum, RncStatusEnum, RncTypeEnum, WorkflowStatusEnum } from '@/types/rnc';
-import { UpdateRNCFormData, updateRNCSchema } from '@/schemas/rncValidation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateRNCContact, CreateRNCProduct, RNCAttachment, RncStatusEnum, WorkflowStatusEnum } from '@/types/rnc';
 
 const RNCDetailsPage = () => {
   const navigate = useNavigate();
@@ -32,91 +29,78 @@ const RNCDetailsPage = () => {
   const relationalInfoRef = useRef<RelationalInfoTabRef>(null);
   const additionalInfoRef = useRef<AdditionalInfoTabRef>(null);
 
-  const methods = useForm<UpdateRNCFormData>({
-    resolver: zodResolver(updateRNCSchema),
-    defaultValues: {
-      company_code: rnc?.company_code || "",
-      company: rnc?.company || "",
-      document: rnc?.document || "",
-      type: rnc?.type || RncTypeEnum.company_complaint,
-      department: rnc?.department || RncDepartmentEnum.logistics,
-      responsible: rnc?.responsible || "",
-      description: rnc?.description || "",
-      korp: rnc?.korp || "",
-      nfv: rnc?.nfv || "",
-      nfd: rnc?.nfd || "",
-      city: rnc?.city || "",
-      collected_at: rnc?.collected_at || null,
-      closed_at: rnc?.closed_at || null,
-      conclusion: rnc?.conclusion || "",
-      contacts: rnc?.contacts || [{
-        name: "",
-        phone: "",
-        email: ""
-      }],
-      products: rnc?.products || [{
-        name: "",
-        weight: 0.1
-      }],
-      attachments: rnc?.attachments || [],
-    }
-  });
-
   const handleSave = async () => {
     try {
       setIsSaving(true);
 
-      const isValid = await methods.trigger();
-
-      if (!isValid) {
-        toast.error("Por favor, corrija os erros antes de salvar");
-        return;
-      }
-
-      const formData = methods.getValues();
-
-      // Get current form data from refs instead of localStorage
+      // Get current form data from refs
       const basicData = basicInfoRef.current?.getFormData();
       const additionalData = additionalInfoRef.current?.getFormData();
       const relationalData = relationalInfoRef.current?.getFormData();
 
-      console.log('Refs:', {
-        basic: basicInfoRef.current,
-        additional: additionalInfoRef.current,
-        relational: relationalInfoRef.current
-      });
+      // Validate all forms
+      const [basicValid, additionalValid, relationalValid] = await Promise.all([
+        basicInfoRef.current?.validate() || Promise.resolve(false),
+        additionalInfoRef.current?.validate() || Promise.resolve(false),
+        relationalInfoRef.current?.validate() || Promise.resolve(false),
+      ]);
 
-      console.log('Basic data:', basicInfoRef.current?.getFormData());
-      console.log('Additional data:', additionalInfoRef.current?.getFormData());
-      console.log('Relational data:', relationalInfoRef.current?.getFormData());
+      if (!basicValid || !additionalValid || !relationalValid) {
+        toast.error("Por favor, corrija os erros antes de salvar");
+        return;
+      }
 
       if (!basicData || !additionalData || !relationalData) {
         toast.error("Erro ao obter dados dos formulários");
         return;
       }
 
-      // Get form data from localStorage
-      const storedData = localStorage.getItem('rncDetailsData');
-      if (!storedData) {
-        toast.error("Nenhum dado para salvar");
-        return;
-      }
-      
       if (!id) {
         toast.error("ID da RNC não encontrado");
         return;
       }
 
-      // Update RNC
-      const updatedData = {
-        ...formData,
-        assigned_by: rnc?.assigned_by || "",
-        status: rnc?.status || RncStatusEnum.pending,
-        workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
-        updated_at: new Date().toISOString()
+      // Ensure all required fields are present
+      const requiredFields = {
+        company_code: basicData.company_code,
+        company: basicData.company,
+        document: basicData.document,
+        type: basicData.type,
+        department: basicData.department,
+        description: additionalData.description,
+        korp: additionalData.korp,
+        nfv: additionalData.nfv,
+        contacts: relationalData.contacts as CreateRNCContact[],
+        products: relationalData.products as CreateRNCProduct[],
       };
 
-      await rncService.update(id, updatedData);
+      // Check if any required field is missing
+      const missingFields = Object.entries(requiredFields)
+        .filter(([, value]) => !value)
+        .map(([key]) => key);
+
+      if (missingFields.length > 0) {
+        toast.error(`Campos obrigatórios faltando: ${missingFields.join(", ")}`);
+        return;
+      }
+
+      // Update RNC
+      const updatedData = {
+        ...requiredFields,
+        nfd: additionalData.nfd,
+        city: additionalData.city,
+        conclusion: additionalData.conclusion,
+        collected_at: additionalData.collected_at,
+        closed_at: additionalData.closed_at,
+        responsible: basicData.responsible,
+        attachments: relationalData.attachments as (File | RNCAttachment)[],
+        status: rnc?.status || RncStatusEnum.pending,
+        workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
+        updated_at: new Date().toISOString(),
+        assigned_by: rnc?.assigned_by || ""
+      };
+
+      await rncService.update(id!, updatedData);
 
       toast.success("RNC atualizada com sucesso!");
       setIsEditing(false);
@@ -138,7 +122,6 @@ const RNCDetailsPage = () => {
       }
 
       await rncService.delete(id);
-
       navigate('/quality/home', { replace: true });
     } catch (error) {
       console.error('Error deleting RNC:', error);
