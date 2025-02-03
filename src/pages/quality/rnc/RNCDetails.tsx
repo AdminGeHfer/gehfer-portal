@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
 
 interface RNCDetailsProps {
   id?: string;
@@ -19,6 +22,29 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const id = propId || routeId;
   const { rnc, loading } = useRNCDetails(id!);
   const [activeTab, setActiveTab] = React.useState("basic");
+
+  const methods = useForm<UpdateRNCFormData>({
+    resolver: zodResolver(updateRNCSchema),
+    defaultValues: {
+      company_code: rnc?.company_code || '',
+      company: rnc?.company || '',
+      document: rnc?.document || '',
+      type: rnc?.type,
+      department: rnc?.department,
+      responsible: rnc?.responsible || '',
+      description: rnc?.description || '',
+      korp: rnc?.korp || '',
+      nfv: rnc?.nfv || '',
+      nfd: rnc?.nfd || '',
+      city: rnc?.city || '',
+      collected_at: rnc?.collected_at || null,
+      closed_at: rnc?.closed_at || null,
+      conclusion: rnc?.conclusion || '',
+      contacts: rnc?.contacts || [],
+      products: rnc?.products || [],
+      attachments: rnc?.attachments || []
+    }
+  });
 
   if (loading) return <div>Carregando...</div>;
   if (!rnc) return <div>RNC não encontrada</div>;
@@ -33,64 +59,66 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
           </Button>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value="basic">Inf. Básicas</TabsTrigger>
-            <TabsTrigger value="additional">Inf. Adicionais</TabsTrigger>
-            <TabsTrigger value="relational">Inf. Relacionais</TabsTrigger>
-            <TabsTrigger value="workflow">Workflow</TabsTrigger>
-          </TabsList>
+        <FormProvider {...methods}>
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="w-full">
+              <TabsTrigger value="basic">Inf. Básicas</TabsTrigger>
+              <TabsTrigger value="additional">Inf. Adicionais</TabsTrigger>
+              <TabsTrigger value="relational">Inf. Relacionais</TabsTrigger>
+              <TabsTrigger value="workflow">Workflow</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="basic">
-            <BasicInfoTab 
-              isEditing={false} 
-              initialValues={{
-                company_code: rnc.company_code,
-                company: rnc.company,
-                document: rnc.document,
-                type: rnc.type,
-                department: rnc.department,
-                responsible: rnc.responsible || ''
-              }}
-            />
-          </TabsContent>
+            <TabsContent value="basic">
+              <BasicInfoTab 
+                isEditing={false} 
+                initialValues={{
+                  company_code: rnc.company_code,
+                  company: rnc.company,
+                  document: rnc.document,
+                  type: rnc.type,
+                  department: rnc.department,
+                  responsible: rnc.responsible || ''
+                }}
+              />
+            </TabsContent>
 
-          <TabsContent value="additional">
-            <AdditionalInfoTab 
-              isEditing={false}
-              initialValues={{
-                description: rnc.description,
-                korp: rnc.korp || '',
-                nfv: rnc.nfv || '',
-                nfd: rnc.nfd,
-                city: rnc.city,
-                collected_at: rnc.collected_at,
-                closed_at: rnc.closed_at,
-                conclusion: rnc.conclusion
-              }}
-            />
-          </TabsContent>
+            <TabsContent value="additional">
+              <AdditionalInfoTab 
+                isEditing={false}
+                initialValues={{
+                  description: rnc.description,
+                  korp: rnc.korp || '',
+                  nfv: rnc.nfv || '',
+                  nfd: rnc.nfd,
+                  city: rnc.city,
+                  collected_at: rnc.collected_at,
+                  closed_at: rnc.closed_at,
+                  conclusion: rnc.conclusion
+                }}
+              />
+            </TabsContent>
 
-          <TabsContent value="relational">
-            <RelationalInfoTab 
-              rncId={rnc.id} 
-              isEditing={false}
-              initialValues={{
-                contacts: rnc.contacts,
-                products: rnc.products,
-                attachments: rnc.attachments
-              }}
-            />
-          </TabsContent>
+            <TabsContent value="relational">
+              <RelationalInfoTab 
+                rncId={rnc.id} 
+                isEditing={false}
+                initialValues={{
+                  contacts: rnc.contacts,
+                  products: rnc.products,
+                  attachments: rnc.attachments
+                }}
+              />
+            </TabsContent>
 
-          <TabsContent value="workflow">
-            <WorkflowTab 
-              rncId={rnc.id} 
-              isEditing={false}
-              transitions={rnc.workflow_transitions || []}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="workflow">
+              <WorkflowTab 
+                rncId={rnc.id} 
+                isEditing={false}
+                transitions={rnc.workflow_transitions || []}
+              />
+            </TabsContent>
+          </Tabs>
+        </FormProvider>
       </div>
     </div>
   );
