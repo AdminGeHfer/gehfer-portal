@@ -23,7 +23,7 @@ export type AdditionalInfoTabRef = {
 
 export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
   ({ isEditing, initialValues }, ref) => {
-    const form = useForm<z.infer<typeof additionalInfoSchema>>({
+    const form = useForm<AdditionalInfoFormData>({
       resolver: zodResolver(additionalInfoSchema),
       defaultValues: {
         description: initialValues?.description || "",
@@ -46,7 +46,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
       getFormData: () => form.getValues()
-    }));
+    }), [form]);
 
     return (
       <Form {...form}>

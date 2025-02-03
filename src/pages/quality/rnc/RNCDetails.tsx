@@ -45,6 +45,16 @@ const RNCDetailsPage = () => {
         relationalInfoRef.current?.validate() || Promise.resolve(false),
       ]);
 
+      console.log('Refs:', {
+        basic: basicInfoRef.current,
+        additional: additionalInfoRef.current,
+        relational: relationalInfoRef.current
+      });
+
+      console.log('Basic data:', basicInfoRef.current?.getFormData());
+      console.log('Additional data:', additionalInfoRef.current?.getFormData());
+      console.log('Relational data:', relationalInfoRef.current?.getFormData());
+
       if (!basicData || !additionalData || !relationalData) {
         toast.error("Erro ao obter dados dos formulários");
         return;

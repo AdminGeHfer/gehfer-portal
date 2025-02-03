@@ -29,7 +29,7 @@ export type BasicInfoFormData = z.infer<typeof basicInfoSchema>;
 
 export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
   ({ isEditing, initialValues }, ref) => {
-    const form = useForm<z.infer<typeof basicInfoSchema>>({
+    const form = useForm<BasicInfoFormData>({
       resolver: zodResolver(basicInfoSchema),
       defaultValues: {
         company_code: initialValues?.company_code || "",
@@ -37,7 +37,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         document: initialValues?.document || "",
         type: initialValues?.type || RncTypeEnum.company_complaint,
         department: initialValues?.department || RncDepartmentEnum.logistics,
-        responsible: initialValues?.responsible || ""
+        responsible: initialValues?.responsible || "Arthur"
       },
     });
 
@@ -50,7 +50,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
     React.useImperativeHandle(ref, () => ({
       validate: () => form.trigger(),
       getFormData: () => form.getValues()
-    }));
+    }), [form]);
 
     // Save form data to localStorage whenever it changes
     React.useEffect(() => {

@@ -8,8 +8,10 @@ import { AttachmentsTab } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import { toast } from "sonner";
-import { type Path, useFormContext } from "react-hook-form";
-import { type CreateRNCFormData } from "@/schemas/rncValidation";
+import { type Path, useForm, FormProvider } from "react-hook-form";
+import { updateRNCSchema, type UpdateRNCFormData } from "@/schemas/rncValidation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 
 interface RNCModalContentProps {
   activeTab: string;
@@ -24,13 +26,41 @@ export const RNCModalContent = ({
   onSave,
   isSubmitting
 }: RNCModalContentProps) => {
-  const methods = useFormContext<CreateRNCFormData>();
+  const methods = useForm<UpdateRNCFormData>({
+    resolver: zodResolver(updateRNCSchema),
+    defaultValues: {
+      company_code: "",
+      company: "",
+      document: "",
+      type: RncTypeEnum.company_complaint,
+      department: RncDepartmentEnum.logistics,
+      responsible: "",
+      description: "",
+      korp: "",
+      nfv: "",
+      nfd: "",
+      city: "",
+      collected_at: null,
+      closed_at: null,
+      conclusion: "",
+      contacts: [{
+        name: "",
+        phone: "",
+        email: ""
+      }],
+      products: [{
+        name: "",
+        weight: 0.1
+      }],
+      attachments: []
+    }
+  });
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
   const handleTabChange = async (value: string) => {
     try {
       if (tabs.indexOf(value) > tabs.indexOf(activeTab)) {
-        let fieldsToValidate: Path<CreateRNCFormData>[] = [];
+        let fieldsToValidate: Path<UpdateRNCFormData>[] = [];
         switch (activeTab) {
           case "basic":
             fieldsToValidate = ["company_code", "company", "document", "type", "department", "responsible"];
@@ -64,77 +94,79 @@ export const RNCModalContent = ({
   });
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Tabs value={activeTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-blue-50 dark:bg-blue-900/50">
-          {tabs.map((tab) => (
-            <TabsTrigger 
-              key={tab}
-              value={tab} 
-              onClick={() => handleTabChange(tab)}
-              className="cursor-pointer"
-            >
-              {tab === 'basic' && 'Inf. Básicas'}
-              {tab === 'additional' && 'Inf. Compl.'}
-              {tab === 'products' && 'Produtos'}
-              {tab === 'contact' && 'Contato'}
-              {tab === 'attachments' && 'Anexos'}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Tabs value={activeTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-blue-50 dark:bg-blue-900/50">
+            {tabs.map((tab) => (
+              <TabsTrigger 
+                key={tab}
+                value={tab} 
+                onClick={() => handleTabChange(tab)}
+                className="cursor-pointer"
+              >
+                {tab === 'basic' && 'Inf. Básicas'}
+                {tab === 'additional' && 'Inf. Compl.'}
+                {tab === 'products' && 'Produtos'}
+                {tab === 'contact' && 'Contato'}
+                {tab === 'attachments' && 'Anexos'}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <div className="block">
-          {activeTab === 'basic' && <BasicInfoTab />}
-          {activeTab === 'additional' && <AdditionalInfoTab />}
-          {activeTab === 'products' && <ProductsTab />}
-          {activeTab === 'contact' && <ContactTab />}
-          {activeTab === 'attachments' && <AttachmentsTab />}
-        </div>
-      </Tabs>
+          <div className="block">
+            {activeTab === 'basic' && <BasicInfoTab />}
+            {activeTab === 'additional' && <AdditionalInfoTab />}
+            {activeTab === 'products' && <ProductsTab />}
+            {activeTab === 'contact' && <ContactTab />}
+            {activeTab === 'attachments' && <AttachmentsTab />}
+          </div>
+        </Tabs>
 
-      <div className="flex justify-between">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => {
-            const currentIndex = tabs.indexOf(activeTab);
-            if (currentIndex > 0) {
-              handleTabChange(tabs[currentIndex - 1]);
-            }
-          }}
-          disabled={activeTab === tabs[0]}
-          className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Voltar
-        </Button>
-
-        {activeTab === tabs[tabs.length - 1] ? (
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Salvando...' : 'Salvar'}
-          </Button>
-        ) : (
+        <div className="flex justify-between">
           <Button
             type="button"
             variant="ghost"
             onClick={() => {
               const currentIndex = tabs.indexOf(activeTab);
-              if (currentIndex < tabs.length - 1) {
-                handleTabChange(tabs[currentIndex + 1]);
+              if (currentIndex > 0) {
+                handleTabChange(tabs[currentIndex - 1]);
               }
             }}
+            disabled={activeTab === tabs[0]}
             className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
           >
-            Próximo
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
           </Button>
-        )}
-      </div>
-    </form>
+
+          {activeTab === tabs[tabs.length - 1] ? (
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {isSubmitting ? 'Salvando...' : 'Salvar'}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                const currentIndex = tabs.indexOf(activeTab);
+                if (currentIndex < tabs.length - 1) {
+                  handleTabChange(tabs[currentIndex + 1]);
+                }
+              }}
+              className="text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/50"
+            >
+              Próximo
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </form>
+    </FormProvider>
   );
 };
