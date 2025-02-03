@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -22,17 +21,16 @@ import {
 interface RNCTableProps {
   rncs: RNCWithRelations[];
   isLoading: boolean;
+  onSelectRNC: (rnc: RNCWithRelations) => void;
 }
 
-export function RNCTable({ rncs, isLoading }: RNCTableProps) {
-  const navigate = useNavigate();
-
+export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
   if (isLoading || !rncs) {
     return <div>Carregando RNCs...</div>;
   }
 
   const handleRowClick = (rnc: RNCWithRelations) => {
-    navigate(`/quality/rnc/${rnc.id}`);
+    onSelectRNC(rnc);
   };
 
   return (
