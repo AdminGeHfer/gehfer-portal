@@ -10,9 +10,11 @@ import { useTheme } from "next-themes";
 import { Moon, Sun, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 export const RNCHome = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<RncStatusEnum | null>(null);
   const [selectedType, setSelectedType] = useState<RncTypeEnum | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<RncDepartmentEnum | null>(null);
@@ -27,8 +29,29 @@ export const RNCHome = () => {
     selectedStatus,
     selectedType,
     selectedDepartment,
-    searchTerm: searchQuery,
+    searchTerm,
   });
+
+  const handleFilterChange = (key: string, value) => {
+    switch (key) {
+      case 'searchTerm':
+        setSearchTerm(value);
+        break;
+      case 'selectedStatus':
+        setSelectedStatus(value);
+        break;
+      case 'selectedType':
+        setSelectedType(value);
+        break;
+      case 'selectedDepartment':
+        setSelectedDepartment(value);
+        break;
+    }
+  };
+
+  const handleSelectRNC = (rnc) => {
+    navigate(`/quality/rnc/${rnc.id}`); // Navigate to RNC details page
+  };
 
   if (isLoading || !rncs) {
     return <div>Carregando RNCs...</div>;
@@ -76,35 +99,19 @@ export const RNCHome = () => {
 
         <RNCFilters
           filters={{
-            searchTerm: searchQuery,
+            searchTerm,
             selectedStatus,
             selectedType,
             selectedDepartment
           }}
-          onFilterChange={(key, value) => {
-            switch (key) {
-              case 'searchTerm':
-                setSearchQuery(value);
-                break;
-              case 'selectedStatus':
-                setSelectedStatus(value);
-                break;
-              case 'selectedType':
-                setSelectedType(value);
-                break;
-              case 'selectedDepartment':
-                setSelectedDepartment(value);
-                break;
-            }
-          }}
+          onFilterChange={handleFilterChange}
           onCreateRNC={() => setIsCreateModalOpen(true)}
         />
 
         <div className="mt-6">
           <RNCTable 
             rncs={filteredRNCs}
-            onEdit={() => {}} 
-            onDelete={() => {}} 
+            onSelectRNC={handleSelectRNC}
             isLoading={isLoading}
           />
         </div>
