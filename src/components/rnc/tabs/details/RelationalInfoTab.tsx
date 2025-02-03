@@ -5,13 +5,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/atoms/Button";
 import { Plus, Trash2, FileIcon, Download } from "lucide-react";
-import { z } from "zod";
 import { handlePhoneChange } from "@/utils/masks";
 import { rncService } from "@/services/rncService";
 import { toast } from "sonner";
 import { formatBytes } from "@/utils/format";
 import { FileUploadField } from "@/components/rnc/FileUploadField";
 import { relationalInfoSchema } from "@/utils/validations";
+import { RelationalInfoFormData } from "@/schemas/rncValidation";
 
 interface RelationalInfoTabProps {
   rncId: string;
@@ -39,11 +39,9 @@ interface RelationalInfoTabProps {
   };
 }
 
-type RelationalInfoFormData  = z.infer<typeof relationalInfoSchema>;
-
 export type RelationalInfoTabRef = {
   validate: () => Promise<boolean>;
-  getFormData: () => RelationalInfoFormData ;
+  getFormData: () => RelationalInfoFormData;
 };
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
@@ -131,13 +129,14 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       }
     };
 
+
     return (
-      <div className="space-y-8 p-4">
-        {/* Products Section */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Produtos</h3>
-          <Form {...form}>
-            <form className="space-y-4">
+      <Form {...form}>
+        <div className="space-y-8 p-4">
+          {/* Products Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Produtos</h3>
+            <div className="space-y-4">
               {products?.map((product, index) => (
                 <div key={product.id} className="flex gap-4 items-start">
                   <FormField
@@ -193,14 +192,12 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                   Adicionar Produto
                 </Button>
               )}
-            </form>
-          </Form>
-        </div>
+            </div>
+          </div>
 
-        {/* Contact Section */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Contato</h3>
-          <Form {...form}>
+          {/* Contact Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Contato</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -264,61 +261,61 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                 )}
               />
             </div>
-          </Form>
-        </div>
+          </div>
 
-        {/* Attachments Section */}
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Anexos</h3>
-          {isEditing && (
-            <FileUploadField
-              label="Adicionar arquivo"
-              onFileSelect={handleFileSelect}
-              accept="*/*"
-              loading={isUploading}
-            />
-          )}
+          {/* Attachments Section */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Anexos</h3>
+            {isEditing && (
+              <FileUploadField
+                label="Adicionar arquivo"
+                onFileSelect={handleFileSelect}
+                accept="*/*"
+                loading={isUploading}
+              />
+            )}
 
-          <div className="space-y-2 mt-4">
-            {attachments.map((attachment) => (
-              <div
-                key={attachment.id}
-                className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
-              >
-                <div className="flex items-center gap-3">
-                  <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{attachment.filename}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatBytes(attachment.filesize)}
-                    </p>
+            <div className="space-y-2 mt-4">
+              {attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{attachment.filename}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatBytes(attachment.filesize)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleFileDownload(attachment)}
-                    className="text-blue-600 dark:text-blue-400"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  {isEditing && (
+                  <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleFileDelete(attachment)}
-                      className="text-red-600 dark:text-red-400"
+                      onClick={() => handleFileDownload(attachment)}
+                      className="text-blue-600 dark:text-blue-400"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Download className="h-4 w-4" />
                     </Button>
-                  )}
+                    {isEditing && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleFileDelete(attachment)}
+                        className="text-red-600 dark:text-red-400"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </Form>
     );
   }
 );
