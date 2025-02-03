@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { RNCFilters } from "@/pages/quality/home/components/RNCFilters";
-import { RNCDetails } from "@/components/dashboard/RNCDetails";
+import { RNCDetails } from "@/pages/quality/rnc/RNCDetails"
 import { RNCStats } from "@/components/dashboard/RNCStats";
 import { RNCTable } from "@/pages/quality/home/components/RNCTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";

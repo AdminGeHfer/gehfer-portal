@@ -7,8 +7,8 @@ import { supabase } from "@/lib/supabase";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
-import { RNCDetails } from "@/pages/quality/rnc/RNCDetails";
 import { CreateRNCContact, RNCAttachment, RNCContact, UpdateRNCInput } from "@/types/rnc";
+import { RNCDetailsForm } from "@/components/rnc/RNCDetailsForm";
 
 interface EditRNCModalProps {
   open: boolean;
@@ -170,7 +170,7 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
         </DialogHeader>
 
         <FormProvider {...methods}>
-          <RNCDetails 
+          <RNCDetailsForm
             rncId={rncId} 
             onSave={handleSave}
             isSubmitting={isSubmitting}

@@ -4,81 +4,87 @@ import { BasicInfoTab } from "@/components/rnc/tabs/details/BasicInfoTab";
 import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoTab";
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
-import { useFormContext } from "react-hook-form";
-import { UpdateRNCFormData } from "@/schemas/rncValidation";
 import { Button } from "@/components/ui/button";
-import { Edit, Save } from "lucide-react";
+import { X } from "lucide-react";
+import { RNCWithRelations } from "@/types/rnc";
 
 interface RNCDetailsProps {
-  rncId: string;
-  onSave: (data: UpdateRNCFormData) => Promise<void>;
-  isSubmitting: boolean;
-  isEditing: boolean;
-  setIsEditing: (value: boolean) => void;
+  rnc: RNCWithRelations;
+  onClose: () => void;
 }
 
-export function RNCDetails({ 
-  rncId, 
-  onSave, 
-  isSubmitting,
-  isEditing,
-  setIsEditing 
-}: RNCDetailsProps) {
-  const { handleSubmit } = useFormContext<UpdateRNCFormData>();
+export function RNCDetails({ rnc, onClose }: RNCDetailsProps) {
   const [activeTab, setActiveTab] = React.useState("basic");
 
   return (
-    <form onSubmit={handleSubmit(onSave)} className="space-y-4">
-      <div className="flex justify-end mb-4">
-        {!isEditing ? (
-          <Button
-            type="button"
-            onClick={() => setIsEditing(true)}
-            className="flex items-center gap-2"
-          >
-            <Edit className="h-4 w-4" />
-            Editar
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+      <div className="bg-white p-6 rounded-lg w-full max-w-2xl">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">RNC #{rnc.rnc_number}</h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
           </Button>
-        ) : (
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex items-center gap-2"
-          >
-            <Save className="h-4 w-4" />
-            {isSubmitting ? 'Salvando...' : 'Salvar'}
-          </Button>
-        )}
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full">
+            <TabsTrigger value="basic">Inf. Básicas</TabsTrigger>
+            <TabsTrigger value="additional">Inf. Adicionais</TabsTrigger>
+            <TabsTrigger value="relational">Inf. Relacionais</TabsTrigger>
+            <TabsTrigger value="workflow">Workflow</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="basic">
+            <BasicInfoTab 
+              isEditing={false} 
+              initialValues={{
+                company_code: rnc.company_code,
+                company: rnc.company,
+                document: rnc.document,
+                type: rnc.type,
+                department: rnc.department,
+                responsible: rnc.responsible || ''
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="additional">
+            <AdditionalInfoTab 
+              isEditing={false}
+              initialValues={{
+                description: rnc.description,
+                korp: rnc.korp || '',
+                nfv: rnc.nfv || '',
+                nfd: rnc.nfd,
+                city: rnc.city,
+                collected_at: rnc.collected_at,
+                closed_at: rnc.closed_at,
+                conclusion: rnc.conclusion
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="relational">
+            <RelationalInfoTab 
+              rncId={rnc.id} 
+              isEditing={false}
+              initialValues={{
+                contacts: rnc.contacts,
+                products: rnc.products,
+                attachments: rnc.attachments
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="workflow">
+            <WorkflowTab 
+              rncId={rnc.id} 
+              isEditing={false}
+              transitions={rnc.workflow_transitions || []}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="basic">Inf. Básicas</TabsTrigger>
-          <TabsTrigger value="additional">Inf. Adicionais</TabsTrigger>
-          <TabsTrigger value="relational">Inf. Relacionais</TabsTrigger>
-          <TabsTrigger value="workflow">Workflow</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="basic">
-          <BasicInfoTab isEditing={isEditing} />
-        </TabsContent>
-
-        <TabsContent value="additional">
-          <AdditionalInfoTab isEditing={isEditing} />
-        </TabsContent>
-
-        <TabsContent value="relational">
-          <RelationalInfoTab rncId={rncId} isEditing={isEditing} />
-        </TabsContent>
-
-        <TabsContent value="workflow">
-          <WorkflowTab 
-            rncId={rncId} 
-            isEditing={isEditing}
-            transitions={[]} // You'll need to pass the actual transitions here
-          />
-        </TabsContent>
-      </Tabs>
-    </form>
+    </div>
   );
 }
