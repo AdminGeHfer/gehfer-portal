@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { BackButton } from '@/components/atoms/BackButton';
-import { CreateRNCContact, CreateRNCProduct, RNCAttachment, RncStatusEnum, WorkflowStatusEnum } from '@/types/rnc';
+import { RNCAttachment, RNCContact, RNCProduct, RncStatusEnum, WorkflowStatusEnum } from '@/types/rnc';
 
 const RNCDetailsPage = () => {
   const navigate = useNavigate();
@@ -70,8 +70,8 @@ const RNCDetailsPage = () => {
         description: additionalData.description,
         korp: additionalData.korp,
         nfv: additionalData.nfv,
-        contacts: relationalData.contacts as CreateRNCContact[],
-        products: relationalData.products as CreateRNCProduct[],
+        contacts: relationalData.contacts as RNCContact[],
+        products: relationalData.products as RNCProduct[],
       };
 
       // Check if any required field is missing

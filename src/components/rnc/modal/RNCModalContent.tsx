@@ -8,15 +8,15 @@ import { AttachmentsTab } from "../tabs/AttachmentsTab";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import { toast } from "sonner";
-import { type Path, useForm, FormProvider } from "react-hook-form";
-import { updateRNCSchema, type UpdateRNCFormData } from "@/schemas/rncValidation";
+import { useForm, FormProvider } from "react-hook-form";
+import { createRNCSchema, type CreateRNCFormData } from "@/schemas/rncValidation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
 
 interface RNCModalContentProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  onSave: (data) => Promise<void>;
+  onSave: (data: CreateRNCFormData) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -26,8 +26,8 @@ export const RNCModalContent = ({
   onSave,
   isSubmitting
 }: RNCModalContentProps) => {
-  const methods = useForm<UpdateRNCFormData>({
-    resolver: zodResolver(updateRNCSchema),
+  const methods = useForm<CreateRNCFormData>({
+    resolver: zodResolver(createRNCSchema),
     defaultValues: {
       company_code: "",
       company: "",
@@ -40,9 +40,6 @@ export const RNCModalContent = ({
       nfv: "",
       nfd: "",
       city: "",
-      collected_at: null,
-      closed_at: null,
-      conclusion: "",
       contacts: [{
         name: "",
         phone: "",
@@ -55,12 +52,13 @@ export const RNCModalContent = ({
       attachments: []
     }
   });
+
   const tabs = ["basic", "additional", "products", "contact", "attachments"];
 
   const handleTabChange = async (value: string) => {
     try {
       if (tabs.indexOf(value) > tabs.indexOf(activeTab)) {
-        let fieldsToValidate: Path<UpdateRNCFormData>[] = [];
+        let fieldsToValidate: Array<keyof CreateRNCFormData> = [];
         switch (activeTab) {
           case "basic":
             fieldsToValidate = ["company_code", "company", "document", "type", "department", "responsible"];

@@ -1,18 +1,18 @@
 import * as React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
-import { RNCModalContent } from "./modal/RNCModalContent";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { supabase } from "@/lib/supabase";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreateRNCFormData, createRNCSchema } from "@/schemas/rncValidation";
+import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
+import { RNCModalContent } from "./modal/RNCModalContent";
 
 interface EditRNCModalProps {
   open: boolean;
   onClose: () => void;
-  rncData: CreateRNCFormData;
+  rncData: UpdateRNCFormData;
   rncId: string;
 }
 
@@ -20,8 +20,8 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
   const [activeTab, setActiveTab] = React.useState("basic");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const methods = useForm<CreateRNCFormData>({
-    resolver: zodResolver(createRNCSchema),
+  const methods = useForm<UpdateRNCFormData>({
+    resolver: zodResolver(updateRNCSchema),
     mode: "onChange",
     defaultValues: rncData
   });
