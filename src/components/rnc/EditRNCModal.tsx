@@ -8,11 +8,12 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
 import { RNCDetails } from "@/pages/quality/rnc/RNCDetails";
+import { UpdateRNCInput } from "@/types/rnc";
 
 interface EditRNCModalProps {
   open: boolean;
   onClose: () => void;
-  rncData: UpdateRNCFormData;
+  rncData: UpdateRNCInput;
   rncId: string;
 }
 
@@ -20,10 +21,28 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isEditing, setIsEditing] = React.useState(false);
 
+  const defaultValues = {
+    company_code: rncData.company_code,
+    company: rncData.company,
+    document: rncData.document,
+    type: rncData.type,
+    department: rncData.department,
+    responsible: rncData.responsible,
+    description: rncData.description,
+    korp: rncData.korp,
+    nfv: rncData.nfv,
+    nfd: rncData.nfd,
+    city: rncData.city,
+    conclusion: rncData.conclusion,
+    products: rncData.products || [],
+    contacts: rncData.contacts || [],
+    attachments: rncData.attachments || []
+  };
+
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
     mode: "onChange",
-    defaultValues: rncData
+    defaultValues: defaultValues
   });
 
   const handleSave = async (formData: UpdateRNCFormData) => {
@@ -37,13 +56,7 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
 
       const updateData: UpdateRNCFormData = {
         ...formData,
-        updated_at: new Date().toISOString(),
-        status: rncData.status,
-        workflow_status: rncData.workflow_status,
-        created_by: rncData.created_by,
-        created_at: rncData.created_at,
-        assigned_by: rncData.assigned_by,
-        assigned_to: rncData.assigned_to
+        updated_at: new Date().toISOString()
       };
 
       await rncService.update(rncId, updateData);

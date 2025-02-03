@@ -1,4 +1,3 @@
-// WorkflowTab.tsx
 import * as React from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -8,21 +7,12 @@ import { WorkflowStatusBadge } from "@/components/quality/workflow/status/Workfl
 import { WorkflowTransition } from "@/types/workflow";
 import { rncService } from "@/services/rncService";
 import { toast } from "sonner";
+import { WorkflowStatusEnum } from "@/types/rnc";
 
 interface WorkflowTabProps {
   rncId: string;
   isEditing: boolean;
-  transitions: Array<{
-    id: string;
-    from_status: string | null;
-    to_status: string;
-    notes?: string;
-    created_by: string;
-    created_at: string;
-    created_by_profile: {
-      name: string;
-    };
-  }>;
+  transitions: Array<WorkflowTransition>;
 }
 
 export function WorkflowTab({ rncId, transitions, isEditing }: WorkflowTabProps) {
@@ -63,7 +53,7 @@ export function WorkflowTab({ rncId, transitions, isEditing }: WorkflowTabProps)
             <div className="flex-1">
               <div className="flex items-baseline justify-between">
                 <h4 className="font-medium">
-                  <WorkflowStatusBadge status={transition.from_status} /> → <WorkflowStatusBadge status={transition.to_status} />
+                  <WorkflowStatusBadge status={transition.from_status as WorkflowStatusEnum} /> → <WorkflowStatusBadge status={transition.to_status as WorkflowStatusEnum} />
                 </h4>
                 <time className="text-sm text-muted-foreground">
                   {format(new Date(transition.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
