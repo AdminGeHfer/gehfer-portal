@@ -5,7 +5,7 @@ import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoT
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { Button } from "@/components/ui/button";
-import { Edit, Save, Trash2 } from "lucide-react";
+import { Edit, Save, Trash2, X } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
 import { useForm, FormProvider } from "react-hook-form";
@@ -16,11 +16,43 @@ import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
+import { RNCContact, RncDepartmentEnum, RNCProduct, RncStatusEnum, RncTypeEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
 
 interface RNCDetailsProps {
   id?: string;
   onClose?: () => void;
+}
+
+interface BasicInfoRefType {
+  getData: () => {
+    company_code: string;
+    company: string;
+    document: string;
+    type: RncTypeEnum;
+    department: RncDepartmentEnum;
+    responsible: string;
+  };
+}
+
+interface AdditionalInfoRefType {
+  getData: () => {
+    description: string;
+    korp: string;
+    nfv: string;
+    nfd: string;
+    city: string;
+    collected_at: string | null;
+    closed_at: string | null;
+    conclusion: string;
+  };
+}
+
+interface RelationalInfoRefType {
+  getData: () => {
+    contacts: RNCContact[];
+    products: RNCProduct[];
+    attachments: (RNCAttachment | File)[];
+  };
 }
 
 export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
@@ -32,9 +64,9 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
   
-  const basicInfoRef = React.useRef<any>(null);
-  const additionalInfoRef = React.useRef<any>(null);
-  const relationalInfoRef = React.useRef<any>(null);
+  const basicInfoRef = React.useRef<BasicInfoRefType>(null);
+  const additionalInfoRef = React.useRef<AdditionalInfoRefType>(null);
+  const relationalInfoRef = React.useRef<RelationalInfoRefType>(null);
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
@@ -144,6 +176,13 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     }
   };
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
+
   if (loading) return <div>Carregando...</div>;
   if (!rnc) return <div>RNC não encontrada</div>;
 
@@ -186,6 +225,9 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
             </Button>
           )}
         </div>
+        <Button variant="ghost" size="sm" onClick={handleClose}>
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       <FormProvider {...methods}>
