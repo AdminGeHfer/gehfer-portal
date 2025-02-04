@@ -12,20 +12,27 @@ import { useRNCs } from "@/hooks/useRNCs";
 import { useRNCList } from "@/hooks/useRNCList";
 import { RNC, RncDepartmentEnum, RncStatusEnum, RncTypeEnum } from "@/types/rnc";
 import { rncService } from "@/services/rncService";
+import { useLocation } from "react-router-dom";
 
 const Index = () => {
   // RNC List Management
   const { rncs, loading: isLoading, error, refetch } = useRNCList();
   const [selectedRNC, setSelectedRNC] = useState<string | null>(null);
+  const location = useLocation();
 
-  const handleSelectRNC = (id: string) => {
-    // Clear previous selection first
+  React.useEffect(() => {
+    return () => {
+      setSelectedRNC(null);
+    };
+  }, [location.pathname]);
+
+  const handleSelectRNC = React.useCallback((id: string) => {
     setSelectedRNC(null);
-    // Set new selection after a small delay to ensure clean state
-    setTimeout(() => {
+    // Use RAF to ensure clean state
+    requestAnimationFrame(() => {
       setSelectedRNC(id);
-    }, 100);
-  };
+    });
+  }, []);
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState("");

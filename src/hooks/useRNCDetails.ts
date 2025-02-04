@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { RNCWithRelations } from '@/types/rnc';
 import { toast } from 'sonner';
@@ -7,13 +7,17 @@ export const useRNCDetails = (id: string) => {
   const [rnc, setRNC] = useState<RNCWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const mounted = useRef(false);
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
   const fetchRNC = useCallback(async () => {
-    if (!id) {
-      setError('ID da RNC não fornecido');
-      setLoading(false);
-      return;
-    }
+    if (!id || !mounted.current) return;
 
     try {
       setLoading(true);
@@ -41,27 +45,25 @@ export const useRNCDetails = (id: string) => {
         .eq('id', id)
         .maybeSingle();
 
-      if (fetchError) {
-        console.error('Error fetching RNC:', fetchError);
-        setError(fetchError.message);
-        toast.error('Erro ao carregar detalhes da RNC');
-        return;
-      }
+      if (!mounted.current) return;
+
+      if (fetchError) throw fetchError;
 
       if (!data) {
-        setError('RNC não encontrada');
-        toast.error('RNC não encontrada');
-        return;
+        throw new Error('RNC não encontrada');
       }
 
       setRNC(data as RNCWithRelations);
     } catch (err) {
+      if (!mounted.current) return;
+      
       console.error('Error in fetchRNC:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
       toast.error('Erro ao carregar detalhes da RNC');
     } finally {
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
     }
   }, [id]);
 
@@ -69,9 +71,11 @@ export const useRNCDetails = (id: string) => {
     fetchRNC();
     
     return () => {
-      setRNC(null);
-      setError(null);
-      setLoading(true);
+      if (mounted.current) {
+        setRNC(null);
+        setError(null);
+        setLoading(true);
+      }
     };
   }, [fetchRNC]);
 

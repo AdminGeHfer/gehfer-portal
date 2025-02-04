@@ -23,14 +23,15 @@ interface RNCDetailsProps {
   onClose?: () => void;
 }
 
-export function RNCDetails({ id: propId }: RNCDetailsProps) {
+export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const { id: routeId } = useParams();
   const navigate = useNavigate();
   const id = propId || routeId;
+  const mounted = React.useRef(false);
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
-    mode: "onChange",
+    mode: "onSubmit",
     defaultValues: {
       company_code: '',
       company: '',
@@ -51,6 +52,29 @@ export function RNCDetails({ id: propId }: RNCDetailsProps) {
       attachments: []
     }
   });
+
+  React.useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      methods.reset();
+    };
+  }, []);
+
+  // Handle browser back button
+  React.useEffect(() => {
+    const handlePopState = () => {
+      if (mounted.current) {
+        methods.reset();
+        onClose?.();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [onClose, methods]);
 
   const { handleSubmit, reset } = methods;
   const [isEditing, setIsEditing] = React.useState(false);
