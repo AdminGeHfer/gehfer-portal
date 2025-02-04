@@ -321,6 +321,11 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
                     <RelationalInfoTab
                       rncId={rnc.id}
                       isEditing={isEditing}
+                      initialValues={{
+                        contacts: rnc.contacts,
+                        products: rnc.products,
+                        attachments: rnc.attachments  // Is this line present?
+                      }}
                     />
                   </TabsContent>
 
