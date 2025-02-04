@@ -66,19 +66,20 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
     const [attachments, setAttachments] = React.useState(initialValues?.attachments || []);
     const [isUploading, setIsUploading] = React.useState(false);
 
-    const handleFileSelect = async (file: File) => {
-      if (!file) return;
+    const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (!event.target.files?.length) return;
 
       try {
         setIsUploading(true);
-        const attachment = await rncService.uploadAttachment(rncId, file);
-        setAttachments(prev => [...prev, attachment]);
+        const files = Array.from(event.target.files);
+        setValue('attachments', [...attachments, ...files]);
         toast.success("Arquivo anexado com sucesso!");
       } catch (error) {
         console.error("Error uploading file:", error);
         toast.error("Erro ao anexar arquivo");
       } finally {
         setIsUploading(false);
+        event.target.value = '';
       }
     };
 
@@ -269,7 +270,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
             {isEditing && (
               <FileUploadField
                 label="Adicionar arquivo"
-                onFileSelect={handleFileSelect}
+                onChange={handleFileSelect}
                 accept="*/*"
                 loading={isUploading}
               />

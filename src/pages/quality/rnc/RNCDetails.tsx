@@ -5,7 +5,7 @@ import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoT
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { Button } from "@/components/ui/button";
-import { Edit, Save, Trash2, X } from "lucide-react";
+import { Edit, Save, Trash2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
 import { useForm, FormProvider } from "react-hook-form";
@@ -16,139 +16,125 @@ import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { RNCContact, RncDepartmentEnum, RNCProduct, RncStatusEnum, RncTypeEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
+import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
-interface RNCDetailsProps {
-  id?: string;
-  onClose?: () => void;
-}
+// interface RNCDetailsProps {
+//   id?: string;
+//   onClose?: () => void;
+// }
 
-interface BasicInfoRefType {
-  getData: () => {
-    company_code: string;
-    company: string;
-    document: string;
-    type: RncTypeEnum;
-    department: RncDepartmentEnum;
-    responsible: string;
-  };
-}
-
-interface AdditionalInfoRefType {
-  getData: () => {
-    description: string;
-    korp: string;
-    nfv: string;
-    nfd: string;
-    city: string;
-    collected_at: string | null;
-    closed_at: string | null;
-    conclusion: string;
-  };
-}
-
-interface RelationalInfoRefType {
-  getData: () => {
-    contacts: RNCContact[];
-    products: RNCProduct[];
-    attachments: (RNCAttachment | File)[];
-  };
-}
-
-export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
-  const { id: routeId } = useParams();
+export function RNCDetails() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const id = propId || routeId;
-  const { rnc, loading, refetch } = useRNCDetails(id!);
+  const { rnc, loading, error, refetch } = useRNCDetails(id!);
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  
-  const basicInfoRef = React.useRef<BasicInfoRefType>(null);
-  const additionalInfoRef = React.useRef<AdditionalInfoRefType>(null);
-  const relationalInfoRef = React.useRef<RelationalInfoRefType>(null);
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
     defaultValues: {
-      company_code: rnc?.company_code || '',
-      company: rnc?.company || '',
-      document: rnc?.document || '',
-      type: rnc?.type,
-      department: rnc?.department,
-      responsible: rnc?.responsible || '',
-      description: rnc?.description || '',
-      korp: rnc?.korp || '',
-      nfv: rnc?.nfv || '',
-      nfd: rnc?.nfd || '',
-      city: rnc?.city || '',
-      collected_at: rnc?.collected_at || null,
-      closed_at: rnc?.closed_at || null,
-      conclusion: rnc?.conclusion || '',
-      contacts: rnc?.contacts || [],
-      products: rnc?.products || [],
-      attachments: rnc?.attachments || []
+      company_code: '',
+      company: '',
+      document: '',
+      type: undefined,
+      department: undefined,
+      responsible: '',
+      description: '',
+      korp: '',
+      nfv: '',
+      nfd: '',
+      city: '',
+      collected_at: null,
+      closed_at: null,
+      conclusion: '',
+      contacts: [],
+      products: [],
+      attachments: []
     }
   });
+
+  React.useEffect(() => {
+    if (rnc) {
+      methods.reset({
+        company_code: rnc.company_code,
+        company: rnc.company,
+        document: rnc.document,
+        type: rnc.type,
+        department: rnc.department,
+        responsible: rnc.responsible || '',
+        description: rnc.description,
+        korp: rnc.korp || '',
+        nfv: rnc.nfv || '',
+        nfd: rnc.nfd || '',
+        city: rnc.city || '',
+        collected_at: rnc.collected_at ? new Date(rnc.collected_at).toLocaleDateString("pt-BR") : null,
+        closed_at: rnc.closed_at ? new Date(rnc.closed_at).toLocaleDateString("pt-BR") : null,
+        conclusion: rnc.conclusion || '',
+        contacts: rnc.contacts || [],
+        products: rnc.products || [],
+        attachments: rnc.attachments || []
+      });
+    }
+  }, [rnc, methods]);
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
 
-      // Get form data from localStorage
-      const storedData = localStorage.getItem('rncDetailsData');
-      if (!storedData) {
-        toast.error("Nenhum dado para salvar");
-        return;
-      }
-      
       if (!id) {
+        navigate('/quality/home');
         toast.error("ID da RNC não encontrado");
         return;
       }
 
-      const basicData = basicInfoRef.current?.getData();
-      const additionalData = additionalInfoRef.current?.getData();
-      const relationalData = relationalInfoRef.current?.getData();
+      if(!rnc) {
+        toast.error("Dados da RNC não encontrados")
+      }
+
+      const formData = methods.getValues();
+
+      const transformedProducts = formData.products.map(product => ({
+        name: product.name || '',
+        weight: Number(product.weight) || 0
+      }));
+
+      const transformedContacts = formData.contacts.map(contact => ({
+        name: contact.name || '',
+        phone: contact.phone || '',
+        email: contact.email || ''
+      }));
 
       // Update RNC
       const updatedData = {
-        company_code: basicData.company_code,
-        company: basicData.company,
-        document: basicData.document,
-        type: basicData.type,
-        department: basicData.department,
-        responsible: basicData.responsible,
-        description: additionalData.description,
-        korp: additionalData.korp || "",
-        nfv: additionalData.nfv || "",
-        nfd: additionalData.nfd,
-        city: additionalData.city,
-        collected_at: additionalData.collected_at,
-        closed_at: additionalData.closed_at,
-        conclusion: additionalData.conclusion,
-        assigned_by: rnc?.assigned_by || "",
-        contacts: relationalData.contacts.map(contact => ({
-          name: contact.name,
-          phone: contact.phone,
-          email: contact.email || ""
-        })),
-        products: relationalData.products.map(product => ({
-          name: product.name,
-          weight: product.weight
-        })),
-        attachments: relationalData.attachments?.map(attachment => {
-          if ('rnc_id' in attachment) return attachment;
-          if (attachment instanceof File) return null;
-          return null;
-        }).filter(Boolean) as RNCAttachment[] || [],
+        company_code: formData.company_code,
+        company: formData.company,
+        document: formData.document,
+        type: formData.type,
+        department: formData.department,
+        responsible: formData.responsible,
+        description: formData.description,
+        korp: formData.korp || "",
+        nfv: formData.nfv || "",
+        nfd: formData.nfd || "",
+        city: formData.city,
+        collected_at: formData.collected_at,
+        closed_at: formData.closed_at,
+        conclusion: formData.conclusion,
+        assigned_by: rnc.assigned_by || "",
+        contacts: transformedContacts,
+        products: transformedProducts,
         status: rnc?.status || RncStatusEnum.pending,
         workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        attachments: formData.attachments?.map(attachment => {
+          if ('rnc_id' in attachment) return attachment;
+          return null;
+        }).filter(Boolean) as RNCAttachment[] || [],
       };
 
       await rncService.update(id, updatedData);
-
       toast.success("RNC atualizada com sucesso!");
       setIsEditing(false);
       refetch();
@@ -176,15 +162,24 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     }
   };
 
-  const handleClose = () => {
-    if (onClose) {
-      onClose();
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
-
-  if (loading) return <div>Carregando...</div>;
-  if (!rnc) return <div>RNC não encontrada</div>;
+  if (error || !rnc) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-lg text-red-500">Erro ao carregar RNC</p>
+        <Button onClick={() => navigate('/quality/home')}>
+          Voltar para listagem
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6">
@@ -225,9 +220,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
             </Button>
           )}
         </div>
-        <Button variant="ghost" size="sm" onClick={handleClose}>
-          <X className="h-4 w-4" />
-        </Button>
       </div>
 
       <FormProvider {...methods}>
@@ -267,46 +259,20 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
                 <div className="bg-background p-4 rounded-b-lg">
                   <TabsContent value="basic">
                     <BasicInfoTab
-                      ref={basicInfoRef}
                       isEditing={isEditing}
-                      initialValues={{
-                        company_code: rnc.company_code,
-                        company: rnc.company,
-                        document: rnc.document,
-                        type: rnc.type,
-                        department: rnc.department,
-                        responsible: rnc.responsible,
-                      }}
                     />
                   </TabsContent>
 
                   <TabsContent value="additional">
                     <AdditionalInfoTab
-                      ref={additionalInfoRef}
                       isEditing={isEditing}
-                      initialValues={{
-                        description: rnc.description,
-                        korp: rnc.korp,
-                        nfv: rnc.nfv,
-                        nfd: rnc.nfd,
-                        city: rnc.city,
-                        collected_at: rnc.collected_at,
-                        closed_at: rnc.closed_at,
-                        conclusion: rnc.conclusion,
-                      }}
                     />
                   </TabsContent>
 
                   <TabsContent value="relational">
                     <RelationalInfoTab
-                      ref={relationalInfoRef}
                       rncId={rnc.id}
                       isEditing={isEditing}
-                      initialValues={{
-                        contacts: rnc.contacts,
-                        products: rnc.products,
-                        attachments: rnc.attachments,
-                      }}
                     />
                   </TabsContent>
 
