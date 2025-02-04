@@ -9,8 +9,9 @@ import { Edit, Save, Trash2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
 import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
+// import { zodResolver } from "@hookform/resolvers/zod";
+// , updateRNCSchema
+import { UpdateRNCFormData } from "@/schemas/rncValidation";
 import { BackButton } from "@/components/atoms/BackButton";
 import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
@@ -27,33 +28,43 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 export function RNCDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { rnc, loading, error, refetch } = useRNCDetails(id!);
+  const methods = useForm<UpdateRNCFormData>();
+  const { handleSubmit } = methods;
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
-  const methods = useForm<UpdateRNCFormData>({
-    resolver: zodResolver(updateRNCSchema),
-    defaultValues: {
-      company_code: '',
-      company: '',
-      document: '',
-      type: undefined,
-      department: undefined,
-      responsible: '',
-      description: '',
-      korp: '',
-      nfv: '',
-      nfd: '',
-      city: '',
-      collected_at: null,
-      closed_at: null,
-      conclusion: '',
-      contacts: [],
-      products: [],
-      attachments: []
-    }
-  });
+  // const methods = useForm<UpdateRNCFormData>({
+  //   resolver: zodResolver(updateRNCSchema),
+  //   defaultValues: {
+  //     company_code: '',
+  //     company: '',
+  //     document: '',
+  //     type: undefined,
+  //     department: undefined,
+  //     responsible: '',
+  //     description: '',
+  //     korp: '',
+  //     nfv: '',
+  //     nfd: '',
+  //     city: '',
+  //     collected_at: null,
+  //     closed_at: null,
+  //     conclusion: '',
+  //     contacts: [],
+  //     products: [],
+  //     attachments: []
+  //   }
+  // });
+
+  React.useEffect(() => {
+    return () => {
+      methods.reset(); // Clear form state when component unmounts
+    };
+  }, []);
+
+  
+  const { rnc, loading, error, refetch } = useRNCDetails(id!);
 
   React.useEffect(() => {
     if (rnc) {
@@ -77,30 +88,45 @@ export function RNCDetails() {
         attachments: rnc.attachments || []
       });
     }
-  }, [rnc, methods]);
+  }, [rnc]);
 
-  const handleSave = async () => {
+  // Early returns for loading/error states
+  if (!id) {
+    navigate('/quality/home');
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error || !rnc) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-lg text-red-500">Erro ao carregar RNC</p>
+        <Button onClick={() => navigate('/quality/home')}>
+          Voltar para listagem
+        </Button>
+      </div>
+    );
+  }
+
+  const handleSave = async (data: UpdateRNCFormData) => {
     try {
       setIsSaving(true);
 
-      if (!id) {
-        navigate('/quality/home');
-        toast.error("ID da RNC não encontrado");
-        return;
-      }
+      // const formData = methods.getValues();
 
-      if(!rnc) {
-        toast.error("Dados da RNC não encontrados")
-      }
-
-      const formData = methods.getValues();
-
-      const transformedProducts = formData.products.map(product => ({
+      const transformedProducts = data.products.map(product => ({
         name: product.name || '',
         weight: Number(product.weight) || 0
       }));
 
-      const transformedContacts = formData.contacts.map(contact => ({
+      const transformedContacts = data.contacts.map(contact => ({
         name: contact.name || '',
         phone: contact.phone || '',
         email: contact.email || ''
@@ -108,36 +134,36 @@ export function RNCDetails() {
 
       // Update RNC
       const updatedData = {
-        company_code: formData.company_code,
-        company: formData.company,
-        document: formData.document,
-        type: formData.type,
-        department: formData.department,
-        responsible: formData.responsible,
-        description: formData.description,
-        korp: formData.korp || "",
-        nfv: formData.nfv || "",
-        nfd: formData.nfd || "",
-        city: formData.city,
-        collected_at: formData.collected_at,
-        closed_at: formData.closed_at,
-        conclusion: formData.conclusion,
+        company_code: data.company_code,
+        company: data.company,
+        document: data.document,
+        type: data.type,
+        department: data.department,
+        responsible: data.responsible,
+        description: data.description,
+        korp: data.korp || "",
+        nfv: data.nfv || "",
+        nfd: data.nfd || "",
+        city: data.city,
+        collected_at: data.collected_at,
+        closed_at: data.closed_at,
+        conclusion: data.conclusion,
         assigned_by: rnc.assigned_by || "",
         contacts: transformedContacts,
         products: transformedProducts,
         status: rnc?.status || RncStatusEnum.pending,
         workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
         updated_at: new Date().toISOString(),
-        attachments: formData.attachments?.map(attachment => {
+        attachments: data.attachments?.map(attachment => {
           if ('rnc_id' in attachment) return attachment;
           return null;
         }).filter(Boolean) as RNCAttachment[] || [],
       };
 
       await rncService.update(id, updatedData);
-      toast.success("RNC atualizada com sucesso!");
-      setIsEditing(false);
       refetch();
+      setIsEditing(false);
+      toast.success("RNC atualizada com sucesso!");
 
     } catch (error) {
       console.error('Error saving RNC:', error);
@@ -162,67 +188,48 @@ export function RNCDetails() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error || !rnc) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <p className="text-lg text-red-500">Erro ao carregar RNC</p>
-        <Button onClick={() => navigate('/quality/home')}>
-          Voltar para listagem
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <BackButton to="/quality/home" />
-      </div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-foreground">RNC #{rnc.rnc_number}</h1>
-        <div className="flex gap-2">
-          {!isEditing ? (
-            <>
-              <Button
-                variant="default"
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => setIsDeleteDialogOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Excluir
-              </Button>
-            </>
-          ) : (
-            <Button
-              variant="default"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? 'Salvando...' : 'Salvar'}
-            </Button>
-          )}
+    <FormProvider {...methods}>
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <BackButton to="/quality/home" />
         </div>
-      </div>
-
-      <FormProvider {...methods}>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-foreground">RNC #{rnc.rnc_number}</h1>
+          <div className="flex gap-2">
+            {!isEditing ? (
+              <>
+                <Button
+                  variant="default"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isSaving}
+                className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleSubmit(handleSave)}
+              >
+                <Save className="h-4 w-4" />
+                {isSaving ? 'Salvando...' : 'Salvar'}
+              </Button>
+            )}
+          </div>
+        </div>
+  
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-background border rounded-lg shadow">
@@ -255,27 +262,23 @@ export function RNCDetails() {
                     </TabsTrigger>
                   </div>
                 </TabsList>
-
+  
                 <div className="bg-background p-4 rounded-b-lg">
                   <TabsContent value="basic">
-                    <BasicInfoTab
-                      isEditing={isEditing}
-                    />
+                    <BasicInfoTab isEditing={isEditing} />
                   </TabsContent>
-
+  
                   <TabsContent value="additional">
-                    <AdditionalInfoTab
-                      isEditing={isEditing}
-                    />
+                    <AdditionalInfoTab isEditing={isEditing} />
                   </TabsContent>
-
+  
                   <TabsContent value="relational">
                     <RelationalInfoTab
                       rncId={rnc.id}
                       isEditing={isEditing}
                     />
                   </TabsContent>
-
+  
                   <TabsContent value="workflow">
                     <WorkflowTab
                       rncId={rnc.id}
@@ -287,7 +290,7 @@ export function RNCDetails() {
               </Tabs>
             </div>
           </div>
-
+  
           <div className="space-y-6">
             <div className="bg-background border rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4 text-foreground">Timeline de Eventos</h2>
@@ -295,15 +298,16 @@ export function RNCDetails() {
             </div>
           </div>
         </div>
-      </FormProvider>
-
-      <DeleteRNCDialog
-        open={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        rncId={rnc.id}
-        rncNumber={rnc.rnc_number}
-        onConfirm={handleDelete}
-      />
-    </div>
+  
+        <DeleteRNCDialog
+          open={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          rncId={rnc.id}
+          rncNumber={rnc.rnc_number}
+          onConfirm={handleDelete}
+        />
+      </div>
+    </FormProvider>
   );
+  
 }
