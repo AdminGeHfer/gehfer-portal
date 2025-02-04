@@ -65,13 +65,11 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
 
   // Log form values when they change
   React.useEffect(() => {
-    console.log('Current form values:', formValues);
   }, [formValues]);
 
   // Reset form when RNC data changes
   React.useEffect(() => {
     if (rnc && mounted.current) {
-      console.log('Setting form data with:', rnc);
       const formData = {
         company_code: rnc.company_code || '',
         company: rnc.company || '',
@@ -93,7 +91,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
       };
 
       reset(formData);
-      console.log('Form reset with data:', formData);
     }
   }, [rnc, reset]);
 
