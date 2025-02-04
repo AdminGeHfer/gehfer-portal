@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { RNCFilters } from "@/pages/quality/home/components/RNCFilters";
 import { RNCDetails } from "@/pages/quality/rnc/RNCDetails"
@@ -19,19 +19,34 @@ const Index = () => {
   const { rncs, loading: isLoading, error, refetch } = useRNCList();
   const [selectedRNC, setSelectedRNC] = useState<string | null>(null);
   const location = useLocation();
+  const mounted = useRef(false);
 
+  // Component mount/unmount
   React.useEffect(() => {
+    mounted.current = true;
     return () => {
+      mounted.current = false;
       setSelectedRNC(null);
     };
+  }, []);
+
+  // Clear selection on route change
+  React.useEffect(() => {
+    if (mounted.current) {
+      setSelectedRNC(null);
+    }
   }, [location.pathname]);
 
   const handleSelectRNC = React.useCallback((id: string) => {
-    setSelectedRNC(null);
-    // Use RAF to ensure clean state
-    requestAnimationFrame(() => {
-      setSelectedRNC(id);
-    });
+    if (!mounted.current) return;
+
+      setSelectedRNC(null);
+      // Use Promise.resolve to ensure clean state
+      Promise.resolve().then(() => {
+        if (mounted.current) {
+          setSelectedRNC(id);
+        }
+      });
   }, []);
 
   // Filter States

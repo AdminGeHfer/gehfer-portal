@@ -8,16 +8,26 @@ export const useRNCDetails = (id: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const mounted = useRef(false);
+  const abortController = useRef<AbortController | null>(null);
 
   useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
+      if (abortController.current) {
+        abortController.current.abort();
+      }
     };
   }, []);
 
   const fetchRNC = useCallback(async () => {
     if (!id || !mounted.current) return;
+
+    // Cancel any ongoing request
+    if (abortController.current) {
+      abortController.current.abort();
+    }
+    abortController.current = new AbortController();
 
     try {
       setLoading(true);
@@ -57,9 +67,12 @@ export const useRNCDetails = (id: string) => {
     } catch (err) {
       if (!mounted.current) return;
       
-      console.error('Error in fetchRNC:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-      toast.error('Erro ao carregar detalhes da RNC');
+      // Only set error if not aborted
+      if (err instanceof Error && err.name !== 'AbortError') {
+        console.error('Error in fetchRNC:', err);
+        setError(err instanceof Error ? err.message : 'Erro desconhecido');
+        toast.error('Erro ao carregar detalhes da RNC');
+      }
     } finally {
       if (mounted.current) {
         setLoading(false);
@@ -75,6 +88,9 @@ export const useRNCDetails = (id: string) => {
         setRNC(null);
         setError(null);
         setLoading(true);
+        if (abortController.current) {
+          abortController.current.abort();
+        }
       }
     };
   }, [fetchRNC]);

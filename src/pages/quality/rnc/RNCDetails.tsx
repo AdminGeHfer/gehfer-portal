@@ -29,6 +29,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const navigate = useNavigate();
   const id = propId || routeId;
   const mounted = React.useRef(false);
+  const formInitialized = React.useRef(false);
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
@@ -66,6 +67,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     mounted.current = true;
     return () => {
       mounted.current = false;
+      formInitialized.current = false;
       methods.reset();
       setIsEditing(false);
       setIsSaving(false);
@@ -88,10 +90,11 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     };
   }, [onClose, methods]);
 
-  // Reset form when RNC data changes
+  // Reset form when RNC data changes or edit mode changes
   React.useEffect(() => {
-    if (rnc && mounted.current) {
-      reset({
+    if (rnc && mounted.current && !formInitialized.current) {
+      formInitialized.current = true;
+      const formData = {
         company_code: rnc.company_code,
         company: rnc.company,
         document: rnc.document,
@@ -109,7 +112,9 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         contacts: rnc.contacts || [],
         products: rnc.products || [],
         attachments: rnc.attachments || []
-      });
+      };
+
+      reset(formData);
     }
   }, [rnc, reset]);
 
