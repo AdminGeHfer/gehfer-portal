@@ -1,7 +1,6 @@
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useFormContext } from "react-hook-form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/atoms/Button";
 import { Plus, Trash2, FileIcon, Download } from "lucide-react";
@@ -10,7 +9,6 @@ import { rncService } from "@/services/rncService";
 import { toast } from "sonner";
 import { formatBytes } from "@/utils/format";
 import { FileUploadField } from "@/components/rnc/FileUploadField";
-import { relationalInfoSchema } from "@/utils/validations";
 import { RelationalInfoFormData } from "@/schemas/rncValidation";
 
 interface RelationalInfoTabProps {
@@ -18,9 +16,9 @@ interface RelationalInfoTabProps {
   isEditing: boolean;
   initialValues?: {
     contacts?: Array<{
-    name?: string;
-    phone?: string;
-    email?: string;
+      name?: string;
+      phone?: string;
+      email?: string;
     }>;
     products?: Array<{
       id: string;
@@ -45,24 +43,9 @@ export type RelationalInfoTabRef = {
 };
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
-  ({ rncId, isEditing, initialValues }, ref) => {
-    const form = useForm<RelationalInfoFormData>({
-      resolver: zodResolver(relationalInfoSchema),
-      defaultValues: {
-        contacts: initialValues?.contacts?.length ? initialValues.contacts : [{
-          name: "",
-          phone: "",
-          email: ""
-        }],
-        products: initialValues?.products?.length ? initialValues.products : [{
-          id: crypto.randomUUID(),
-          name: "",
-          weight: 0.1
-        }],
-        attachments: initialValues?.attachments || []
-      }
-    });
-
+  ({ rncId, isEditing, initialValues }) => {
+    const { control, setValue, getValues } = useFormContext<RelationalInfoFormData>();
+    const values = getValues();
     const [attachments, setAttachments] = React.useState(initialValues?.attachments || []);
     const [isUploading, setIsUploading] = React.useState(false);
 
@@ -72,7 +55,10 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       try {
         setIsUploading(true);
         const files = Array.from(event.target.files);
-        setValue('attachments', [...attachments, ...files]);
+        setValue('attachments', [...attachments, ...files], {
+          shouldValidate: true,
+          shouldDirty: true
+        });
         toast.success("Arquivo anexado com sucesso!");
       } catch (error) {
         console.error("Error uploading file:", error);
@@ -107,216 +93,218 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       }
     };
 
-    const { watch, setValue } = form;
-    const products = watch("products");
-
-    React.useImperativeHandle(ref, () => ({
-      validate: () => form.trigger(),
-      getFormData: () => form.getValues()
-    }));
-
     const addProduct = () => {
-      const currentProducts = form.getValues("products");
+      const currentProducts = values.products || [];
       setValue("products", [
         ...currentProducts,
         { id: crypto.randomUUID(), name: "", weight: 0.1 }
-      ]);
+      ], { shouldValidate: true });
     };
 
     const removeProduct = (index: number) => {
-      const currentProducts = form.getValues("products");
+      const currentProducts = values.products || [];
       if (currentProducts.length > 1) {
-        setValue("products", currentProducts.filter((_, i) => i !== index));
+        setValue(
+          "products",
+          currentProducts.filter((_, i) => i !== index),
+          { shouldValidate: true }
+        );
       }
     };
 
-
     return (
-      <Form {...form}>
-        <div className="space-y-8 p-4">
-          {/* Products Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Produtos</h3>
-            <div className="space-y-4">
-              {products?.map((product, index) => (
-                <div key={product.id} className="flex gap-4 items-start">
-                  <FormField
-                    control={form.control}
-                    name={`products.${index}.name`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>Produto</FormLabel>
-                        <FormControl>
-                          <Input {...field} disabled={!isEditing} placeholder="Digite o nome do produto" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`products.${index}.weight`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>Peso (kg)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field}
-                            type="number"
-                            disabled={!isEditing}
-                            placeholder="Digite o peso"
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0.1)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+      <div className="space-y-8 p-4">
+        {/* Products Section */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Produtos</h3>
+          <div className="space-y-4">
+            {values.products?.map((product, index) => (
+              <div key={product.id} className="flex gap-4 items-start">
+                <FormField
+                  control={control}
+                  name={`products.${index}.name`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Produto</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field}
+                          value={field.value || ''}
+                          disabled={!isEditing}
+                          placeholder="Digite o nome do produto" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name={`products.${index}.weight`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Peso (kg)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field}
+                          type="number"
+                          value={field.value || 0.1}
+                          disabled={!isEditing}
+                          placeholder="Digite o peso"
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0.1)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                {isEditing && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="mt-8"
+                    onClick={() => removeProduct(index)}
+                    disabled={values.products?.length === 1}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+
+            {isEditing && (
+              <Button type="button" variant="outline" onClick={addProduct}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Produto
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Contact Section */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Contato</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name={`contacts.0.name`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Nome
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name={`contacts.0.phone`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    Telefone
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                      onChange={(e) => handlePhoneChange(e, field.onChange)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name={`contacts.0.email`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      value={field.value || ''}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Attachments Section */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Anexos</h3>
+          {isEditing && (
+            <FileUploadField
+              label="Adicionar arquivo"
+              onChange={handleFileSelect}
+              accept="*/*"
+              loading={isUploading}
+            />
+          )}
+
+          <div className="space-y-2 mt-4">
+            {attachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
+              >
+                <div className="flex items-center gap-3">
+                  <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{attachment.filename}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatBytes(attachment.filesize)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFileDownload(attachment)}
+                    className="text-blue-600 dark:text-blue-400"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
                   {isEditing && (
                     <Button
-                      type="button"
                       variant="ghost"
-                      className="mt-8"
-                      onClick={() => removeProduct(index)}
-                      disabled={products.length === 1}
+                      size="sm"
+                      onClick={() => handleFileDelete(attachment)}
+                      className="text-red-600 dark:text-red-400"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
-              ))}
-
-              {isEditing && (
-                <Button type="button" variant="outline" onClick={addProduct}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Produto
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Contact Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Contato</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name={`contacts.0.name` as const}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-1">
-                      Nome
-                      <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={!isEditing}
-                        className="border-blue-200 focus:border-blue-400"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`contacts.0.phone` as const}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="flex items-center gap-1">
-                      Telefone
-                      <span className="text-red-500">*</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        disabled={!isEditing}
-                        className="border-blue-200 focus:border-blue-400"
-                        onChange={(e) => handlePhoneChange(e, field.onChange)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name={`contacts.0.email` as const}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        disabled={!isEditing}
-                        className="border-blue-200 focus:border-blue-400"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-
-          {/* Attachments Section */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Anexos</h3>
-            {isEditing && (
-              <FileUploadField
-                label="Adicionar arquivo"
-                onChange={handleFileSelect}
-                accept="*/*"
-                loading={isUploading}
-              />
-            )}
-
-            <div className="space-y-2 mt-4">
-              {attachments.map((attachment) => (
-                <div
-                  key={attachment.id}
-                  className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{attachment.filename}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatBytes(attachment.filesize)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFileDownload(attachment)}
-                      className="text-blue-600 dark:text-blue-400"
-                    >
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    {isEditing && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleFileDelete(attachment)}
-                        className="text-red-600 dark:text-red-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
-      </Form>
+      </div>
     );
   }
 );

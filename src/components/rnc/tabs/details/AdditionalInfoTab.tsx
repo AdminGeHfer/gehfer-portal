@@ -1,49 +1,24 @@
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, useForm } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import ReactDatePicker from "react-datepicker";
-import { AdditionalInfoFormData, additionalInfoSchema } from "@/schemas/rncValidation";
-
-interface AdditionalInfoTabProps {
-  isEditing: boolean;
-  initialValues?: {
-    description: string;
-    korp: string;
-    nfv: string;
-    nfd?: string | null;
-    city?: string | null;
-    collected_at?: string | null;
-    closed_at?: string | null;
-    conclusion?: string | null;
-  };
-}
+import { AdditionalInfoFormData, UpdateRNCFormData } from "@/schemas/rncValidation";
 
 export type AdditionalInfoTabRef = {
   validate: () => Promise<boolean>;
   getFormData: () => AdditionalInfoFormData;
 };
 
-export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, AdditionalInfoTabProps>(
-  ({ isEditing, initialValues }, ref) => {
-    const form = useForm<AdditionalInfoFormData>({
-      resolver: zodResolver(additionalInfoSchema),
-      defaultValues: initialValues
-    });
-
-    React.useImperativeHandle(ref, () => ({
-      validate: () => form.trigger(),
-      getFormData: () => form.getValues()
-    }));
+export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
+  const { control } = useFormContext<UpdateRNCFormData>();
 
   return (
-    <Form {...form}>
-      <form className="space-y-4">
+      <div className="space-y-4">
         <div className="space-y-2">
           <FormField
-            control={form.control}
+            control={control}
             name="description"
             render={({ field }) => (
               <FormItem>
@@ -53,6 +28,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                 <FormControl>
                   <Textarea
                     {...field}
+                    value={field.value || ''}
                     disabled={!isEditing}
                     className="min-h-[100px] border-blue-200 focus:border-blue-400"
                   />
@@ -65,7 +41,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
-            control={form.control}
+            control={control}
             name="korp"
             render={({ field }) => (
               <FormItem>
@@ -75,6 +51,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value || ''}
                     disabled={!isEditing}
                     className="border-blue-200 focus:border-blue-400"
                   />
@@ -85,7 +62,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="nfv"
             render={({ field }) => (
               <FormItem>
@@ -95,6 +72,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value || ''}
                     disabled={!isEditing}
                     className="border-blue-200 focus:border-blue-400"
                   />
@@ -105,7 +83,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="nfd"
             render={({ field }) => (
               <FormItem>
@@ -113,6 +91,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value || ''}
                     disabled={!isEditing}
                     className="border-blue-200 focus:border-blue-400"
                   />
@@ -123,7 +102,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="city"
             render={({ field }) => (
               <FormItem>
@@ -131,6 +110,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
                 <FormControl>
                   <Input
                     {...field}
+                    value={field.value || ''}
                     disabled={!isEditing}
                     className="border-blue-200 focus:border-blue-400"
                   />
@@ -141,7 +121,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="collected_at"
             render={({ field }) => (
               <FormItem className="flex flex-col space-y-4">
@@ -162,7 +142,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="closed_at"
             render={({ field }) => (
               <FormItem className="flex flex-col space-y-4">
@@ -184,7 +164,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
         </div>
 
         <FormField
-          control={form.control}
+          control={control}
           name="conclusion"
           render={({ field }) => (
             <FormItem>
@@ -192,6 +172,7 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
               <FormControl>
                 <Textarea
                   {...field}
+                  value={field.value || ''}
                   disabled={!isEditing}
                   className="min-h-[100px] border-blue-200 focus:border-blue-400"
                 />
@@ -200,10 +181,8 @@ export const AdditionalInfoTab = React.forwardRef<AdditionalInfoTabRef, Addition
             </FormItem>
           )}
         />
-      </form>
-    </Form>
+      </div>
   );
-},
-);
+};
 
 AdditionalInfoTab.displayName = "AdditionalInfoTab";

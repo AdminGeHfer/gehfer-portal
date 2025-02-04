@@ -1,47 +1,24 @@
 import * as React from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, useForm } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { handleDocumentChange } from "@/utils/masks";
 import { RncDepartmentEnum, RncTypeEnum } from "@/types/rnc";
-import { BasicInfoFormData, basicInfoSchema } from "@/schemas/rncValidation";
-
-interface BasicInfoTabProps {
-  isEditing: boolean;
-  initialValues?: {
-    company_code: string;
-    company: string;
-    document: string;
-    type: RncTypeEnum;
-    department: RncDepartmentEnum;
-    responsible: string;
-  };
-}
+import { BasicInfoFormData, UpdateRNCFormData } from "@/schemas/rncValidation";
 
 export type BasicInfoTabRef = {
   validate: () => Promise<boolean>;
   getFormData: () => BasicInfoFormData;
 };
 
-export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>(
-  ({ isEditing, initialValues }, ref) => {
-    const form = useForm<BasicInfoFormData>({
-      resolver: zodResolver(basicInfoSchema),
-      defaultValues: initialValues
-    });
-
-    React.useImperativeHandle(ref, () => ({
-      validate: () => form.trigger(),
-      getFormData: () => form.getValues()
-    }));
+export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
+  const { control } = useFormContext<UpdateRNCFormData>();
 
   return (
-    <Form {...form}>
-      <form className="space-y-4">
+      <div className="space-y-4">
         <FormField
-          control={form.control}
+          control={control}
           name="company_code"
           render={({ field }) => (
             <FormItem>
@@ -52,6 +29,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
               <FormControl>
                 <Input
                   {...field}
+                  value={field.value || ''}
                   disabled={!isEditing}
                   className="border-blue-200 focus:border-blue-400"
                 />
@@ -62,7 +40,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         />
 
         <FormField
-          control={form.control}
+          control={control}
           name="company"
           render={({ field }) => (
             <FormItem>
@@ -73,6 +51,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
               <FormControl>
                 <Input
                   {...field}
+                  value={field.value || ''}
                   disabled={!isEditing}
                   className="border-blue-200 focus:border-blue-400"
                 />
@@ -83,7 +62,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         />
 
         <FormField
-          control={form.control}
+          control={control}
           name="document"
           render={({ field }) => (
             <FormItem>
@@ -94,6 +73,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
               <FormControl>
                 <Input
                   {...field}
+                  value={field.value || ''}
                   disabled={!isEditing}
                   className="border-blue-200 focus:border-blue-400"
                   onChange={(e) => handleDocumentChange(e, field.onChange)}
@@ -105,7 +85,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         />
 
         <FormField
-          control={form.control}
+          control={control}
           name="type"
           render={({ field }) => (
             <FormItem>
@@ -137,7 +117,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         />
 
         <FormField
-          control={form.control}
+          control={control}
           name="department"
           render={({ field }) => (
             <FormItem>
@@ -164,7 +144,7 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
         />
 
         <FormField
-          control={form.control}
+          control={control}
           name="responsible"
           render={({ field }) => (
             <FormItem>
@@ -179,29 +159,27 @@ export const BasicInfoTab = React.forwardRef<BasicInfoTabRef, BasicInfoTabProps>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="alexandre">Alexandre</SelectItem>
-                  <SelectItem value="arthur">Arthur</SelectItem>
-                  <SelectItem value="fabiana">Fabiana</SelectItem>
-                  <SelectItem value="financeiro">Financeiro</SelectItem>
-                  <SelectItem value="giovani">Giovani</SelectItem>
-                  <SelectItem value="helcio">Helcio</SelectItem>
-                  <SelectItem value="izabelly">Izabelly</SelectItem>
-                  <SelectItem value="jordana">Jordana</SelectItem>
-                  <SelectItem value="marcos">Marcos</SelectItem>
-                  <SelectItem value="pedro">Pedro</SelectItem>
-                  <SelectItem value="rafaela">Rafaela</SelectItem>
-                  <SelectItem value="samuel">Samuel</SelectItem>
-                  <SelectItem value="vinicius">Vinicius</SelectItem>
+                  <SelectItem value="Alexandre">Alexandre</SelectItem>
+                  <SelectItem value="Arthur">Arthur</SelectItem>
+                  <SelectItem value="Fabiana">Fabiana</SelectItem>
+                  <SelectItem value="Financeiro">Financeiro</SelectItem>
+                  <SelectItem value="Giovani">Giovani</SelectItem>
+                  <SelectItem value="Helcio">Helcio</SelectItem>
+                  <SelectItem value="Izabelly">Izabelly</SelectItem>
+                  <SelectItem value="Jordana">Jordana</SelectItem>
+                  <SelectItem value="Marcos">Marcos</SelectItem>
+                  <SelectItem value="Pedro">Pedro</SelectItem>
+                  <SelectItem value="Tafaela">Rafaela</SelectItem>
+                  <SelectItem value="Samuel">Samuel</SelectItem>
+                  <SelectItem value="Vinicius">Vinicius</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-      </form>
-    </Form>
+      </div>
   );
-},
-);
+};
 
 BasicInfoTab.displayName = "BasicInfoTab";

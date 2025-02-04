@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { StatusBadge } from "@/components/quality/StatusBadge";
 
 interface RNCDetailsProps {
   id?: string;
@@ -29,7 +30,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const navigate = useNavigate();
   const id = propId || routeId;
   const mounted = React.useRef(false);
-  const formInitialized = React.useRef(false);
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
@@ -55,25 +55,59 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     }
   });
 
-  const { handleSubmit, reset } = methods;
+  const { handleSubmit, reset, watch } = methods;
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const { rnc, loading, error, refetch } = useRNCDetails(id!);
+  const formValues = watch(); // Watch all form values for debugging
+
+  // Log form values when they change
+  React.useEffect(() => {
+    console.log('Current form values:', formValues);
+  }, [formValues]);
+
+  // Reset form when RNC data changes
+  React.useEffect(() => {
+    if (rnc && mounted.current) {
+      console.log('Setting form data with:', rnc);
+      const formData = {
+        company_code: rnc.company_code || '',
+        company: rnc.company || '',
+        document: rnc.document || '',
+        type: rnc.type,
+        department: rnc.department,
+        responsible: rnc.responsible || '',
+        description: rnc.description || '',
+        korp: rnc.korp || '',
+        nfv: rnc.nfv || '',
+        nfd: rnc.nfd || '',
+        city: rnc.city || '',
+        collected_at: rnc.collected_at || null,
+        closed_at: rnc.closed_at || null,
+        conclusion: rnc.conclusion || '',
+        contacts: rnc.contacts || [],
+        products: rnc.products || [],
+        attachments: rnc.attachments || []
+      };
+
+      reset(formData);
+      console.log('Form reset with data:', formData);
+    }
+  }, [rnc, reset]);
 
   // Component mount/unmount handling
   React.useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
-      formInitialized.current = false;
       methods.reset();
       setIsEditing(false);
       setIsSaving(false);
       setIsDeleteDialogOpen(false);
     };
-  }, []);
+  }, [methods]);
 
   // Handle browser back button
   React.useEffect(() => {
@@ -89,34 +123,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
       window.removeEventListener('popstate', handlePopState);
     };
   }, [onClose, methods]);
-
-  // Reset form when RNC data changes or edit mode changes
-  React.useEffect(() => {
-    if (rnc && mounted.current && !formInitialized.current) {
-      formInitialized.current = true;
-      const formData = {
-        company_code: rnc.company_code,
-        company: rnc.company,
-        document: rnc.document,
-        type: rnc.type,
-        department: rnc.department,
-        responsible: rnc.responsible || '',
-        description: rnc.description,
-        korp: rnc.korp || '',
-        nfv: rnc.nfv || '',
-        nfd: rnc.nfd || '',
-        city: rnc.city || '',
-        collected_at: rnc.collected_at || null,
-        closed_at: rnc.closed_at || null,
-        conclusion: rnc.conclusion || '',
-        contacts: rnc.contacts || [],
-        products: rnc.products || [],
-        attachments: rnc.attachments || []
-      };
-
-      reset(formData);
-    }
-  }, [rnc, reset]);
 
   // Early returns for loading/error states
   if (!id) {
@@ -146,6 +152,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const handleSave = async (data: UpdateRNCFormData) => {
     try {
       setIsSaving(true);
+      console.log('Saving form data:', data);
 
       const transformedProducts = data.products.map(product => ({
         id: product.id,
@@ -203,6 +210,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         attachments: transformedAttachments
       };
 
+      console.log('Sending updated data:', updatedData);
       await rncService.update(id, updatedData);
       await refetch();
       setIsEditing(false);
@@ -217,11 +225,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
 
   const handleDelete = async () => {
     try {
-      if (!id) {
-        toast.error("ID da RNC não encontrado");
-        return;
-      }
-
       await rncService.delete(id);
       navigate('/quality/home', { replace: true });
     } catch (error) {
@@ -238,6 +241,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         </div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-foreground">RNC #{rnc.rnc_number}</h1>
+          <StatusBadge status={rnc.status} />
           <div className="flex gap-2">
             {!isEditing ? (
               <>
