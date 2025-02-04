@@ -58,6 +58,18 @@ export const additionalInfoSchema = z.object({
   collected_at: z.string().datetime().nullable(),
 })
 
+export const productSchema = z.array(z.object({
+  id: z.string(),
+  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
+  weight: z.number().min(0.1, "Peso deve ser maior que 0")
+}))
+
+export const contactSchema = z.array(z.object({
+  name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
+  phone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, "Telefone inválido"),
+  email: z.union([z.literal(""), z.string().email("Email inválido")]).optional()
+}))
+
 export const relationalInfoSchema = z.object({
   products: z.array(z.object({
     id: z.string(),

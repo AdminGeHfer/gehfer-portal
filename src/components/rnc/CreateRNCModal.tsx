@@ -99,7 +99,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         created_by: user.id,
         assigned_by: user.id,
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
         products: validatedProducts,
         contacts: validatedContacts,
         attachments: validAttachments

@@ -24,7 +24,7 @@ const Index = () => {
     // Set new selection after a small delay to ensure clean state
     setTimeout(() => {
       setSelectedRNC(id);
-    }, 0);
+    }, 100);
   };
 
   // Filter States
@@ -48,7 +48,7 @@ const Index = () => {
     searchTerm,
   });
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value) => {
     switch (key) {
       case 'searchTerm':
         setSearchTerm(value);

@@ -16,9 +16,9 @@ import { SidebarNav } from "@/components/layout/SidebarNav";
 const Login = lazy(() => import("@/pages/Login"));
 const Apps = lazy(() => import("@/pages/Apps"));
 const QualityRoutes = lazy(() => import("@/routes/QualityRoutes"));
-const AdminRoutes = lazy(() => import("@/routes/AdminRoutes"));
-const PortariaRoutes = lazy(() => import("@/routes/PortariaRoutes"));
-const IntelligenceRoutes = lazy(() => import("@/routes/IntelligenceRoutes"));
+// const AdminRoutes = lazy(() => import("@/routes/AdminRoutes"));
+// const PortariaRoutes = lazy(() => import("@/routes/PortariaRoutes"));
+// const IntelligenceRoutes = lazy(() => import("@/routes/IntelligenceRoutes"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,14 +78,14 @@ const App = () => (
                               <main className="flex-1 overflow-auto w-full">
                                 <Routes>
                                   <Route path="/apps" element={<Apps />} />
-                                  <Route
+                                  {/* <Route
                                     path="/intelligence/*"
                                     element={
                                       <ProtectedRoute module="intelligence">
                                         <IntelligenceRoutes />
                                       </ProtectedRoute>
                                     }
-                                  />
+                                  /> */}
                                   <Route
                                     path="/quality/*"
                                     element={
@@ -94,22 +94,22 @@ const App = () => (
                                       </ProtectedRoute>
                                     }
                                   />
-                                  <Route
+                                  {/* <Route
                                     path="/admin/*"
                                     element={
                                       <ProtectedRoute module="admin">
                                         <AdminRoutes />
                                       </ProtectedRoute>
                                     }
-                                  />
-                                  <Route
+                                  /> */}
+                                  {/* <Route
                                     path="/portaria/*"
                                     element={
                                       <ProtectedRoute module="portaria">
                                         <PortariaRoutes />
                                       </ProtectedRoute>
                                     }
-                                  />
+                                  /> */}
                                   <Route path="/" element={<Navigate to="/apps" replace />} />
                                   <Route path="*" element={<Navigate to="/apps" replace />} />
                                 </Routes>

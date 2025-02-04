@@ -179,6 +179,9 @@ export interface RNCWithRelations extends RNC {
 
 // Creation input type
 export interface CreateRNCInput extends RNCBaseInput {
+  status?: RncStatusEnum;
+  workflow_status?: WorkflowStatusEnum;
+  assigned_by?: string;
   created_by: string;
   created_at: string;
 }

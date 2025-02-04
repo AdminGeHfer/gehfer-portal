@@ -16,25 +16,50 @@ import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
 
-export function RNCDetails() {
-  const { id } = useParams();
+interface RNCDetailsProps {
+  id?: string;
+  onClose?: () => void;
+}
+
+export function RNCDetails({ id: propId }: RNCDetailsProps) {
+  const { id: routeId } = useParams();
   const navigate = useNavigate();
+  const id = propId || routeId;
+
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
-    mode: "onChange"
+    mode: "onChange",
+    defaultValues: {
+      company_code: '',
+      company: '',
+      document: '',
+      type: undefined,
+      department: undefined,
+      responsible: '',
+      description: '',
+      korp: '',
+      nfv: '',
+      nfd: '',
+      city: '',
+      collected_at: null,
+      closed_at: null,
+      conclusion: '',
+      contacts: [],
+      products: [],
+      attachments: []
+    }
   });
-  
+
   const { handleSubmit, reset } = methods;
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
-  const { rnc, loading, error, refetch } = useRNCDetails(id!);
+  const { rnc, refetch } = useRNCDetails(id!);
 
-  // Reset form when component unmounts or RNC changes
+  // Reset form when RNC data changes
   React.useEffect(() => {
     if (rnc) {
       reset({
@@ -49,59 +74,61 @@ export function RNCDetails() {
         nfv: rnc.nfv || '',
         nfd: rnc.nfd || '',
         city: rnc.city || '',
-        collected_at: rnc.collected_at ? new Date(rnc.collected_at) : null,
-        closed_at: rnc.closed_at ? new Date(rnc.closed_at) : null,
+        collected_at: rnc.collected_at || null,
+        closed_at: rnc.closed_at || null,
         conclusion: rnc.conclusion || '',
         contacts: rnc.contacts || [],
         products: rnc.products || [],
         attachments: rnc.attachments || []
       });
     }
-    
-    return () => {
-      reset(); // Clear form state when component unmounts
-    };
   }, [rnc, reset]);
 
-  // Early returns for loading/error states
-  if (!id) {
-    navigate('/quality/home');
-    return null;
-  }
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      reset();
+      setIsEditing(false);
+      setIsSaving(false);
+      setIsDeleteDialogOpen(false);
+    };
+  }, [reset]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error || !rnc) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <p className="text-lg text-red-500">Erro ao carregar RNC</p>
-        <Button onClick={() => navigate('/quality/home')}>
-          Voltar para listagem
-        </Button>
-      </div>
-    );
-  }
-
-  const onSubmit = async (data: UpdateRNCFormData) => {
+  const handleSave = async (data: UpdateRNCFormData) => {
     try {
       setIsSaving(true);
 
       const transformedProducts = data.products.map(product => ({
+        id: product.id,
         name: product.name || '',
-        weight: Number(product.weight) || 0
+        weight: Number(product.weight) || 0,
+        rnc_id: id
       }));
 
       const transformedContacts = data.contacts.map(contact => ({
         name: contact.name || '',
         phone: contact.phone || '',
-        email: contact.email || ''
+        email: contact.email || '',
+        rnc_id: id
       }));
+
+      const transformedAttachments = data.attachments
+        ?.map(attachment => {
+          if (attachment instanceof File) return attachment;
+          if (!('id' in attachment)) return null;
+          
+          return {
+            id: attachment.id,
+            rnc_id: id,
+            filename: attachment.filename,
+            filesize: attachment.filesize,
+            content_type: attachment.content_type,
+            file_path: attachment.file_path,
+            created_by: attachment.created_by,
+            created_at: attachment.created_at
+          } as RNCAttachment;
+        })
+        .filter(Boolean) as (File | RNCAttachment)[];
 
       const updatedData = {
         company_code: data.company_code,
@@ -115,20 +142,20 @@ export function RNCDetails() {
         nfv: data.nfv || "",
         nfd: data.nfd || "",
         city: data.city,
-        collected_at: data.collected_at ? new Date(data.collected_at).toISOString() : null,
-        closed_at: data.closed_at ? new Date(data.closed_at).toISOString() : null,
+        collected_at: data.collected_at,
+        closed_at: data.closed_at,
         conclusion: data.conclusion,
-        assigned_by: rnc.assigned_by || "",
+        assigned_by: rnc?.assigned_by || "",
         contacts: transformedContacts,
         products: transformedProducts,
         status: rnc?.status || RncStatusEnum.pending,
         workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
         updated_at: new Date().toISOString(),
-        attachments: data.attachments || []
+        attachments: transformedAttachments
       };
 
       await rncService.update(id, updatedData);
-      await refetch(); // Wait for refetch to complete
+      await refetch();
       setIsEditing(false);
       toast.success("RNC atualizada com sucesso!");
     } catch (error) {
@@ -156,7 +183,7 @@ export function RNCDetails() {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(onSubmit)} className="container mx-auto p-6">
+      <form onSubmit={handleSubmit(handleSave)} className="container mx-auto p-6">
         <div className="mb-6">
           <BackButton to="/quality/home" />
         </div>
@@ -197,61 +224,74 @@ export function RNCDetails() {
           </div>
         </div>
 
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="w-full flex flex-wrap justify-start border-b rounded-none p-0 h-auto bg-muted">
-            <div className="flex w-full md:w-1/2">
-              <TabsTrigger
-                value="basic"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-              >
-                Inf. Básicas
-              </TabsTrigger>
-              <TabsTrigger
-                value="additional"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-              >
-                Inf. Adicionais
-              </TabsTrigger>
-              <TabsTrigger
-                value="relational"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-              >
-                Inf. Relacionais
-              </TabsTrigger>
-              <TabsTrigger
-                value="workflow"
-                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-              >
-                Workflow
-              </TabsTrigger>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-background border rounded-lg shadow">
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="w-full flex flex-wrap justify-start border-b rounded-none p-0 h-auto bg-muted">
+                  <div className="flex w-full md:w-1/2">
+                    <TabsTrigger
+                      value="basic"
+                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                    >
+                      Inf. Básicas
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="additional"
+                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                    >
+                      Inf. Adicionais
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="relational"
+                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                    >
+                      Inf. Relacionais
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="workflow"
+                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                    >
+                      Workflow
+                    </TabsTrigger>
+                  </div>
+                </TabsList>
+
+                <div className="bg-background p-4 rounded-b-lg">
+                  <TabsContent value="basic">
+                    <BasicInfoTab isEditing={isEditing} />
+                  </TabsContent>
+
+                  <TabsContent value="additional">
+                    <AdditionalInfoTab isEditing={isEditing} />
+                  </TabsContent>
+
+                  <TabsContent value="relational">
+                    <RelationalInfoTab
+                      rncId={rnc.id}
+                      isEditing={isEditing}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="workflow">
+                    <WorkflowTab
+                      rncId={rnc.id}
+                      transitions={rnc.workflow_transitions}
+                      isEditing={isEditing}
+                    />
+                  </TabsContent>
+                </div>
+              </Tabs>
             </div>
-          </TabsList>
-
-          <div className="bg-background p-4 rounded-b-lg">
-            <TabsContent value="basic">
-              <BasicInfoTab isEditing={isEditing} />
-            </TabsContent>
-
-            <TabsContent value="additional">
-              <AdditionalInfoTab isEditing={isEditing} />
-            </TabsContent>
-
-            <TabsContent value="relational">
-              <RelationalInfoTab
-                rncId={rnc.id}
-                isEditing={isEditing}
-              />
-            </TabsContent>
-
-            <TabsContent value="workflow">
-              <WorkflowTab
-                rncId={rnc.id}
-                transitions={rnc.workflow_transitions}
-                isEditing={isEditing}
-              />
-            </TabsContent>
           </div>
-        </Tabs>
+
+          <div className="space-y-6">
+            <div className="bg-background border rounded-lg shadow p-6">
+              <h2 className="text-lg font-semibold mb-4 text-foreground">Timeline de Eventos</h2>
+              <EventsTimeline events={rnc.events} />
+            </div>
+          </div>
+        </div>
 
         <DeleteRNCDialog
           open={isDeleteDialogOpen}
