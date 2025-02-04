@@ -149,7 +149,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const handleSave = async (data: UpdateRNCFormData) => {
     try {
       setIsSaving(true);
-      console.log('Saving form data:', data);
 
       const transformedProducts = data.products.map(product => ({
         id: product.id,
@@ -207,7 +206,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         attachments: transformedAttachments
       };
 
-      console.log('Sending updated data:', updatedData);
       await rncService.update(id, updatedData);
       await refetch();
       setIsEditing(false);
