@@ -132,15 +132,12 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                     onChange={(e) => {
                       if (!e.target.value) {
-                        field.onChange(null);
                         return;
                       }
                       const date = new Date(e.target.value);
                       if (isNaN(date.getTime())) {
-                        field.onChange(null);
-                        return;
+                        field.onChange(date.toISOString());
                       }
-                      field.onChange(date ? date.toISOString() : null);
                     }}
                     disabled={!isEditing}
                     className="border-blue-200 focus:border-blue-400"
@@ -164,15 +161,12 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                     onChange={(e) => {
                       if (!e.target.value) {
-                        field.onChange(null);
                         return;
                       }
                       const date = new Date(e.target.value);
                       if (isNaN(date.getTime())) {
-                        field.onChange(null);
-                        return;
+                        field.onChange(date.toISOString());
                       }
-                      field.onChange(date ? date.toISOString() : null);
                     }}
                     disabled={!isEditing}
                     className="border-blue-200 focus:border-blue-400"

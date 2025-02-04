@@ -47,7 +47,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
     const { control, setValue, getValues, trigger } = useFormContext<RelationalInfoFormData>();
     const values = getValues();
     
-    // Separate states for existing and new attachments
+    // Initialize both states properly
     const [existingAttachments, setExistingAttachments] = React.useState<Array<{
       id: string;
       filename: string;
@@ -57,9 +57,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       created_by: string;
       created_at: string;
     }>>(initialValues?.attachments || []);
-    
     const [newFiles, setNewFiles] = React.useState<File[]>([]);
-    const [isUploading, setIsUploading] = React.useState(false);
 
     React.useImperativeHandle(ref, () => ({
       validate: async () => {
@@ -68,6 +66,14 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       },
       getFormData: () => getValues()
     }));
+
+    // Update form value whenever either attachments change
+    React.useEffect(() => {
+      setValue('attachments', [...existingAttachments, ...newFiles], {
+        shouldValidate: true,
+        shouldDirty: true
+      });
+    }, [existingAttachments, newFiles, setValue]);
 
     // Update existing attachments when initialValues changes
     React.useEffect(() => {
@@ -80,21 +86,13 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       if (!event.target.files?.length) return;
 
       try {
-        setIsUploading(true);
         const files = Array.from(event.target.files);
         setNewFiles(prev => [...prev, ...files]);
-        
-        // Update form value with both existing and new files
-        setValue('attachments', [...existingAttachments, ...files], { 
-          shouldValidate: true,
-          shouldDirty: true 
-        });
         toast.success("Arquivo anexado com sucesso!");
       } catch (error) {
-        console.error("Error uploading file:", error);
+        console.error("Error handling file:", error);
         toast.error("Erro ao anexar arquivo");
       } finally {
-        setIsUploading(false);
         event.target.value = '';
       }
     };
@@ -117,10 +115,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
         await rncService.deleteAttachment(rncId, attachment.id);
         const updatedAttachments = existingAttachments.filter(a => a.id !== attachment.id);
         setExistingAttachments(updatedAttachments);
-        setValue('attachments', [...updatedAttachments, ...newFiles], { 
-          shouldValidate: true,
-          shouldDirty: true 
-        });
         toast.success("Arquivo excluído com sucesso!");
       } catch (error) {
         console.error("Error deleting file:", error);
@@ -296,7 +290,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
               label="Adicionar arquivo"
               onChange={handleFileSelect}
               accept="*/*"
-              loading={isUploading}
+              loading={false}
             />
           )}
 
@@ -360,10 +354,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                     size="sm"
                     onClick={() => {
                       setNewFiles(prev => prev.filter((_, i) => i !== index));
-                      setValue('attachments', [...existingAttachments, ...newFiles.filter((_, i) => i !== index)], {
-                        shouldValidate: true,
-                        shouldDirty: true
-                      });
                     }}
                     className="text-red-600 dark:text-red-400"
                   >

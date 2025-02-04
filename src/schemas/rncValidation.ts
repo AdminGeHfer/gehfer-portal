@@ -54,8 +54,8 @@ export const additionalInfoSchema = z.object({
   nfd: z.string().optional(),
   city: z.string().optional(),
   conclusion: z.string().optional(),
-  closed_at: z.string().datetime().nullable(),
-  collected_at: z.string().datetime().nullable(),
+  closed_at: z.any().optional(),
+  collected_at: z.any().optional(),
 })
 
 export const productSchema = z.array(z.object({
