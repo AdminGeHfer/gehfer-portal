@@ -17,6 +17,7 @@ import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
 import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface RNCDetailsProps {
   id?: string;
@@ -53,11 +54,22 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     }
   });
 
+  const { handleSubmit, reset } = methods;
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+
+  const { rnc, loading, error, refetch } = useRNCDetails(id!);
+
+  // Component mount/unmount handling
   React.useEffect(() => {
     mounted.current = true;
     return () => {
       mounted.current = false;
       methods.reset();
+      setIsEditing(false);
+      setIsSaving(false);
+      setIsDeleteDialogOpen(false);
     };
   }, []);
 
@@ -76,16 +88,9 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     };
   }, [onClose, methods]);
 
-  const { handleSubmit, reset } = methods;
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-
-  const { rnc, refetch } = useRNCDetails(id!);
-
   // Reset form when RNC data changes
   React.useEffect(() => {
-    if (rnc) {
+    if (rnc && mounted.current) {
       reset({
         company_code: rnc.company_code,
         company: rnc.company,
@@ -108,15 +113,30 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     }
   }, [rnc, reset]);
 
-  // Cleanup on unmount
-  React.useEffect(() => {
-    return () => {
-      reset();
-      setIsEditing(false);
-      setIsSaving(false);
-      setIsDeleteDialogOpen(false);
-    };
-  }, [reset]);
+  // Early returns for loading/error states
+  if (!id) {
+    navigate('/quality/home');
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (error || !rnc) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-lg text-red-500">Erro ao carregar RNC</p>
+        <Button onClick={() => navigate('/quality/home')}>
+          Voltar para listagem
+        </Button>
+      </div>
+    );
+  }
 
   const handleSave = async (data: UpdateRNCFormData) => {
     try {
