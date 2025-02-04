@@ -131,7 +131,15 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {...field}
                     value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                     onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : null;
+                      if (!e.target.value) {
+                        field.onChange(null);
+                        return;
+                      }
+                      const date = new Date(e.target.value);
+                      if (isNaN(date.getTime())) {
+                        field.onChange(null);
+                        return;
+                      }
                       field.onChange(date ? date.toISOString() : null);
                     }}
                     disabled={!isEditing}
@@ -155,7 +163,15 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {...field}
                     value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                     onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : null;
+                      if (!e.target.value) {
+                        field.onChange(null);
+                        return;
+                      }
+                      const date = new Date(e.target.value);
+                      if (isNaN(date.getTime())) {
+                        field.onChange(null);
+                        return;
+                      }
                       field.onChange(date ? date.toISOString() : null);
                     }}
                     disabled={!isEditing}
