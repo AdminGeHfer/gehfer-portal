@@ -3,7 +3,6 @@ import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import ReactDatePicker from "react-datepicker";
 import { AdditionalInfoFormData, UpdateRNCFormData } from "@/schemas/rncValidation";
 
 export type AdditionalInfoTabRef = {
@@ -127,13 +126,16 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
               <FormItem className="flex flex-col space-y-4">
                 <FormLabel htmlFor="collected_at">Data para Coleta</FormLabel>
                 <FormControl>
-                  <ReactDatePicker
-                    selected={field.value ? new Date(field.value) : null}
-                    onChange={(date: Date) => field.onChange(date?.toISOString() || "")}
-                    disabled={!isEditing}
-                    className="border border-blue-200 rounded-lg p-2 focus:border-blue-400 focus:ring focus:ring-blue-200 w-full"
-                    dateFormat="dd/MM/yyyy"
+                  <Input
+                    type="date"
                     {...field}
+                    value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : null;
+                      field.onChange(date ? date.toISOString() : null);
+                    }}
+                    disabled={!isEditing}
+                    className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
                 <FormMessage />
@@ -148,13 +150,16 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
               <FormItem className="flex flex-col space-y-4">
                 <FormLabel htmlFor="closed_at">Data Final</FormLabel>
                 <FormControl>
-                  <ReactDatePicker
-                    selected={field.value ? new Date(field.value) : null}
-                    onChange={(date: Date) => field.onChange(date?.toISOString() || "")}
-                    disabled={!isEditing}
-                    className="border border-blue-200 rounded-lg p-2 focus:border-blue-400 focus:ring focus:ring-blue-200 w-full"
-                    dateFormat="dd/MM/yyyy"
+                  <Input
+                    type="date"
                     {...field}
+                    value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : null;
+                      field.onChange(date ? date.toISOString() : null);
+                    }}
+                    disabled={!isEditing}
+                    className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
                 <FormMessage />
