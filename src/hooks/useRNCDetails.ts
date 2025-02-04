@@ -1,23 +1,23 @@
-import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
-import type { RNCWithRelations } from '@/types/rnc'
-import { toast } from 'sonner'
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { RNCWithRelations } from '@/types/rnc';
+import { toast } from 'sonner';
 
 export const useRNCDetails = (id: string) => {
-  const [rnc, setRNC] = useState<RNCWithRelations | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [rnc, setRNC] = useState<RNCWithRelations | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRNC = useCallback(async () => {
     if (!id) {
-      setError('ID da RNC não fornecido')
-      setLoading(false)
-      return
+      setError('ID da RNC não fornecido');
+      setLoading(false);
+      return;
     }
 
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       const { data, error: fetchError } = await supabase
         .from('rncs')
@@ -39,42 +39,41 @@ export const useRNCDetails = (id: string) => {
           assigned_to_profile:profiles!assigned_to(name)
         `)
         .eq('id', id)
-        .maybeSingle() // Changed from single() to maybeSingle() for better error handling
+        .maybeSingle();
 
       if (fetchError) {
-        console.error('Error fetching RNC:', fetchError)
-        setError(fetchError.message)
-        toast.error('Erro ao carregar detalhes da RNC')
-        return
+        console.error('Error fetching RNC:', fetchError);
+        setError(fetchError.message);
+        toast.error('Erro ao carregar detalhes da RNC');
+        return;
       }
 
       if (!data) {
-        setError('RNC não encontrada')
-        toast.error('RNC não encontrada')
-        return
+        setError('RNC não encontrada');
+        toast.error('RNC não encontrada');
+        return;
       }
 
-      setRNC(data as RNCWithRelations)
+      setRNC(data as RNCWithRelations);
     } catch (err) {
-      console.error('Error in fetchRNC:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
-      setError(errorMessage)
-      toast.error('Erro ao carregar detalhes da RNC')
+      console.error('Error in fetchRNC:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
+      toast.error('Erro ao carregar detalhes da RNC');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [id])
+  }, [id]);
 
   useEffect(() => {
-    fetchRNC()
+    fetchRNC();
     
-    // Cleanup function
     return () => {
-      setRNC(null)
-      setError(null)
-      setLoading(true)
-    }
-  }, [fetchRNC])
+      setRNC(null);
+      setError(null);
+      setLoading(true);
+    };
+  }, [fetchRNC]);
 
-  return { rnc, loading, error, refetch: fetchRNC }
-}
+  return { rnc, loading, error, refetch: fetchRNC };
+};

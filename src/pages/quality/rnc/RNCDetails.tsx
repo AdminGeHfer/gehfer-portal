@@ -9,66 +9,35 @@ import { Edit, Save, Trash2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
 import { useForm, FormProvider } from "react-hook-form";
-// import { zodResolver } from "@hookform/resolvers/zod";
-// , updateRNCSchema
-import { UpdateRNCFormData } from "@/schemas/rncValidation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UpdateRNCFormData, updateRNCSchema } from "@/schemas/rncValidation";
 import { BackButton } from "@/components/atoms/BackButton";
 import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
+import { RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-
-// interface RNCDetailsProps {
-//   id?: string;
-//   onClose?: () => void;
-// }
 
 export function RNCDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const methods = useForm<UpdateRNCFormData>();
-  const { handleSubmit } = methods;
+  const methods = useForm<UpdateRNCFormData>({
+    resolver: zodResolver(updateRNCSchema),
+    mode: "onChange"
+  });
+  
+  const { handleSubmit, reset } = methods;
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
-  // const methods = useForm<UpdateRNCFormData>({
-  //   resolver: zodResolver(updateRNCSchema),
-  //   defaultValues: {
-  //     company_code: '',
-  //     company: '',
-  //     document: '',
-  //     type: undefined,
-  //     department: undefined,
-  //     responsible: '',
-  //     description: '',
-  //     korp: '',
-  //     nfv: '',
-  //     nfd: '',
-  //     city: '',
-  //     collected_at: null,
-  //     closed_at: null,
-  //     conclusion: '',
-  //     contacts: [],
-  //     products: [],
-  //     attachments: []
-  //   }
-  // });
-
-  React.useEffect(() => {
-    return () => {
-      methods.reset(); // Clear form state when component unmounts
-    };
-  }, []);
-
-  
   const { rnc, loading, error, refetch } = useRNCDetails(id!);
 
+  // Reset form when component unmounts or RNC changes
   React.useEffect(() => {
     if (rnc) {
-      methods.reset({
+      reset({
         company_code: rnc.company_code,
         company: rnc.company,
         document: rnc.document,
@@ -80,15 +49,19 @@ export function RNCDetails() {
         nfv: rnc.nfv || '',
         nfd: rnc.nfd || '',
         city: rnc.city || '',
-        collected_at: rnc.collected_at ? new Date(rnc.collected_at).toLocaleDateString("pt-BR") : null,
-        closed_at: rnc.closed_at ? new Date(rnc.closed_at).toLocaleDateString("pt-BR") : null,
+        collected_at: rnc.collected_at ? new Date(rnc.collected_at) : null,
+        closed_at: rnc.closed_at ? new Date(rnc.closed_at) : null,
         conclusion: rnc.conclusion || '',
         contacts: rnc.contacts || [],
         products: rnc.products || [],
         attachments: rnc.attachments || []
       });
     }
-  }, [rnc]);
+    
+    return () => {
+      reset(); // Clear form state when component unmounts
+    };
+  }, [rnc, reset]);
 
   // Early returns for loading/error states
   if (!id) {
@@ -115,11 +88,9 @@ export function RNCDetails() {
     );
   }
 
-  const handleSave = async (data: UpdateRNCFormData) => {
+  const onSubmit = async (data: UpdateRNCFormData) => {
     try {
       setIsSaving(true);
-
-      // const formData = methods.getValues();
 
       const transformedProducts = data.products.map(product => ({
         name: product.name || '',
@@ -132,7 +103,6 @@ export function RNCDetails() {
         email: contact.email || ''
       }));
 
-      // Update RNC
       const updatedData = {
         company_code: data.company_code,
         company: data.company,
@@ -145,8 +115,8 @@ export function RNCDetails() {
         nfv: data.nfv || "",
         nfd: data.nfd || "",
         city: data.city,
-        collected_at: data.collected_at,
-        closed_at: data.closed_at,
+        collected_at: data.collected_at ? new Date(data.collected_at).toISOString() : null,
+        closed_at: data.closed_at ? new Date(data.closed_at).toISOString() : null,
         conclusion: data.conclusion,
         assigned_by: rnc.assigned_by || "",
         contacts: transformedContacts,
@@ -154,17 +124,13 @@ export function RNCDetails() {
         status: rnc?.status || RncStatusEnum.pending,
         workflow_status: rnc?.workflow_status || WorkflowStatusEnum.open,
         updated_at: new Date().toISOString(),
-        attachments: data.attachments?.map(attachment => {
-          if ('rnc_id' in attachment) return attachment;
-          return null;
-        }).filter(Boolean) as RNCAttachment[] || [],
+        attachments: data.attachments || []
       };
 
       await rncService.update(id, updatedData);
-      refetch();
+      await refetch(); // Wait for refetch to complete
       setIsEditing(false);
       toast.success("RNC atualizada com sucesso!");
-
     } catch (error) {
       console.error('Error saving RNC:', error);
       toast.error("Erro ao salvar RNC");
@@ -190,7 +156,7 @@ export function RNCDetails() {
 
   return (
     <FormProvider {...methods}>
-      <div className="container mx-auto p-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="container mx-auto p-6">
         <div className="mb-6">
           <BackButton to="/quality/home" />
         </div>
@@ -200,6 +166,7 @@ export function RNCDetails() {
             {!isEditing ? (
               <>
                 <Button
+                  type="button"
                   variant="default"
                   onClick={() => setIsEditing(true)}
                   className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
@@ -208,6 +175,7 @@ export function RNCDetails() {
                   Editar
                 </Button>
                 <Button
+                  type="button"
                   variant="destructive"
                   onClick={() => setIsDeleteDialogOpen(true)}
                   className="flex items-center gap-2"
@@ -221,7 +189,6 @@ export function RNCDetails() {
                 type="submit"
                 disabled={isSaving}
                 className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={handleSubmit(handleSave)}
               >
                 <Save className="h-4 w-4" />
                 {isSaving ? 'Salvando...' : 'Salvar'}
@@ -229,76 +196,63 @@ export function RNCDetails() {
             )}
           </div>
         </div>
-  
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-background border rounded-lg shadow">
-              <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="w-full flex flex-wrap justify-start border-b rounded-none p-0 h-auto bg-muted">
-                  <div className="flex w-full md:w-1/2">
-                    <TabsTrigger
-                      value="basic"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Inf. Básicas
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="additional"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Inf. Adicionais
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="relational"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Inf. Relacionais
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="workflow"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Workflow
-                    </TabsTrigger>
-                  </div>
-                </TabsList>
-  
-                <div className="bg-background p-4 rounded-b-lg">
-                  <TabsContent value="basic">
-                    <BasicInfoTab isEditing={isEditing} />
-                  </TabsContent>
-  
-                  <TabsContent value="additional">
-                    <AdditionalInfoTab isEditing={isEditing} />
-                  </TabsContent>
-  
-                  <TabsContent value="relational">
-                    <RelationalInfoTab
-                      rncId={rnc.id}
-                      isEditing={isEditing}
-                    />
-                  </TabsContent>
-  
-                  <TabsContent value="workflow">
-                    <WorkflowTab
-                      rncId={rnc.id}
-                      transitions={rnc.workflow_transitions}
-                      isEditing={isEditing}
-                    />
-                  </TabsContent>
-                </div>
-              </Tabs>
+
+        <Tabs defaultValue="basic" className="w-full">
+          <TabsList className="w-full flex flex-wrap justify-start border-b rounded-none p-0 h-auto bg-muted">
+            <div className="flex w-full md:w-1/2">
+              <TabsTrigger
+                value="basic"
+                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+              >
+                Inf. Básicas
+              </TabsTrigger>
+              <TabsTrigger
+                value="additional"
+                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+              >
+                Inf. Adicionais
+              </TabsTrigger>
+              <TabsTrigger
+                value="relational"
+                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+              >
+                Inf. Relacionais
+              </TabsTrigger>
+              <TabsTrigger
+                value="workflow"
+                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+              >
+                Workflow
+              </TabsTrigger>
             </div>
+          </TabsList>
+
+          <div className="bg-background p-4 rounded-b-lg">
+            <TabsContent value="basic">
+              <BasicInfoTab isEditing={isEditing} />
+            </TabsContent>
+
+            <TabsContent value="additional">
+              <AdditionalInfoTab isEditing={isEditing} />
+            </TabsContent>
+
+            <TabsContent value="relational">
+              <RelationalInfoTab
+                rncId={rnc.id}
+                isEditing={isEditing}
+              />
+            </TabsContent>
+
+            <TabsContent value="workflow">
+              <WorkflowTab
+                rncId={rnc.id}
+                transitions={rnc.workflow_transitions}
+                isEditing={isEditing}
+              />
+            </TabsContent>
           </div>
-  
-          <div className="space-y-6">
-            <div className="bg-background border rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4 text-foreground">Timeline de Eventos</h2>
-              <EventsTimeline events={rnc.events} />
-            </div>
-          </div>
-        </div>
-  
+        </Tabs>
+
         <DeleteRNCDialog
           open={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
@@ -306,8 +260,7 @@ export function RNCDetails() {
           rncNumber={rnc.rnc_number}
           onConfirm={handleDelete}
         />
-      </div>
+      </form>
     </FormProvider>
   );
-  
 }
