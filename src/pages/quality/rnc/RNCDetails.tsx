@@ -248,7 +248,10 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
                 <Button
                   type="button"
                   variant="default"
-                  onClick={() => setIsEditing(true)}
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent form submission
+                    setIsEditing(true);
+                  }}
                   className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Edit className="h-4 w-4" />
