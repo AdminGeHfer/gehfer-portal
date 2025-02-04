@@ -43,11 +43,38 @@ export type RelationalInfoTabRef = {
 };
 
 export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, RelationalInfoTabProps>(
-  ({ rncId, isEditing, initialValues }) => {
-    const { control, setValue, getValues } = useFormContext<RelationalInfoFormData>();
+  ({ rncId, isEditing, initialValues }, ref) => {
+    const { control, setValue, getValues, trigger } = useFormContext<RelationalInfoFormData>();
     const values = getValues();
-    const [attachments, setAttachments] = React.useState(initialValues?.attachments || []);
+    
+    // Separate states for existing and new attachments
+    const [existingAttachments, setExistingAttachments] = React.useState<Array<{
+      id: string;
+      filename: string;
+      filesize: number;
+      content_type: string;
+      file_path: string;
+      created_by: string;
+      created_at: string;
+    }>>(initialValues?.attachments || []);
+    
+    const [newFiles, setNewFiles] = React.useState<File[]>([]);
     const [isUploading, setIsUploading] = React.useState(false);
+
+    React.useImperativeHandle(ref, () => ({
+      validate: async () => {
+        const isValid = await trigger();
+        return isValid;
+      },
+      getFormData: () => getValues()
+    }));
+
+    // Update existing attachments when initialValues changes
+    React.useEffect(() => {
+      if (initialValues?.attachments) {
+        setExistingAttachments(initialValues.attachments);
+      }
+    }, [initialValues?.attachments]);
 
     const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!event.target.files?.length) return;
@@ -55,9 +82,12 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       try {
         setIsUploading(true);
         const files = Array.from(event.target.files);
-        setValue('attachments', [...attachments, ...files], {
+        setNewFiles(prev => [...prev, ...files]);
+        
+        // Update form value with both existing and new files
+        setValue('attachments', [...existingAttachments, ...files], { 
           shouldValidate: true,
-          shouldDirty: true
+          shouldDirty: true 
         });
         toast.success("Arquivo anexado com sucesso!");
       } catch (error) {
@@ -69,7 +99,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       }
     };
 
-    const handleFileDownload = async (attachment: typeof attachments[0]) => {
+    const handleFileDownload = async (attachment: typeof existingAttachments[0]) => {
       try {
         const url = rncService.getAttachmentUrl(attachment.file_path);
         window.open(url, '_blank');
@@ -80,12 +110,17 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
       }
     };
 
-    const handleFileDelete = async (attachment: typeof attachments[0]) => {
+    const handleFileDelete = async (attachment: typeof existingAttachments[0]) => {
       if (!confirm("Tem certeza que deseja excluir este arquivo?")) return;
 
       try {
         await rncService.deleteAttachment(rncId, attachment.id);
-        setAttachments(prev => prev.filter(a => a.id !== attachment.id));
+        const updatedAttachments = existingAttachments.filter(a => a.id !== attachment.id);
+        setExistingAttachments(updatedAttachments);
+        setValue('attachments', [...updatedAttachments, ...newFiles], { 
+          shouldValidate: true,
+          shouldDirty: true 
+        });
         toast.success("Arquivo excluído com sucesso!");
       } catch (error) {
         console.error("Error deleting file:", error);
@@ -266,7 +301,8 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
           )}
 
           <div className="space-y-2 mt-4">
-            {attachments.map((attachment) => (
+            {/* Show existing attachments */}
+            {existingAttachments.map((attachment) => (
               <div
                 key={attachment.id}
                 className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
@@ -300,6 +336,40 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                     </Button>
                   )}
                 </div>
+              </div>
+            ))}
+
+            {/* Show new files */}
+            {newFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-background/50 dark:bg-gray-800/50 rounded-lg border border-border"
+              >
+                <div className="flex items-center gap-3">
+                  <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatBytes(file.size)}
+                    </p>
+                  </div>
+                </div>
+                {isEditing && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setNewFiles(prev => prev.filter((_, i) => i !== index));
+                      setValue('attachments', [...existingAttachments, ...newFiles.filter((_, i) => i !== index)], {
+                        shouldValidate: true,
+                        shouldDirty: true
+                      });
+                    }}
+                    className="text-red-600 dark:text-red-400"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>
