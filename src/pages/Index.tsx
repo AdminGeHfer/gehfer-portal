@@ -19,8 +19,12 @@ const Index = () => {
   const [selectedRNC, setSelectedRNC] = useState<string | null>(null);
 
   const handleSelectRNC = (id: string) => {
-    console.log('Selected RNC ID:', id); // Debug log
-    setSelectedRNC(id);
+    // Clear previous selection first
+    setSelectedRNC(null);
+    // Set new selection after a small delay to ensure clean state
+    setTimeout(() => {
+      setSelectedRNC(id);
+    }, 0);
   };
 
   // Filter States
@@ -44,7 +48,7 @@ const Index = () => {
     searchTerm,
   });
 
-  const handleFilterChange = (key: string, value) => {
+  const handleFilterChange = (key: string, value: any) => {
     switch (key) {
       case 'searchTerm':
         setSearchTerm(value);
@@ -121,7 +125,7 @@ const Index = () => {
             open={isCreateModalOpen}
             onClose={() => {
               setIsCreateModalOpen(false);
-              refetch(); // Refresh after creation
+              refetch();
             }}
           />
 
@@ -132,7 +136,7 @@ const Index = () => {
                 onClose={() => {
                   setIsEditModalOpen(false);
                   setSelectedRNCData(null);
-                  refetch(); // Refresh after edit
+                  refetch();
                 }}
                 rncData={selectedRNCData}
                 rncId={selectedRNCData.id}

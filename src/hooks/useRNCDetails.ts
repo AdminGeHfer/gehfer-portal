@@ -8,15 +8,16 @@ export const useRNCDetails = (id: string) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchRNC =  useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchRNC = useCallback(async () => {
+    if (!id) {
+      setError('ID da RNC não fornecido')
+      setLoading(false)
+      return
+    }
 
-      if (!id) {
-        setError('ID da RNC não fornecido')
-        return;
-      }
+    try {
+      setLoading(true)
+      setError(null)
 
       const { data, error: fetchError } = await supabase
         .from('rncs')
@@ -38,26 +39,41 @@ export const useRNCDetails = (id: string) => {
           assigned_to_profile:profiles!assigned_to(name)
         `)
         .eq('id', id)
-        .single()
+        .maybeSingle() // Changed from single() to maybeSingle() for better error handling
 
-        if (fetchError) {
-          setError(fetchError.message)
-          toast.error('Erro ao carregar detalhes da RNC')
-          return
-        }
+      if (fetchError) {
+        console.error('Error fetching RNC:', fetchError)
+        setError(fetchError.message)
+        toast.error('Erro ao carregar detalhes da RNC')
+        return
+      }
+
+      if (!data) {
+        setError('RNC não encontrada')
+        toast.error('RNC não encontrada')
+        return
+      }
 
       setRNC(data as RNCWithRelations)
     } catch (err) {
+      console.error('Error in fetchRNC:', err)
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
       setError(errorMessage)
       toast.error('Erro ao carregar detalhes da RNC')
     } finally {
       setLoading(false)
     }
-  }, [id]);
+  }, [id])
 
   useEffect(() => {
-      fetchRNC();
+    fetchRNC()
+    
+    // Cleanup function
+    return () => {
+      setRNC(null)
+      setError(null)
+      setLoading(true)
+    }
   }, [fetchRNC])
 
   return { rnc, loading, error, refetch: fetchRNC }
