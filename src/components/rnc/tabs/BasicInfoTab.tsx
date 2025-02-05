@@ -93,15 +93,11 @@ export const BasicInfoTab = () => {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value={RncTypeEnum.company_complaint}>Reclamação do Cliente</SelectItem>
+                    <SelectItem value={RncTypeEnum.company_complaint}>Cliente</SelectItem>
                     <SelectItem value={RncTypeEnum.supplier}>Fornecedor</SelectItem>
                     <SelectItem value={RncTypeEnum.dispatch}>Expedição</SelectItem>
                     <SelectItem value={RncTypeEnum.logistics}>Logística</SelectItem>
-                    <SelectItem value={RncTypeEnum.deputy}>Representante</SelectItem>
-                    <SelectItem value={RncTypeEnum.driver}>Motorista</SelectItem>
-                    <SelectItem value={RncTypeEnum.financial}>Financeiro</SelectItem>
                     <SelectItem value={RncTypeEnum.commercial}>Comercial</SelectItem>
-                    <SelectItem value={RncTypeEnum.financial_agreement}>Acordo Financeiro</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
