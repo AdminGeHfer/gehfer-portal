@@ -23,19 +23,6 @@ export class ValidationError extends RNCError {
   }
 }
 
-// Validation functions
-const validateDocument = (document: string): boolean => {
-  const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
-  const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
-  const cpfNoFormat = /^\d{11}$/;
-  const cnpjNoFormat = /^\d{14}$/;
-  
-  return cpfRegex.test(document) || 
-         cnpjRegex.test(document) || 
-         cpfNoFormat.test(document) || 
-         cnpjNoFormat.test(document);
-};
-
 const validateAttachment = (file: File): void => {
   const MAX_SIZE = 10 * 1024 * 1024; // 10MB
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -71,11 +58,6 @@ export const rncService = {
         console.warn('Could not find user for assignment:', userError);
       }
 
-      // Validate document
-      if (!validateDocument(data.document)) {
-        throw new ValidationError('Formato de documento inválido');
-      }
-
       // Create RNC
       const { data: rncData, error: rncError } = await supabase
         .from('rncs')
@@ -105,20 +87,26 @@ export const rncService = {
       if (rncError) throw new RNCError(`Error creating RNC: ${rncError.message}`);
       if (!rncData) throw new RNCError('Failed to create RNC');
 
-      // Create contacts
-      if (data.contacts?.length) {
-        const { error: contactsError } = await supabase
-          .from('rnc_contacts')
-          .insert(
-            data.contacts.map(contact => ({
-              rnc_id: rncData.id,
-              name: contact.name,
-              phone: contact.phone,
-              email: contact.email
-            }))
-          );
+      // Create contacts only if there are valid contacts
+      if (data.contacts && data.contacts.length > 0) {
+        const validContacts = data.contacts.filter(contact => 
+          contact.name || contact.phone || contact.email
+        );
 
-        if (contactsError) throw new RNCError(`Error creating contacts: ${contactsError.message}`);
+        if (validContacts.length > 0) {
+          const { error: contactsError } = await supabase
+            .from('rnc_contacts')
+            .insert(
+              validContacts.map(contact => ({
+                rnc_id: rncData.id,
+                name: contact.name || '',
+                phone: contact.phone || '',
+                email: contact.email || ''
+              }))
+            );
+
+          if (contactsError) throw new RNCError(`Error creating contacts: ${contactsError.message}`);
+        }
       }
 
       // Create products

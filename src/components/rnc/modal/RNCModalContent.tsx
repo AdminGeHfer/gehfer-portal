@@ -89,7 +89,17 @@ export const RNCModalContent = ({
   };
 
   const handleSubmit = methods.handleSubmit((data) => {
-    onSave(data);
+    // Ensure contacts array exists and is properly formatted
+    const formattedData = {
+      ...data,
+      contacts: data.contacts?.map(contact => ({
+        name: contact.name || '',
+        phone: contact.phone || '',
+        email: contact.email || ''
+      })) || [] // Provide empty array as default if contacts is undefined
+    };
+    
+    onSave(formattedData);
   });
 
   // Save form data to localStorage when it changes
