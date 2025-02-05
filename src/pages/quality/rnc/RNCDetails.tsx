@@ -20,6 +20,8 @@ import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/r
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { StatusBadge } from "@/components/quality/StatusBadge";
 import { generatePDF } from "@/utils/pdfUtils";
+import { RNCPrintContent } from "@/components/rnc/RNCPrintContent";
+import { createRoot } from "react-dom/client";
 
 interface RNCDetailsProps {
   id?: string;
@@ -33,19 +35,70 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const mounted = React.useRef(false);
   const printRef = React.useRef<HTMLDivElement>(null);
 
-  const handlePrint = async () => {
-    if (!printRef.current) return;
+  const handlePrint = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     
+    const formData = methods.getValues();
+    
+    // Create a container for the print content
+    const printContainer = document.createElement('div');
+    printContainer.style.padding = '20px';
+    
+    // Create a new instance of RNCPrintContent
+    const printContent = (
+      <RNCPrintContent
+        rnc={rnc}
+        basicInfo={{
+          company: formData.company,
+          company_code: formData.company_code,
+          document: formData.document,
+          type: formData.type,
+          department: formData.department,
+          responsible: formData.responsible
+        }}
+        additionalInfo={{
+          description: formData.description,
+          korp: formData.korp,
+          nfv: formData.nfv,
+          nfd: formData.nfd,
+          city: formData.city,
+          collected_at: formData.collected_at,
+          closed_at: formData.closed_at,
+          conclusion: formData.conclusion
+        }}
+        relationalInfo={{
+          products: rnc.products,
+          contacts: rnc.contacts
+        }}
+        workflowInfo={{
+          transitions: rnc.workflow_transitions
+        }}
+      />
+    );
+  
     try {
+      // Create a root and render the content
+      const root = createRoot(printContainer);
+      root.render(printContent);
+  
+      // Wait for content to be rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+  
+      // Generate and download PDF
       await generatePDF({
         filename: `RNC-${rnc.rnc_number}.pdf`,
-        element: printRef.current
+        element: printContainer
       });
+  
+      // Cleanup
+      root.unmount();
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error("Erro ao gerar PDF");
     }
   };
+  
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
@@ -77,13 +130,11 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const { rnc, loading, error, refetch } = useRNCDetails(id!);
-  const formValues = watch(); // Watch all form values for debugging
+  const formValues = watch();
 
-  // Log form values when they change
   React.useEffect(() => {
   }, [formValues]);
 
-  // Reset form when RNC data changes
   React.useEffect(() => {
     if (rnc && mounted.current) {
       const formData = {
@@ -110,7 +161,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     }
   }, [rnc, reset]);
 
-  // Component mount/unmount handling
   React.useEffect(() => {
     mounted.current = true;
     return () => {
@@ -122,7 +172,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     };
   }, [methods]);
 
-  // Handle browser back button
   React.useEffect(() => {
     const handlePopState = () => {
       if (mounted.current) {
@@ -137,7 +186,6 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     };
   }, [onClose, methods]);
 
-  // Early returns for loading/error states
   if (!id) {
     navigate('/quality/home');
     return null;
@@ -246,15 +294,24 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
 
   return (
     <FormProvider {...methods}>
-      <form onSubmit={handleSubmit(handleSave)} className="container mx-auto p-6">
+      <div className="container mx-auto p-6">
         <div className="mb-6">
           <BackButton to="/quality/home" />
         </div>
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-foreground">RNC #{rnc.rnc_number}</h1>
-          <StatusBadge status={rnc.status} />
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={handlePrint} className="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+
+        {/* Header section with print button OUTSIDE the form */}
+        <div className="flex justify-between items-center gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-foreground">RNC #{rnc.rnc_number}</h1>
+            <StatusBadge status={rnc.status} />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              type="button"
+              variant="ghost" 
+              onClick={handlePrint} 
+              className="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90"
+            >
               <Printer className="h-4 w-4" />
               Imprimir
             </Button>
@@ -263,10 +320,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
                 <Button
                   type="button"
                   variant="default"
-                  onClick={(e) => {
-                    e.preventDefault(); // Prevent form submission
-                    setIsEditing(true);
-                  }}
+                  onClick={() => setIsEditing(true)}
                   className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Edit className="h-4 w-4" />
@@ -295,78 +349,84 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-background border rounded-lg shadow">
-              <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="w-full flex flex-wrap justify-start border-b rounded-none p-0 h-auto bg-muted">
-                  <div className="flex w-full md:w-1/2">
-                    <TabsTrigger
-                      value="basic"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Inf. Básicas
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="additional"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Inf. Adicionais
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="relational"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Inf. Relacionais
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="workflow"
-                      className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
-                    >
-                      Workflow
-                    </TabsTrigger>
-                  </div>
-                </TabsList>
+        {/* Printable content wrapper */}
+        <div ref={printRef}>
+          {/* Form for editing */}
+          <form onSubmit={handleSubmit(handleSave)}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-background border rounded-lg shadow">
+                  <Tabs defaultValue="basic" className="w-full">
+                    <TabsList className="w-full flex flex-wrap justify-start border-b rounded-none p-0 h-auto bg-muted">
+                      <div className="flex w-full md:w-1/2">
+                        <TabsTrigger
+                          value="basic"
+                          className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                        >
+                          Inf. Básicas
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="additional"
+                          className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                        >
+                          Inf. Adicionais
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="relational"
+                          className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                        >
+                          Inf. Relacionais
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="workflow"
+                          className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-background"
+                        >
+                          Workflow
+                        </TabsTrigger>
+                      </div>
+                    </TabsList>
 
-                <div className="bg-background p-4 rounded-b-lg">
-                  <TabsContent value="basic">
-                    <BasicInfoTab isEditing={isEditing} />
-                  </TabsContent>
+                    <div className="bg-background p-4 rounded-b-lg">
+                      <TabsContent value="basic">
+                        <BasicInfoTab isEditing={isEditing} />
+                      </TabsContent>
 
-                  <TabsContent value="additional">
-                    <AdditionalInfoTab isEditing={isEditing} />
-                  </TabsContent>
+                      <TabsContent value="additional">
+                        <AdditionalInfoTab isEditing={isEditing} />
+                      </TabsContent>
 
-                  <TabsContent value="relational">
-                    <RelationalInfoTab
-                      rncId={rnc.id}
-                      isEditing={isEditing}
-                      initialValues={{
-                        contacts: rnc.contacts,
-                        products: rnc.products,
-                        attachments: rnc.attachments  // Is this line present?
-                      }}
-                    />
-                  </TabsContent>
+                      <TabsContent value="relational">
+                        <RelationalInfoTab
+                          rncId={rnc.id}
+                          isEditing={isEditing}
+                          initialValues={{
+                            contacts: rnc.contacts,
+                            products: rnc.products,
+                            attachments: rnc.attachments
+                          }}
+                        />
+                      </TabsContent>
 
-                  <TabsContent value="workflow">
-                    <WorkflowTab
-                      rncId={rnc.id}
-                      transitions={rnc.workflow_transitions}
-                      isEditing={isEditing}
-                    />
-                  </TabsContent>
+                      <TabsContent value="workflow">
+                        <WorkflowTab
+                          rncId={rnc.id}
+                          transitions={rnc.workflow_transitions}
+                          isEditing={isEditing}
+                        />
+                      </TabsContent>
+                    </div>
+                  </Tabs>
                 </div>
-              </Tabs>
-            </div>
-          </div>
+              </div>
 
-          <div className="space-y-6">
-            <div className="bg-background border rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4 text-foreground">Timeline de Eventos</h2>
-              <EventsTimeline events={rnc.events} />
+              <div className="space-y-6">
+                <div className="bg-background border rounded-lg shadow p-6">
+                  <h2 className="text-lg font-semibold mb-4 text-foreground">Timeline de Eventos</h2>
+                  <EventsTimeline events={rnc.events} />
+                </div>
+              </div>
             </div>
-          </div>
+          </form>
         </div>
 
         <DeleteRNCDialog
@@ -376,7 +436,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
           rncNumber={rnc.rnc_number}
           onConfirm={handleDelete}
         />
-      </form>
+      </div>
     </FormProvider>
   );
 }
