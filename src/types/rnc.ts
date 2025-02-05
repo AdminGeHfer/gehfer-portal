@@ -64,8 +64,8 @@ export interface RNC {
 }
 
 export interface BaseRNCContact {
-  name: string;
-  phone: string;
+  name?: string;
+  phone?: string;
   email?: string;
 }
 

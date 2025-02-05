@@ -33,7 +33,6 @@ export const ContactTab = () => {
               <FormItem className="flex-1">
                 <FormLabel className="flex items-center gap-1">
                   Nome
-                  <span className="text-blue-400">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input 
@@ -54,7 +53,6 @@ export const ContactTab = () => {
               <FormItem className="flex-1">
                 <FormLabel className="flex items-center gap-1">
                   Telefone
-                  <span className="text-blue-400">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input 

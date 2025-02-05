@@ -62,7 +62,7 @@ export const RNCModalContent = ({
         let fieldsToValidate: Array<keyof CreateRNCFormData> = [];
         switch (activeTab) {
           case "basic":
-            fieldsToValidate = ["company_code", "company", "document", "type", "department", "responsible"];
+            fieldsToValidate = ["company", "type", "department"];
             break;
           case "additional":
             fieldsToValidate = ["description", "korp", "nfv"];

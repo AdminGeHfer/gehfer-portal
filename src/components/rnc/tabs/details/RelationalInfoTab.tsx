@@ -229,7 +229,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                 <FormItem>
                   <FormLabel className="flex items-center gap-1">
                     Nome
-                    <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -251,7 +250,6 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                 <FormItem>
                   <FormLabel className="flex items-center gap-1">
                     Telefone
-                    <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Input
