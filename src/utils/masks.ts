@@ -1,21 +1,30 @@
-export const handleDocumentChange = (
-  e: React.ChangeEvent<HTMLInputElement>,
-  onChange: (value: string) => void
-) => {
-  let value = e.target.value.replace(/\D/g, '');
+export const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  let value = e.target.value;
   
-  // Limit to 14 digits
-  value = value.slice(0, 14);
-  
-  if (value.length <= 11) {
-    // CPF Format
-    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  } else {
-    // CNPJ Format
-    value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  // Return early if empty
+  if (!value) {
+    e.target.value = '';
+    return;
   }
-  
-  onChange(value);
+
+  // Remove non-digits
+  value = value.replace(/\D/g, '');
+
+  // Apply CPF mask if length <= 11
+  if (value.length <= 11) {
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d)/, '$1.$2');
+    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  } 
+  // Apply CNPJ mask if length > 11
+  else {
+    value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+    value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+  }
+
+  e.target.value = value;
 };
 
 export const handlePhoneChange = (
