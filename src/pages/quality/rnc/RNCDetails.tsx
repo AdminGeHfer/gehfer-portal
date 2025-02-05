@@ -5,7 +5,7 @@ import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoT
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { Button } from "@/components/ui/button";
-import { Edit, Save, Trash2 } from "lucide-react";
+import { Edit, Printer, Save, Trash2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
 import { useForm, FormProvider } from "react-hook-form";
@@ -19,6 +19,9 @@ import { rncService } from "@/services/rncService";
 import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { StatusBadge } from "@/components/quality/StatusBadge";
+import { RNCPrintContent } from "@/components/rnc/RNCPrintModal";
+import { createRoot } from "react-dom/client";
+import { generatePDF } from "@/utils/pdfUtils";
 
 interface RNCDetailsProps {
   id?: string;
@@ -54,6 +57,70 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
       attachments: []
     }
   });
+
+  const handlePrint = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const formData = methods.getValues();
+    
+    // Create a container for the print content
+    const printContainer = document.createElement('div');
+    printContainer.style.padding = '20px';
+    
+    // Create a new instance of RNCPrintContent
+    const printContent = (
+      <RNCPrintContent
+        rnc={rnc}
+        basicInfo={{
+          company: formData.company,
+          company_code: formData.company_code,
+          document: formData.document,
+          type: formData.type,
+          department: formData.department,
+          responsible: formData.responsible
+        }}
+        additionalInfo={{
+          description: formData.description,
+          korp: formData.korp,
+          nfv: formData.nfv,
+          nfd: formData.nfd,
+          city: formData.city,
+          collected_at: formData.collected_at,
+          closed_at: formData.closed_at,
+          conclusion: formData.conclusion
+        }}
+        relationalInfo={{
+          products: rnc.products,
+          contacts: rnc.contacts
+        }}
+        workflowInfo={{
+          transitions: rnc.workflow_transitions
+        }}
+      />
+    );
+  
+    try {
+      // Create a root and render the content
+      const root = createRoot(printContainer);
+      root.render(printContent);
+  
+      // Wait for content to be rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+  
+      // Generate and download PDF
+      await generatePDF({
+        filename: `RNC-${rnc.rnc_number}.pdf`,
+        element: printContainer
+      });
+  
+      // Cleanup
+      root.unmount();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error("Erro ao gerar PDF");
+    }
+  };
 
   const { handleSubmit, reset, watch } = methods;
   const [isEditing, setIsEditing] = React.useState(false);
@@ -238,6 +305,15 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
           <h1 className="text-2xl font-bold text-foreground">RNC #{rnc.rnc_number}</h1>
           <StatusBadge status={rnc.status} />
           <div className="flex gap-2">
+            <Button 
+              type="button"
+              variant="ghost" 
+              onClick={handlePrint} 
+              className="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90"
+            >
+              <Printer className="h-4 w-4" />
+              Imprimir
+            </Button>
             {!isEditing ? (
               <>
                 <Button
