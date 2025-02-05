@@ -60,6 +60,18 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
+
+      const capitalizedResponsible = formData.responsible.charAt(0).toUpperCase() + formData.responsible.slice(1).toLowerCase();
+
+      const { data: assignedUser, error: userError } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('name', capitalizedResponsible)
+        .single();
+
+      if (userError) {
+        console.warn('Could not find user for assignment:', userError);
+      }
   
       // Validate and structure products
       const validatedProducts = formData.products
@@ -89,7 +101,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         description: formData.description,
         type: formData.type,
         department: formData.department,
-        responsible: formData.responsible,
+        responsible: capitalizedResponsible,
         korp: formData.korp,
         nfv: formData.nfv,
         nfd: formData.nfd || undefined,
@@ -98,6 +110,7 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
         workflow_status: WorkflowStatusEnum.open,
         created_by: user.id,
         assigned_by: user.id,
+        assigned_to: assignedUser?.id || null,
         created_at: new Date().toISOString(),
         products: validatedProducts,
         contacts: validatedContacts,

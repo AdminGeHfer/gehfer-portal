@@ -3,12 +3,12 @@ import { z } from "zod";
 
 // Basic Info Validation Schema
 export const basicInfoSchema = z.object({
-  company_code: z.string().min(1, "Código da empresa deve ter no mínimo 1 caracter"),
+  company_code: z.string().optional(),
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
   document: z.string().regex(
     /(^\d{3}\.\d{3}\.\d{3}-\d{2}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$)/,
     "Documento inválido. Use um CPF ou CNPJ válido (Ex: 123.456.789-00 ou 12.345.678/0001-00)"
-  ),
+  ).optional(),
   type: z.nativeEnum(RncTypeEnum, {
     required_error: "Tipo é obrigatório"
   }),

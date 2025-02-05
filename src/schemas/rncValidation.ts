@@ -11,10 +11,10 @@ export const documentSchema = z.string().refine((val) => {
          cnpjRegex.test(val) || 
          cpfNoFormat.test(val) || 
          cnpjNoFormat.test(val);
-}, "Documento inválido");
+}, "Documento inválido").optional();
 
 export const createRNCSchema = z.object({
-  company_code: z.string().min(1, "Código deve ter no mínimo 1 caracter"),
+  company_code: z.string().optional(),
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
   document: documentSchema,
   type: z.nativeEnum(RncTypeEnum),
@@ -39,7 +39,7 @@ export const createRNCSchema = z.object({
 });
 
 export const basicInfoSchema = z.object({
-  company_code: z.string().min(1, "Código deve ter no mínimo 1 caracter"),
+  company_code: z.string().optional(),
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
   document: documentSchema,
   type: z.nativeEnum(RncTypeEnum),

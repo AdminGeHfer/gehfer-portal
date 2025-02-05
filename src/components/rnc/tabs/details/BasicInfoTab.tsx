@@ -24,7 +24,6 @@ export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Código da empresa
-                <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -68,7 +67,6 @@ export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
             <FormItem>
               <FormLabel className="flex items-center gap-1">
                 Documento
-                <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -132,42 +130,6 @@ export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                   <SelectItem value={RncDepartmentEnum.quality}>Qualidade</SelectItem>
                   <SelectItem value={RncDepartmentEnum.financial}>Financeiro</SelectItem>
                   <SelectItem value={RncDepartmentEnum.tax}>Fiscal</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="responsible"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="flex items-center gap-1">
-                Responsável
-                <span className="text-red-500">*</span>
-              </FormLabel>
-              <Select disabled={!isEditing} onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="border-blue-200 focus:border-blue-400">
-                    <SelectValue placeholder="Selecione o responsável" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Alexandre">Alexandre</SelectItem>
-                  <SelectItem value="Arthur">Arthur</SelectItem>
-                  <SelectItem value="Fabiana">Fabiana</SelectItem>
-                  <SelectItem value="Financeiro">Financeiro</SelectItem>
-                  <SelectItem value="Giovani">Giovani</SelectItem>
-                  <SelectItem value="Helcio">Helcio</SelectItem>
-                  <SelectItem value="Izabelly">Izabelly</SelectItem>
-                  <SelectItem value="Jordana">Jordana</SelectItem>
-                  <SelectItem value="Marcos">Marcos</SelectItem>
-                  <SelectItem value="Pedro">Pedro</SelectItem>
-                  <SelectItem value="Tafaela">Rafaela</SelectItem>
-                  <SelectItem value="Samuel">Samuel</SelectItem>
-                  <SelectItem value="Vinicius">Vinicius</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

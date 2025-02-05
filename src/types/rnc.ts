@@ -38,9 +38,9 @@ export enum WorkflowStatusEnum {
 export interface RNC {
   id: string;
   rnc_number?: number;
-  company_code: string;
+  company_code?: string;
   company: string;
-  document: string;
+  document?: string;
   type: RncTypeEnum;
   department: RncDepartmentEnum;
   responsible: string;
@@ -182,6 +182,7 @@ export interface CreateRNCInput extends RNCBaseInput {
   status?: RncStatusEnum;
   workflow_status?: WorkflowStatusEnum;
   assigned_by?: string;
+  assigned_to?: string;
   created_by: string;
   created_at: string;
 }
