@@ -20,14 +20,15 @@ export const basicInfoSchema = z.object({
 
 // Additional Info Validation Schema
 export const additionalInfoSchema = z.object({
-  description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   korp: z.string().min(1, "Número do pedido deve ter no mínimo 1 caracter"),
   nfv: z.string().min(1, "NFV deve ter no mínimo 1 caracter"),
   nfd: z.string().optional(),
   city: z.string().optional(),
-  conclusion: z.string().optional(),
+  collected_at: z.string().datetime().nullable(),
   closed_at: z.string().datetime().nullable(),
-  collected_at: z.string().datetime().nullable()
+  description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
+  resolution: z.string().optional(),
+  conclusion: z.string().optional(),
 });
 
 // Product Validation Schema

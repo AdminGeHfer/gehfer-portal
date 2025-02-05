@@ -55,15 +55,15 @@ export const basicInfoSchema = z.object({
 })
 
 export const additionalInfoSchema = z.object({
-  description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   korp: z.string().min(1, "KORP deve ter no mínimo 1 caracter"),
   nfv: z.string().min(1, "NFV deve ter no mínimo 1 caracter"),
   nfd: z.string().optional(),
   city: z.string().optional(),
+  collected_at: z.any().optional(),
+  closed_at: z.any().optional(),
+  description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   resolution: z.string().optional(),
   conclusion: z.string().optional(),
-  closed_at: z.any().optional(),
-  collected_at: z.any().optional(),
 })
 
 export const productSchema = z.array(z.object({
