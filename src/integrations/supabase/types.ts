@@ -1601,7 +1601,7 @@ export type Database = {
           closed_at: string | null
           collected_at: string | null
           company: string
-          company_code: string
+          company_code: string | null
           conclusion: string | null
           created_at: string
           created_by: string
@@ -1630,7 +1630,7 @@ export type Database = {
           closed_at?: string | null
           collected_at?: string | null
           company: string
-          company_code?: string
+          company_code?: string | null
           conclusion?: string | null
           created_at?: string
           created_by: string
@@ -1659,7 +1659,7 @@ export type Database = {
           closed_at?: string | null
           collected_at?: string | null
           company?: string
-          company_code?: string
+          company_code?: string | null
           conclusion?: string | null
           created_at?: string
           created_by?: string
