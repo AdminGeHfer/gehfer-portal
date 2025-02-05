@@ -20,15 +20,15 @@ export const SearchBar = ({
   return (
     <div
       className={cn(
-        "transition-all duration-300 flex items-center gap-2",
-        isSearchExpanded ? "w-full md:w-[400px]" : "w-10"
+        "transition-all duration-300 flex items-center gap-4",
+        isSearchExpanded ? "w-full md:w-[180px]" : "w-10"
       )}
     >
       {isSearchExpanded ? (
         <>
           <Input
             type="text"
-            placeholder="Filtrar RNC (Número, Empresa, ...)"
+            placeholder="Pesquisar RNC"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white dark:bg-gray-800"

@@ -27,14 +27,8 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
   return (
     <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
-        <Button 
-          onClick={onCreateRNC}
-          className="bg-[#4254f5] hover:bg-[#4254f5]/90 text-white"
-        >
-          Nova RNC
-        </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
         <div className="relative">
           <SearchBar
             searchQuery={filters.searchTerm}
@@ -52,7 +46,7 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="all">Status</SelectItem>
             <SelectItem value={RncStatusEnum.pending}>Pendente</SelectItem>
             <SelectItem value={RncStatusEnum.canceled}>Cancelado</SelectItem>
             <SelectItem value={RncStatusEnum.collect}>Coletado</SelectItem>
@@ -68,16 +62,12 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os tipos</SelectItem>
-            <SelectItem value={RncTypeEnum.company_complaint}>Reclamação do Cliente</SelectItem>
+            <SelectItem value="all">Tipos</SelectItem>
+            <SelectItem value={RncTypeEnum.company_complaint}>Cliente</SelectItem>
             <SelectItem value={RncTypeEnum.supplier}>Fornecedor</SelectItem>
             <SelectItem value={RncTypeEnum.dispatch}>Expedição</SelectItem>
             <SelectItem value={RncTypeEnum.logistics}>Logística</SelectItem>
-            <SelectItem value={RncTypeEnum.deputy}>Representante</SelectItem>
-            <SelectItem value={RncTypeEnum.driver}>Motorista</SelectItem>
-            <SelectItem value={RncTypeEnum.financial}>Financeiro</SelectItem>
             <SelectItem value={RncTypeEnum.commercial}>Comercial</SelectItem>
-            <SelectItem value={RncTypeEnum.financial_agreement}>Acordo Financeiro</SelectItem>
           </SelectContent>
         </Select>
 
@@ -89,13 +79,20 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
             <SelectValue placeholder="Departamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os departamentos</SelectItem>
+            <SelectItem value="all">Departamentos</SelectItem>
             <SelectItem value={RncDepartmentEnum.logistics}>Logística</SelectItem>
             <SelectItem value={RncDepartmentEnum.quality}>Qualidade</SelectItem>
             <SelectItem value={RncDepartmentEnum.financial}>Financeiro</SelectItem>
             <SelectItem value={RncDepartmentEnum.tax}>Fiscal</SelectItem>
           </SelectContent>
         </Select>
+        
+        <Button 
+          onClick={onCreateRNC}
+          className="bg-[#4254f5] hover:bg-[#4254f5]/90 text-white"
+        >
+          Nova RNC
+        </Button>
       </div>
     </div>
   );
