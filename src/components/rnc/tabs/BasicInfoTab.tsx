@@ -65,7 +65,12 @@ export const BasicInfoTab = () => {
                 <FormControl>
                   <Input 
                     {...field} 
-                    onChange={(e) => handleDocumentChange(e, field.onChange)}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        handleDocumentChange(e);
+                      }
+                      field.onChange(e);
+                    }}
                     className="border-blue-200 focus:border-blue-400"
                     placeholder="Digite o documento da empresa"
                   />

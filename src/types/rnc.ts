@@ -124,9 +124,9 @@ export interface WorkflowTransition {
 }
 
 export interface RNCBaseInput {
-  company_code: string;
+  company_code?: string;
   company: string;
-  document: string;
+  document?: string;
   type: RncTypeEnum;
   department: RncDepartmentEnum;
   responsible: string;

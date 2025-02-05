@@ -1,17 +1,20 @@
 import { z } from "zod";
 import { RncTypeEnum, RncDepartmentEnum } from "@/types/rnc";
 
-export const documentSchema = z.string().refine((val) => {
-  const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
-  const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
-  const cpfNoFormat = /^\d{11}$/;
-  const cnpjNoFormat = /^\d{14}$/;
-  
-  return cpfRegex.test(val) || 
-         cnpjRegex.test(val) || 
-         cpfNoFormat.test(val) || 
-         cnpjNoFormat.test(val);
-}, "Documento inválido").optional();
+export const documentSchema = z.union([
+  z.string().length(0), // Allow empty string
+  z.string().refine((val) => {
+    const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
+    const cnpjRegex = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
+    const cpfNoFormat = /^\d{11}$/;
+    const cnpjNoFormat = /^\d{14}$/;
+    
+    return cpfRegex.test(val) || 
+           cnpjRegex.test(val) || 
+           cpfNoFormat.test(val) || 
+           cnpjNoFormat.test(val);
+  }, "Documento inválido. Use um CPF ou CNPJ válido")
+]).optional();
 
 export const createRNCSchema = z.object({
   company_code: z.string().optional(),

@@ -70,11 +70,15 @@ export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
               </FormLabel>
               <FormControl>
                 <Input
-                  {...field}
-                  value={field.value || ''}
-                  disabled={!isEditing}
+                  {...field} 
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleDocumentChange(e);
+                    }
+                    field.onChange(e);
+                  }}
                   className="border-blue-200 focus:border-blue-400"
-                  onChange={(e) => handleDocumentChange(e, field.onChange)}
+                  placeholder="Digite o documento da empresa"
                 />
               </FormControl>
               <FormMessage />
