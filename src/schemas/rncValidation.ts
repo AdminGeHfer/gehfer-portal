@@ -14,17 +14,17 @@ export const documentSchema = z.string().refine((val) => {
 }, "Documento inválido");
 
 export const createRNCSchema = z.object({
-  company_code: z.string().min(3, "Código deve ter no mínimo 3 caracteres"),
+  company_code: z.string().min(1, "Código deve ter no mínimo 1 caracter"),
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
   document: documentSchema,
   type: z.nativeEnum(RncTypeEnum),
   department: z.nativeEnum(RncDepartmentEnum),
   responsible: z.string().min(3, "Responsável deve ter no mínimo 3 caracteres"),
   description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
-  korp: z.string().min(3, "KORP deve ter no mínimo 3 caracteres"),
-  nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
-  nfd: z.union([z.literal(""), z.string().min(3, "NFD deve ter no mínimo 3 caracteres")]).nullable().optional(),
-  city: z.union([z.literal(""), z.string().min(3, "Cidade deve ter no mínimo 3 caracteres")]).nullable().optional(),
+  korp: z.string().min(1, "KORP deve ter no mínimo 1 caracter"),
+  nfv: z.string().min(1, "NFV deve ter no mínimo 1 caracter"),
+  nfd: z.union([z.literal(""), z.string().min(1, "NFD deve ter no mínimo 1 caracter")]).nullable().optional(),
+  city: z.union([z.literal(""), z.string().min(1, "Cidade deve ter no mínimo 1 caracter")]).nullable().optional(),
   conclusion: z.union([z.literal(""), z.string().min(10, "Conclusão deve ter no mínimo 10 caracteres")]).nullable().optional(),
   products: z.array(z.object({
     name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -39,7 +39,7 @@ export const createRNCSchema = z.object({
 });
 
 export const basicInfoSchema = z.object({
-  company_code: z.string().min(3, "Código deve ter no mínimo 3 caracteres"),
+  company_code: z.string().min(1, "Código deve ter no mínimo 1 caracter"),
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
   document: documentSchema,
   type: z.nativeEnum(RncTypeEnum),
@@ -49,8 +49,8 @@ export const basicInfoSchema = z.object({
 
 export const additionalInfoSchema = z.object({
   description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
-  korp: z.string().min(3, "KORP deve ter no mínimo 3 caracteres"),
-  nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
+  korp: z.string().min(1, "KORP deve ter no mínimo 1 caracter"),
+  nfv: z.string().min(1, "NFV deve ter no mínimo 1 caracter"),
   nfd: z.string().optional(),
   city: z.string().optional(),
   conclusion: z.string().optional(),

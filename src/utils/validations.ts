@@ -3,7 +3,7 @@ import { z } from "zod";
 
 // Basic Info Validation Schema
 export const basicInfoSchema = z.object({
-  company_code: z.string().min(3, "Código da empresa deve ter no mínimo 3 caracteres"),
+  company_code: z.string().min(1, "Código da empresa deve ter no mínimo 1 caracter"),
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
   document: z.string().regex(
     /(^\d{3}\.\d{3}\.\d{3}-\d{2}$)|(^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$)/,
@@ -21,8 +21,8 @@ export const basicInfoSchema = z.object({
 // Additional Info Validation Schema
 export const additionalInfoSchema = z.object({
   description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
-  korp: z.string().min(3, "Número do pedido deve ter no mínimo 3 caracteres"),
-  nfv: z.string().min(3, "NFV deve ter no mínimo 3 caracteres"),
+  korp: z.string().min(1, "Número do pedido deve ter no mínimo 1 caracter"),
+  nfv: z.string().min(1, "NFV deve ter no mínimo 1 caracter"),
   nfd: z.string().optional(),
   city: z.string().optional(),
   conclusion: z.string().optional(),
