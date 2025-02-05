@@ -4,7 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/atoms/Button";
 import { Plus, Trash2, FileIcon, Download } from "lucide-react";
-import { handlePhoneChange } from "@/utils/masks";
+import { handlePhoneChange, handleWeightChange } from "@/utils/masks";
 import { rncService } from "@/services/rncService";
 import { toast } from "sonner";
 import { formatBytes } from "@/utils/format";
@@ -174,14 +174,20 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                     <FormItem className="flex-1">
                       <FormLabel>Peso (kg)</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field}
-                          type="number"
-                          value={field.value || 0.1}
-                          disabled={!isEditing}
-                          placeholder="Digite o peso"
-                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0.1)}
-                        />
+                      <Input 
+                        {...field}
+                        type="text"
+                        inputMode="numeric"
+                        step="1.0"
+                        min="0.1"
+                        onChange={(e) => handleWeightChange(e, field.onChange)}
+                        placeholder="Digite o peso"
+                        className="border-blue-200 focus:border-blue-400"
+                        value={field.value ? field.value.toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        }) : ''}
+                      />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

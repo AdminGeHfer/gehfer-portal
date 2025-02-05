@@ -4,6 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus } from "lucide-react";
+import { handleWeightChange } from "@/utils/masks";
 
 export const ProductsTab = () => {
   const { control } = useFormContext();
@@ -56,15 +57,17 @@ export const ProductsTab = () => {
                 <FormControl>
                   <Input 
                     {...field}
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value ? parseFloat(value) : '');
-                    }}
+                    type="text"
+                    inputMode="numeric"
+                    step="1.0"
+                    min="0.1"
+                    onChange={(e) => handleWeightChange(e, field.onChange)}
                     placeholder="Digite o peso"
                     className="border-blue-200 focus:border-blue-400"
+                    value={field.value ? field.value.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    }) : ''}
                   />
                 </FormControl>
                 <FormMessage />

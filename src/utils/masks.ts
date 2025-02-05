@@ -37,3 +37,28 @@ export const handlePhoneChange = (
   
   onChange(value);
 };
+
+export const handleWeightChange = (
+  e: React.ChangeEvent<HTMLInputElement>,
+  onChange: (value: number) => void
+) => {
+  // Remove any non-digit characters
+  const value = e.target.value.replace(/\D/g, '');
+  
+  // Convert to number format (divide by 100 to get decimal places)
+  const numericValue = value ? parseFloat(value) / 100 : 0;
+  
+  // Format for display (e.g., "1,50")
+  const formattedValue = value 
+    ? (numericValue).toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })
+    : '';
+
+  // Update the input value for display
+  e.target.value = formattedValue;
+  
+  // Pass the numeric value to the form
+  onChange(numericValue);
+};
