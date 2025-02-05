@@ -17,27 +17,31 @@ export const documentSchema = z.union([
 ]).optional();
 
 export const createRNCSchema = z.object({
-  company_code: z.string().optional(),
+  // required fields
   company: z.string().min(3, "Empresa deve ter no mínimo 3 caracteres"),
-  document: documentSchema,
   type: z.nativeEnum(RncTypeEnum),
   department: z.nativeEnum(RncDepartmentEnum),
-  responsible: z.string().min(3, "Responsável deve ter no mínimo 3 caracteres"),
   description: z.string().min(10, "Descrição deve ter no mínimo 10 caracteres"),
   korp: z.string().min(1, "KORP deve ter no mínimo 1 caracter"),
   nfv: z.string().min(1, "NFV deve ter no mínimo 1 caracter"),
+  // optional fields
+  company_code: z.string().optional(),
+  document: documentSchema,
   nfd: z.union([z.literal(""), z.string().min(1, "NFD deve ter no mínimo 1 caracter")]).nullable().optional(),
   city: z.union([z.literal(""), z.string().min(1, "Cidade deve ter no mínimo 1 caracter")]).nullable().optional(),
   conclusion: z.union([z.literal(""), z.string().min(10, "Conclusão deve ter no mínimo 10 caracteres")]).nullable().optional(),
+  // products validation (at least one)
   products: z.array(z.object({
     name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
     weight: z.number().min(0.1, "Peso deve ser maior que 0")
-  })),
+  })).min(1, "Adicione pelo menos um produto"),
+  // optional contacts
   contacts: z.array(z.object({
     name: z.string().optional(),
     phone: z.union([z.literal(""), z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, "Telefone inválido")]).optional(),
     email: z.union([z.literal(""), z.string().email("Email inválido")]).optional()
   })).optional(),
+  // optional attachments
   attachments: z.array(z.any()).optional()
 });
 

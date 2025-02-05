@@ -35,7 +35,6 @@ export const RNCModalContent = ({
       document: "",
       type: RncTypeEnum.company_complaint,
       department: RncDepartmentEnum.logistics,
-      responsible: "",
       description: "",
       korp: "",
       nfv: "",
@@ -71,8 +70,11 @@ export const RNCModalContent = ({
             fieldsToValidate = ["products"];
             break;
           case "contact":
-            fieldsToValidate = ["contacts"];
-            break;
+            setActiveTab(value);
+            return;
+          case "attachments":
+            setActiveTab(value);
+            return;
         }
 
         const isValid = await methods.trigger(fieldsToValidate);
@@ -88,18 +90,24 @@ export const RNCModalContent = ({
     }
   };
 
-  const handleSubmit = methods.handleSubmit((data) => {
-    // Ensure contacts array exists and is properly formatted
-    const formattedData = {
-      ...data,
-      contacts: data.contacts?.map(contact => ({
-        name: contact.name || '',
-        phone: contact.phone || '',
-        email: contact.email || ''
-      })) || [] // Provide empty array as default if contacts is undefined
-    };
-    
-    onSave(formattedData);
+  const handleSubmit = methods.handleSubmit(async (data) => {
+    try {
+      // Format the data
+      const formattedData = {
+        ...data,
+        contacts: data.contacts?.map(contact => ({
+          name: contact.name || '',
+          phone: contact.phone || '',
+          email: contact.email || ''
+        })) || []
+      };
+      
+      // Call onSave and handle any errors
+      await onSave(formattedData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      toast.error('Erro ao salvar RNC');
+    }
   });
 
   // Save form data to localStorage when it changes
@@ -117,6 +125,9 @@ export const RNCModalContent = ({
       methods.reset(JSON.parse(savedData));
     }
   }, [methods]);
+
+  const isFormValid = methods.formState.isValid;
+  const isDirty = methods.formState.isDirty;
 
   return (
     <FormProvider {...methods}>
@@ -180,7 +191,7 @@ export const RNCModalContent = ({
           {activeTab === tabs[tabs.length - 1] ? (
             <Button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isFormValid || !isDirty}
               className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               <Save className="mr-2 h-4 w-4" />
