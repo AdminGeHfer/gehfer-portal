@@ -159,22 +159,3 @@
     opacity: 0;
   }
 }
-@media print {
-  .print-force-show {
-    display: block !important;
-    page-break-inside: avoid;
-  }
-  
-  .print-content {
-    background-color: white !important;
-    color: black !important;
-  }
-  
-  .print-content * {
-    color: black !important;
-  }
-  
-  .print-content table {
-    page-break-inside: avoid;
-  }
-}
