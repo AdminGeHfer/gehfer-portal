@@ -148,23 +148,23 @@ export const BasicInfoTab = () => {
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger className="border-blue-200 focus:border-blue-400">
-                      <SelectValue placeholder="Responsável" />
+                      <SelectValue placeholder="Selecione um Responsável" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="alexandre">Alexandre</SelectItem>
-                    <SelectItem value="arthur">Arthur</SelectItem>
-                    <SelectItem value="fabiana">Fabiana</SelectItem>
-                    <SelectItem value="financeiro">Financeiro</SelectItem>
-                    <SelectItem value="giovani">Giovani</SelectItem>
-                    <SelectItem value="helcio">Helcio</SelectItem>
-                    <SelectItem value="izabelly">Izabelly</SelectItem>
-                    <SelectItem value="jordana">Jordana</SelectItem>
-                    <SelectItem value="marcos">Marcos</SelectItem>
-                    <SelectItem value="pedro">Pedro</SelectItem>
-                    <SelectItem value="rafaela">Rafaela</SelectItem>
-                    <SelectItem value="samuel">Samuel</SelectItem>
-                    <SelectItem value="vinicius">Vinicius</SelectItem>
+                    <SelectItem value="Alexandre">Alexandre</SelectItem>
+                    <SelectItem value="Arthur">Arthur</SelectItem>
+                    <SelectItem value="Fabiana">Fabiana</SelectItem>
+                    <SelectItem value="Financeiro">Financeiro</SelectItem>
+                    <SelectItem value="Giovani">Giovani</SelectItem>
+                    <SelectItem value="Helcio">Helcio</SelectItem>
+                    <SelectItem value="Izabelly">Izabelly</SelectItem>
+                    <SelectItem value="Jordana">Jordana</SelectItem>
+                    <SelectItem value="Marcos">Marcos</SelectItem>
+                    <SelectItem value="Pedro">Pedro</SelectItem>
+                    <SelectItem value="Rafaela">Rafaela</SelectItem>
+                    <SelectItem value="Samuel">Samuel</SelectItem>
+                    <SelectItem value="Vinicius">Vinicius</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
