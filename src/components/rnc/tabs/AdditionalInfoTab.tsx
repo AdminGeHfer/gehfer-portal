@@ -21,27 +21,6 @@ export const AdditionalInfoTab = () => {
         <div className="space-y-4 py-4">
           <FormField
             control={control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-1">
-                  Descrição
-                  <span className="text-blue-400">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Textarea 
-                    {...field} 
-                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
-                    placeholder="Descrição sobre a RNC..."
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
             name="korp"
             render={({ field }) => (
               <FormItem>
@@ -104,6 +83,27 @@ export const AdditionalInfoTab = () => {
                 <FormLabel>Cidade</FormLabel>
                 <FormControl>
                   <Input {...field} className="border-blue-200 focus:border-blue-400" placeholder="Digite o nome da cidade" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-1">
+                  Descrição
+                  <span className="text-blue-400">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Textarea 
+                    {...field} 
+                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                    placeholder="Descrição sobre a RNC..."
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

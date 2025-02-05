@@ -45,6 +45,7 @@ export interface RNC {
   department: RncDepartmentEnum;
   responsible: string;
   description: string;
+  resolution?: string;
   korp: string;
   nfv: string;
   nfd?: string;
@@ -131,6 +132,7 @@ export interface RNCBaseInput {
   department: RncDepartmentEnum;
   responsible: string;
   description: string;
+  resolution?: string;
   korp: string;
   nfv: string;
   nfd?: string;

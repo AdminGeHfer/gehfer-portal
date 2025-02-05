@@ -35,29 +35,6 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
 
   return (
       <div className="space-y-4">
-        <div className="space-y-2">
-          <FormField
-            control={control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="description" className="flex items-center gap-1">
-                  Descrição <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    value={field.value || ''}
-                    disabled={!isEditing}
-                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={control}
@@ -214,6 +191,52 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {formatDateForDisplay(field.value)}
                   </span>
                 )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <FormField
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="description" className="flex items-center gap-1">
+                  Descrição <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    value={field.value || ''}
+                    disabled={!isEditing}
+                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <FormField
+            control={control}
+            name="resolution"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="resolution" className="flex items-center gap-1">
+                  Resolução
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    value={field.value || ''}
+                    disabled={!isEditing}
+                    className="min-h-[100px] border-blue-200 focus:border-blue-400"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

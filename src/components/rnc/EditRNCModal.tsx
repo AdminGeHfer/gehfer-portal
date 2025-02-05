@@ -29,6 +29,7 @@ export function EditRNCModal({ open, onClose, rncData, rncId }: EditRNCModalProp
     department: rncData.department,
     responsible: rncData.responsible,
     description: rncData.description,
+    resolution: rncData.resolution,
     korp: rncData.korp,
     nfv: rncData.nfv,
     nfd: rncData.nfd,

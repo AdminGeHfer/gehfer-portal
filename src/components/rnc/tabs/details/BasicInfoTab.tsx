@@ -77,6 +77,7 @@ export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     }
                     field.onChange(e);
                   }}
+                  disabled={!isEditing}
                   className="border-blue-200 focus:border-blue-400"
                   placeholder="Digite o documento da empresa"
                 />

@@ -60,6 +60,7 @@ export const additionalInfoSchema = z.object({
   nfv: z.string().min(1, "NFV deve ter no mínimo 1 caracter"),
   nfd: z.string().optional(),
   city: z.string().optional(),
+  resolution: z.string().optional(),
   conclusion: z.string().optional(),
   closed_at: z.any().optional(),
   collected_at: z.any().optional(),

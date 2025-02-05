@@ -224,6 +224,7 @@ export const rncService = {
           department: data.department,
           responsible: capitalizedResponsible,
           description: data.description,
+          resolution: data.resolution,
           korp: data.korp,
           nfv: data.nfv,
           nfd: data.nfd,
