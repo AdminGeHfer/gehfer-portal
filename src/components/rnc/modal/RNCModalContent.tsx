@@ -28,7 +28,7 @@ export const RNCModalContent = ({
 }: RNCModalContentProps) => {
   const methods = useForm<CreateRNCFormData>({
     resolver: zodResolver(createRNCSchema),
-    mode: "onChange",
+    mode: "onTouched", // Change from onChange to onTouched
     defaultValues: {
       company_code: "",
       company: "",
@@ -40,12 +40,8 @@ export const RNCModalContent = ({
       nfv: "",
       nfd: "",
       city: "",
-      contacts: [{
-        name: "",
-        phone: "",
-        email: ""
-      }],
-      products: [{
+      contacts: [],  // Change from array with empty object to empty array
+      products: [{   // Keep one product as required
         name: "",
         weight: 0.1
       }],
@@ -126,9 +122,6 @@ export const RNCModalContent = ({
     }
   }, [methods]);
 
-  const isFormValid = methods.formState.isValid;
-  const isDirty = methods.formState.isDirty;
-
   return (
     <FormProvider {...methods}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -191,7 +184,7 @@ export const RNCModalContent = ({
           {activeTab === tabs[tabs.length - 1] ? (
             <Button
               type="submit"
-              disabled={isSubmitting || !isFormValid || !isDirty}
+              disabled={isSubmitting || !methods.formState.isValid}
               className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               <Save className="mr-2 h-4 w-4" />

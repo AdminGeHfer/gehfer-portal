@@ -30,7 +30,6 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       description: '',
       type: RncTypeEnum.company_complaint,
       department: RncDepartmentEnum.logistics,
-      responsible: '',
       korp: '',
       nfv: '',
       nfd: '',
@@ -61,7 +60,15 @@ export function CreateRNCModal({ open, onClose }: CreateRNCModalProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Usuário não autenticado');
 
-      const capitalizedResponsible = formData.responsible.charAt(0).toUpperCase() + formData.responsible.slice(1).toLowerCase();
+      const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single();
+
+      const responsible = userProfile?.name || 'Usuário';
+
+      const capitalizedResponsible = responsible.charAt(0).toUpperCase() + responsible.slice(1).toLowerCase();
 
       const { data: assignedUser, error: userError } = await supabase
         .from('profiles')
