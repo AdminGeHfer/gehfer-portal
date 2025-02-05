@@ -67,7 +67,7 @@ export const productSchema = z.array(z.object({
 export const contactSchema = z.array(z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
   phone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, "Telefone inválido"),
-  email: z.string().email("Email inválido").optional().nullable()
+  email: z.string().optional().nullable()
 }))
 
 export const relationalInfoSchema = z.object({
@@ -79,7 +79,7 @@ export const relationalInfoSchema = z.object({
   contacts: z.array(z.object({
     name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
     phone: z.string().regex(/^\(\d{2}\)\s\d{4,5}-\d{4}$/, "Telefone inválido"),
-    email: z.string().email("Email inválido").optional().nullable()
+    email: z.string().optional().nullable()
   })),
   attachments: z.array(z.union([
     z.instanceof(File),
