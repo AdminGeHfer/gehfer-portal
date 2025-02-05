@@ -4,6 +4,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AdditionalInfoFormData, UpdateRNCFormData } from "@/schemas/rncValidation";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export type AdditionalInfoTabRef = {
   validate: () => Promise<boolean>;
@@ -12,6 +14,24 @@ export type AdditionalInfoTabRef = {
 
 export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
   const { control } = useFormContext<UpdateRNCFormData>();
+  
+  const formatDateForInput = (date: string | null) => {
+    if (!date) return '';
+    try {
+      return format(parseISO(date), 'yyyy-MM-dd');
+    } catch {
+      return '';
+    }
+  };
+
+  const formatDateForDisplay = (date: string | null) => {
+    if (!date) return '';
+    try {
+      return format(parseISO(date), 'dd/MM/yyyy', { locale: ptBR });
+    } catch {
+      return '';
+    }
+  };
 
   return (
       <div className="space-y-4">
@@ -129,21 +149,32 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                   <Input
                     type="date"
                     {...field}
-                    value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
+                    value={formatDateForInput(field.value)}
                     onChange={(e) => {
-                      if (!e.target.value) {
+                      const value = e.target.value;
+                      if (!value) {
+                        field.onChange(null);
                         return;
                       }
-                      const date = new Date(e.target.value);
-                      if (isNaN(date.getTime())) {
-                        field.onChange(date.toISOString());
+                      try {
+                        const date = new Date(value);
+                        if (!isNaN(date.getTime())) {
+                          field.onChange(date.toISOString());
+                        }
+                      } catch (error) {
+                        console.error('Invalid date:', error);
                       }
                     }}
                     disabled={!isEditing}
                     className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
-                <FormMessage />
+                {field.value && (
+                  <span className="text-sm text-gray-500">
+                    {formatDateForDisplay(field.value)}
+                  </span>
+                )}
+            <FormMessage />
               </FormItem>
             )}
           />
@@ -156,22 +187,33 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                 <FormLabel htmlFor="closed_at">Data Final</FormLabel>
                 <FormControl>
                   <Input
-                    type="date"
-                    {...field}
-                    value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                    onChange={(e) => {
-                      if (!e.target.value) {
-                        return;
-                      }
-                      const date = new Date(e.target.value);
-                      if (isNaN(date.getTime())) {
-                        field.onChange(date.toISOString());
-                      }
-                    }}
-                    disabled={!isEditing}
-                    className="border-blue-200 focus:border-blue-400"
-                  />
+                      type="date"
+                      {...field}
+                      value={formatDateForInput(field.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (!value) {
+                          field.onChange(null);
+                          return;
+                        }
+                        try {
+                          const date = new Date(value);
+                          if (!isNaN(date.getTime())) {
+                            field.onChange(date.toISOString());
+                          }
+                        } catch (error) {
+                          console.error('Invalid date:', error);
+                        }
+                      }}
+                      disabled={!isEditing}
+                      className="border-blue-200 focus:border-blue-400"
+                    />
                 </FormControl>
+                {field.value && (
+                  <span className="text-sm text-gray-500">
+                    {formatDateForDisplay(field.value)}
+                  </span>
+                )}
                 <FormMessage />
               </FormItem>
             )}

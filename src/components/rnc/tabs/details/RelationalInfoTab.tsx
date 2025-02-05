@@ -180,6 +180,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                         inputMode="numeric"
                         step="1.0"
                         min="0.1"
+                        disabled={!isEditing}
                         onChange={(e) => handleWeightChange(e, field.onChange)}
                         placeholder="Digite o peso"
                         className="border-blue-200 focus:border-blue-400"

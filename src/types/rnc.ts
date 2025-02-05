@@ -187,5 +187,7 @@ export interface CreateRNCInput extends RNCBaseInput {
 }
 
 export interface UpdateRNCInput extends Partial<RNCBaseInput> {
+  status?: RncStatusEnum;
+  workflow_status?: WorkflowStatusEnum;
   updated_at: string;
 }

@@ -166,6 +166,28 @@ export const rncService = {
       if (userError) {
         console.warn('Could not find user for assignment:', userError);
       }
+
+      // Determine status and workflow_status based on dates
+      let status = data.status;
+      let workflow_status = data.workflow_status;
+
+      // Handle collected_at date changes
+      if (data.collected_at) {
+        status = RncStatusEnum.collect;
+        workflow_status = WorkflowStatusEnum.resolution;
+      }
+
+      // Handle closed_at date changes
+      if (data.closed_at) {
+        status = RncStatusEnum.concluded;
+        workflow_status = WorkflowStatusEnum.solved;
+      }
+
+      // If both dates are null, revert to pending status
+      if (!data.collected_at && !data.closed_at) {
+        status = RncStatusEnum.pending;
+        workflow_status = WorkflowStatusEnum.analysis;
+      }
   
       const { data: rncData, error: rncError } = await supabase
         .from('rncs')
@@ -185,7 +207,9 @@ export const rncService = {
           closed_at: data.closed_at,
           conclusion: data.conclusion,
           assigned_to: assignedUser?.id || null,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
+          status,
+          workflow_status
         })
         .eq('id', id)
         .select()
