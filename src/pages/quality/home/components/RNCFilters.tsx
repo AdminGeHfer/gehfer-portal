@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -9,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RncDepartmentEnum, RncStatusEnum, RncTypeEnum } from "@/types/rnc";
+import { SearchBar } from "./filters/SearchBar";
 
 interface RNCFiltersProps {
   filters: {
@@ -22,6 +22,8 @@ interface RNCFiltersProps {
 }
 
 export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersProps) {
+  const [isSearchExpanded, setIsSearchExpanded] = React.useState(false);
+
   return (
     <div className="space-y-4 mb-6">
       <div className="flex justify-between items-center">
@@ -32,13 +34,13 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
           Nova RNC
         </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div className="relative">
-          <Input
-            placeholder="Buscar por número ou empresa..."
-            value={filters.searchTerm}
-            onChange={(e) => onFilterChange('searchTerm', e.target.value)}
-            className="w-full bg-white dark:bg-gray-800"
+          <SearchBar
+            searchQuery={filters.searchTerm}
+            setSearchQuery={(value) => onFilterChange('searchTerm', value)}
+            isSearchExpanded={isSearchExpanded}
+            setIsSearchExpanded={setIsSearchExpanded}
           />
         </div>
 
