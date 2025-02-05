@@ -235,6 +235,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                       {...field}
                       value={field.value || ''}
                       disabled={!isEditing}
+                      placeholder="Digite o nome do contato"
                       className="border-blue-200 focus:border-blue-400"
                     />
                   </FormControl>
@@ -256,6 +257,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                       {...field}
                       value={field.value || ''}
                       disabled={!isEditing}
+                      placeholder="Digite o telefone do contato"
                       className="border-blue-200 focus:border-blue-400"
                       onChange={(e) => handlePhoneChange(e, field.onChange)}
                     />
@@ -277,6 +279,7 @@ export const RelationalInfoTab = React.forwardRef<RelationalInfoTabRef, Relation
                       type="email"
                       value={field.value || ''}
                       disabled={!isEditing}
+                      placeholder="Digite o email do contato"
                       className="border-blue-200 focus:border-blue-400"
                     />
                   </FormControl>

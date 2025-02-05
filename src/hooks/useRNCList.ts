@@ -29,6 +29,7 @@ export const useRNCList = () => {
           assigned_by_profile:profiles!assigned_by(name),
           assigned_to_profile:profiles!assigned_to(name)
         `)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
         if (error) {

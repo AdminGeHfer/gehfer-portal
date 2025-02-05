@@ -306,32 +306,47 @@ export const rncService = {
 
   async delete(id: string): Promise<void> {
     try {
-      // Delete attachments from storage first
-      const { data: attachments } = await supabase
-        .from('rnc_attachments')
-        .select('file_path')
-        .eq('rnc_id', id);
-
-      if (attachments?.length) {
-        const filePaths = attachments.map(att => att.file_path);
-        await supabase.storage.from('rnc-attachments').remove(filePaths);
-      }
-
-      // Delete all related records
+      const now = new Date().toISOString();
+      
+      // Soft delete related records
       await Promise.all([
-        supabase.from('rnc_attachments').delete().eq('rnc_id', id),
-        supabase.from('rnc_contacts').delete().eq('rnc_id', id),
-        supabase.from('rnc_products').delete().eq('rnc_id', id),
-        supabase.from('rnc_events').delete().eq('rnc_id', id),
-        supabase.from('rnc_workflow_transitions').delete().eq('rnc_id', id)
+        // Soft delete attachments
+        supabase
+          .from('rnc_attachments')
+          .update({ deleted_at: now })
+          .eq('rnc_id', id),
+          
+        // Soft delete contacts  
+        supabase
+          .from('rnc_contacts')
+          .update({ deleted_at: now })
+          .eq('rnc_id', id),
+          
+        // Soft delete products
+        supabase
+          .from('rnc_products')
+          .update({ deleted_at: now })
+          .eq('rnc_id', id),
+          
+        // Soft delete events
+        supabase
+          .from('rnc_events')
+          .update({ deleted_at: now })
+          .eq('rnc_id', id),
+          
+        // Soft delete workflow transitions
+        supabase
+          .from('rnc_workflow_transitions')
+          .update({ deleted_at: now })
+          .eq('rnc_id', id)
       ]);
-
-      // Finally delete the RNC
+  
+      // Finally soft delete the RNC
       const { error: rncError } = await supabase
         .from('rncs')
-        .delete()
+        .update({ deleted_at: now })
         .eq('id', id);
-
+  
       if (rncError) throw new RNCError(`Error deleting RNC: ${rncError.message}`);
     } catch (error) {
       console.error('Error in RNC deletion:', error);

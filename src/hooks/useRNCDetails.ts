@@ -52,6 +52,7 @@ export const useRNCDetails = (id: string) => {
           assigned_by_profile:profiles!assigned_by(name),
           assigned_to_profile:profiles!assigned_to(name)
         `)
+        .is('deleted_at', null)
         .eq('id', id)
         .maybeSingle();
 

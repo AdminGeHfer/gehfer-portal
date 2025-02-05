@@ -42,13 +42,14 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor="korp" className="flex items-center gap-1">
-                  Número do pedido (KORP) <span className="text-red-500">*</span>
+                  Número do pedido (Korp) <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     value={field.value || ''}
                     disabled={!isEditing}
+                    placeholder="Digite o número do pedido (Korp)"
                     className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
@@ -70,6 +71,7 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {...field}
                     value={field.value || ''}
                     disabled={!isEditing}
+                    placeholder="Digite o número da nota fiscal de venda"
                     className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
@@ -89,6 +91,7 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {...field}
                     value={field.value || ''}
                     disabled={!isEditing}
+                    placeholder="Digite o número da nota fiscal de devolução"
                     className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
@@ -108,6 +111,7 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {...field}
                     value={field.value || ''}
                     disabled={!isEditing}
+                    placeholder="Digite o nome da cidade"
                     className="border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
@@ -211,6 +215,7 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {...field}
                     value={field.value || ''}
                     disabled={!isEditing}
+                    placeholder="Digite a descrição da RNC"
                     className="min-h-[100px] border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
@@ -234,6 +239,7 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                     {...field}
                     value={field.value || ''}
                     disabled={!isEditing}
+                    placeholder="Digite a resolução da RNC"
                     className="min-h-[100px] border-blue-200 focus:border-blue-400"
                   />
                 </FormControl>
@@ -254,6 +260,7 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                   {...field}
                   value={field.value || ''}
                   disabled={!isEditing}
+                  placeholder="Digite a conclusão final da RNC"
                   className="min-h-[100px] border-blue-200 focus:border-blue-400"
                 />
               </FormControl>

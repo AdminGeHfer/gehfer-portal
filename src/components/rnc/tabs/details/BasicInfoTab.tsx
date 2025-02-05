@@ -30,6 +30,7 @@ export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                   {...field}
                   value={field.value || ''}
                   disabled={!isEditing}
+                  placeholder="Digite o código da empresa"
                   className="border-blue-200 focus:border-blue-400"
                 />
               </FormControl>
@@ -52,6 +53,7 @@ export const BasicInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                   {...field}
                   value={field.value || ''}
                   disabled={!isEditing}
+                  placeholder="Digite o nome da empresa"
                   className="border-blue-200 focus:border-blue-400"
                 />
               </FormControl>
