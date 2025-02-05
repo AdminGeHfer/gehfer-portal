@@ -5,7 +5,7 @@ import { AdditionalInfoTab } from "@/components/rnc/tabs/details/AdditionalInfoT
 import { RelationalInfoTab } from "@/components/rnc/tabs/details/RelationalInfoTab";
 import { WorkflowTab } from "@/components/rnc/tabs/details/WorkflowTab";
 import { Button } from "@/components/ui/button";
-import { Edit, Save, Trash2 } from "lucide-react";
+import { Edit, Printer, Save, Trash2 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRNCDetails } from "@/hooks/useRNCDetails";
 import { useForm, FormProvider } from "react-hook-form";
@@ -19,6 +19,7 @@ import { rncService } from "@/services/rncService";
 import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { StatusBadge } from "@/components/quality/StatusBadge";
+import { generatePDF } from "@/utils/pdfUtils";
 
 interface RNCDetailsProps {
   id?: string;
@@ -30,6 +31,21 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const navigate = useNavigate();
   const id = propId || routeId;
   const mounted = React.useRef(false);
+  const printRef = React.useRef<HTMLDivElement>(null);
+
+  const handlePrint = async () => {
+    if (!printRef.current) return;
+    
+    try {
+      await generatePDF({
+        filename: `RNC-${rnc.rnc_number}.pdf`,
+        element: printRef.current
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error("Erro ao gerar PDF");
+    }
+  };
 
   const methods = useForm<UpdateRNCFormData>({
     resolver: zodResolver(updateRNCSchema),
@@ -238,6 +254,10 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
           <h1 className="text-2xl font-bold text-foreground">RNC #{rnc.rnc_number}</h1>
           <StatusBadge status={rnc.status} />
           <div className="flex gap-2">
+            <Button variant="ghost" onClick={handlePrint} className="flex items-center gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90">
+              <Printer className="h-4 w-4" />
+              Imprimir
+            </Button>
             {!isEditing ? (
               <>
                 <Button
