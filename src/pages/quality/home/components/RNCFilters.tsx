@@ -50,9 +50,9 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos os status</SelectItem>
             <SelectItem value={RncStatusEnum.pending}>Pendente</SelectItem>
-            <SelectItem value={RncStatusEnum.canceled}>Cancelada</SelectItem>
+            <SelectItem value={RncStatusEnum.canceled}>Cancelado</SelectItem>
             <SelectItem value={RncStatusEnum.collect}>Coletado</SelectItem>
             <SelectItem value={RncStatusEnum.concluded}>Solucionado</SelectItem>
           </SelectContent>
@@ -66,7 +66,7 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos os tipos</SelectItem>
             <SelectItem value={RncTypeEnum.company_complaint}>Reclamação do Cliente</SelectItem>
             <SelectItem value={RncTypeEnum.supplier}>Fornecedor</SelectItem>
             <SelectItem value={RncTypeEnum.dispatch}>Expedição</SelectItem>
@@ -87,7 +87,7 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
             <SelectValue placeholder="Departamento" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos os departamentos</SelectItem>
             <SelectItem value={RncDepartmentEnum.logistics}>Logística</SelectItem>
             <SelectItem value={RncDepartmentEnum.quality}>Qualidade</SelectItem>
             <SelectItem value={RncDepartmentEnum.financial}>Financeiro</SelectItem>
