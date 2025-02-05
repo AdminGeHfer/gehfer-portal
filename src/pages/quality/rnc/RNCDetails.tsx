@@ -45,6 +45,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
       department: undefined,
       responsible: '',
       description: '',
+      resolution: '',
       korp: '',
       nfv: '',
       nfd: '',
@@ -82,6 +83,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         }}
         additionalInfo={{
           description: formData.description,
+          resolution: formData.resolution,
           korp: formData.korp,
           nfv: formData.nfv,
           nfd: formData.nfd,
@@ -145,6 +147,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         department: rnc.department,
         responsible: rnc.responsible || '',
         description: rnc.description || '',
+        resolution: rnc.resolution || '',
         korp: rnc.korp || '',
         nfv: rnc.nfv || '',
         nfd: rnc.nfd || '',
@@ -257,6 +260,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         department: data.department,
         responsible: data.responsible,
         description: data.description,
+        resolution: data.resolution,
         korp: data.korp || "",
         nfv: data.nfv || "",
         nfd: data.nfd || "",

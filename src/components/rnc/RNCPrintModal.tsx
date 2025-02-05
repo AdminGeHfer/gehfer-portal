@@ -15,6 +15,7 @@ export interface BasicInfo {
 
 export interface AdditionalInfo {
   description: string;
+  resolution: string;
   korp: string;
   nfv: string;
   nfd: string;
@@ -91,10 +92,6 @@ export function RNCPrintContent({
       <section className="mb-8 print-force-show">
         <h2 className="text-2xl font-bold mb-4 text-black">Informações Adicionais</h2>
         <div className="space-y-4">
-          <div>
-            <p className="font-semibold text-black">Descrição:</p>
-            <p className="text-black">{additionalInfo.description}</p>
-          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="font-semibold text-black">KORP:</p>
@@ -112,6 +109,14 @@ export function RNCPrintContent({
               <p className="font-semibold text-black">Cidade:</p>
               <p className="text-black">{additionalInfo.city}</p>
             </div>
+          </div>
+          <div>
+            <p className="font-semibold text-black">Descrição:</p>
+            <p className="text-black">{additionalInfo.description}</p>
+          </div>
+          <div>
+            <p className="font-semibold text-black">Resolução:</p>
+            <p className="text-black">{additionalInfo.resolution}</p>
           </div>
           <div>
             <p className="font-semibold text-black">Conclusão:</p>
