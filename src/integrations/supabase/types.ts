@@ -1362,6 +1362,7 @@ export type Database = {
           content_type: string
           created_at: string
           created_by: string
+          deleted_at: string | null
           file_path: string
           filename: string
           filesize: number
@@ -1372,6 +1373,7 @@ export type Database = {
           content_type: string
           created_at?: string
           created_by: string
+          deleted_at?: string | null
           file_path: string
           filename: string
           filesize: number
@@ -1382,6 +1384,7 @@ export type Database = {
           content_type?: string
           created_at?: string
           created_by?: string
+          deleted_at?: string | null
           file_path?: string
           filename?: string
           filesize?: number
@@ -1408,6 +1411,7 @@ export type Database = {
       rnc_contacts: {
         Row: {
           created_at: string
+          deleted_at: string | null
           email: string | null
           id: string
           name: string
@@ -1417,6 +1421,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           name: string
@@ -1426,6 +1431,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           name?: string
@@ -1447,6 +1453,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          deleted_at: string | null
           description: string
           id: string
           rnc_id: string
@@ -1456,6 +1463,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          deleted_at?: string | null
           description: string
           id?: string
           rnc_id: string
@@ -1465,6 +1473,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           rnc_id?: string
@@ -1491,6 +1500,7 @@ export type Database = {
       rnc_products: {
         Row: {
           created_at: string
+          deleted_at: string | null
           id: string
           name: string
           rnc_id: string
@@ -1499,6 +1509,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name: string
           rnc_id: string
@@ -1507,6 +1518,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           name?: string
           rnc_id?: string
@@ -1527,6 +1539,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string
+          deleted_at: string | null
           from_status:
             | Database["public"]["Enums"]["rnc_workflow_status_enum"]
             | null
@@ -1539,6 +1552,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by: string
+          deleted_at?: string | null
           from_status?:
             | Database["public"]["Enums"]["rnc_workflow_status_enum"]
             | null
@@ -1551,6 +1565,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string
+          deleted_at?: string | null
           from_status?:
             | Database["public"]["Enums"]["rnc_workflow_status_enum"]
             | null
@@ -1591,6 +1606,7 @@ export type Database = {
           created_at: string
           created_by: string
           days_left: number | null
+          deleted_at: string | null
           department: Database["public"]["Enums"]["rnc_department_enum"]
           description: string
           document: string
@@ -1598,6 +1614,7 @@ export type Database = {
           korp: string | null
           nfd: string | null
           nfv: string | null
+          resolution: string | null
           responsible: string | null
           rnc_number: number | null
           status: Database["public"]["Enums"]["rnc_status_enum"]
@@ -1618,6 +1635,7 @@ export type Database = {
           created_at?: string
           created_by: string
           days_left?: number | null
+          deleted_at?: string | null
           department?: Database["public"]["Enums"]["rnc_department_enum"]
           description: string
           document: string
@@ -1625,6 +1643,7 @@ export type Database = {
           korp?: string | null
           nfd?: string | null
           nfv?: string | null
+          resolution?: string | null
           responsible?: string | null
           rnc_number?: number | null
           status?: Database["public"]["Enums"]["rnc_status_enum"]
@@ -1645,6 +1664,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           days_left?: number | null
+          deleted_at?: string | null
           department?: Database["public"]["Enums"]["rnc_department_enum"]
           description?: string
           document?: string
@@ -1652,6 +1672,7 @@ export type Database = {
           korp?: string | null
           nfd?: string | null
           nfv?: string | null
+          resolution?: string | null
           responsible?: string | null
           rnc_number?: number | null
           status?: Database["public"]["Enums"]["rnc_status_enum"]
