@@ -178,7 +178,11 @@ export const rncService = {
         workflow_status = WorkflowStatusEnum.analysis;
       }
 
-      if (data.conclusion?.toUpperCase().includes('CANCELADO') || data.conclusion?.toUpperCase().includes('CANCELADA')) {
+      // If on resolution or on conclusion have the word 'cancelado' or 'cancelada'
+      if (data.conclusion?.toUpperCase().includes('CANCELADO') ||
+          data.conclusion?.toUpperCase().includes('CANCELADA') ||
+          data.resolution?.toUpperCase().includes('CANCELADO') ||
+          data.resolution?.toUpperCase().includes('CANCELADA')) {
         // Then transition to closed
         const { error: closedError } = await supabase
           .from('rnc_workflow_transitions')
