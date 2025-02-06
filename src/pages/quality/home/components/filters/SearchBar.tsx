@@ -28,7 +28,7 @@ export const SearchBar = ({
         <>
           <Input
             type="text"
-            placeholder="Pesquisar RNC"
+            placeholder="Pesquisar RNC (Número, Empresa)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white dark:bg-gray-800"

@@ -89,7 +89,7 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
         
         <Button 
           onClick={onCreateRNC}
-          className="bg-[#4254f5] hover:bg-[#4254f5]/90 text-white"
+          className="bg-[#4254f5] hover:bg-[#4254f5]/90 text-white h-9 px-4 ml-auto"
         >
           Nova RNC
         </Button>

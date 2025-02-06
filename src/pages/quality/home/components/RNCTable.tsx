@@ -61,24 +61,24 @@ export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
                 className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
                 onClick={() => handleRowClick(rnc)}
               >
-                <TableCell>{rnc.rnc_number}</TableCell>
-                <TableCell>{rnc.company}</TableCell>
-                <TableCell>
+                <TableCell className="text-center">{rnc.rnc_number}</TableCell>
+                <TableCell className="text-center">{rnc.company}</TableCell>
+                <TableCell className="text-center">
                   <Badge className={getTypeColor(getTypeDisplayName(rnc.type))}>
                     {getTypeDisplayName(rnc.type)}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <Badge className={getDepartmentColor(getDepartmentDisplayName(rnc.department))}>
                     {getDepartmentDisplayName(rnc.department)}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <Badge className={getStatusColor(getStatusDisplayName(rnc.status))}>
                     {getStatusDisplayName(rnc.status)}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   {new Date(rnc.created_at).toLocaleDateString("pt-BR")}
                 </TableCell>
               </TableRow>
