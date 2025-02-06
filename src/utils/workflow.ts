@@ -6,8 +6,8 @@ export const getWorkflowStatusLabel = (status: WorkflowStatusEnum): string => {
     analysis: "Em Análise",
     resolution: "Em Resolução",
     solved: "Solucionado",
-    closing: "Em Fechamento",
-    closed: "Encerrado"
+    closing: "Fechamento Financeiro",
+    closed: "Fechado"
   };
   return labels[status] || status;
 };

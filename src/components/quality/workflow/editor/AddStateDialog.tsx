@@ -95,8 +95,8 @@ export function AddStateDialog({
                 <SelectItem value="analysis">Em Análise</SelectItem>
                 <SelectItem value="resolution">Em Resolução</SelectItem>
                 <SelectItem value="solved">Solucionado</SelectItem>
-                <SelectItem value="closing">Em Fechamento</SelectItem>
-                <SelectItem value="closed">Encerrado</SelectItem>
+                <SelectItem value="closing">Fechamento Financeiro</SelectItem>
+                <SelectItem value="closed">Fechado</SelectItem>
               </SelectContent>
             </Select>
           </div>

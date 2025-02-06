@@ -37,8 +37,8 @@ export const getWorkflowStatusDisplayName = (status: WorkflowStatusEnum) => {
     [WorkflowStatusEnum.open]: "Aberto",
     [WorkflowStatusEnum.analysis]: "Em Análise",
     [WorkflowStatusEnum.resolution]: "Em Resolução",
-    [WorkflowStatusEnum.solved]: "Resolvido",
-    [WorkflowStatusEnum.closing]: "Fechando",
+    [WorkflowStatusEnum.solved]: "Solucionado",
+    [WorkflowStatusEnum.closing]: "Fechamento Financeiro",
     [WorkflowStatusEnum.closed]: "Fechado"
   };
   return workflowStatusMap[status] || status;
