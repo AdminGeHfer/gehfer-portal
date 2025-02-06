@@ -18,6 +18,11 @@ const Login = lazy(() => import("./features/auth/pages/Login").catch(err => {
   return import("./components/pages/Login");
 }));
 
+const ResetPassword = lazy(() => import("./features/auth/pages/ResetPassword").catch(err => {
+  console.error("Error loading ResetPassword component:", err);
+  return Promise.reject(err);
+}));
+
 const Apps = lazy(() => import("./pages/Apps").catch(err => {
   console.error("Error loading Apps component:", err);
   return Promise.reject(err);
@@ -92,6 +97,7 @@ const App = () => {
                   <div className="flex min-h-screen">
                     <Routes>
                       <Route path="/login" element={<Login />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
                       <Route
                         path="/*"
                         element={
