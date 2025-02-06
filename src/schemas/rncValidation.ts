@@ -28,7 +28,7 @@ export const createRNCSchema = z.object({
   company_code: z.string().optional(),
   document: documentSchema,
   nfd: z.union([z.literal(""), z.string().min(1, "NFD deve ter no mínimo 1 caracter")]).nullable().optional(),
-  city: z.union([z.literal(""), z.string().min(1, "Cidade deve ter no mínimo 1 caracter")]).nullable().optional(),
+  city: z.string().optional(),
   conclusion: z.union([z.literal(""), z.string().min(10, "Conclusão deve ter no mínimo 10 caracteres")]).nullable().optional(),
   // products validation (at least one)
   products: z.array(z.object({
