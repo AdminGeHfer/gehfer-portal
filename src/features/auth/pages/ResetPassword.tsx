@@ -17,18 +17,37 @@ const ResetPassword = () => {
 
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get("type");
     const accessToken = hashParams.get("access_token");
-    const refreshToken = hashParams.get("refresh_token");
-    if (accessToken && refreshToken) {
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken
-      });
-    } else {
-      console.log("Tokens não encontrados na URL");
+  
+    if (!accessToken || type !== "recovery") {
+      console.log("Invalid recovery link");
       toast.error("Link de reset de senha inválido ou expirado");
       navigate("/login");
+      return;
     }
+  
+    // Set up the recovery session
+    const setupRecoverySession = async () => {
+      try {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: accessToken,
+          type: "recovery"
+        });
+  
+        if (error) {
+          console.error("Error verifying recovery token:", error);
+          toast.error("Link de reset de senha inválido ou expirado");
+          navigate("/login");
+        }
+      } catch (error) {
+        console.error("Setup recovery session error:", error);
+        toast.error("Erro ao verificar link de recuperação");
+        navigate("/login");
+      }
+    };
+  
+    setupRecoverySession();
   }, [navigate]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -46,9 +65,12 @@ const ResetPassword = () => {
 
     try {
       setLoading(true);
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({ 
+        password: password 
+      });
 
       if (error) throw error;
+
       toast.success("Senha atualizada com sucesso!");
       await supabase.auth.signOut();
       navigate("/login");

@@ -1,11 +1,12 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -14,18 +15,21 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     let retryTimeout: NodeJS.Timeout;
+    // Public routes that don't need authentication
+    const publicRoutes = ['/login', '/reset-password'];
+    const isPublicRoute = publicRoutes.some(route => location.pathname.startsWith(route));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
-      if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_OUT' && !isPublicRoute) {
         console.log('User signed out');
         navigate("/login");
         return;
       }
 
       if (event === 'TOKEN_REFRESHED') {
-        if (!session) {
+        if (!session && !isPublicRoute) {
           console.log('Token refresh failed');
           toast.error("Sua sessão expirou. Por favor, faça login novamente.");
           navigate("/login");
@@ -42,6 +46,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     const checkSession = async () => {
       try {
         if (!isMounted) return;
+
+        // Skip session check for public routes
+        if (isPublicRoute) {
+          setIsLoading(false);
+          return;
+        }
 
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
@@ -63,7 +73,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
         setRetryCount(0);
 
-        if (!session) {
+        if (!session && !isPublicRoute) {
           console.log('No active session found');
           navigate("/login");
           return;
@@ -91,13 +101,18 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       }
     };
 
-    supabase.auth.getSession().then(({ data: { session }}) => {
-      if (!session) {
-        checkSession();
-      } else {
-        setIsLoading(false);
-      }
-    });
+    // Only check session if not on a public route
+    if (!isPublicRoute) {
+      supabase.auth.getSession().then(({ data: { session }}) => {
+        if (!session) {
+          checkSession();
+        } else {
+          setIsLoading(false);
+        }
+      });
+    } else {
+      setIsLoading(false);
+    }
 
     return () => {
       isMounted = false;
