@@ -124,6 +124,17 @@ export const RNCHome = () => {
           refetch();
         }} 
       />
+      
+      <footer className="fixed bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
+        <div className="flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
+            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Sobre </a>
+          </Button>
+        </div>
+      </footer>
     </div>
   );
 };

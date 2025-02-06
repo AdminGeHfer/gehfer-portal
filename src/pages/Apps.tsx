@@ -123,9 +123,6 @@ const Apps = () => {
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
             <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Sobre </a>
           </Button>
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Ajuda </a>
-          </Button>
         </div>
       </footer>
     </div>
