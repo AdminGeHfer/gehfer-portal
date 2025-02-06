@@ -15,19 +15,19 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       },
       pending: {
         label: "Pendente",
-        className: "bg-amber-200 text-amber-700 dark:bg-amber-900 dark:text-amber-200"
+        className: "bg-yellow-200 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200"
       },
       collect: {
         label: "Coletado",
-        className: "bg-teal-200 text-teal-700 dark:bg-teal-900 dark:text-teal-200"
+        className: "bg-blue-200 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
       },
       concluded: {
         label: "Solucionado",
-        className: "bg-emerald-200 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200"
+        className: "bg-green-200 text-green-700 dark:bg-green-900 dark:text-green-200"
       },
       canceled: {
         label: "Cancelado",
-        className: "bg-rose-200 text-rose-700 dark:bg-rose-900 dark:text-rose-200"
+        className: "bg-red-200 text-red-700 dark:bg-red-900 dark:text-red-200"
       }
     };
 

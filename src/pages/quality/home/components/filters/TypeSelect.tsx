@@ -24,15 +24,11 @@ export const TypeSelect = ({ selectedType, setSelectedType }: TypeSelectProps) =
         <SelectValue placeholder="Selecione um tipo" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="Reclamação do Cliente">Reclamação do Cliente</SelectItem>
+        <SelectItem value="Cliente">Cliente</SelectItem>
         <SelectItem value="Fornecedor">Fornecedor</SelectItem>
         <SelectItem value="Expedição">Expedição</SelectItem>
         <SelectItem value="Logística">Logística</SelectItem>
-        <SelectItem value="Representante">Representante</SelectItem>
-        <SelectItem value="Motorista">Motorista</SelectItem>
-        <SelectItem value="Financeiro">Financeiro</SelectItem>
         <SelectItem value="Comercial">Comercial</SelectItem>
-        <SelectItem value="Acordo Financeiro">Acordo Financeiro</SelectItem>
       </SelectContent>
     </Select>
   );
