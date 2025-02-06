@@ -23,7 +23,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       if (!isMounted) return;
 
       if (event === 'SIGNED_OUT' && !isPublicRoute) {
-        console.log('User signed out');
+        console.log('Usuário desconectado');
         navigate("/login");
         return;
       }
@@ -35,7 +35,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
           navigate("/login");
           return;
         }
-        console.log('Token refreshed successfully');
+        console.log('Token atualizado com sucesso');
       }
 
       if (event !== 'INITIAL_SESSION') {

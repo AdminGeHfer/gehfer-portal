@@ -70,13 +70,13 @@ const App = () => {
   useEffect(() => {
     const checkSession = async () => {
       const { error } = await supabase.auth.getSession();
-      if (error) console.error('Session error:', error);
+      if (error) console.error('Erro na sessão:', error);
     };
     
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log('Auth state changed:', event);
+      console.log('Estado de autenticação alterado:', event);
     });
 
     return () => {
