@@ -46,12 +46,12 @@ export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
         <Table>
           <TableHeader className="bg-gray-50 dark:bg-gray-900">
             <TableRow>
-              <TableHead className="font-semibold">Número</TableHead>
-              <TableHead className="font-semibold">Empresa</TableHead>
-              <TableHead className="font-semibold">Tipo</TableHead>
-              <TableHead className="font-semibold">Departamento</TableHead>
-              <TableHead className="font-semibold">Status</TableHead>
-              <TableHead className="font-semibold">Data</TableHead>
+              <TableHead className="font-semibold text-center">Número</TableHead>
+              <TableHead className="font-semibold text-center">Empresa</TableHead>
+              <TableHead className="font-semibold text-center">Tipo</TableHead>
+              <TableHead className="font-semibold text-center">Departamento</TableHead>
+              <TableHead className="font-semibold text-center">Status</TableHead>
+              <TableHead className="font-semibold text-center">Data</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

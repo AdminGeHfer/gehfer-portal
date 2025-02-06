@@ -72,6 +72,7 @@ export const rncService = {
           korp: data.korp,
           nfv: data.nfv,
           nfd: data.nfd,
+          city: data.city,
           status: RncStatusEnum.pending,
           workflow_status: WorkflowStatusEnum.open,
           assigned_by: user.id,
