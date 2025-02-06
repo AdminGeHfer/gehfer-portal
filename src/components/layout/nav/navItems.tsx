@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   Network,
   ClipboardPen,
+  FileChartColumnIncreasing,
 } from "lucide-react";
 
 export interface SubModule {
@@ -34,6 +35,11 @@ export const navItems: NavItem[] = [
         title: "RNCs",
         href: "/quality/home",
         icon: <ClipboardPen className="h-4 w-4" />,
+      },
+      {
+        title: "Dashboard",
+        href: "/quality/dashboard",
+        icon: <FileChartColumnIncreasing className="h-4 w-4" />
       },
       {
         title: "Workflow",

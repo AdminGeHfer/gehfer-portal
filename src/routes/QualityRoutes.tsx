@@ -5,6 +5,7 @@ const WorkflowEditor = lazy(() => import("@/pages/quality/workflow/WorkflowEdito
 const RNCHome = lazy(() => import("@/pages/quality/home/RNCHome"));
 const RNCDetails = lazy(() => import("@/pages/quality/rnc/RNCDetails").then(module => ({ 
   default: module.RNCDetails})));
+const DashboardHome = lazy(() => import("@/pages/quality/dashboard/DashboardHome"));
 
 const QualityRoutes = () => {
   return (
@@ -12,6 +13,7 @@ const QualityRoutes = () => {
       <Route path="/" element={<RNCHome />} />
       <Route path="/home" element={<RNCHome />} />
       <Route path="/workflow" element={<WorkflowEditor />} />
+      <Route path="/dashboard" element={<DashboardHome />} />
       <Route path="/rnc/:id" element={<RNCDetails />} />
     </Routes>
   );

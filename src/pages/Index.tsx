@@ -6,7 +6,6 @@ import { RNCDetails } from "@/pages/quality/rnc/RNCDetails"
 import { RNCStats } from "@/components/dashboard/RNCStats";
 import { RNCTable } from "@/pages/quality/home/components/RNCTable";
 import { CreateRNCModal } from "@/components/rnc/CreateRNCModal";
-import { EditRNCModal } from "@/components/rnc/EditRNCModal";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { useRNCs } from "@/hooks/useRNCs";
 import { useRNCList } from "@/hooks/useRNCList";
@@ -57,7 +56,6 @@ const Index = () => {
 
   // Modal States
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedRNCData, setSelectedRNCData] = useState<RNC | null>(null);
 
@@ -153,17 +151,6 @@ const Index = () => {
 
           {selectedRNCData && (
             <>
-              <EditRNCModal
-                open={isEditModalOpen}
-                onClose={() => {
-                  setIsEditModalOpen(false);
-                  setSelectedRNCData(null);
-                  refetch();
-                }}
-                rncData={selectedRNCData}
-                rncId={selectedRNCData.id}
-              />
-
               <DeleteRNCDialog
                 open={isDeleteDialogOpen}
                 onClose={() => {
