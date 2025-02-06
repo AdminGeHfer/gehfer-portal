@@ -2049,7 +2049,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      company_quality_dashboard_stats: {
+        Row: {
+          company: string | null
+          count: number | null
+        }
+        Relationships: []
+      }
+      department_quality_dashboard_stats: {
+        Row: {
+          count: number | null
+          department: Database["public"]["Enums"]["rnc_department_enum"] | null
+        }
+        Relationships: []
+      }
+      responsible_quality_dashboard_stats: {
+        Row: {
+          count: number | null
+          responsible: string | null
+        }
+        Relationships: []
+      }
+      type_quality_dashboard_stats: {
+        Row: {
+          count: number | null
+          type: Database["public"]["Enums"]["rnc_type_enum"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       binary_quantize:
