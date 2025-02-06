@@ -177,26 +177,7 @@ export const rncService = {
         workflow_status = WorkflowStatusEnum.analysis;
       }
 
-      if (data.conclusion) {
-        status = RncStatusEnum.canceled;
-        workflow_status = WorkflowStatusEnum.closing;
-        workflow_status = WorkflowStatusEnum.closed;
-      }
-
       if (data.conclusion?.toUpperCase().includes('CANCELADO') || data.conclusion?.toUpperCase().includes('CANCELADA')) {
-        // First transition to closing
-        const { error: closingError } = await supabase
-          .from('rnc_workflow_transitions')
-          .insert({
-            rnc_id: id,
-            from_status: workflow_status,
-            to_status: WorkflowStatusEnum.closing,
-            notes: 'RNC cancelada - movida para fechamento',
-            created_by: user.id
-          });
-  
-        if (closingError) throw new RNCError(`Error in closing transition: ${closingError.message}`);
-  
         // Then transition to closed
         const { error: closedError } = await supabase
           .from('rnc_workflow_transitions')
