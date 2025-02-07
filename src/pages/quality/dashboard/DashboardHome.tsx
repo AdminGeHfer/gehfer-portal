@@ -12,8 +12,8 @@ export const DashboardHome = () => {
   const { stats, loading, error } = useDashboardStats();
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
           <div className="flex items-center gap-4">
@@ -40,19 +40,18 @@ export const DashboardHome = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="flex-1 container mx-auto px-4 py-8 pb-24">
         <div className="mb-8">
           <p className="text-muted-foreground">
             Analise as métricas das RNCs geradas no portal
           </p>
         </div>
-
         <RNCStats stats={stats} isLoading={loading} error={error} />
       </div>
 
       
-      <footer className="fixed bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
-        <div className="flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
+      <footer className="sticky bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 mt-auto">
+        <div className="container mx-auto flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
             <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
           </Button>
