@@ -39,7 +39,7 @@ export function CollapsibleSidebar({ children }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "relative h-screen border-r bg-card transition-all duration-300 lg:block",
+        "relative border-r bg-card transition-all duration-300 lg:block",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
@@ -55,7 +55,7 @@ export function CollapsibleSidebar({ children }: SidebarProps) {
           <ChevronLeft className="h-4 w-4" />
         )}
       </Button>
-      <nav className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
+      <nav className="overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
         {children}
       </nav>
     </aside>
