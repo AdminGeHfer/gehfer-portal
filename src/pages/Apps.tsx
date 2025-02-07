@@ -121,7 +121,7 @@ const Apps = () => {
             <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
           </Button>
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-            <a href="https://gehfer.com.br/" rel="noreferrer" target="_blank"> Sobre </a>
+            <a href="https://admingehfer.github.io/gehfer-portal" rel="noreferrer" target="_blank"> Sobre </a>
           </Button>
         </div>
       </footer>
