@@ -24,6 +24,7 @@ export interface CompanyQualityStats {
 
 interface DashboardStats {
   totalRNCs: number;
+  totalMonthlyRNCs: number;
   pendingRNCs: number;
   canceledRNCs: number;
   collectedRNCs: number;
@@ -42,7 +43,13 @@ export const useDashboardStats = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        
         const { count: totalCount } = await supabase
+          .from('rncs')
+          .select('*', { count: 'exact', head: true })
+          .is('deleted_at', null);
+
+        const { count: totalMonthlyCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .is('deleted_at', null)
@@ -91,6 +98,7 @@ export const useDashboardStats = () => {
 
         setStats({
           totalRNCs: totalCount || 0,
+          totalMonthlyRNCs: totalMonthlyCount || 0,
           pendingRNCs: pendingCount || 0,
           canceledRNCs: canceledCount || 0,
           collectedRNCs: collectedCount || 0,

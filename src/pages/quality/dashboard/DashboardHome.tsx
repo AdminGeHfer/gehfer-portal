@@ -9,7 +9,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 export const DashboardHome = () => {
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
-  const { stats, loading } = useDashboardStats();
+  const { stats, loading, error } = useDashboardStats();
 
   return (
     <div className="min-h-screen bg-background">
@@ -47,7 +47,7 @@ export const DashboardHome = () => {
           </p>
         </div>
 
-        <RNCStats stats={stats} isLoading={loading} />
+        <RNCStats stats={stats} isLoading={loading} error={error} />
       </div>
 
       
