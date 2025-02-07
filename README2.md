@@ -37,17 +37,31 @@ O Portal GeHfer é uma aplicação web modular desenvolvida para gerenciar opera
 - Sistema de anexos
 - Workflow configurável
 - Relatórios e métricas
-- Gestão de coletas
+- Gestão de coletas e devoluções
 - Controle de devoluções
 - Notificações automáticas
 
 ### 3. Administração
 - Gestão de usuários e perfis
-- Controle de acesso por módulo
+- Controle de acesso por módulos
 - Configurações do sistema
 - Auditoria de operações
 - Gestão de workflows
 - Configuração de notificações
+
+## Como Executar o Projeto
+
+```bash
+# Instalar dependências
+npm install
+
+# Configurar variáveis de ambiente
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+
+# Iniciar em modo desenvolvimento
+npm run dev
+```
 
 ## Estrutura do Projeto
 ```
@@ -65,6 +79,16 @@ src/
   ├── types/         # Definições de tipos
   └── utils/         # Utilitários
 ```
+
+## Funcionalidades Principais
+
+- **Autenticação**: Sistema completo de login e controle de acesso
+- **Gestão de RNCs**: Workflow completo de qualidade
+- **Controle de Portaria**: Gestão de entrada/saída
+- **Gestão de Usuários**: Controle granular de permissões
+- **Relatórios**: Dashboards e métricas em tempo real
+- **Notificações**: Sistema de notificações em tempo real
+- **Upload de Arquivos**: Gestão de anexos e evidências
 
 ## Boas Práticas
 
@@ -110,6 +134,16 @@ src/
 - Lint e formatação
 
 ## Próximos Passos
+
+### Integrações
+- [ ] Implementar módulo de BI
+- [ ] Adicionar integração com SAP
+- [ ] Desenvolver app mobile
+- [ ] Implementar chat interno
+- [ ] Expandir relatórios avançados
+- [ ] Adicionar integração com o Korp
+- [ ] Adicionar integração com o WhatsApp
+- [ ] Adicionar/validar disparo de emails
 
 ### Performance
 - [ ] Implementar SSR
