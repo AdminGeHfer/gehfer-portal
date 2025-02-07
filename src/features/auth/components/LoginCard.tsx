@@ -18,21 +18,24 @@ export const LoginCard = () => {
       <div className="backdrop-blur-md bg-white/90 dark:bg-background/80 border border-gray-200/50 dark:border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl overflow-hidden">
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-center mb-4">
-            <motion.div 
-              initial={{ scale: 0.8 }}
-              animate={{ 
-                scale: 1,
-                rotateY: [0, 180, 360],
-              }}
-              transition={{ 
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 5
-              }}
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-300 to-gray-100 dark:from-[#233554] dark:to-[#112240] shadow-lg"
-            >
-              <span className="text-3xl font-bold text-gray-700 dark:text-primary-foreground">G</span>
-            </motion.div>
+          <motion.div 
+            initial={{ scale: 0.8 }}
+            animate={{ 
+              scale: 1,
+              rotateY: [0, 180, 360],
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              repeatDelay: 5
+            }}
+          >
+            <img 
+              src="/favicon-32x32.png"
+              alt="GeHfer Logo"
+              className="w-20 h-20 object-contain"  // Slightly smaller than the container for padding
+            />
+          </motion.div>
           </div>
           
           <h1 className="text-3xl text-center font-bold">
