@@ -1277,6 +1277,7 @@ export type Database = {
           active: boolean | null
           avatar_url: string | null
           created_at: string
+          deleted_at: string | null
           email: string | null
           id: string
           modules: string[] | null
@@ -1288,6 +1289,7 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id: string
           modules?: string[] | null
@@ -1299,6 +1301,7 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           modules?: string[] | null
@@ -1414,8 +1417,8 @@ export type Database = {
           deleted_at: string | null
           email: string | null
           id: string
-          name: string
-          phone: string
+          name: string | null
+          phone: string | null
           rnc_id: string
           updated_at: string | null
         }
@@ -1424,8 +1427,8 @@ export type Database = {
           deleted_at?: string | null
           email?: string | null
           id?: string
-          name: string
-          phone: string
+          name?: string | null
+          phone?: string | null
           rnc_id: string
           updated_at?: string | null
         }
@@ -1434,8 +1437,8 @@ export type Database = {
           deleted_at?: string | null
           email?: string | null
           id?: string
-          name?: string
-          phone?: string
+          name?: string | null
+          phone?: string | null
           rnc_id?: string
           updated_at?: string | null
         }
