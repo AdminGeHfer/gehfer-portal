@@ -10,50 +10,57 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  try {
-    const supabaseClient = createClient(
+// Inside the edge function
+try {
+  const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+  )
 
-    // Get the intelligence user ID
-    const { data: userData, error: userError } = await supabaseClient
+  // First ensure days_left is up-to-date
+  await supabaseClient.rpc('update_all_rnc_days_left')
+
+  // Small delay to ensure update completes
+  await new Promise(resolve => setTimeout(resolve, 1000))
+
+  // Get the intelligence user ID
+  const { data: userData, error: userError } = await supabaseClient
       .from('profiles')
       .select('id')
       .eq('email', 'inteligencia2@gehfer.com.br')
       .single()
 
-    if (userError || !userData) {
+  if (userError || !userData) {
       console.error('Error fetching intelligence user:', userError)
       throw new Error('Intelligence user not found')
-    }
+  }
 
-    // Get all active RNCs
-    const { data: rncs, error: rncsError } = await supabaseClient
+  // Get all active RNCs with their updated days_left
+  const { data: rncs, error: rncsError } = await supabaseClient
       .from('rncs')
       .select('id, days_left')
       .neq('status', 'concluded')
 
-    if (rncsError) {
+  if (rncsError) {
       console.error('Error fetching RNCs:', rncsError)
       throw new Error('Failed to fetch RNCs')
-    }
+  }
 
-    // Create events for each RNC
-    const eventPromises = rncs.map(rnc => {
+  // Create events for each RNC
+  const eventPromises = rncs.map(rnc => {
       return supabaseClient
-        .from('rnc_events')
-        .insert({
-          rnc_id: rnc.id,
-          title: 'Dias Restantes',
-          description: `Dias restantes da RNC: ${rnc.days_left}`,
-          type: 'status',
-          created_by: userData.id
-        })
-    })
+          .from('rnc_events')
+          .insert({
+              rnc_id: rnc.id,
+              title: 'Dias Restantes',
+              description: `Dias restantes da RNC: ${rnc.days_left}`,
+              type: 'status',
+              created_by: userData.id
+          })
+  })
 
-    await Promise.all(eventPromises)
-    console.log(`Created daily events for ${rncs.length} RNCs`)
+  await Promise.all(eventPromises)
+  console.log(`Created daily events for ${rncs.length} RNCs`)
 
     return new Response(
       JSON.stringify({ success: true, count: rncs.length }),
