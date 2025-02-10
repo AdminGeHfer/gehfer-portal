@@ -2112,6 +2112,13 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_days_left: {
+        Args: {
+          p_assigned_at: string
+          p_closed_at?: string
+        }
+        Returns: number
+      }
       create_daily_rnc_events: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -2323,6 +2330,10 @@ export type Database = {
           "": unknown[]
         }
         Returns: number
+      }
+      update_all_rnc_days_left: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       vector_avg: {
         Args: {
