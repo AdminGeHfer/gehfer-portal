@@ -9,6 +9,7 @@ export const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => 
 
   // Remove non-digits
   value = value.replace(/\D/g, '');
+  value = value.slice(0, 14);
 
   // Apply CPF mask if length <= 11
   if (value.length <= 11) {

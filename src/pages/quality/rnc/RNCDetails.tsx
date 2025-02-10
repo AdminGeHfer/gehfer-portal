@@ -16,19 +16,56 @@ import { EventsTimeline } from "@/components/rnc/details/EventsTimeline";
 import { DeleteRNCDialog } from "@/components/rnc/DeleteRNCDialog";
 import { toast } from "sonner";
 import { rncService } from "@/services/rncService";
-import { RncStatusEnum, WorkflowStatusEnum, type RNCAttachment } from "@/types/rnc";
+import { RncStatusEnum, WorkflowStatusEnum } from "@/types/rnc";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { StatusBadge } from "@/components/quality/StatusBadge";
 import { RNCPrintContent } from "@/components/rnc/RNCPrintModal";
 import { createRoot } from "react-dom/client";
 import { generatePDF } from "@/utils/pdfUtils";
 
+interface RNCErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface RNCErrorBoundaryState {
+  hasError: boolean;
+}
+
+class RNCErrorBoundary extends React.Component<RNCErrorBoundaryProps, RNCErrorBoundaryState> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('RNC Error:', error, errorInfo);
+    toast.error("Erro ao carregar RNC. Por favor, tente novamente.");
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+          <p className="text-lg text-red-500">Erro ao carregar RNC</p>
+          <Button onClick={() => window.location.href = '/quality/home'}>
+            Voltar para listagem
+          </Button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+
 interface RNCDetailsProps {
   id?: string;
   onClose?: () => void;
 }
 
-export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
+function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   const { id: routeId } = useParams();
   const navigate = useNavigate();
   const id = propId || routeId;
@@ -59,82 +96,115 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     }
   });
 
+  // Add single reset function
+  const handleFormReset = React.useCallback((data = {}) => {
+    if (mounted.current) {
+      methods.reset(data);
+    }
+  }, [methods]);
+
   const handlePrint = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const formData = methods.getValues();
-    
-    // Create a container for the print content
     const printContainer = document.createElement('div');
     printContainer.style.padding = '20px';
+    let root = null;
     
-    // Create a new instance of RNCPrintContent
-    const printContent = (
-      <RNCPrintContent
-        rnc={rnc}
-        basicInfo={{
-          company: formData.company,
-          company_code: formData.company_code,
-          document: formData.document,
-          type: formData.type,
-          department: formData.department,
-          responsible: formData.responsible
-        }}
-        additionalInfo={{
-          description: formData.description,
-          resolution: formData.resolution,
-          korp: formData.korp,
-          nfv: formData.nfv,
-          nfd: formData.nfd,
-          city: formData.city,
-          collected_at: formData.collected_at,
-          closed_at: formData.closed_at,
-          conclusion: formData.conclusion
-        }}
-        relationalInfo={{
-          products: rnc.products,
-          contacts: rnc.contacts
-        }}
-        workflowInfo={{
-          transitions: rnc.workflow_transitions
-        }}
-      />
-    );
-  
     try {
-      // Create a root and render the content
-      const root = createRoot(printContainer);
-      root.render(printContent);
-  
-      // Wait for content to be rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
-  
-      // Generate and download PDF
-      await generatePDF({
-        filename: `RNC-${rnc.rnc_number}.pdf`,
-        element: printContainer
-      });
-  
-      // Cleanup
-      root.unmount();
+      if (!mounted.current) return;
+
+      const formData = methods.getValues();
+      
+      root = createRoot(printContainer);
+      root.render(
+        <RNCPrintContent
+          rnc={rnc}
+          basicInfo={{
+            company: formData.company,
+            company_code: formData.company_code,
+            document: formData.document,
+            type: formData.type,
+            department: formData.department,
+            responsible: formData.responsible
+          }}
+          additionalInfo={{
+            description: formData.description,
+            resolution: formData.resolution,
+            korp: formData.korp,
+            nfv: formData.nfv,
+            nfd: formData.nfd,
+            city: formData.city,
+            collected_at: formData.collected_at,
+            closed_at: formData.closed_at,
+            conclusion: formData.conclusion
+          }}
+          relationalInfo={{
+            products: rnc.products,
+            contacts: rnc.contacts
+          }}
+          workflowInfo={{
+            transitions: rnc.workflow_transitions
+          }}
+        />
+      );
+
+      // Increase wait time for rendering
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Only proceed if component is still mounted
+      if (mounted.current) {
+        await generatePDF({
+          filename: `RNC-${rnc.rnc_number}.pdf`,
+          element: printContainer
+        });
+      }
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast.error("Erro ao gerar PDF");
+      if (mounted.current) {
+        toast.error("Erro ao gerar PDF");
+      }
+    } finally {
+      // Always cleanup the root in finally block
+      if (root) {
+        root.unmount();
+      }
     }
   };
 
-  const { handleSubmit, reset, watch } = methods;
+  const { handleSubmit } = methods;
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const { rnc, loading, error, refetch } = useRNCDetails(id!);
-  const formValues = watch(); // Watch all form values for debugging
 
-  // Log form values when they change
+  // Update mount/unmount handling
   React.useEffect(() => {
-  }, [formValues]);
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      handleFormReset();
+      setIsEditing(false);
+      setIsSaving(false);
+      setIsDeleteDialogOpen(false);
+    };
+  }, [handleFormReset]);
+
+  // Handle browser back button
+  React.useEffect(() => {
+    const handlePopState = () => {
+      if (mounted.current) {
+        handleFormReset();
+        onClose?.();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [onClose, handleFormReset]);
 
   // Reset form when RNC data changes
   React.useEffect(() => {
@@ -159,39 +229,11 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         products: rnc.products || [],
         attachments: rnc.attachments || []
       };
-
-      reset(formData);
+      handleFormReset(formData);
     }
-  }, [rnc, reset]);
+  }, [rnc, handleFormReset]);
 
-  // Component mount/unmount handling
-  React.useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-      methods.reset();
-      setIsEditing(false);
-      setIsSaving(false);
-      setIsDeleteDialogOpen(false);
-    };
-  }, [methods]);
-
-  // Handle browser back button
-  React.useEffect(() => {
-    const handlePopState = () => {
-      if (mounted.current) {
-        methods.reset();
-        onClose?.();
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, [onClose, methods]);
-
-  // Early returns for loading/error states
+  // Early returns
   if (!id) {
     navigate('/quality/home');
     return null;
@@ -217,6 +259,8 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
   }
 
   const handleSave = async (data: UpdateRNCFormData) => {
+    if (!mounted.current) return;
+    
     try {
       setIsSaving(true);
 
@@ -248,9 +292,9 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
             file_path: attachment.file_path,
             created_by: attachment.created_by,
             created_at: attachment.created_at
-          } as RNCAttachment;
+          };
         })
-        .filter(Boolean) as (File | RNCAttachment)[];
+        .filter(Boolean);
 
       const updatedData = {
         company_code: data.company_code,
@@ -277,15 +321,21 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
         attachments: transformedAttachments
       };
 
-      await rncService.update(id, updatedData);
-      await refetch();
-      setIsEditing(false);
-      toast.success("RNC atualizada com sucesso!");
+      if (mounted.current) {
+        await rncService.update(id, updatedData);
+        await refetch();
+        setIsEditing(false);
+        toast.success("RNC atualizada com sucesso!");
+      }
     } catch (error) {
       console.error('Error saving RNC:', error);
-      toast.error("Erro ao salvar RNC");
+      if (mounted.current) {
+        toast.error("Erro ao salvar RNC");
+      }
     } finally {
-      setIsSaving(false);
+      if (mounted.current) {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -323,10 +373,7 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
                 <Button
                   type="button"
                   variant="default"
-                  onClick={(e) => {
-                    e.preventDefault(); // Prevent form submission
-                    setIsEditing(true);
-                  }}
+                  onClick={() => setIsEditing(true)}
                   className="flex-1 sm:flex-none items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <Edit className="h-4 w-4" />
@@ -390,31 +437,35 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
 
                 <div className="bg-background p-4 rounded-b-lg">
                   <TabsContent value="basic">
-                    <BasicInfoTab isEditing={isEditing} />
+                    {mounted.current && <BasicInfoTab isEditing={isEditing} />}
                   </TabsContent>
 
                   <TabsContent value="additional">
-                    <AdditionalInfoTab isEditing={isEditing} />
+                    {mounted.current && <AdditionalInfoTab isEditing={isEditing} />}
                   </TabsContent>
 
                   <TabsContent value="relational">
-                    <RelationalInfoTab
-                      rncId={rnc.id}
-                      isEditing={isEditing}
-                      initialValues={{
-                        contacts: rnc.contacts,
-                        products: rnc.products,
-                        attachments: rnc.attachments  // Is this line present?
-                      }}
-                    />
+                    {mounted.current && (
+                      <RelationalInfoTab
+                        rncId={rnc.id}
+                        isEditing={isEditing}
+                        initialValues={{
+                          contacts: rnc.contacts,
+                          products: rnc.products,
+                          attachments: rnc.attachments
+                        }}
+                      />
+                    )}
                   </TabsContent>
 
                   <TabsContent value="workflow">
-                    <WorkflowTab
-                      rncId={rnc.id}
-                      transitions={rnc.workflow_transitions}
-                      isEditing={isEditing}
-                    />
+                    {mounted.current && (
+                      <WorkflowTab
+                        rncId={rnc.id}
+                        transitions={rnc.workflow_transitions}
+                        isEditing={isEditing}
+                      />
+                    )}
                   </TabsContent>
                 </div>
               </Tabs>
@@ -440,3 +491,14 @@ export function RNCDetails({ id: propId, onClose }: RNCDetailsProps) {
     </FormProvider>
   );
 }
+
+// Wrapper component with error boundary
+export function RNCDetailsWrapper() {
+  return (
+    <RNCErrorBoundary>
+      <RNCDetails />
+    </RNCErrorBoundary>
+  );
+}
+
+export { RNCDetails };
