@@ -53,6 +53,32 @@ const DEPARTMENT_NAMES = {
   [RncDepartmentEnum.tax]: getDepartmentDisplayName(RncDepartmentEnum.tax)
 };
 
+const COMPANY_COLOR_PALETTE = [
+  '#9b87f5', // Primary Purple
+  '#F97316', // Bright Orange
+  '#0EA5E9', // Ocean Blue
+  '#D946EF', // Magenta Pink
+  '#8B5CF6', // Vivid Purple
+  '#33C3F0', // Sky Blue
+  '#1EAEDB', // Bright Blue
+  '#ff6900', // Current Orange
+  '#f0b100', // Current Yellow
+  '#00bc7d', // Green
+  '#e12afb', // Pink
+  '#0084d1', // Blue
+  '#155dfc', // Bright Blue
+  '#fe9a00'  // Orange
+];
+
+const getCompanyColor = (companyName: string): string => {
+  // Simple hash function
+  const hash = companyName.split('')
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  // Use the hash to pick a color from the palette
+  return COMPANY_COLOR_PALETTE[hash % COMPANY_COLOR_PALETTE.length];
+};
+
 const CHART_COLORS = {
   types: {
     company_complaint: '#615fff',
@@ -76,10 +102,6 @@ const CHART_COLORS = {
     "Nicholas": "#0084d1",
     "Thiago Nobrega": "#155dfc",
     "Helcio Costa": "#fe9a00"
-  },
-  companies: {
-    "ABL-FER": "#ff6900",
-    "GUERRA PERFILADOS": "#f0b100"
   }
 };
 
@@ -305,7 +327,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
                   {stats?.companyStats?.map((entry, index) => (
                     <Cell 
                       key={`cell-${index}`} 
-                      fill={CHART_COLORS.companies[entry.company]}
+                      fill={getCompanyColor(entry.company)}
                     />
                   ))}
                 </Pie>
