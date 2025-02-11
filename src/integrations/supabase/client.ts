@@ -2,9 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const isLocalhost = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1' ||
-                     window.location.hostname === 'preview--gehfer-portal.lovable.app' ||
-                     window.location.hostname === 'gehfer-portal.lovable.app';
+                     window.location.hostname === '127.0.0.1';
 
 let supabaseUrl;
 let supabaseAnonKey;
