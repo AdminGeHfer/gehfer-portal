@@ -49,8 +49,8 @@ export function useWorkflowData() {
         label: node.data.label,
         state_type: node.data.type,
         assigned_to: node.data.assigned_to,
-        send_email: node.data.send_email,
-        email_template: node.data.email_template,
+        send_notification: node.data.send_notification,
+        notification_template: node.data.notification_template,
       }));
 
       const { error } = await supabase

@@ -14,15 +14,15 @@ interface StateNodeData {
   label: string;
   type: string;
   assigned_to?: string;
-  send_email?: boolean;
-  email_template?: string;
+  send_notification?: boolean;
+  notification_template?: string;
   onAssigneeChange?: (value: string) => void;
-  onEmailToggle?: (checked: boolean) => void;
-  onEmailTemplateChange?: (value: string) => void;
+  onNotificationToggle?: (checked: boolean) => void;
+  onNotificationTemplateChange?: (value: string) => void;
 }
 
 export function StateNode({ data }: NodeProps<StateNodeData>) {
-  const [localTemplate, setLocalTemplate] = useState(data.email_template || '');
+  const [localTemplate, setLocalTemplate] = useState(data.notification_template || '');
   const { data: users } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
@@ -37,7 +37,7 @@ export function StateNode({ data }: NodeProps<StateNodeData>) {
   });
 
   const handleSaveTemplate = () => {
-    data.onEmailTemplateChange?.(localTemplate);
+    data.onNotificationTemplateChange?.(localTemplate);
   };
 
   const getStateColor = (type: string) => {
@@ -82,22 +82,22 @@ export function StateNode({ data }: NodeProps<StateNodeData>) {
 
         <div className="space-y-2 pt-2 border-t">
           <div className="flex items-center justify-between">
-            <span className="text-sm">Enviar Email</span>
+            <span className="text-sm">Enviar Notificação</span>
             <Switch
-              checked={data.send_email}
-              onCheckedChange={data.onEmailToggle}
+              checked={data.send_notification}
+              onCheckedChange={data.onNotificationToggle}
             />
           </div>
 
-          {data.send_email && (
+          {data.send_notification && (
             <div className="space-y-2">
               <textarea
-                placeholder="Template do email... 
-Variáveis disponíveis:
-{nome} - Nome do usuário atribuído
-{numero_rnc} - Número da RNC
-{status_anterior} - Status anterior
-{status_novo} - Novo status"
+                placeholder="Template da notificação... 
+                Variáveis disponíveis:
+                {nome} - Nome do usuário atribuído
+                {numero_rnc} - Número da RNC
+                {status_anterior} - Status anterior
+                {status_novo} - Novo status"
                 value={localTemplate}
                 onChange={(e) => setLocalTemplate(e.target.value)}
                 className="w-full text-sm p-2 rounded border min-h-[120px]"
