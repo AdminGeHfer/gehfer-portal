@@ -59,6 +59,22 @@ export function useWorkflowData() {
 
       if (error) throw error;
 
+      // Then create notifications for each state that has notifications enabled
+      for (const node of nodes) {
+        if (node.data.send_notification) {
+          const { count, error: notifyError } = await supabase
+            .rpc('create_workflow_state_notifications_rpc', {
+              p_state_id: node.id
+            });
+
+          if (notifyError) throw notifyError;
+
+          if (count > 0) {
+            toast.success(`${count} notificações criadas para o estado ${node.data.label}`);
+          }
+        }
+      }
+
       await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
       toast.success('Workflow salvo com sucesso');
     } catch (error) {

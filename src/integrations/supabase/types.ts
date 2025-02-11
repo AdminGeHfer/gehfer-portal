@@ -2123,6 +2123,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_workflow_state_notifications: {
+        Args: {
+          p_state_id: string
+        }
+        Returns: number
+      }
+      create_workflow_state_notifications_rpc: {
+        Args: {
+          p_state_id: string
+        }
+        Returns: number
+      }      
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]
