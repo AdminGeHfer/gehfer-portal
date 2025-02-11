@@ -7,6 +7,9 @@ const isLocalhost = window.location.hostname === 'localhost' ||
 let supabaseUrl;
 let supabaseAnonKey;
 
+console.log(window.location.hostname);
+console.log(isLocalhost);
+
 if(isLocalhost) {
   supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
