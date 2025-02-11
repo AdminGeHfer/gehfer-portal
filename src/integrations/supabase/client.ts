@@ -2,13 +2,12 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const isLocalhost = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1';
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname === 'preview--gehfer-portal.lovable.app' ||
+                     window.location.hostname === 'gehfer-portal.lovable.app';
 
 let supabaseUrl;
 let supabaseAnonKey;
-
-console.log(window.location.hostname);
-console.log(isLocalhost);
 
 if(isLocalhost) {
   supabaseUrl = import.meta.env.VITE_SUPABASE_URL
