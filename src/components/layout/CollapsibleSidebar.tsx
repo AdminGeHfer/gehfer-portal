@@ -4,7 +4,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface SidebarProps {
   children: React.ReactNode;
@@ -27,7 +27,11 @@ export function CollapsibleSidebar({ children }: SidebarProps) {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-[280px] p-0">
-            <nav className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted">
+          <SheetHeader className="px-4 py-2">
+            <SheetTitle>Menu de Navegação</SheetTitle>
+            <SheetDescription>Navegue entre as diferentes seções do aplicativo</SheetDescription>
+          </SheetHeader>
+            <nav className="h-full overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted" aria-label="Menu principal">
               {children}
             </nav>
           </SheetContent>
