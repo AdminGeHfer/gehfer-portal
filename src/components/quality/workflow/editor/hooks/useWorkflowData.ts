@@ -62,15 +62,17 @@ export function useWorkflowData() {
       // Then create notifications for each state that has notifications enabled
       for (const node of nodes) {
         if (node.data.send_notification) {
-          const { count, error: notifyError } = await supabase
+          const { data, error: notifyError } = await supabase
             .rpc('create_workflow_state_notifications_rpc', {
               p_state_id: node.id
             });
 
+          console.log('RPC response:', { data, error: notifyError });
+
           if (notifyError) throw notifyError;
 
-          if (count > 0) {
-            toast.success(`${count} notificações criadas para o estado ${node.data.label}`);
+          if (data > 0) {
+            toast.success(`${data} notificações criadas para o estado ${node.data.label}`);
           }
         }
       }
