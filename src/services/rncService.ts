@@ -24,7 +24,7 @@ export class ValidationError extends RNCError {
 }
 
 const validateAttachment = (file: File): void => {
-  const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_SIZE = 100 * 1024 * 1024; // 100MB
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'video/mp4'];
   
   if (file.size > MAX_SIZE) {
