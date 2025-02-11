@@ -1906,9 +1906,9 @@ export type Database = {
         Row: {
           assigned_to: string | null
           created_at: string | null
-          notification_template: string | null
           id: string
           label: string
+          notification_template: string | null
           position_x: number
           position_y: number
           send_notification: boolean | null
@@ -1918,9 +1918,9 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           created_at?: string | null
-          notification_template?: string | null
           id?: string
           label: string
+          notification_template?: string | null
           position_x: number
           position_y: number
           send_notification?: boolean | null
@@ -1930,9 +1930,9 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           created_at?: string | null
-          notification_template?: string | null
           id?: string
           label?: string
+          notification_template?: string | null
           position_x?: number
           position_y?: number
           send_notification?: boolean | null
