@@ -1906,36 +1906,36 @@ export type Database = {
         Row: {
           assigned_to: string | null
           created_at: string | null
-          email_template: string | null
           id: string
           label: string
+          notification_template: string | null
           position_x: number
           position_y: number
-          send_email: boolean | null
+          send_notification: boolean | null
           state_type: Database["public"]["Enums"]["workflow_state_type"]
           workflow_id: string | null
         }
         Insert: {
           assigned_to?: string | null
           created_at?: string | null
-          email_template?: string | null
           id?: string
           label: string
+          notification_template?: string | null
           position_x: number
           position_y: number
-          send_email?: boolean | null
+          send_notification?: boolean | null
           state_type: Database["public"]["Enums"]["workflow_state_type"]
           workflow_id?: string | null
         }
         Update: {
           assigned_to?: string | null
           created_at?: string | null
-          email_template?: string | null
           id?: string
           label?: string
+          notification_template?: string | null
           position_x?: number
           position_y?: number
-          send_email?: boolean | null
+          send_notification?: boolean | null
           state_type?: Database["public"]["Enums"]["workflow_state_type"]
           workflow_id?: string | null
         }
@@ -2122,6 +2122,18 @@ export type Database = {
       create_daily_rnc_events: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      create_workflow_state_notifications: {
+        Args: {
+          p_state_id: string
+        }
+        Returns: number
+      }
+      create_workflow_state_notifications_rpc: {
+        Args: {
+          p_state_id: string
+        }
+        Returns: number
       }
       get_user_modules: {
         Args: Record<PropertyKey, never>
