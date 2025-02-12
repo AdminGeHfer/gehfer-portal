@@ -57,7 +57,7 @@ export const AttachmentsTab = () => {
       <FileUploadField
         label="Anexar arquivo"
         onChange={handleFileChange}
-        accept=".pdf,.jpg,.jpeg,.png,.mp4"
+        accept=".pdf,.jpg,.jpeg,.png,.mp4,.mpeg,.ogg,.webm"
       />
 
       <div className="space-y-2">
