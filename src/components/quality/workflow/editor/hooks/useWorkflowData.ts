@@ -67,8 +67,6 @@ export function useWorkflowData() {
               p_state_id: node.id
             });
 
-          console.log('RPC response:', { data, error: notifyError });
-
           if (notifyError) throw notifyError;
 
           if (data > 0) {

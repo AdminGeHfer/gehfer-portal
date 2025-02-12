@@ -172,6 +172,11 @@ export const rncService = {
         workflow_status = WorkflowStatusEnum.solved;
       }
 
+      // Handle workflow changes if resolution filled
+      if (data.resolution) {
+        workflow_status = WorkflowStatusEnum.closing;
+      }
+
       // If both dates are null, revert to pending status
       if (!data.collected_at && !data.closed_at) {
         status = RncStatusEnum.pending;
@@ -179,16 +184,14 @@ export const rncService = {
       }
 
       // If on resolution or on conclusion have the word 'cancelado' or 'cancelada'
-      if (data.conclusion?.toUpperCase().includes('CANCELADO') ||
-          data.conclusion?.toUpperCase().includes('CANCELADA') ||
-          data.resolution?.toUpperCase().includes('CANCELADO') ||
-          data.resolution?.toUpperCase().includes('CANCELADA')) {
+      if (data.conclusion?.toUpperCase().includes('RNC CANCELADO') ||
+          data.resolution?.toUpperCase().includes('RNC CANCELADA')) {
         // Then transition to closed
         const { error: closedError } = await supabase
           .from('rnc_workflow_transitions')
           .insert({
             rnc_id: id,
-            from_status: WorkflowStatusEnum.closing,
+            from_status: data.workflow_status,
             to_status: WorkflowStatusEnum.closed,
             notes: 'RNC cancelada - fechada',
             created_by: user.id

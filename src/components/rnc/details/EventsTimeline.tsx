@@ -8,7 +8,8 @@ import {
   Package, 
   CircleX, 
   SquareCheck,
-  Clock
+  Clock,
+  FileLock
 } from "lucide-react";
 
 interface Event {
@@ -41,6 +42,8 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
         return <CircleX className="text-red-500" />;
       case "status - concluded":
         return <SquareCheck className="text-green-500" />;
+      case "workflow_status - closing":
+        return <FileLock className="text-yellow-500" />;
       default:
         return <Clock className="text-white" />;
     }

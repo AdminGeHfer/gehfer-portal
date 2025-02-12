@@ -1,17 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  read: boolean;
-  created_at: string;
-  rnc_id: string;
-}
+import { useState, useMemo } from "react";
+import { Notification } from "@/types/notifications";
 
 export const useNotifications = () => {
   const queryClient = useQueryClient();
+  const [currentFilter, setCurrentFilter] = useState<'all' | 'unread'>('all');
 
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["notifications"],
@@ -62,10 +56,34 @@ export const useNotifications = () => {
     },
   });
 
+  // Sorting function
+  const getSortedNotifications = (notifs: Notification[]) => {
+    return [...notifs].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  };
+
+  // Filtering function
+  const getFilteredNotifications = (notifs: Notification[]) => {
+    if (currentFilter === 'unread') {
+      return notifs.filter(n => !n.read);
+    }
+    return notifs;
+  };
+
+  // Processed notifications
+  const processedNotifications = useMemo(() => {
+    if (!notifications) return [];
+    const sorted = getSortedNotifications(notifications);
+    return getFilteredNotifications(sorted);
+  }, [notifications, currentFilter]);
+
   return {
-    notifications,
+    notifications: processedNotifications,
     isLoading,
     markAsRead,
     markAllAsRead,
+    currentFilter,
+    setCurrentFilter,
   };
 };

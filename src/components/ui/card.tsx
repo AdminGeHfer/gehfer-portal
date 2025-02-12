@@ -1,21 +1,44 @@
 import * as React from "react"
-
 import { cn } from "@/lib/utils"
+
+const cardVariants = {
+  default: "rounded-lg border bg-card text-card-foreground shadow-sm",
+  notification: {
+    base: "hover:bg-accent/50 transition-colors cursor-pointer border-l-4",
+    read: "border-l-transparent",
+    unread: "border-l-primary bg-muted/30"
+  }
+};
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
-Card.displayName = "Card"
+  React.HTMLAttributes<HTMLDivElement> & {
+    variant?: keyof typeof cardVariants | 'notification';
+    notificationState?: 'read' | 'unread';
+  }
+>(({ className, variant = "default", notificationState, ...props }, ref) => {
+  const getClassName = () => {
+    if (variant === 'notification') {
+      return cn(
+        cardVariants.notification.base,
+        notificationState === 'unread' 
+          ? cardVariants.notification.unread 
+          : cardVariants.notification.read,
+        className
+      );
+    }
+    return cn(cardVariants[variant], className);
+  };
+
+  return (
+    <div
+      ref={ref}
+      className={getClassName()}
+      {...props}
+    />
+  );
+});
+Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,

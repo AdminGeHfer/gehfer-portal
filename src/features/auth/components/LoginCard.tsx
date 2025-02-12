@@ -106,6 +106,7 @@ export const LoginCard = () => {
                   password_label: 'Senha',
                   password_input_placeholder: "Sua senha",
                   button_label: 'Cadastrar',
+                  loading_button_label: "Cadastrando...",
                   link_text: 'Não possui conta?',
                 },
                 forgotten_password: {
@@ -113,6 +114,7 @@ export const LoginCard = () => {
                   email_label: 'Email',
                   email_input_placeholder: "seu@email.com",
                   button_label: 'Enviar',
+                  loading_button_label: "Enviando..."
                 },
               },
             }}
