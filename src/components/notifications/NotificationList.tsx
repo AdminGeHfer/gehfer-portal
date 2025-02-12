@@ -4,7 +4,7 @@ import { NotificationItem } from "./NotificationItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Clock, Filter } from "lucide-react";
+import { Clock, Filter, SquareCheck } from "lucide-react";
 
 export function NotificationList() {
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
@@ -33,11 +33,11 @@ export function NotificationList() {
           </Select>
         </div>
         <Button variant="ghost" size="sm" onClick={() => markAllAsRead.mutate()}>
-          Marcar todas como lidas
+          <SquareCheck />
         </Button>
       </div>
 
-      <ScrollArea className="h-[500px]">
+      <ScrollArea className="h-[200px]">
         {filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <Clock className="w-12 h-12 mb-2" />
