@@ -2134,10 +2134,16 @@ export type Database = {
           p_state_id: string
         }
         Returns: number
-      }      
+      }
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]
+      }
+      get_workflow_status_label: {
+        Args: {
+          status: string
+        }
+        Returns: string
       }
       halfvec_avg: {
         Args: {
