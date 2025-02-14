@@ -100,15 +100,6 @@ export const LoginCard = () => {
                   email_input_placeholder: "seu@email.com",
                   password_input_placeholder: "Sua senha"
                 },
-                sign_up: {
-                  email_label: 'Email',
-                  email_input_placeholder: "novo@email.com",
-                  password_label: 'Senha',
-                  password_input_placeholder: "Sua senha",
-                  button_label: 'Cadastrar',
-                  loading_button_label: "Cadastrando...",
-                  link_text: 'Não possui conta?',
-                },
                 forgotten_password: {
                   link_text: 'Esqueceu a senha?',
                   email_label: 'Email',

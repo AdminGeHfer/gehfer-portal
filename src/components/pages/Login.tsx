@@ -86,14 +86,6 @@ const Login = () => {
                   email_input_placeholder: "seu@email.com",
                   password_input_placeholder: "Sua senha",
                 },
-                sign_up: {
-                  email_label: "Email",
-                  password_label: "Senha",
-                  button_label: "Cadastrar",
-                  loading_button_label: "Cadastrando...",
-                  email_input_placeholder: "seu@email.com",
-                  password_input_placeholder: "Sua senha",
-                },
               },
             }}
           />
