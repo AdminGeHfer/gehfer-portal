@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { NotificationsPopover } from "./notifications/NotificationsPopover";
 import { ProfileUpload } from "./profile/ProfileUpload";
 import * as React from "react";
+import { NotificationsPopOver } from "./notifications/NotificationsPopOver";
 
 interface HeaderProps {
   title?: string;
@@ -53,7 +53,7 @@ export function Header({ title = "Portal GeHfer" }: HeaderProps) {
             Bem-vindo, {user?.name}
           </span>
           
-          <NotificationsPopover />
+          <NotificationsPopOver />
           
           <Button
             variant="ghost"

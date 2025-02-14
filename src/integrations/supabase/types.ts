@@ -2134,7 +2134,7 @@ export type Database = {
           p_state_id: string
         }
         Returns: number
-      }
+      }      
       get_user_modules: {
         Args: Record<PropertyKey, never>
         Returns: string[]

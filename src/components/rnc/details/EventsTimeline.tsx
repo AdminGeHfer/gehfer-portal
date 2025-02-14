@@ -8,7 +8,13 @@ import {
   Package, 
   CircleX, 
   SquareCheck,
-  Clock
+  Clock,
+  FileLock,
+  FileSearch2,
+  FileUp,
+  FileCheck,
+  FileArchive,
+  FileKey
 } from "lucide-react";
 
 interface Event {
@@ -32,15 +38,27 @@ export function EventsTimeline({ events }: EventsTimelineProps) {
       case "creation":
         return <SquarePen className="text-blue-500" />;
       case "assignment":
-        return <UserPlus className="text-orange-500" />;
+        return <UserPlus className="text-lime-500" />;
       case "status - collected":
         return <Package style={{ color: "#C08F4F" }} />;
-      case "status":
-        return <Clock className="text-gray-500" />;
       case "status - canceled":
         return <CircleX className="text-red-500" />;
       case "status - concluded":
         return <SquareCheck className="text-green-500" />;
+      case "status":
+        return <Clock className="text-stone-500" />;
+      case "workflow_status - open":
+        return <FileUp className="text-yellow-500" />;
+      case "workflow_status - analysis":
+        return <FileSearch2 className="text-cyan-500" />;
+      case "workflow_status - resolution":
+        return <FileKey className="text-purple-500" />;
+      case "workflow_status - solved":
+        return <FileCheck className="text-green-500" />;
+      case "workflow_status - closing":
+        return <FileLock className="text-orange-500" />;
+      case "workflow_status - closed":
+          return <FileArchive className="text-zinc-500" />;
       default:
         return <Clock className="text-white" />;
     }

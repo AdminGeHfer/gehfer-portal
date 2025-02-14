@@ -21,7 +21,7 @@ interface Notification {
   rnc_id: string;
 }
 
-export function NotificationsPopover() {
+export function NotificationsPopOver() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -93,8 +93,8 @@ export function NotificationsPopover() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between p-4 border-b">
+      <PopoverContent align="end" className="w-[420px] p-0" sideOffset={5}>
+        <div className="flex items-center justify-between p-2.5 border-b">
           <h4 className="text-sm font-medium">Notificações</h4>
           {unreadCount > 0 && (
             <Button
@@ -103,14 +103,14 @@ export function NotificationsPopover() {
               className="h-8 text-xs"
               onClick={() => markAllAsRead.mutateAsync()}
             >
-              <Check className="h-4 w-4 mr-1" />
+              <Check className="h-3 w-3 mr-0.5" />
               Marcar todas como lidas
             </Button>
           )}
         </div>
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[280px]">
           {!notifications?.length ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
+            <div className="p-2.5 text-center text-sm text-muted-foreground">
               Nenhuma notificação
             </div>
           ) : (

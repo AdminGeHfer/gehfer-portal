@@ -28,11 +28,11 @@ export function WorkflowEditorCanvas() {
           label: state.label,
           type: state.state_type,
           assigned_to: state.assigned_to,
-          send_email: state.send_email,
-          email_template: state.email_template,
+          send_notification: state.send_notification,
+          notification_template: state.notification_template,
           onAssigneeChange: (value: string) => handleStateUpdate(state.id, { assigned_to: value }),
-          onEmailToggle: (checked: boolean) => handleStateUpdate(state.id, { send_email: checked }),
-          onEmailTemplateChange: (value: string) => handleStateUpdate(state.id, { email_template: value }),
+          onNotificationToggle: (checked: boolean) => handleStateUpdate(state.id, { send_notification: checked }),
+          onNotificationTemplateChange: (value: string) => handleStateUpdate(state.id, { notification_template: value }),
         },
         draggable: true,
       }));
@@ -160,7 +160,7 @@ export function WorkflowEditorCanvas() {
   };
 
   if (isLoading) {
-    return <div>Carregando editor de workflow...</div>;
+    return <div>Carregando editor do fluxo de notificações...</div>;
   }
 
   return (

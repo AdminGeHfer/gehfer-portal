@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import * as React from "react";
+import { NotificationsInbox } from "@/components/notifications/NotificationsInbox";
 
 const modules = [
   {
@@ -61,6 +62,10 @@ const Apps = () => {
         </div>
       </header>
 
+      {/* <div className="mb-8">
+        <NotificationsInbox />
+      </div> */}
+
       <main className="px-6 py-8">
         <div className="max-w-7xl">
           <motion.div 
@@ -111,11 +116,12 @@ const Apps = () => {
                 </Card>
               </motion.div>
             ))}
+            <NotificationsInbox />
           </div>
         </div>
       </main>
 
-      <footer className="fixed bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
+      <footer className="bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
         <div className="flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
             <a href="https://admingehfer.github.io/gehfer-portal-docs/license" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>

@@ -49,8 +49,8 @@ export function useWorkflowData() {
         label: node.data.label,
         state_type: node.data.type,
         assigned_to: node.data.assigned_to,
-        send_email: node.data.send_email,
-        email_template: node.data.email_template,
+        send_notification: node.data.send_notification,
+        notification_template: node.data.notification_template,
       }));
 
       const { error } = await supabase
@@ -58,6 +58,22 @@ export function useWorkflowData() {
         .upsert(updates, { onConflict: 'id' });
 
       if (error) throw error;
+
+      // Then create notifications for each state that has notifications enabled
+      for (const node of nodes) {
+        if (node.data.send_notification) {
+          const { data, error: notifyError } = await supabase
+            .rpc('create_workflow_state_notifications_rpc', {
+              p_state_id: node.id
+            });
+
+          if (notifyError) throw notifyError;
+
+          if (data > 0) {
+            toast.success(`${data} notificações criadas para o estado ${node.data.label}`);
+          }
+        }
+      }
 
       await queryClient.invalidateQueries({ queryKey: ['workflow-template'] });
       toast.success('Workflow salvo com sucesso');

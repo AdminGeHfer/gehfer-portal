@@ -15,7 +15,7 @@ const menuItems = [
     path: "/quality/collections"
   },
   {
-    title: "Workflow",
+    title: "Fluxo de Notificações",
     icon: ClipboardList,
     path: "/quality/workflow"
   },

@@ -708,36 +708,36 @@ export interface Database {
         Row: {
           assigned_to: string | null;
           created_at: string | null;
-          email_template: string | null;
+          notification_template: string | null;
           id: string;
           label: string;
           position_x: number;
           position_y: number;
-          send_email: boolean | null;
+          send_notification: boolean | null;
           state_type: Database["public"]["Enums"]["workflow_state_type"];
           workflow_id: string | null;
         };
         Insert: {
           assigned_to?: string | null;
           created_at?: string | null;
-          email_template?: string | null;
+          notification_template?: string | null;
           id?: string;
           label: string;
           position_x: number;
           position_y: number;
-          send_email?: boolean | null;
+          send_notification?: boolean | null;
           state_type: Database["public"]["Enums"]["workflow_state_type"];
           workflow_id?: string | null;
         };
         Update: {
           assigned_to?: string | null;
           created_at?: string | null;
-          email_template?: string | null;
+          notification_template?: string | null;
           id?: string;
           label?: string;
           position_x?: number;
           position_y?: number;
-          send_email?: boolean | null;
+          send_notification?: boolean | null;
           state_type?: Database["public"]["Enums"]["workflow_state_type"];
           workflow_id?: string | null;
         };

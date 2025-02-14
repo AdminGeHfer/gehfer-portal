@@ -41,7 +41,7 @@ export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
   };
 
   return (
-    <div className="rounded-md border bg-white dark:bg-gray-800">
+    <div className="rounded-md border bg-white dark:bg-gray-800 h-[500px] overflow-y-auto">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-gray-50 dark:bg-gray-900">
