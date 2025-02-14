@@ -155,125 +155,28 @@ export const rncService = {
       if (userError) {
         console.warn('Could not find user for assignment:', userError);
       }
-  
+
+      // Determine status and workflow_status based on dates
+      let status = data.status;
+      let workflow_status = data.workflow_status;
+
       // Handle cancellation first (highest priority)
       if (data.resolution?.toUpperCase().includes('RNC CANCELADA') ||
           data.conclusion?.toUpperCase().includes('RNC CANCELADO')) {
-        const { data: rncData, error: rncError } = await supabase
-          .from('rncs')
-          .update({
-            company_code: data.company_code,
-            company: data.company,
-            document: data.document,
-            type: data.type,
-            department: data.department,
-            responsible: capitalizedResponsible,
-            description: data.description,
-            resolution: data.resolution,
-            korp: data.korp,
-            nfv: data.nfv,
-            nfd: data.nfd,
-            city: data.city,
-            collected_at: data.collected_at,
-            closed_at: data.closed_at,
-            conclusion: data.conclusion,
-            status: RncStatusEnum.canceled,
-            workflow_status: WorkflowStatusEnum.closed,
-            assigned_to: assignedUser?.id || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id)
-          .select()
-          .single();
-  
-        if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
-        if (!rncData) throw new RNCError('Failed to update RNC');
-  
-        await this.updateRelatedData(id, data);
-        return rncData as RNC;
+        status = RncStatusEnum.canceled;
+        workflow_status = WorkflowStatusEnum.closed;
       }
-  
-      // Handle conclusion and closed_at in two steps
-      if (data.conclusion && data.closed_at) {
-        // Step 1: Update status first
-        const { error: statusError } = await supabase
-          .from('rncs')
-          .update({
-            status: RncStatusEnum.concluded,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id);
 
-        if (statusError) throw new RNCError(`Error updating status: ${statusError.message}`);
-
-        // Step 2: Update workflow status and all other fields
-        const { data: rncData, error: rncError } = await supabase
-          .from('rncs')
-          .update({
-            company_code: data.company_code,
-            company: data.company,
-            document: data.document,
-            type: data.type,
-            department: data.department,
-            responsible: capitalizedResponsible,
-            description: data.description,
-            resolution: data.resolution,
-            korp: data.korp,
-            nfv: data.nfv,
-            nfd: data.nfd,
-            city: data.city,
-            collected_at: data.collected_at,
-            closed_at: data.closed_at,
-            conclusion: data.conclusion,
-            workflow_status: WorkflowStatusEnum.solved,
-            assigned_to: assignedUser?.id || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id)
-          .select()
-          .single();
-
-        if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
-        if (!rncData) throw new RNCError('Failed to update RNC');
-
-        await this.updateRelatedData(id, data);
-        return rncData as RNC;
-      }
-  
       // Handle resolution + collection
       if (data.resolution && data.collected_at) {
-        const { data: rncData, error: rncError } = await supabase
-          .from('rncs')
-          .update({
-            company_code: data.company_code,
-            company: data.company,
-            document: data.document,
-            type: data.type,
-            department: data.department,
-            responsible: capitalizedResponsible,
-            description: data.description,
-            resolution: data.resolution,
-            korp: data.korp,
-            nfv: data.nfv,
-            nfd: data.nfd,
-            city: data.city,
-            collected_at: data.collected_at,
-            closed_at: data.closed_at,
-            conclusion: data.conclusion,
-            status: RncStatusEnum.collect,
-            workflow_status: WorkflowStatusEnum.closing,
-            assigned_to: assignedUser?.id || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', id)
-          .select()
-          .single();
-  
-        if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
-        if (!rncData) throw new RNCError('Failed to update RNC');
-  
-        await this.updateRelatedData(id, data);
-        return rncData as RNC;
+        status = RncStatusEnum.collect;
+        workflow_status = WorkflowStatusEnum.closing;
+      }
+
+      // Handle conclusion + closed
+      if (data.conclusion && data.closed_at) {
+        status = RncStatusEnum.concluded;
+        workflow_status = WorkflowStatusEnum.solved;
       }
   
       // Handle regular updates
@@ -296,6 +199,8 @@ export const rncService = {
           closed_at: data.closed_at,
           conclusion: data.conclusion,
           assigned_to: assignedUser?.id || null,
+          status: status,
+          workflow_status: workflow_status,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
