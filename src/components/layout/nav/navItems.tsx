@@ -42,7 +42,7 @@ export const navItems: NavItem[] = [
         icon: <FileChartColumnIncreasing className="h-4 w-4" />
       },
       {
-        title: "Workflow",
+        title: "Fluxo de Notificações",
         href: "/quality/workflow",
         icon: <Network className="h-4 w-4" />,
       },

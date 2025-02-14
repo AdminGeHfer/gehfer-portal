@@ -9,7 +9,6 @@ import {
   WorkflowTransition,
 } from '@/types/rnc';
 
-// Custom error classes for better error handling
 export class RNCError extends Error {
   constructor(message: string, public code?: string) {
     super(message);
@@ -58,7 +57,7 @@ export const rncService = {
         console.warn('Could not find user for assignment:', userError);
       }
 
-      // Create RNC
+      // Create RNC with initial status
       const { data: rncData, error: rncError } = await supabase
         .from('rncs')
         .insert([{
@@ -74,7 +73,7 @@ export const rncService = {
           nfd: data.nfd,
           city: data.city,
           status: RncStatusEnum.pending,
-          workflow_status: WorkflowStatusEnum.open,
+          workflow_status: WorkflowStatusEnum.open, // Trigger will handle open -> analysis
           assigned_by: user.id,
           assigned_to: assignedUser?.id || null,
           assigned_at: new Date().toISOString(),
@@ -88,8 +87,8 @@ export const rncService = {
       if (rncError) throw new RNCError(`Error creating RNC: ${rncError.message}`);
       if (!rncData) throw new RNCError('Failed to create RNC');
 
-      // Create contacts only if there are valid contacts
-      if (data.contacts && data.contacts.length > 0) {
+      // Handle contacts
+      if (data.contacts?.length > 0) {
         const validContacts = data.contacts.filter(contact => 
           contact.name || contact.phone || contact.email
         );
@@ -110,7 +109,7 @@ export const rncService = {
         }
       }
 
-      // Create products
+      // Handle products
       if (data.products?.length) {
         const { error: productsError } = await supabase
           .from('rnc_products')
@@ -125,6 +124,7 @@ export const rncService = {
         if (productsError) throw new RNCError(`Error creating products: ${productsError.message}`);
       }
 
+      // Handle attachments
       if (data.attachments?.length) {
         await Promise.all(data.attachments.map(file => 
           this.uploadAttachment(rncData.id, file)
@@ -143,66 +143,140 @@ export const rncService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new RNCError('Usuário não autenticado');
-
+  
       const capitalizedResponsible = data.responsible.charAt(0).toUpperCase() + data.responsible.slice(1).toLowerCase();
-
+  
       const { data: assignedUser, error: userError } = await supabase
         .from('profiles')
         .select('id')
         .ilike('name', capitalizedResponsible)
         .single();
-
+  
       if (userError) {
         console.warn('Could not find user for assignment:', userError);
       }
-
-      // Determine status and workflow_status based on dates
-      let status = data.status;
-      let workflow_status = data.workflow_status;
-
-      // Handle collected_at date changes
-      if (data.collected_at) {
-        status = RncStatusEnum.collect;
-        workflow_status = WorkflowStatusEnum.resolution;
-      }
-
-      // Handle closed_at date changes
-      if (data.closed_at) {
-        status = RncStatusEnum.concluded;
-        workflow_status = WorkflowStatusEnum.solved;
-      }
-
-      // Handle workflow changes if resolution filled
-      if (data.resolution) {
-        workflow_status = WorkflowStatusEnum.closing;
-      }
-
-      // If both dates are null, revert to pending status
-      if (!data.collected_at && !data.closed_at) {
-        status = RncStatusEnum.pending;
-        workflow_status = WorkflowStatusEnum.analysis;
-      }
-
-      // If on resolution or on conclusion have the word 'cancelado' or 'cancelada'
-      if (data.conclusion?.toUpperCase().includes('RNC CANCELADO') ||
-          data.resolution?.toUpperCase().includes('RNC CANCELADA')) {
-        // Then transition to closed
-        const { error: closedError } = await supabase
-          .from('rnc_workflow_transitions')
-          .insert({
-            rnc_id: id,
-            from_status: data.workflow_status,
-            to_status: WorkflowStatusEnum.closed,
-            notes: 'RNC cancelada - fechada',
-            created_by: user.id
-          });
   
-        if (closedError) throw new RNCError(`Error in closed transition: ${closedError.message}`);
+      // Handle cancellation first (highest priority)
+      if (data.resolution?.toUpperCase().includes('RNC CANCELADA') ||
+          data.conclusion?.toUpperCase().includes('RNC CANCELADO')) {
+        const { data: rncData, error: rncError } = await supabase
+          .from('rncs')
+          .update({
+            company_code: data.company_code,
+            company: data.company,
+            document: data.document,
+            type: data.type,
+            department: data.department,
+            responsible: capitalizedResponsible,
+            description: data.description,
+            resolution: data.resolution,
+            korp: data.korp,
+            nfv: data.nfv,
+            nfd: data.nfd,
+            city: data.city,
+            collected_at: data.collected_at,
+            closed_at: data.closed_at,
+            conclusion: data.conclusion,
+            status: RncStatusEnum.canceled,
+            workflow_status: WorkflowStatusEnum.closed,
+            assigned_to: assignedUser?.id || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single();
   
-        status = RncStatusEnum.canceled;
-        workflow_status = WorkflowStatusEnum.closed;
+        if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
+        if (!rncData) throw new RNCError('Failed to update RNC');
+  
+        await this.updateRelatedData(id, data);
+        return rncData as RNC;
       }
   
+      // Handle conclusion and closed_at in two steps
+      if (data.conclusion && data.closed_at) {
+        // Step 1: Update status first
+        const { error: statusError } = await supabase
+          .from('rncs')
+          .update({
+            status: RncStatusEnum.concluded,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id);
+
+        if (statusError) throw new RNCError(`Error updating status: ${statusError.message}`);
+
+        // Step 2: Update workflow status and all other fields
+        const { data: rncData, error: rncError } = await supabase
+          .from('rncs')
+          .update({
+            company_code: data.company_code,
+            company: data.company,
+            document: data.document,
+            type: data.type,
+            department: data.department,
+            responsible: capitalizedResponsible,
+            description: data.description,
+            resolution: data.resolution,
+            korp: data.korp,
+            nfv: data.nfv,
+            nfd: data.nfd,
+            city: data.city,
+            collected_at: data.collected_at,
+            closed_at: data.closed_at,
+            conclusion: data.conclusion,
+            workflow_status: WorkflowStatusEnum.solved,
+            assigned_to: assignedUser?.id || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
+        if (!rncData) throw new RNCError('Failed to update RNC');
+
+        await this.updateRelatedData(id, data);
+        return rncData as RNC;
+      }
+  
+      // Handle resolution + collection
+      if (data.resolution && data.collected_at) {
+        const { data: rncData, error: rncError } = await supabase
+          .from('rncs')
+          .update({
+            company_code: data.company_code,
+            company: data.company,
+            document: data.document,
+            type: data.type,
+            department: data.department,
+            responsible: capitalizedResponsible,
+            description: data.description,
+            resolution: data.resolution,
+            korp: data.korp,
+            nfv: data.nfv,
+            nfd: data.nfd,
+            city: data.city,
+            collected_at: data.collected_at,
+            closed_at: data.closed_at,
+            conclusion: data.conclusion,
+            status: RncStatusEnum.collect,
+            workflow_status: WorkflowStatusEnum.closing,
+            assigned_to: assignedUser?.id || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id)
+          .select()
+          .single();
+  
+        if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
+        if (!rncData) throw new RNCError('Failed to update RNC');
+  
+        await this.updateRelatedData(id, data);
+        return rncData as RNC;
+      }
+  
+      // Handle regular updates
       const { data: rncData, error: rncError } = await supabase
         .from('rncs')
         .update({
@@ -222,9 +296,7 @@ export const rncService = {
           closed_at: data.closed_at,
           conclusion: data.conclusion,
           assigned_to: assignedUser?.id || null,
-          updated_at: new Date().toISOString(),
-          status,
-          workflow_status
+          updated_at: new Date().toISOString()
         })
         .eq('id', id)
         .select()
@@ -232,64 +304,62 @@ export const rncService = {
   
       if (rncError) throw new RNCError(`Error updating RNC: ${rncError.message}`);
       if (!rncData) throw new RNCError('Failed to update RNC');
-
-      // Update contacts
-      if (data.contacts) {
-        // Delete existing contacts
-        await supabase.from('rnc_contacts').delete().eq('rnc_id', id);
-        
-        // Insert new contacts if any
-        if (data.contacts.length > 0) {
-          const { error: contactsError } = await supabase
-            .from('rnc_contacts')
-            .insert(
-              data.contacts.map(contact => ({
-                rnc_id: id,
-                name: contact.name,
-                phone: contact.phone,
-                email: contact.email
-              }))
-            );
-
-          if (contactsError) throw new RNCError(`Error updating contacts: ${contactsError.message}`);
-        }
-      }
-
-      // Update products
-      if (data.products) {
-        // Delete existing products
-        await supabase.from('rnc_products').delete().eq('rnc_id', id);
-        
-        // Insert new products if any
-        if (data.products.length > 0) {
-          const { error: productsError } = await supabase
-            .from('rnc_products')
-            .insert(
-              data.products.map(product => ({
-                rnc_id: id,
-                name: product.name,
-                weight: product.weight
-              }))
-            );
-
-          if (productsError) throw new RNCError(`Error updating products: ${productsError.message}`);
-        }
-      }
-
-      // Handle attachments
-      if (data.attachments?.length) {
-        // Only handle new File objects, existing attachments are managed separately
-        const newAttachments = data.attachments.filter(att => att instanceof File);
-        await Promise.all(newAttachments.map(file => 
-          this.uploadAttachment(id, file)
-        ));
-      }
-
+  
+      await this.updateRelatedData(id, data);
       return rncData as RNC;
     } catch (error) {
       console.error('Error in RNC update:', error);
       if (error instanceof RNCError) throw error;
       throw new RNCError('Unexpected error updating RNC');
+    }
+  },
+  
+  async updateRelatedData(id: string, data: UpdateRNCInput): Promise<void> {
+    // Handle contacts update
+    if (data.contacts) {
+      await supabase.from('rnc_contacts').delete().eq('rnc_id', id);
+      
+      if (data.contacts.length > 0) {
+        const { error: contactsError } = await supabase
+          .from('rnc_contacts')
+          .insert(
+            data.contacts.map(contact => ({
+              rnc_id: id,
+              name: contact.name,
+              phone: contact.phone,
+              email: contact.email
+            }))
+          );
+  
+        if (contactsError) throw new RNCError(`Error updating contacts: ${contactsError.message}`);
+      }
+    }
+  
+    // Handle products update
+    if (data.products) {
+      await supabase.from('rnc_products').delete().eq('rnc_id', id);
+      
+      if (data.products.length > 0) {
+        const { error: productsError } = await supabase
+          .from('rnc_products')
+          .insert(
+            data.products.map(product => ({
+              rnc_id: id,
+              name: product.name,
+              weight: product.weight
+            }))
+          );
+  
+        if (productsError) throw new RNCError(`Error updating products: ${productsError.message}`);
+      }
+    }
+  
+    // Handle attachments
+    if (data.attachments?.length) {
+      const newAttachments = data.attachments.filter(att => att instanceof File);
+      await Promise.all(newAttachments.map(file => 
+        this.uploadAttachment(id, file)
+      ));
     }
   },
 
@@ -464,4 +534,4 @@ export const rncService = {
       throw new Error('Failed to update workflow transition');
     }
   },
-}
+};

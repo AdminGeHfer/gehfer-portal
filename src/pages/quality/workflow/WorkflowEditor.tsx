@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 export default function WorkflowEditor() {
   return (
     <div className="min-h-screen bg-background">
-      <Header title="Editor de Workflow" />
+      <Header title="Editor do Fluxo de Notificações" />
       <main className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Editor de Workflow</CardTitle>
+            <CardTitle>Editor do Fluxo de Notificações</CardTitle>
           </CardHeader>
           <CardContent>
             <WorkflowEditorCanvas />

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProfileUpload } from "./profile/ProfileUpload";
 import * as React from "react";
-import { NotificationsPopOver } from "./notifications/NotificationsPopover";
+import { NotificationsPopOver } from "./notifications/NotificationsPopOver";
 
 interface HeaderProps {
   title?: string;

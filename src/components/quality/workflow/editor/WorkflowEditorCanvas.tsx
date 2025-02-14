@@ -160,7 +160,7 @@ export function WorkflowEditorCanvas() {
   };
 
   if (isLoading) {
-    return <div>Carregando editor de workflow...</div>;
+    return <div>Carregando editor do fluxo de notificações...</div>;
   }
 
   return (
