@@ -138,8 +138,9 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                         return;
                       }
                       try {
-                        const date = new Date(value);
+                        const date = new Date(value + 'T00:00:00');
                         if (!isNaN(date.getTime())) {
+                          date.setHours(0, 0, 0, 0);
                           field.onChange(date.toISOString());
                         }
                       } catch (error) {
@@ -178,8 +179,9 @@ export const AdditionalInfoTab = ({ isEditing }: { isEditing: boolean }) => {
                           return;
                         }
                         try {
-                          const date = new Date(value);
+                          const date = new Date(value + 'T00:00:00');
                           if (!isNaN(date.getTime())) {
+                            date.setHours(0, 0, 0, 0);
                             field.onChange(date.toISOString());
                           }
                         } catch (error) {
