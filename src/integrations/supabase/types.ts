@@ -2283,6 +2283,10 @@ export type Database = {
         Args: { "": unknown[] }
         Returns: number
       }
+      verify_admin_role: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       agent_type_enum: "openai" | "n8n" | "flowise"
