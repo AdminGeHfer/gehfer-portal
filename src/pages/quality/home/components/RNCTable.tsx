@@ -47,6 +47,7 @@ export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
           <TableHeader className="bg-gray-50 dark:bg-gray-900">
             <TableRow>
               <TableHead className="font-semibold text-center">Número</TableHead>
+              <TableHead className="font-semibold text-center">Pedido</TableHead>
               <TableHead className="font-semibold text-center">Empresa</TableHead>
               <TableHead className="font-semibold text-center">Tipo</TableHead>
               <TableHead className="font-semibold text-center">Departamento</TableHead>
@@ -62,6 +63,7 @@ export function RNCTable({ rncs, isLoading, onSelectRNC }: RNCTableProps) {
                 onClick={() => handleRowClick(rnc)}
               >
                 <TableCell className="text-center">{rnc.rnc_number}</TableCell>
+                <TableCell className="text-center">{rnc.korp}</TableCell>
                 <TableCell className="text-center">{rnc.company}</TableCell>
                 <TableCell className="text-center">
                   <Badge className={getTypeColor(getTypeDisplayName(rnc.type))}>
