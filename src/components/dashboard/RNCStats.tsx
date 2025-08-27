@@ -4,7 +4,7 @@ import { RncDepartmentEnum, RncTypeEnum } from '@/types/rnc';
 import { Card } from '@/ui/card';
 import { ChartContainer } from '@/ui/chart';
 import * as React from 'react';
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Pie, PieChart, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface RNCStatsProps {
   stats: {
@@ -124,6 +124,94 @@ const CustomToolTip: React.FC<CustomTooltipProps> = ({ active, payload, total })
         {value} ({percentage}%)
       </p>
     </div>
+  );
+};
+
+// ===== Modal Content: lista completa com busca/scroll =====
+const CompanyFullList: React.FC<{ rows: { company: string; count: number }[] }> = ({ rows }) => {
+  const [q, setQ] = React.useState('');
+  const data = React.useMemo(
+    () =>
+      [...rows]
+        .filter(r => r.company && r.company.toLowerCase().includes(q.toLowerCase()))
+        .sort((a, b) => (b.count ?? 0) - (a.count ?? 0)),
+    [rows, q]
+  );
+
+  return (
+    <>
+      <div className="pb-2">
+        <input
+          placeholder="Buscar empresa…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="bg-neutral-800 rounded-lg px-3 py-1.5 outline-none w-full"
+        />
+      </div>
+      <div className="overflow-auto max-h-[60vh] pr-1">
+        <table className="w-full text-sm">
+          <thead className="text-neutral-400">
+            <tr>
+              <th className="text-left py-2">#</th>
+              <th className="text-left">Empresa</th>
+              <th className="text-right">RNCs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((r, i) => (
+              <tr key={`${r.company}-${i}`} className="border-t border-neutral-800">
+                <td className="py-2">{i + 1}</td>
+                <td className="truncate pr-4">{r.company}</td>
+                <td className="text-right">{r.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+};
+
+function toTopN<T extends { company: string | null; count: number | null }>(rows: T[], N = 12) {
+  const ordered = [...rows].filter(r => r.company !== null).sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+  const head = ordered.slice(0, N);
+  const tail = ordered.slice(N);
+  const others = tail.reduce((s, r) => s + (r.count ?? 0), 0);
+  return others > 0
+    ? [...head, { company: 'Outros', count: others } as T]
+    : head;
+}
+
+type ClickableLegendProps = {
+  payload?: any[];
+  activeName: string | null;
+  onToggle: (name: string) => void;
+};
+
+const ClickableLegend: React.FC<ClickableLegendProps> = ({ payload = [], activeName, onToggle }) => {
+  return (
+    <ul className="flex flex-wrap gap-2 justify-center px-2 py-1">
+      {payload.map((item) => {
+        const name = item.value as string;
+        const color = item.color as string;
+        const active = !activeName || activeName === name;
+        return (
+          <li key={name}>
+            <button
+              type="button"
+              onClick={() => onToggle(name)}
+              className={`inline-flex items-center gap-2 px-2 py-1 rounded-md text-sm transition
+                ${active ? 'opacity-100' : 'opacity-50'}
+                hover:opacity-100`}
+              title={name}
+            >
+              <span className="w-3 h-3 rounded-sm" style={{ background: color }} />
+              <span className="max-w-[14ch] truncate">{name}</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 };
 
@@ -280,10 +368,10 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
             RNCs por Responsável
           </h3>
           <div className="w-full h-[300px] sm:h-[400px]">
-            <ChartContainer 
+            <ChartContainer
               className="w-full min-h-[300px] md:min-h-[400px]"
               config={{
-                responsible: { 
+                responsible: {
                   theme: {
                     light: "hsl(222.2 47.4% 11.2%)",
                     dark: "hsl(210 40% 98%)"
@@ -291,76 +379,141 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
                 }
               }}
             >
-              <PieChart>
-                <Pie
-                  data={stats?.responsibleStats?.filter(stat => stat.responsible !== null)}
-                  dataKey="count"
-                  nameKey="responsible"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  innerRadius={0}
-                  fill="#8884d8"
-                >
-                  {stats?.responsibleStats?.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={CHART_COLORS.responsibles[entry.responsible]}
+              {(() => {
+                // estado para foco por legenda
+                const [focusName, setFocusName] = React.useState<string | null>(null);
+                const data = (stats?.responsibleStats ?? []).filter(s => s.responsible !== null);
+
+                return (
+                  <PieChart>
+                    <Pie
+                      data={data}
+                      dataKey="count"
+                      nameKey="responsible"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={110}
+                      innerRadius={0}
+                      isAnimationActive
+                    >
+                      {data.map((entry, index) => {
+                        const color = CHART_COLORS.responsibles[entry.responsible] ?? '#8884d8';
+                        const dim = focusName && entry.responsible !== focusName;
+                        return (
+                          <Cell
+                            key={`cell-resp-${index}`}
+                            fill={color}
+                            fillOpacity={dim ? 0.35 : 1}
+                            stroke="#ffffff33"
+                            strokeWidth={dim ? 1 : 2}
+                          />
+                        );
+                      })}
+                    </Pie>
+                    <Tooltip
+                      formatter={(val: number, _name: string, p: any) => {
+                        const total = data.reduce((s, r) => s + (r.count ?? 0), 0);
+                        const pct = total ? ((val / total) * 100).toFixed(1) : '0.0';
+                        return [`${val} (${pct}%)`, p.payload.responsible];
+                      }}
                     />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomToolTip total={deptTotal} />} />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                />
-              </PieChart>
+                    <Legend
+                      verticalAlign="bottom"
+                      height={48}
+                      content={(props) => (
+                        <ClickableLegend
+                          {...props}
+                          activeName={focusName}
+                          onToggle={(name) => setFocusName(prev => (prev === name ? null : name))}
+                        />
+                      )}
+                    />
+                  </PieChart>
+                );
+              })()}
             </ChartContainer>
           </div>
         </Card>
-        {/* Pie Chart (Company) */}
+        {/* Company: Horizontal Bar Top-N + "Outros" + modal "Ver todas" */}
         <Card className="w-full p-4 sm:p-6">
           <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
             RNCs por Empresa
           </h3>
-          <div className="w-full h-[300px] sm:h-[400px]">
-            <ChartContainer 
-              className="w-full min-h-[300px] md:min-h-[400px]"
-              config={{
-                company: { 
-                  theme: {
-                    light: "hsl(222.2 47.4% 11.2%)",
-                    dark: "hsl(210 40% 98%)"
-                  }
-                }
-              }}
-            >
-              <PieChart>
-                <Pie
-                  data={stats?.companyStats?.filter(stat => stat.company !== null)}
-                  dataKey="count"
-                  nameKey="company"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  innerRadius={0}
-                  fill="#8884d8"
+          {(() => {
+            const [open, setOpen] = React.useState(false);
+            const raw = (stats?.companyStats ?? []).filter(s => s.company !== null);
+            const top = toTopN(raw as any[], 12); // Top 12 + "Outros"
+            const total = raw.reduce((s, r) => s + (r.count ?? 0), 0);
+            return (
+              <div className="w-full h-[360px] relative">
+                <ChartContainer
+                  className="w-full h-full"
+                  config={{
+                    company: {
+                      theme: {
+                        light: "hsl(222.2 47.4% 11.2%)",
+                        dark: "hsl(210 40% 98%)"
+                      }
+                    }
+                  }}
                 >
-                  {stats?.companyStats?.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={getCompanyColor(entry.company)}
+                  <BarChart
+                    data={top.map((r) => ({ company: r.company, count: r.count }))}
+                    layout="vertical"
+                    margin={{ top: 8, right: 16, bottom: 8, left: 140 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" allowDecimals={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="company"
+                      width={140}
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(v: string) => (v?.length > 26 ? `${v.slice(0, 26)}…` : v)}
                     />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomToolTip total={deptTotal} />} />
-                <Legend 
-                  verticalAlign="bottom"
-                  height={36}
-                />
-              </PieChart>
-            </ChartContainer>
-          </div>
+                    <Tooltip
+                      formatter={(val: number, _n: string, p: any) => [`${val}`, p.payload.company]}
+                    />
+                    <Bar dataKey="count" barSize={18} radius={[4,4,4,4]}>
+                      {top.map((_, i) => (
+                        <Cell key={`cell-comp-${i}`} fill={COMPANY_COLOR_PALETTE[i % COMPANY_COLOR_PALETTE.length]} />
+                      ))}
+                      <LabelList dataKey="count" position="right" className="fill-current" />
+                    </Bar>
+                  </BarChart>
+                </ChartContainer>
+
+                <div className="absolute top-2 right-2">
+                  <button
+                    onClick={() => setOpen(true)}
+                    className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-sm"
+                    title="Ver ranking completo"
+                  >
+                    Ver todas
+                  </button>
+                </div>
+
+                {/* Modal simples com busca e scroll */}
+                {open && (
+                  <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+                    <div className="bg-neutral-900 rounded-2xl p-4 w-[880px] max-w-[96vw] max-h-[80vh] overflow-hidden">
+                      <div className="flex items-center justify-between gap-3 pb-2">
+                        <h4 className="text-base font-semibold">RNCs por Empresa — todas ({total})</h4>
+                        <button
+                          onClick={() => setOpen(false)}
+                          className="px-2 py-1 rounded-md bg-neutral-800 hover:bg-neutral-700 text-sm"
+                        >
+                          Fechar
+                        </button>
+                      </div>
+
+                      <CompanyFullList rows={raw as any[]} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </Card>
       </div>
     </div>
