@@ -9,10 +9,15 @@ import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, Tooltip, XAx
 interface RNCStatsProps {
   stats: {
     totalRNCs: number;
+    totalMonthlyRNCs: number;
     pendingRNCs: number;
+    pendingMonthlyRNCs: number;
     canceledRNCs: number;
+    canceledMonthlyRNCs: number;
     collectedRNCs: number;
+    collectedMonthlyRNCs: number;
     concludedRNCs: number;
+    concludedMonthlyRNCs: number;
     typeStats: TypeQualityStats[];
     departmentStats: DepartmentQualityStats[];
     responsibleStats: ResponsibleQualityStats[];
@@ -96,12 +101,9 @@ const CHART_COLORS = {
   responsibles: {
     "Arthur": "#7ccf00",
     "Pedro": "#00bc7d",
-    "Marcos Oliveira": "#00c950",
-    "Marcos (Logística)": "#00c950",
-    "Maria Estela": "#e12afb",
-    "Nicholas": "#0084d1",
-    "Thiago Nobrega": "#155dfc",
-    "Helcio Costa": "#fe9a00"
+    "Rafaela": "#e12afb",
+    "Rodrigo Mistura": "#155dfc",
+    "Fabiana Meletti": "#fe9a00"
   }
 };
 
@@ -141,7 +143,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
     <div>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
         <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">Total (mês)</h3>
+          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">Total</h3>
           <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">{stats.totalRNCs}</p>
         </div>
         <div className="bg-yellow-100 dark:bg-gray-800 p-4 rounded-lg shadow">
@@ -159,6 +161,26 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
         <div className="bg-red-100 dark:bg-gray-800 p-4 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-red-700 dark:text-red-500">Canceladas</h3>
           <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.canceledRNCs}</p>
+        </div>
+        <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">Total (mês)</h3>
+          <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">{stats.totalMonthlyRNCs}</p>
+        </div>
+        <div className="bg-yellow-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-yellow-700  dark:text-yellow-500">Pendentes (mês)</h3>
+          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingMonthlyRNCs}</p>
+        </div>
+        <div className="bg-blue-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-blue-700  dark:text-blue-500">Coletadas (mês)</h3>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.collectedMonthlyRNCs}</p>
+        </div>
+        <div className="bg-green-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-green-700 dark:text-green-500">Solucionadas (mês)</h3>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.concludedMonthlyRNCs}</p>
+        </div>
+        <div className="bg-red-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-red-700 dark:text-red-500">Canceladas (mês)</h3>
+          <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.canceledMonthlyRNCs}</p>
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">

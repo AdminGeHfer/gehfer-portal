@@ -26,9 +26,13 @@ interface DashboardStats {
   totalRNCs: number;
   totalMonthlyRNCs: number;
   pendingRNCs: number;
+  pendingMonthlyRNCs: number;
   canceledRNCs: number;
+  canceledMonthlyRNCs: number;
   collectedRNCs: number;
+  collectedMonthlyRNCs: number;
   concludedRNCs: number;
+  concludedMonthlyRNCs: number;
   typeStats: TypeQualityStats[];
   departmentStats: DepartmentQualityStats[];
   responsibleStats: ResponsibleQualityStats[];
@@ -62,11 +66,27 @@ export const useDashboardStats = () => {
           .eq('status', 'pending')
           .is('deleted_at', null);
 
+        const { count: pendingMonthlyCount } = await supabase
+          .from('rncs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .is('deleted_at', null)
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+          .lt('created_at', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString());
+
         const { count: canceledCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'canceled')
           .is('deleted_at', null);
+
+            const { count: canceledMonthlyCount } = await supabase
+          .from('rncs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'canceled')
+          .is('deleted_at', null)
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+          .lt('created_at', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString());
 
         const { count: collectedCount } = await supabase
           .from('rncs')
@@ -74,11 +94,27 @@ export const useDashboardStats = () => {
           .eq('status', 'collect')
           .is('deleted_at', null);
 
+        const { count: collectedMonthlyCount } = await supabase
+          .from('rncs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'collect')
+          .is('deleted_at', null)
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+          .lt('created_at', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString());
+
         const { count: concludedCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'concluded')
           .is('deleted_at', null);
+
+        const { count: concludedMonthlyCount } = await supabase
+          .from('rncs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'concluded')
+          .is('deleted_at', null)
+          .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+          .lt('created_at', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString());
 
         const { data: typeStats } = await supabase
           .from('type_quality_dashboard_stats')
@@ -100,9 +136,13 @@ export const useDashboardStats = () => {
           totalRNCs: totalCount || 0,
           totalMonthlyRNCs: totalMonthlyCount || 0,
           pendingRNCs: pendingCount || 0,
+          pendingMonthlyRNCs: pendingMonthlyCount || 0,
           canceledRNCs: canceledCount || 0,
+          canceledMonthlyRNCs: canceledMonthlyCount || 0,
           collectedRNCs: collectedCount || 0,
+          collectedMonthlyRNCs: collectedMonthlyCount || 0,
           concludedRNCs: concludedCount || 0,
+          concludedMonthlyRNCs: concludedMonthlyCount || 0,
           typeStats: typeStats || [],
           departmentStats: departmentStats || [],
           responsibleStats: responsibleStats || [],
