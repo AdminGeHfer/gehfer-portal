@@ -34,7 +34,8 @@ export const useRNCFilters = (rncs: RNCWithRelations[]) => {
       filtered = filtered.filter(
         (rnc) =>
           rnc.rnc_number.toString().includes(term) ||
-          rnc.company.toLowerCase().includes(term)
+          rnc.company.toLowerCase().includes(term) ||
+          rnc.korp.toString().includes(term)
       );
     }
 
