@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -778,6 +778,13 @@ export type Database = {
             foreignKeyName: "collection_requests_rnc_id_fkey"
             columns: ["rnc_id"]
             isOneToOne: false
+            referencedRelation: "rnc_resolution_time"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_requests_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
             referencedRelation: "rncs"
             referencedColumns: ["id"]
           },
@@ -1117,6 +1124,13 @@ export type Database = {
             foreignKeyName: "notifications_rnc_id_fkey"
             columns: ["rnc_id"]
             isOneToOne: false
+            referencedRelation: "rnc_resolution_time"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
             referencedRelation: "rncs"
             referencedColumns: ["id"]
           },
@@ -1411,6 +1425,13 @@ export type Database = {
             foreignKeyName: "rnc_attachments_rnc_id_fkey"
             columns: ["rnc_id"]
             isOneToOne: false
+            referencedRelation: "rnc_resolution_time"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rnc_attachments_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
             referencedRelation: "rncs"
             referencedColumns: ["id"]
           },
@@ -1448,6 +1469,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "rnc_contacts_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
+            referencedRelation: "rnc_resolution_time"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rnc_contacts_rnc_id_fkey"
             columns: ["rnc_id"]
@@ -1500,6 +1528,13 @@ export type Database = {
             foreignKeyName: "rnc_events_rnc_id_fkey"
             columns: ["rnc_id"]
             isOneToOne: false
+            referencedRelation: "rnc_resolution_time"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rnc_events_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
             referencedRelation: "rncs"
             referencedColumns: ["id"]
           },
@@ -1534,6 +1569,13 @@ export type Database = {
           weight?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "rnc_products_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
+            referencedRelation: "rnc_resolution_time"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rnc_products_rnc_id_fkey"
             columns: ["rnc_id"]
@@ -1589,6 +1631,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rnc_workflow_transitions_rnc_id_fkey"
+            columns: ["rnc_id"]
+            isOneToOne: false
+            referencedRelation: "rnc_resolution_time"
             referencedColumns: ["id"]
           },
           {
@@ -2078,6 +2127,42 @@ export type Database = {
         }
         Relationships: []
       }
+      rnc_resolution_time: {
+        Row: {
+          closed_at: string | null
+          company: string | null
+          created_at: string | null
+          department: Database["public"]["Enums"]["rnc_department_enum"] | null
+          duration_days: number | null
+          duration_hours: number | null
+          id: string | null
+          responsible: string | null
+          rnc_number: number | null
+        }
+        Insert: {
+          closed_at?: string | null
+          company?: string | null
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["rnc_department_enum"] | null
+          duration_days?: never
+          duration_hours?: never
+          id?: string | null
+          responsible?: string | null
+          rnc_number?: number | null
+        }
+        Update: {
+          closed_at?: string | null
+          company?: string | null
+          created_at?: string | null
+          department?: Database["public"]["Enums"]["rnc_department_enum"] | null
+          duration_days?: never
+          duration_hours?: never
+          id?: string | null
+          responsible?: string | null
+          rnc_number?: number | null
+        }
+        Relationships: []
+      }
       type_quality_dashboard_stats: {
         Row: {
           count: number | null
@@ -2094,8 +2179,8 @@ export type Database = {
       calculate_agent_metrics: {
         Args: { p_agent_id: string }
         Returns: {
-          metric_type: string
           avg_value: number
+          metric_type: string
           total_count: number
         }[]
       }
@@ -2182,43 +2267,43 @@ export type Database = {
       log_agent_event: {
         Args: {
           p_agent_id: string
-          p_conversation_id: string
-          p_event_type: string
           p_configuration?: Json
+          p_conversation_id: string
           p_details?: string
+          p_event_type: string
         }
         Returns: string
       }
       match_document_chunks: {
         Args: {
-          query_embedding: string
-          match_threshold: number
           match_count: number
+          match_threshold: number
+          query_embedding: string
         }
         Returns: {
-          id: string
           content: string
+          id: string
           metadata: Json
           similarity: number
         }[]
       }
       match_documents: {
         Args:
-          | { query_embedding: string; match_count?: number }
           | {
-              query_embedding: string
-              match_threshold: number
               match_count: number
-            }
-          | {
-              query_embedding: string
               match_threshold: number
-              match_count: number
               p_agent_id: string
+              query_embedding: string
             }
+          | {
+              match_count: number
+              match_threshold: number
+              query_embedding: string
+            }
+          | { match_count?: number; query_embedding: string }
         Returns: {
-          id: string
           content: string
+          id: string
           metadata: Json
           similarity: number
         }[]
@@ -2240,7 +2325,7 @@ export type Database = {
         Returns: unknown
       }
       rollback_document_version: {
-        Args: { p_version_id: string; p_document_id: string }
+        Args: { p_document_id: string; p_version_id: string }
         Returns: undefined
       }
       sparsevec_out: {
