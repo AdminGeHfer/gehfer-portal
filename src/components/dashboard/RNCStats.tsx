@@ -117,10 +117,10 @@ const CHART_COLORS = {
     tax: '#f6339a',
   },
   responsibles: {
-    Arthur: '#7ccf00',
+    'Arthur oliveira': '#7ccf00',
     Pedro: '#00bc7d',
     Rafaela: '#e12afb',
-    'Rodrigo Mistura': '#155dfc',
+    'Rodrigo mistura': '#155dfc',
     'Fabiana Meletti': '#fe9a00',
   },
 };
