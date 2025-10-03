@@ -204,14 +204,39 @@ const CustomToolTip: React.FC<CustomTooltipProps> = ({ active, payload, total })
 
 // Full list/modal table content
 const CompanyFullList: React.FC<{ rows: { company: string; count: number }[] }> = ({ rows }) => {
-  const [q, setQ] = React.useState('');
-  const data = React.useMemo(
-    () =>
-      [...rows]
-        .filter((r) => r.company && r.company.toLowerCase().includes(q.toLowerCase()))
-        .sort((a, b) => (b.count ?? 0) - (a.count ?? 0)),
-    [rows, q],
-  );
+  const [q, setQ] = React.useState("");
+  const [sortKey, setSortKey] = React.useState<"company" | "count">("count");
+  const [sortDir, setSortDir] = React.useState<"asc" | "desc">("desc");
+
+  const data = React.useMemo(() => {
+    const filtered = [...rows].filter(
+      (r) => r.company && r.company.toLowerCase().includes(q.toLowerCase())
+    );
+
+    const sorted = filtered.sort((a, b) => {
+      const aVal = sortKey === "company" ? a.company?.toLowerCase() : a.count ?? 0;
+      const bVal = sortKey === "company" ? b.company?.toLowerCase() : b.count ?? 0;
+
+      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  }, [rows, q, sortKey, sortDir]);
+
+  const toggleSort = (key: "company" | "count") => {
+    if (sortKey === key) {
+      // se já está nesse campo, inverte direção
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const sortIcon = (key: "company" | "count") =>
+    sortKey === key ? (sortDir === "asc" ? "▲" : "▼") : "⇅";
 
   return (
     <>
@@ -229,18 +254,29 @@ const CompanyFullList: React.FC<{ rows: { company: string; count: number }[] }> 
           "
         />
       </div>
+
       <div className="overflow-auto max-h-[60vh] pr-1">
         <table className="w-full text-sm">
-          <thead className="text-neutral-400">
+          <thead className="text-muted-foreground">
             <tr>
               <th className="text-left py-2">#</th>
-              <th className="text-left">Empresa</th>
-              <th className="text-right">RNCs</th>
+              <th
+                className="text-left cursor-pointer select-none"
+                onClick={() => toggleSort("company")}
+              >
+                Empresa {sortIcon("company")}
+              </th>
+              <th
+                className="text-right cursor-pointer select-none"
+                onClick={() => toggleSort("count")}
+              >
+                RNCs {sortIcon("count")}
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.map((r, i) => (
-              <tr key={`${r.company}-${i}`} className="border-t border-neutral-800">
+              <tr key={`${r.company}-${i}`} className="border-t border-border">
                 <td className="py-2">{i + 1}</td>
                 <td className="truncate pr-4">{r.company}</td>
                 <td className="text-right">{r.count}</td>
