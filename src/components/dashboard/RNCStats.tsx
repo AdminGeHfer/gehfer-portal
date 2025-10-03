@@ -551,7 +551,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
       </div>
 
       {/* ===== Top Slow / Fast (Top 5 + colored bars) ===== */}
-      {(stats?.resolutionTopSlow?.length || stats?.resolutionTopFast?.length) && (
+      {Boolean((stats?.resolutionTopSlow?.length ?? 0) || (stats?.resolutionTopFast?.length ?? 0)) && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 p-4">
           <Card className="w-full p-4 sm:p-6">
             <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
