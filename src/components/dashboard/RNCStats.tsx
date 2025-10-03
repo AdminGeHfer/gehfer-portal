@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { CompanyQualityStats, DepartmentQualityStats, ResponsibleQualityStats, TypeQualityStats } from '@/hooks/useDashboardStats';
 import type { ResolutionTopItem, ResolutionKpis } from '@/hooks/useDashboardStats';
 import { getDepartmentDisplayName, getTypeDisplayName } from '@/pages/quality/home/utils/colors';
@@ -219,7 +220,13 @@ const CompanyFullList: React.FC<{ rows: { company: string; count: number }[] }> 
           placeholder="Buscar empresa…"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          className="bg-neutral-800 rounded-lg px-3 py-1.5 outline-none w-full"
+          className="
+            w-full px-3 py-1.5 rounded-lg
+            bg-background text-foreground
+            placeholder:text-muted-foreground
+            border border-input
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+          "
         />
       </div>
       <div className="overflow-auto max-h-[60vh] pr-1">
@@ -521,21 +528,50 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
                 </ChartContainer>
 
                 <div className="absolute top-2 right-2">
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 px-3"
                     onClick={() => setOpen(true)}
-                    className="px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-sm"
                     title="Ver ranking completo"
                   >
                     Ver todas
-                  </button>
+                  </Button>
                 </div>
 
                 {open && (
-                  <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-                    <div className="bg-neutral-900 rounded-2xl p-4 w-[880px] max-w-[96vw] max-h-[80vh] overflow-hidden">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    {/* overlay sem depender do tema */}
+                    <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
+
+                    {/* conteúdo do modal */}
+                    <div
+                      className="
+                        relative z-10 w-[880px] max-w-[96vw] max-h-[80vh] overflow-hidden
+                        bg-background text-foreground
+                        border border-border
+                        rounded-2xl shadow-xl
+                        p-4
+                      "
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="RNCs por Empresa — todas"
+                    >
                       <div className="flex items-center justify-between gap-3 pb-2">
-                        <h4 className="text-base font-semibold">RNCs por Empresa — todas ({total})</h4>
-                        <button onClick={() => setOpen(false)} className="px-2 py-1 rounded-md bg-neutral-800 hover:bg-neutral-700 text-sm">
+                        <h4 className="text-base font-semibold">
+                          RNCs por Empresa — todas ({total})
+                        </h4>
+
+                        {/* pode usar Button do shadcn aqui também */}
+                        <button
+                          onClick={() => setOpen(false)}
+                          className="
+                            px-2 py-1 rounded-md text-sm
+                            bg-muted hover:bg-muted/80
+                            border border-border
+                            transition-colors
+                          "
+                        >
                           Fechar
                         </button>
                       </div>
