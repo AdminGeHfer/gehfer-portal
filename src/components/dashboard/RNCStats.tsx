@@ -118,8 +118,8 @@ const CHART_COLORS = {
     tax: '#f6339a',
   },
   responsibles: {
-    'Arthur oliveira': '#7ccf00',
-    Pedro: '#00bc7d',
+    'Arthur oliveira': '#00bc7d',
+    Pedro: '#9b2323ff',
     Rafaela: '#e12afb',
     'Rodrigo mistura': '#155dfc',
     'Fabiana Meletti': '#fe9a00',
@@ -621,83 +621,6 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
           })()}
         </Card>
       </div>
-
-      {/* ===== Top Slow / Fast (Top 5 + colored bars) ===== */}
-      {Boolean((stats?.resolutionTopSlow?.length ?? 0) || (stats?.resolutionTopFast?.length ?? 0)) && (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 p-4">
-          <Card className="w-full p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-              RNCs que levaram MAIS tempo (Top 5)
-            </h3>
-            <div className="w-full h-[360px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={(stats?.resolutionTopSlow ?? [])
-                    .slice(0, 5)
-                    .map((r) => ({
-                      key: `${r.rnc_number} · ${r.company ?? '-'}`,
-                      hours: r.duration_hours ?? 0,
-                    }))}
-                  layout="vertical"
-                  margin={{ top: 8, right: 16, bottom: 8, left: 220 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    type="category"
-                    dataKey="key"
-                    width={220}
-                    tickFormatter={(v: string) => (v.length > 34 ? v.slice(0, 34) + '…' : v)}
-                  />
-                  <Tooltip formatter={(v: number) => [`${fmtHours(v)} h`, 'Duração']} />
-                  <Bar dataKey="hours" barSize={18} radius={[6, 6, 6, 6]}>
-                    {Array.from({ length: Math.min(5, stats?.resolutionTopSlow?.length ?? 0) }).map((_, i) => (
-                      <Cell key={`slow-${i}`} fill={TOP_SLOW_COLORS[i % TOP_SLOW_COLORS.length]} />
-                    ))}
-                    <LabelList dataKey="hours" position="right" formatter={(v: number) => `${fmtHours(v)} h`} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-
-          <Card className="w-full p-4 sm:p-6">
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-              RNCs que levaram MENOS tempo (Top 5)
-            </h3>
-            <div className="w-full h-[360px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={(stats?.resolutionTopFast ?? [])
-                    .slice(0, 5)
-                    .map((r) => ({
-                      key: `${r.rnc_number} · ${r.company ?? '-'}`,
-                      hours: r.duration_hours ?? 0,
-                    }))}
-                  layout="vertical"
-                  margin={{ top: 8, right: 16, bottom: 8, left: 220 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis
-                    type="category"
-                    dataKey="key"
-                    width={220}
-                    tickFormatter={(v: string) => (v.length > 34 ? v.slice(0, 34) + '…' : v)}
-                  />
-                  <Tooltip formatter={(v: number) => [`${fmtHours(v)} h`, 'Duração']} />
-                  <Bar dataKey="hours" barSize={18} radius={[6, 6, 6, 6]}>
-                    {Array.from({ length: Math.min(5, stats?.resolutionTopFast?.length ?? 0) }).map((_, i) => (
-                      <Cell key={`fast-${i}`} fill={TOP_FAST_COLORS[i % TOP_FAST_COLORS.length]} />
-                    ))}
-                    <LabelList dataKey="hours" position="right" formatter={(v: number) => `${fmtHours(v)} h`} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
