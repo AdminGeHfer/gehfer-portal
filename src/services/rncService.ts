@@ -24,14 +24,14 @@ export class ValidationError extends RNCError {
 
 const validateAttachment = (file: File): void => {
   const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'video/mp4', 'application/mp4', 'video/mpeg', 'video/ogg', 'video/webm'];
+  const ALLOWED_TYPES = ['application/pdf', 'application/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm', 'image/jpeg', 'image/png', 'video/mp4', 'video/mpeg', 'video/ogg', 'video/webm'];
   
   if (file.size > MAX_SIZE) {
     throw new ValidationError('Arquivo muito grande. Máximo permitido: 100 MB');
   }
   
   if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new ValidationError('Tipo de arquivo não permitido. Use: JPG, PNG, MP4, MPEG, OGG, WEBM ou PDF');
+    throw new ValidationError('Tipo de arquivo não permitido. Use: JPG, PNG, MP3, MP4, MPEG, OGG, WAV, WEBM ou PDF');
   }
 };
 
