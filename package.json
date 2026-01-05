@@ -69,7 +69,7 @@
     "html2pdf.js": "^0.10.3",
     "input-otp": "^1.2.4",
     "jsdom": "^25.0.1",
-    "langchain": "^0.3.7",
+    "langchain": "^0.3.37",
     "lucide-react": "^0.451.0",
     "next-themes": "^0.3.0",
     "openai": "^4.77.0",
