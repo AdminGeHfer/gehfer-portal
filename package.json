@@ -68,6 +68,7 @@
     "framer-motion": "^11.13.1",
     "html2pdf.js": "^0.10.3",
     "input-otp": "^1.2.4",
+    "jspdf": "^4.0.0",
     "jsdom": "^25.0.1",
     "langchain": "^0.3.37",
     "lucide-react": "^0.451.0",
@@ -130,6 +131,10 @@
   },
   "overrides": {
     "axios": "^1.8.4",
-    "vite": "^6.4.1"
+    "vite": "^6.4.1",
+    "jspdf": "^4.0.0",
+    "html2pdf.js": {
+      "jspdf": "^4.0.0"
+    }
   }
 }
