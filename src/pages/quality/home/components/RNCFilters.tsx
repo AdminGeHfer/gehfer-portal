@@ -112,13 +112,13 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
               {filters.startDate ? format(filters.startDate, "dd/MM/yyyy") : <span>Data Início</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border shadow-lg z-50" align="start">
             <Calendar
               mode="single"
               selected={filters.startDate || undefined}
               onSelect={(date) => onFilterChange('startDate', date || null)}
               initialFocus
-              className={cn("p-3 pointer-events-auto")}
+              className="rounded-md"
             />
           </PopoverContent>
         </Popover>
@@ -137,13 +137,13 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
               {filters.endDate ? format(filters.endDate, "dd/MM/yyyy") : <span>Data Fim</span>}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 bg-white dark:bg-gray-800 border shadow-lg z-50" align="start">
             <Calendar
               mode="single"
               selected={filters.endDate || undefined}
               onSelect={(date) => onFilterChange('endDate', date || null)}
               initialFocus
-              className={cn("p-3 pointer-events-auto")}
+              className="rounded-md"
             />
           </PopoverContent>
         </Popover>
