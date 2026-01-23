@@ -139,6 +139,73 @@ function buildKpis(rows: ResolutionTimeStats[]): ResolutionKpis | null {
   };
 }
 
+type RncChartRow = {
+  type: RncTypeEnum | null;
+  department: RncDepartmentEnum | null;
+  responsible: string | null;
+  company: string | null;
+};
+
+function buildTypeStats(rows: RncChartRow[]): TypeQualityStats[] {
+  const counts = new Map<RncTypeEnum, number>();
+  let nullCount = 0;
+  for (const row of rows) {
+    if (!row.type) {
+      nullCount += 1;
+      continue;
+    }
+    counts.set(row.type, (counts.get(row.type) ?? 0) + 1);
+  }
+  const out = Array.from(counts.entries()).map(([type, count]) => ({ type, count }));
+  if (nullCount > 0) out.push({ type: null, count: nullCount });
+  return out;
+}
+
+function buildDepartmentStats(rows: RncChartRow[]): DepartmentQualityStats[] {
+  const counts = new Map<RncDepartmentEnum, number>();
+  let nullCount = 0;
+  for (const row of rows) {
+    if (!row.department) {
+      nullCount += 1;
+      continue;
+    }
+    counts.set(row.department, (counts.get(row.department) ?? 0) + 1);
+  }
+  const out = Array.from(counts.entries()).map(([department, count]) => ({ department, count }));
+  if (nullCount > 0) out.push({ department: null, count: nullCount });
+  return out;
+}
+
+function buildResponsibleStats(rows: RncChartRow[]): ResponsibleQualityStats[] {
+  const counts = new Map<string, number>();
+  let nullCount = 0;
+  for (const row of rows) {
+    if (!row.responsible) {
+      nullCount += 1;
+      continue;
+    }
+    counts.set(row.responsible, (counts.get(row.responsible) ?? 0) + 1);
+  }
+  const out = Array.from(counts.entries()).map(([responsible, count]) => ({ responsible, count }));
+  if (nullCount > 0) out.push({ responsible: null, count: nullCount });
+  return out;
+}
+
+function buildCompanyStats(rows: RncChartRow[]): CompanyQualityStats[] {
+  const counts = new Map<string, number>();
+  let nullCount = 0;
+  for (const row of rows) {
+    if (!row.company) {
+      nullCount += 1;
+      continue;
+    }
+    counts.set(row.company, (counts.get(row.company) ?? 0) + 1);
+  }
+  const out = Array.from(counts.entries()).map(([company, count]) => ({ company, count }));
+  if (nullCount > 0) out.push({ company: null, count: nullCount });
+  return out;
+}
+
 export const useDashboardStats = (
   opts?: {
     /** resolution filters; if undefined, current month */
@@ -155,106 +222,158 @@ export const useDashboardStats = (
   const group = opts?.group ?? 'month';
   const topN = opts?.topN ?? 10;
 
+  const hasDateFilter = Boolean(opts?.start && opts?.end);
+
   const now = new Date();
   const defaultStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0));
   const defaultEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0));
 
-  const startISO = (opts?.start ?? defaultStart).toISOString();
-  const endISO = (opts?.end ?? defaultEnd).toISOString();
+  const filterStartISO = hasDateFilter ? opts!.start!.toISOString() : undefined;
+  const filterEndISO = hasDateFilter ? opts!.end!.toISOString() : undefined;
+
+  const monthStartISO = (hasDateFilter ? opts!.start! : defaultStart).toISOString();
+  const monthEndISO = (hasDateFilter ? opts!.end! : defaultEnd).toISOString();
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        
-        const { count: totalCount } = await supabase
+        setLoading(true);
+
+        let totalQuery = supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .is('deleted_at', null);
+        if (hasDateFilter) {
+          totalQuery = totalQuery.gte('created_at', filterStartISO!).lt('created_at', filterEndISO!);
+        }
+        const { count: totalCount } = await totalQuery;
 
         const { count: totalMonthlyCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .is('deleted_at', null)
-          .gte('created_at', startISO)
-          .lt('created_at', endISO);
+          .gte('created_at', monthStartISO)
+          .lt('created_at', monthEndISO);
 
-        const { count: pendingCount } = await supabase
+        let pendingQuery = supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'pending')
           .is('deleted_at', null);
+        if (hasDateFilter) {
+          pendingQuery = pendingQuery.gte('created_at', filterStartISO!).lt('created_at', filterEndISO!);
+        }
+        const { count: pendingCount } = await pendingQuery;
 
         const { count: pendingMonthlyCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'pending')
           .is('deleted_at', null)
-          .gte('created_at', startISO)
-          .lt('created_at', endISO);
+          .gte('created_at', monthStartISO)
+          .lt('created_at', monthEndISO);
 
-        const { count: canceledCount } = await supabase
+        let canceledQuery = supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'canceled')
           .is('deleted_at', null);
+        if (hasDateFilter) {
+          canceledQuery = canceledQuery.gte('created_at', filterStartISO!).lt('created_at', filterEndISO!);
+        }
+        const { count: canceledCount } = await canceledQuery;
 
-            const { count: canceledMonthlyCount } = await supabase
+        const { count: canceledMonthlyCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'canceled')
           .is('deleted_at', null)
-          .gte('created_at', startISO)
-          .lt('created_at', endISO);
+          .gte('created_at', monthStartISO)
+          .lt('created_at', monthEndISO);
 
-        const { count: collectedCount } = await supabase
+        let collectedQuery = supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'collect')
           .is('deleted_at', null);
+        if (hasDateFilter) {
+          collectedQuery = collectedQuery.gte('created_at', filterStartISO!).lt('created_at', filterEndISO!);
+        }
+        const { count: collectedCount } = await collectedQuery;
 
         const { count: collectedMonthlyCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'collect')
           .is('deleted_at', null)
-          .gte('created_at', startISO)
-          .lt('created_at', endISO);
+          .gte('created_at', monthStartISO)
+          .lt('created_at', monthEndISO);
 
-        const { count: concludedCount } = await supabase
+        let concludedQuery = supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'concluded')
           .is('deleted_at', null);
+        if (hasDateFilter) {
+          concludedQuery = concludedQuery.gte('created_at', filterStartISO!).lt('created_at', filterEndISO!);
+        }
+        const { count: concludedCount } = await concludedQuery;
 
         const { count: concludedMonthlyCount } = await supabase
           .from('rncs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'concluded')
           .is('deleted_at', null)
-          .gte('created_at', startISO)
-          .lt('created_at', endISO);
+          .gte('created_at', monthStartISO)
+          .lt('created_at', monthEndISO);
 
-        const { data: typeStats } = await supabase
-          .from('type_quality_dashboard_stats')
-          .select('*') as { data: TypeQualityStats[] | null };
+        let typeStats: TypeQualityStats[] | null = null;
+        let departmentStats: DepartmentQualityStats[] | null = null;
+        let responsibleStats: ResponsibleQualityStats[] | null = null;
+        let companyStats: CompanyQualityStats[] | null = null;
 
-        const { data: departmentStats } = await supabase
-          .from('department_quality_dashboard_stats')
-          .select('*') as { data: DepartmentQualityStats[] | null };
+        if (hasDateFilter) {
+          const { data: rncRows, error: rncErr } = await supabase
+            .from('rncs')
+            .select('type, department, responsible, company')
+            .is('deleted_at', null)
+            .gte('created_at', filterStartISO!)
+            .lt('created_at', filterEndISO!);
 
-        const { data: responsibleStats } = await supabase
-          .from('responsible_quality_dashboard_stats')
-          .select('*') as { data: ResponsibleQualityStats[] | null };
+          if (rncErr) throw rncErr;
+          const rows = (rncRows ?? []) as RncChartRow[];
+          typeStats = buildTypeStats(rows);
+          departmentStats = buildDepartmentStats(rows);
+          responsibleStats = buildResponsibleStats(rows);
+          companyStats = buildCompanyStats(rows);
+        } else {
+          const { data: typeStatsRaw } = await supabase
+            .from('type_quality_dashboard_stats')
+            .select('*') as { data: TypeQualityStats[] | null };
 
-        const { data: companyStats } = await supabase
-          .from('company_quality_dashboard_stats')
-          .select('*') as { data: CompanyQualityStats[] | null };
+          const { data: departmentStatsRaw } = await supabase
+            .from('department_quality_dashboard_stats')
+            .select('*') as { data: DepartmentQualityStats[] | null };
+
+          const { data: responsibleStatsRaw } = await supabase
+            .from('responsible_quality_dashboard_stats')
+            .select('*') as { data: ResponsibleQualityStats[] | null };
+
+          const { data: companyStatsRaw } = await supabase
+            .from('company_quality_dashboard_stats')
+            .select('*') as { data: CompanyQualityStats[] | null };
+
+          typeStats = typeStatsRaw;
+          departmentStats = departmentStatsRaw;
+          responsibleStats = responsibleStatsRaw;
+          companyStats = companyStatsRaw;
+        }
 
         const { data: resolutionRowsRaw, error: resErr } = await supabase
           .from('rnc_resolution_time')
           .select('*')
-          .gte('closed_at', startISO)
-          .lt('closed_at', endISO);
+          .gte('closed_at', monthStartISO)
+          .lt('closed_at', monthEndISO);
 
         if (resErr) throw resErr;
 
@@ -299,14 +418,15 @@ export const useDashboardStats = (
           resolutionKpis,
         });
       } catch (error) {
-        setError(error.message);
+        const err = error as Error;
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchStats();
-  }, [startISO, endISO, group, topN]);
+  }, [filterStartISO, filterEndISO, monthStartISO, monthEndISO, group, topN, hasDateFilter]);
 
   return { stats, loading, error };
 };
