@@ -20,15 +20,20 @@ export const DashboardHome = () => {
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
   
+  // Pending dates (selected but not applied)
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  
+  // Applied dates (used for filtering)
+  const [appliedStartDate, setAppliedStartDate] = useState<Date | undefined>(undefined);
+  const [appliedEndDate, setAppliedEndDate] = useState<Date | undefined>(undefined);
 
-  // Calculate the date range for the hook
+  // Calculate the date range for the hook using APPLIED dates
   const getDateRange = () => {
-    if (startDate && endDate) {
-      const start = new Date(startDate);
+    if (appliedStartDate && appliedEndDate) {
+      const start = new Date(appliedStartDate);
       start.setHours(0, 0, 0, 0);
-      const end = new Date(endDate);
+      const end = new Date(appliedEndDate);
       end.setHours(23, 59, 59, 999);
       return { start, end };
     }
@@ -40,6 +45,20 @@ export const DashboardHome = () => {
   const { stats, loading, error } = useDashboardStats(
     dateRange ? { start: dateRange.start, end: dateRange.end } : undefined
   );
+
+  const handleApplyFilters = () => {
+    setAppliedStartDate(startDate);
+    setAppliedEndDate(endDate);
+  };
+
+  const handleClearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setAppliedStartDate(undefined);
+    setAppliedEndDate(undefined);
+  };
+
+  const hasUnappliedChanges = startDate !== appliedStartDate || endDate !== appliedEndDate;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -135,15 +154,24 @@ export const DashboardHome = () => {
               </PopoverContent>
             </Popover>
 
+            {/* Apply Filters Button */}
+            {(startDate && endDate) && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleApplyFilters}
+                disabled={!hasUnappliedChanges}
+              >
+                Aplicar
+              </Button>
+            )}
+
             {/* Clear Filters Button */}
-            {(startDate || endDate) && (
+            {(startDate || endDate || appliedStartDate || appliedEndDate) && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  setStartDate(undefined);
-                  setEndDate(undefined);
-                }}
+                onClick={handleClearFilters}
                 className="text-muted-foreground hover:text-foreground"
               >
                 Limpar
