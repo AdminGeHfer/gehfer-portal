@@ -18,6 +18,8 @@ export const RNCHome = () => {
   const [selectedStatus, setSelectedStatus] = useState<RncStatusEnum | null>(null);
   const [selectedType, setSelectedType] = useState<RncTypeEnum | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<RncDepartmentEnum | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
@@ -30,21 +32,29 @@ export const RNCHome = () => {
     selectedType,
     selectedDepartment,
     searchTerm,
+    startDate,
+    endDate,
   });
 
-  const handleFilterChange = (key: string, value) => {
+  const handleFilterChange = (key: string, value: unknown) => {
     switch (key) {
       case 'searchTerm':
-        setSearchTerm(value);
+        setSearchTerm(value as string);
         break;
       case 'selectedStatus':
-        setSelectedStatus(value);
+        setSelectedStatus(value as RncStatusEnum | null);
         break;
       case 'selectedType':
-        setSelectedType(value);
+        setSelectedType(value as RncTypeEnum | null);
         break;
       case 'selectedDepartment':
-        setSelectedDepartment(value);
+        setSelectedDepartment(value as RncDepartmentEnum | null);
+        break;
+      case 'startDate':
+        setStartDate(value as Date | null);
+        break;
+      case 'endDate':
+        setEndDate(value as Date | null);
         break;
     }
   };
@@ -102,7 +112,9 @@ export const RNCHome = () => {
             searchTerm,
             selectedStatus,
             selectedType,
-            selectedDepartment
+            selectedDepartment,
+            startDate,
+            endDate,
           }}
           onFilterChange={handleFilterChange}
           onCreateRNC={() => setIsCreateModalOpen(true)}
