@@ -6,6 +6,8 @@ interface Filters {
   selectedStatus: RncStatusEnum | null;
   selectedType: RncTypeEnum | null;
   selectedDepartment: RncDepartmentEnum | null;
+  startDate: Date | null;
+  endDate: Date | null;
 }
 
 export const useRNCFilters = (rncs: RNCWithRelations[]) => {
@@ -14,11 +16,13 @@ export const useRNCFilters = (rncs: RNCWithRelations[]) => {
     selectedStatus: null,
     selectedType: null,
     selectedDepartment: null,
+    startDate: null,
+    endDate: null,
   });
 
   const [filteredRNCs, setFilteredRNCs] = useState<RNCWithRelations[]>(rncs);
 
-  const handleFilterChange = (key: keyof Filters, value) => {
+  const handleFilterChange = (key: keyof Filters, value: Filters[keyof Filters]) => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
@@ -54,6 +58,28 @@ export const useRNCFilters = (rncs: RNCWithRelations[]) => {
       filtered = filtered.filter(
         (rnc) => rnc.department === filters.selectedDepartment
       );
+    }
+
+    // Apply start date filter (closed_at >= startDate)
+    if (filters.startDate) {
+      const startOfDay = new Date(filters.startDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      filtered = filtered.filter((rnc) => {
+        if (!rnc.closed_at) return false;
+        const closedAt = new Date(rnc.closed_at);
+        return closedAt >= startOfDay;
+      });
+    }
+
+    // Apply end date filter (closed_at <= endDate)
+    if (filters.endDate) {
+      const endOfDay = new Date(filters.endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      filtered = filtered.filter((rnc) => {
+        if (!rnc.closed_at) return false;
+        const closedAt = new Date(rnc.closed_at);
+        return closedAt <= endOfDay;
+      });
     }
 
     setFilteredRNCs(filtered);

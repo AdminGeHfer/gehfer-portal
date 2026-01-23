@@ -2172,10 +2172,6 @@ export type Database = {
       }
     }
     Functions: {
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
-      }
       calculate_agent_metrics: {
         Args: { p_agent_id: string }
         Returns: {
@@ -2192,10 +2188,7 @@ export type Database = {
         Args: { p_assigned_at: string; p_closed_at?: string }
         Returns: number
       }
-      create_daily_rnc_events: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      create_daily_rnc_events: { Args: never; Returns: undefined }
       create_workflow_state_notifications: {
         Args: { p_state_id: string }
         Returns: number
@@ -2204,66 +2197,8 @@ export type Database = {
         Args: { p_state_id: string }
         Returns: number
       }
-      get_user_modules: {
-        Args: Record<PropertyKey, never>
-        Returns: string[]
-      }
-      get_workflow_status_label: {
-        Args: { status: string }
-        Returns: string
-      }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: string
-      }
+      get_user_modules: { Args: never; Returns: string[] }
+      get_workflow_status_label: { Args: { status: string }; Returns: string }
       log_agent_event: {
         Args: {
           p_agent_id: string
@@ -2287,91 +2222,56 @@ export type Database = {
           similarity: number
         }[]
       }
-      match_documents: {
-        Args:
-          | {
+      match_documents:
+        | {
+            Args: { match_count?: number; query_embedding: string }
+            Returns: {
+              content: string
+              id: string
+              metadata: Json
+              similarity: number
+            }[]
+          }
+        | {
+            Args: {
+              match_count: number
+              match_threshold: number
+              query_embedding: string
+            }
+            Returns: {
+              content: string
+              id: string
+              metadata: Json
+              similarity: number
+            }[]
+          }
+        | {
+            Args: {
               match_count: number
               match_threshold: number
               p_agent_id: string
               query_embedding: string
             }
-          | {
-              match_count: number
-              match_threshold: number
-              query_embedding: string
-            }
-          | { match_count?: number; query_embedding: string }
-        Returns: {
-          content: string
-          id: string
-          metadata: Json
-          similarity: number
-        }[]
-      }
-      postgres_fdw_disconnect: {
-        Args: { "": string }
-        Returns: boolean
-      }
-      postgres_fdw_disconnect_all: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+            Returns: {
+              content: string
+              id: string
+              metadata: Json
+              similarity: number
+            }[]
+          }
+      postgres_fdw_disconnect: { Args: { "": string }; Returns: boolean }
+      postgres_fdw_disconnect_all: { Args: never; Returns: boolean }
       postgres_fdw_get_connections: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Record<string, unknown>[]
       }
-      postgres_fdw_handler: {
-        Args: Record<PropertyKey, never>
-        Returns: unknown
-      }
+      postgres_fdw_handler: { Args: never; Returns: unknown }
       rollback_document_version: {
         Args: { p_document_id: string; p_version_id: string }
         Returns: undefined
       }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      update_all_rnc_days_left: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
-      verify_admin_role: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      update_all_rnc_days_left: { Args: never; Returns: undefined }
+      verify_admin_role: { Args: { user_id: string }; Returns: boolean }
     }
     Enums: {
       agent_type_enum: "openai" | "n8n" | "flowise"
