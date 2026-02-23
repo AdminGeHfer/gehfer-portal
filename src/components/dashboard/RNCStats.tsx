@@ -123,6 +123,8 @@ const CHART_COLORS = {
     Rafaela: '#e12afb',
     'Rodrigo mistura': '#155dfc',
     'Fabiana Meletti': '#fe9a00',
+    'Pedro azeredo picinato': '#ebe534',
+    'Caua batista': '#ae34eb',
   },
 };
 
