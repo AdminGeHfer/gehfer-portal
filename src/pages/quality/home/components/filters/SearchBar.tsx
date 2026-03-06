@@ -20,8 +20,8 @@ export const SearchBar = ({
   return (
     <div
       className={cn(
-        "transition-all duration-300 flex items-center gap-4",
-        isSearchExpanded ? "w-full md:w-[180px]" : "w-10"
+        "transition-all duration-300 flex items-center gap-2 min-w-0 overflow-hidden",
+        isSearchExpanded ? "w-full" : "w-10"
       )}
     >
       {isSearchExpanded ? (
@@ -31,11 +31,12 @@ export const SearchBar = ({
             placeholder="Pesquisar RNC (Número, Empresa)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white dark:bg-gray-800"
+            className="flex-1 min-w-0 bg-white dark:bg-gray-800"
           />
           <Button
             variant="ghost"
             size="icon"
+            className="shrink-0"
             onClick={() => {
               setIsSearchExpanded(false);
               setSearchQuery("");

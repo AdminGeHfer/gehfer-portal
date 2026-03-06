@@ -1,5 +1,6 @@
 import * as React from "react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +35,7 @@ interface RNCFiltersProps {
 
 export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersProps) {
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(false);
+  const today = new Date();
 
   return (
     <div className="space-y-4 mb-6">
@@ -119,6 +121,27 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
               onSelect={(date) => onFilterChange('startDate', date || null)}
               initialFocus
               className="rounded-md"
+              locale={ptBR}
+              footer={
+                <div className="flex items-center justify-end gap-2 border-t px-3 py-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onFilterChange('startDate', null)}
+                  >
+                    Limpar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterChange('startDate', today)}
+                  >
+                    Hoje
+                  </Button>
+                </div>
+              }
             />
           </PopoverContent>
         </Popover>
@@ -144,6 +167,27 @@ export function RNCFilters({ filters, onFilterChange, onCreateRNC }: RNCFiltersP
               onSelect={(date) => onFilterChange('endDate', date || null)}
               initialFocus
               className="rounded-md"
+              locale={ptBR}
+              footer={
+                <div className="flex items-center justify-end gap-2 border-t px-3 py-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onFilterChange('endDate', null)}
+                  >
+                    Limpar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFilterChange('endDate', today)}
+                  >
+                    Hoje
+                  </Button>
+                </div>
+              }
             />
           </PopoverContent>
         </Popover>
