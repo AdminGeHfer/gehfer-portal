@@ -59,6 +59,7 @@ export const DashboardHome = () => {
   };
 
   const hasUnappliedChanges = startDate !== appliedStartDate || endDate !== appliedEndDate;
+  const today = new Date();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -121,6 +122,26 @@ export const DashboardHome = () => {
                   initialFocus
                   className="pointer-events-auto"
                   locale={ptBR}
+                  footer={
+                    <div className="flex items-center justify-end gap-2 border-t px-3 py-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStartDate(undefined)}
+                      >
+                        Limpar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setStartDate(today)}
+                      >
+                        Hoje
+                      </Button>
+                    </div>
+                  }
                 />
               </PopoverContent>
             </Popover>
@@ -150,6 +171,26 @@ export const DashboardHome = () => {
                   initialFocus
                   className="pointer-events-auto"
                   locale={ptBR}
+                  footer={
+                    <div className="flex items-center justify-end gap-2 border-t px-3 py-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEndDate(undefined)}
+                      >
+                        Limpar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEndDate(today)}
+                      >
+                        Hoje
+                      </Button>
+                    </div>
+                  }
                 />
               </PopoverContent>
             </Popover>
@@ -187,7 +228,7 @@ export const DashboardHome = () => {
       <footer className="bottom-0 w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
         <div className="container mx-auto flex justify-center items-center bg-background/80 backdrop-blur-sm gap-3">
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
-            <a href="https://admingehfer.github.io/gehfer-portal-docs/license" rel="noreferrer" target="_blank"> © 2025 GeHfer </a>
+            <a href="https://admingehfer.github.io/gehfer-portal-docs/license" rel="noreferrer" target="_blank"> © {new Date().getFullYear()} GeHfer Industrial - Todos os direitos reservados. </a>
           </Button>
           <Button variant="ghost" size="sm" className="text-xs text-muted-foreground">
             <a href="https://admingehfer.github.io/gehfer-portal-docs" rel="noreferrer" target="_blank"> Sobre </a>

@@ -479,8 +479,8 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
                 const data = (stats?.responsibleStats ?? []).filter((s) => s.responsible !== null);
 
                 return (
-                  <PieChart>
-                    <Pie data={data} dataKey="count" nameKey="responsible" cx="50%" cy="50%" outerRadius={110} innerRadius={0} isAnimationActive>
+                  <PieChart margin={{ top: 8, right: 12, left: 12, bottom: 96 }}>
+                    <Pie data={data} dataKey="count" nameKey="responsible" cx="50%" cy="42%" outerRadius={92} innerRadius={0} isAnimationActive>
                       {data.map((entry, index) => {
                         const color =
                           CHART_COLORS.responsibles[(entry.responsible as keyof typeof CHART_COLORS.responsibles) || ''] ??
@@ -506,7 +506,8 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
                     />
                     <Legend
                       verticalAlign="bottom"
-                      height={48}
+                      height={84}
+                      wrapperStyle={{ paddingTop: 12 }}
                       content={(props) => (
                         <ClickableLegend
                           {...props}
