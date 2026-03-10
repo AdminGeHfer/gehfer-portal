@@ -9,7 +9,7 @@ const N8N_WEBHOOK_URL = Deno.env.get("N8N_WEBHOOK_URL");
 const N8N_WEBHOOK_TOKEN = Deno.env.get("N8N_WEBHOOK_TOKEN");
 
 interface EmailRequest {
-  from: string;
+  from?: string;
   to: string[];
   subject: string;
   html: string;
@@ -56,7 +56,6 @@ const handler = async (req: Request): Promise<Response> => {
     const emailRequest: EmailRequest = await req.json();
     if (
       !emailRequest ||
-      !isValidEmail(emailRequest.from) ||
       !Array.isArray(emailRequest.to) ||
       emailRequest.to.length === 0 ||
       emailRequest.to.some((toEmail) => !isValidEmail(toEmail)) ||
@@ -122,6 +121,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (EMAIL_PROVIDER !== "resend") {
       throw new Error("Invalid EMAIL_PROVIDER. Supported values: n8n, resend");
+    }
+
+    if (!emailRequest.from || !isValidEmail(emailRequest.from)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email payload: 'from' is required for EMAIL_PROVIDER=resend" }),
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+      );
     }
 
     if (!RESEND_API_KEY) {
