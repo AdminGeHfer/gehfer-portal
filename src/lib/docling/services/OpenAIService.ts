@@ -1,50 +1,42 @@
 import { supabase } from "@/integrations/supabase/client";
-import OpenAI from "openai";
 
 export class OpenAIService {
-  private openai: OpenAI | null = null;
+  private initialized = false;
 
-  async initialize(): Promise<OpenAI> {
+  async initialize(): Promise<boolean> {
     try {
-      const { data: secrets, error } = await supabase
-        .from('secrets')
-        .select('value')
-        .eq('name', 'OPENAI_API_KEY')
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!secrets?.value) {
-        throw new Error(
-          "OpenAI API key not found in Supabase secrets. Please add it in the project settings."
-        );
-      }
-
-      this.openai = new OpenAI({
-        apiKey: secrets.value,
+      const { data, error } = await supabase.functions.invoke("process-openai", {
+        body: { action: "test" },
       });
+      if (error) throw error;
+      if (!data?.success) throw new Error("OpenAI validation failed");
 
-      return this.openai;
+      this.initialized = true;
+      return true;
     } catch (error) {
-      console.error('Error initializing OpenAI:', error);
-      if (error.message.includes('contains 0 rows')) {
-        throw new Error(
-          "OpenAI API key not found in Supabase secrets. Please add it in the project settings."
-        );
-      }
-      throw new Error("Failed to initialize OpenAI client. Please ensure the API key is set in Supabase secrets.");
+      console.error("Error initializing OpenAI service", error);
+      throw new Error("Failed to initialize OpenAI service.");
     }
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
-    if (!this.openai) {
+    if (!this.initialized) {
       throw new Error("OpenAI service not initialized");
     }
 
-    const response = await this.openai.embeddings.create({
-      input: text,
-      model: 'text-embedding-3-small'
-    });
+    if (!text || text.trim().length < 1) {
+      throw new Error("Invalid input text");
+    }
 
-    return response.data[0].embedding;
+    const { data, error } = await supabase.functions.invoke("process-openai", {
+      body: {
+        action: "embedding",
+        content: text,
+      },
+    });
+    if (error) throw error;
+    if (!data?.embedding) throw new Error("No embedding returned");
+
+    return data.embedding as number[];
   }
 }

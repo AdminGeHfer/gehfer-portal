@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { TruckFormData } from "@/types/truck";
+import { validateFileSecurity } from "@/utils/fileSecurity";
 
 export const api = {
   async fetchTrucks() {
@@ -56,6 +57,13 @@ export const api = {
       let finalKmPhotoUrl = null;
 
       if (data.initialKmPhoto) {
+        const validation = validateFileSecurity(data.initialKmPhoto, {
+          maxSizeBytes: 8 * 1024 * 1024,
+          allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+          allowedExtensions: ["jpg", "jpeg", "png", "webp"],
+        });
+        if (!validation.valid) throw new Error(validation.error);
+
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('tachograph')
           .upload(`${truckData.id}/initial-km.jpg`, data.initialKmPhoto);
@@ -65,6 +73,13 @@ export const api = {
       }
 
       if (data.finalKmPhoto) {
+        const validation = validateFileSecurity(data.finalKmPhoto, {
+          maxSizeBytes: 8 * 1024 * 1024,
+          allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+          allowedExtensions: ["jpg", "jpeg", "png", "webp"],
+        });
+        if (!validation.valid) throw new Error(validation.error);
+
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('tachograph')
           .upload(`${truckData.id}/final-km.jpg`, data.finalKmPhoto);

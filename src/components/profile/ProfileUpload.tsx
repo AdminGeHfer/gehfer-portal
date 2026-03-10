@@ -5,6 +5,7 @@ import { Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { validateFileSecurity } from "@/utils/fileSecurity";
 
 export function ProfileUpload() {
   const [uploading, setUploading] = useState(false);
@@ -32,6 +33,14 @@ export function ProfileUpload() {
       setUploading(true);
       const file = event.target.files?.[0];
       if (!file) return;
+      const validation = validateFileSecurity(file, {
+        maxSizeBytes: 5 * 1024 * 1024,
+        allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+        allowedExtensions: ["jpg", "jpeg", "png", "webp"],
+      });
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not found");
@@ -59,7 +68,7 @@ export function ProfileUpload() {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       toast.success("Foto de perfil atualizada com sucesso!");
     } catch (error) {
-      toast.error("Erro ao atualizar foto de perfil: " + error.message);
+      toast.error("Erro ao atualizar foto de perfil: " + (error instanceof Error ? error.message : "Erro inesperado"));
     } finally {
       setUploading(false);
     }

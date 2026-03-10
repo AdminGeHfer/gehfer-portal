@@ -1,2 +1,4 @@
 project_id = "ccrrssmexnbwmrudhggz"
 name = "process-document"
+[functions.process-document]
+verify_jwt = true

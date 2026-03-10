@@ -1,13 +1,16 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { getCorsHeaders, handleCors } from '../_shared/cors.ts'
+import { requireServiceRoleToken } from '../_shared/auth.ts'
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
+
+  if (!requireServiceRoleToken(req)) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+    )
   }
 
 // Inside the edge function
@@ -65,17 +68,17 @@ try {
     return new Response(
       JSON.stringify({ success: true, count: rncs.length }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
         status: 200,
       }
     )
 
   } catch (error) {
-    console.error('Error in daily-rnc-events:', error)
+    console.error('Error in daily-rnc-events')
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Daily event generation failed" }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
         status: 500,
       }
     )

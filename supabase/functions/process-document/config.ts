@@ -8,8 +8,3 @@ export const CONFIG = {
   BATCH_SIZE: 2, // Process in smaller batches
   INTER_CHUNK_DELAY: 500
 };
-
-export const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};

@@ -16,3 +16,9 @@ O Portal GeHfer é uma aplicação web modular para gerenciamento de operações
 Em caso de problemas:
 1. Verifique as permissões do seu usuário
 2. Entre em contato com o suporte
+
+## Segurança (variáveis obrigatórias)
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `CORS_ALLOWED_ORIGINS` (lista separada por vírgula, obrigatória em produção)
+- `INTERNAL_JOB_TOKEN` (recomendado para jobs internos/cron)
