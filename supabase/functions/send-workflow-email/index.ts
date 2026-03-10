@@ -3,7 +3,10 @@ import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { requireServiceRoleToken } from "../_shared/auth.ts";
 import { checkRateLimit, getRateLimitKey } from "../_shared/rateLimit.ts";
 
+const EMAIL_PROVIDER = (Deno.env.get("EMAIL_PROVIDER") ?? "n8n").toLowerCase();
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const N8N_WEBHOOK_URL = Deno.env.get("N8N_WEBHOOK_URL");
+const N8N_WEBHOOK_TOKEN = Deno.env.get("N8N_WEBHOOK_TOKEN");
 
 interface EmailRequest {
   from: string;
@@ -69,8 +72,60 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    if (EMAIL_PROVIDER === "n8n") {
+      if (!N8N_WEBHOOK_URL) {
+        throw new Error("N8N_WEBHOOK_URL is not configured");
+      }
+
+      const webhookHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (N8N_WEBHOOK_TOKEN) {
+        webhookHeaders["x-webhook-token"] = N8N_WEBHOOK_TOKEN;
+      }
+
+      const res = await fetch(N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: webhookHeaders,
+        body: JSON.stringify({
+          ...emailRequest,
+          provider: "gmail",
+          source: "supabase-send-workflow-email",
+          sent_at: new Date().toISOString(),
+        }),
+      });
+
+      const responseText = await res.text();
+      let responseData: unknown = {};
+      try {
+        responseData = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        responseData = { raw: responseText };
+      }
+
+      if (!res.ok) {
+        return new Response(
+          JSON.stringify({ error: "N8N webhook request failed", details: responseData }),
+          {
+            status: 502,
+            headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      return new Response(JSON.stringify({ success: true, provider: "n8n", data: responseData }), {
+        status: 200,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      });
+    }
+
+    if (EMAIL_PROVIDER !== "resend") {
+      throw new Error("Invalid EMAIL_PROVIDER. Supported values: n8n, resend");
+    }
+
     if (!RESEND_API_KEY) {
-      throw new Error("RESEND_API_KEY is not configured");
+      throw new Error("RESEND_API_KEY is not configured for EMAIL_PROVIDER=resend");
     }
 
     const res = await fetch("https://api.resend.com/emails", {
