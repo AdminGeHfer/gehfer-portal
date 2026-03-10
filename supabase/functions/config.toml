@@ -1,5 +1,31 @@
 project_id = "ccrrssmexnbwmrudhggz"
+
+[functions.admin-reset-password]
+verify_jwt = true
+
 [functions.chat-completion]
 verify_jwt = true
+
 [functions.cleanup-memory]
+verify_jwt = true
+
+[functions.daily-rnc-events]
+verify_jwt = true
+
+[functions.get-openai-key]
+verify_jwt = true
+
+[functions.process-document]
+verify_jwt = true
+
+[functions.process-openai]
+verify_jwt = true
+
+[functions.process-semantic-chunks]
+verify_jwt = true
+
+[functions.semantic-search]
+verify_jwt = true
+
+[functions.send-workflow-email]
 verify_jwt = true

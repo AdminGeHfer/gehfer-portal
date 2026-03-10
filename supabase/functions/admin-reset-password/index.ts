@@ -1,10 +1,31 @@
 import { createClient } from '@supabase/supabase-js'
-import { corsHeaders } from '../_shared/cors.ts'
+import { getCorsHeaders, handleCors } from '../_shared/cors.ts'
+import { checkRateLimit, getRateLimitKey } from '../_shared/rateLimit.ts'
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+  const corsResponse = handleCors(req)
+  if (corsResponse) return corsResponse
+
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { status: 405, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+    )
+  }
+
+  const limit = checkRateLimit(getRateLimitKey(req), 10, 60_000)
+  if (!limit.allowed) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests" }),
+      {
+        status: 429,
+        headers: {
+          ...getCorsHeaders(req),
+          "Content-Type": "application/json",
+          "Retry-After": String(limit.retryAfterSec),
+        },
+      },
+    )
   }
 
   try {
@@ -52,14 +73,19 @@ Deno.serve(async (req) => {
     })
 
     if (adminError || !isAdmin) {
-      console.error('Admin verification failed for user:', user.id, adminError)
+      console.error('Admin verification failed')
       throw new Error('Admin privileges required')
     }
 
     const { userId, password } = await req.json()
-    console.log('Admin', user.id, 'attempting to reset password for user:', userId)
+    if (typeof userId !== "string" || !/^[0-9a-f-]{36}$/i.test(userId)) {
+      throw new Error("Invalid target user id");
+    }
+    if (typeof password !== "string" || password.length < 8 || password.length > 128) {
+      throw new Error("Invalid password policy");
+    }
 
-    const { data, error } = await supabase.auth.admin.updateUserById(
+    const { error } = await supabase.auth.admin.updateUserById(
       userId,
       { password: password }
     )
@@ -69,16 +95,15 @@ Deno.serve(async (req) => {
       throw error
     }
 
-    console.log('Password reset successful for user:', userId)
     return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       status: 200,
     })
 
   } catch (error) {
-    console.error('Error in admin-reset-password function:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    console.error('Error in admin-reset-password function', error)
+    return new Response(JSON.stringify({ error: "Failed to reset password" }), {
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       status: 400,
     })
   }

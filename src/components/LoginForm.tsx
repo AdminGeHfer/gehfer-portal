@@ -16,11 +16,9 @@ const LoginForm = (): JSX.Element => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    console.log('Login attempt started with email:', email);
     
     if (email && password) {
       try {
-        console.log('Attempting to sign in with Supabase...');
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -36,10 +34,8 @@ const LoginForm = (): JSX.Element => {
           return;
         }
 
-        console.log('Login successful:', data);
-        
         // Get user profile
-        const { data: profile, error: profileError } = await supabase
+        const { error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', data.user.id)
@@ -47,8 +43,6 @@ const LoginForm = (): JSX.Element => {
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
-        } else {
-          console.log('User profile:', profile);
         }
 
         toast({
@@ -65,7 +59,6 @@ const LoginForm = (): JSX.Element => {
         });
       }
     } else {
-      console.log('Login validation failed - missing email or password');
       toast({
         variant: "destructive",
         title: "Erro ao fazer login",

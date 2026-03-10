@@ -1,16 +1,54 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 import OpenAI from "https://esm.sh/openai@4.24.1"
-import { CONFIG, CORS_HEADERS } from "./config.ts"
+import { CONFIG } from "./config.ts"
+import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAuthenticatedUser } from "../_shared/auth.ts";
+import { checkRateLimit, getRateLimitKey } from "../_shared/rateLimit.ts";
+
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = new Set([
+  "text/plain",
+  "text/markdown",
+  "application/json",
+  "application/pdf",
+]);
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: CORS_HEADERS });
+  const corsResponse = handleCors(req);
+  if (corsResponse) return corsResponse;
+
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { status: 405, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+    );
+  }
+
+  const user = await requireAuthenticatedUser(req);
+  if (!user) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+    );
+  }
+
+  const limit = checkRateLimit(getRateLimitKey(req, user.id), 8, 60_000);
+  if (!limit.allowed) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests" }),
+      {
+        status: 429,
+        headers: {
+          ...getCorsHeaders(req),
+          "Content-Type": "application/json",
+          "Retry-After": String(limit.retryAfterSec),
+        },
+      },
+    );
   }
 
   try {
-    console.log('Starting document processing');
-    
     const openai = new OpenAI({
       apiKey: Deno.env.get('OPENAI_API_KEY'),
     });
@@ -19,24 +57,51 @@ serve(async (req) => {
     const file = formData.get('file');
     const agentId = formData.get('agentId');
 
-    if (!file) {
-      throw new Error('No file provided');
+    if (!(file instanceof File)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid file payload" }),
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+      );
+    }
+
+    if (file.size <= 0 || file.size > MAX_FILE_SIZE) {
+      return new Response(
+        JSON.stringify({ error: "Invalid file size" }),
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!ALLOWED_MIME_TYPES.has(file.type)) {
+      return new Response(
+        JSON.stringify({ error: "File type not allowed" }),
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+      );
+    }
+
+    if (agentId && (typeof agentId !== "string" || !/^[0-9a-f-]{36}$/i.test(agentId))) {
+      return new Response(
+        JSON.stringify({ error: "Invalid agent ID" }),
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+      );
     }
 
     const content = await file.text();
-    console.log(`Content length: ${content.length} characters`);
+    if (content.trim().length < 10) {
+      return new Response(
+        JSON.stringify({ error: "File content too short" }),
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } },
+      );
+    }
 
     // Process in smaller chunks to manage memory better
     const chunks = splitIntoChunks(content, CONFIG.CHUNK_SIZE, CONFIG.CHUNK_OVERLAP);
-    console.log(`Split into ${chunks.length} chunks`);
-    
+
     const processedChunks = [];
-    
+
     // Process chunks in batches to avoid memory issues
     for (let i = 0; i < chunks.length; i += CONFIG.BATCH_SIZE) {
       const batch = chunks.slice(i, i + CONFIG.BATCH_SIZE);
-      console.log(`Processing batch ${i / CONFIG.BATCH_SIZE + 1} of ${Math.ceil(chunks.length / CONFIG.BATCH_SIZE)}`);
-      
+
       const batchResults = await Promise.all(
         batch.map(async (chunk, index) => {
           try {
@@ -50,7 +115,7 @@ serve(async (req) => {
               }
             };
           } catch (error) {
-            console.error(`Error processing chunk ${i + index}:`, error);
+            console.error(`Error processing chunk ${i + index}`);
             throw error;
           }
         })
@@ -69,10 +134,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Creating document record');
     const { data: documentData, error: documentError } = await supabase
       .from('documents')
       .insert({
+        created_by: user.id,
         metadata: {
           filename: file.name,
           contentType: file.type,
@@ -87,11 +152,10 @@ serve(async (req) => {
       .single();
 
     if (documentError) {
-      console.error('Error creating document:', documentError);
+      console.error('Error creating document');
       throw documentError;
     }
 
-    console.log('Inserting document chunks');
     const { error: chunksError } = await supabase
       .from('document_chunks')
       .insert(
@@ -104,7 +168,7 @@ serve(async (req) => {
       );
 
     if (chunksError) {
-      console.error('Error inserting chunks:', chunksError);
+      console.error('Error inserting chunks');
       throw chunksError;
     }
 
@@ -113,12 +177,12 @@ serve(async (req) => {
       const { error: assocError } = await supabase
         .from('ai_agent_documents')
         .insert({
-          agent_id: agentId,
+          agent_id: agentId as string,
           document_id: documentData.id
         });
 
       if (assocError) {
-        console.error('Error creating association:', assocError);
+        console.error('Error creating association');
         throw assocError;
       }
     }
@@ -129,16 +193,16 @@ serve(async (req) => {
         documentId: documentData.id,
         chunksCount: processedChunks.length 
       }),
-      { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      { headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error processing document:', error);
+    console.error('Error processing document');
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Document processing failed" }),
       { 
         status: 500,
-        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
       }
     );
   }
