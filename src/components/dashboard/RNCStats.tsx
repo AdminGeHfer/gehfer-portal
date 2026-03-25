@@ -311,43 +311,43 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
     <div>
       {/* ===== KPI CARDS (Status) ===== */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
-        <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="total">
           <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">Total</h3>
           <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">{stats?.totalRNCs ?? 0}</p>
         </div>
-        <div className="bg-yellow-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-yellow-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="total">
           <h3 className="text-lg font-semibold text-yellow-700  dark:text-yellow-500">Pendentes</h3>
           <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats?.pendingRNCs ?? 0}</p>
         </div>
-        <div className="bg-blue-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-blue-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="total">
           <h3 className="text-lg font-semibold text-blue-700  dark:text-blue-500">Coletadas</h3>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats?.collectedRNCs ?? 0}</p>
         </div>
-        <div className="bg-green-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-green-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="total">
           <h3 className="text-lg font-semibold text-green-700 dark:text-green-500">Solucionadas</h3>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats?.concludedRNCs ?? 0}</p>
         </div>
-        <div className="bg-red-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-red-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="total">
           <h3 className="text-lg font-semibold text-red-700 dark:text-red-500">Canceladas</h3>
           <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.canceledRNCs ?? 0}</p>
         </div>
-        <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="monthly">
           <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">Total (mês)</h3>
           <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">{stats?.totalMonthlyRNCs ?? 0}</p>
         </div>
-        <div className="bg-yellow-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-yellow-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="monthly">
           <h3 className="text-lg font-semibold text-yellow-700  dark:text-yellow-500">Pendentes (mês)</h3>
           <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats?.pendingMonthlyRNCs ?? 0}</p>
         </div>
-        <div className="bg-blue-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-blue-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="monthly">
           <h3 className="text-lg font-semibold text-blue-700  dark:text-blue-500">Coletadas (mês)</h3>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats?.collectedMonthlyRNCs ?? 0}</p>
         </div>
-        <div className="bg-green-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-green-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="monthly">
           <h3 className="text-lg font-semibold text-green-700 dark:text-green-500">Solucionadas (mês)</h3>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats?.concludedMonthlyRNCs ?? 0}</p>
         </div>
-        <div className="bg-red-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="bg-red-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="monthly">
           <h3 className="text-lg font-semibold text-red-700 dark:text-red-500">Canceladas (mês)</h3>
           <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats?.canceledMonthlyRNCs ?? 0}</p>
         </div>
@@ -356,7 +356,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
       {/* ===== Resolution KPI Cards (kept) ===== */}
       {stats?.resolutionKpis && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-5">
-          <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+          <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="resolution">
             <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">Tempo médio (h)</h3>
             <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">
               {fmtHours(stats.resolutionKpis.avg_hours)}
@@ -365,7 +365,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
               Mediana {fmtHours(stats.resolutionKpis.p50_hours)} · P90 {fmtHours(stats.resolutionKpis.p90_hours)}
             </p>
           </div>
-          <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow">
+          <div className="bg-slate-100 dark:bg-gray-800 p-4 rounded-lg shadow" data-pdf-card-group="resolution">
             <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">Min / Max (h)</h3>
             <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">
               {fmtHours(stats.resolutionKpis.min_hours)} / {fmtHours(stats.resolutionKpis.max_hours)}
@@ -380,7 +380,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
       {/* ===== Main Charts (Type / Department / Responsible / Company) ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-4">
         {/* Bar Chart (Type) */}
-        <Card className="w-full p-4 sm:p-6">
+        <Card className="w-full p-4 sm:p-6" data-pdf-chart="type">
           <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">RNCs por Tipo</h3>
           <div className="w-full h-[300px] sm:h-[400px]">
             <ChartContainer
@@ -417,7 +417,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
         </Card>
 
         {/* Bar Chart (Department) */}
-        <Card className="w-full p-4 sm:p-6">
+        <Card className="w-full p-4 sm:p-6" data-pdf-chart="department">
           <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">RNCs por Departamento</h3>
           <div className="w-full h-[300px] sm:h-[400px]">
             <ChartContainer
@@ -460,7 +460,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
         </Card>
 
         {/* Pie Chart (Responsible) with interactive legend */}
-        <Card className="w-full p-4 sm:p-6">
+        <Card className="w-full p-4 sm:p-6" data-pdf-chart="responsible">
           <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">RNCs por Responsável</h3>
           <div className="w-full h-[300px] sm:h-[400px]">
             <ChartContainer
@@ -524,7 +524,7 @@ export function RNCStats({ stats, isLoading, error }: RNCStatsProps) {
         </Card>
 
         {/* Company: Horizontal Bar Top-N + "Outros" + modal "Ver todas" */}
-        <Card className="w-full p-4 sm:p-6">
+        <Card className="w-full p-4 sm:p-6" data-pdf-chart="company">
           <h3 className="text-lg sm:text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">RNCs por Empresa</h3>
           {(() => {
             const [open, setOpen] = React.useState(false);
